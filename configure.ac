@@ -28,5 +28,5 @@ AC_SUBST(COQRFLAG, ['-R . Flocq'])
 AC_ARG_ENABLE([prefix], AS_HELP_STRING([--disable-prefix], [do not compile files into a Flocq module]),
   [if test "$enable_prefix" = "no"; then COQRFLAG= ; fi], [])
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT

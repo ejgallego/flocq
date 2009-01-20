@@ -230,6 +230,7 @@ now apply H2.
 now apply Ropp_le_contravar.
 Qed.
 
+(*
 Theorem satisfies_any_imp_ZR: forall (F:R->Prop),
    satisfies_any F ->
        exists rnd:R-> R, Rnd_ZR R_whole F rnd.
@@ -241,7 +242,7 @@ exists (fun x =>  match Rle_dec 0 x with
 split ; intros x (_, Hx).
 (* rnd DN *)
 destruct (Rle_dec 0 x) as [_|H'].
-apply H3.
+now apply H3.
 elim (H' Hx).
 (* rnd UP *)
 destruct (Rle_dec 0 x) as [H'|H'].
@@ -757,5 +758,6 @@ intros.
 apply Rnd_DN_is_rounding.
 eapply FIX_format_satisfies_DN_UP.
 Qed.
+*)
 
-End RND.
+End RND_ex.
