@@ -22,14 +22,15 @@ Definition MonotoneP (D: R -> Prop) (rnd : R -> R) :=
   forall x y: R, D x -> D y ->
      (x <= y)%R -> (rnd x <= rnd y)%R.
 
+(*
 Definition InvolutiveP (D: R -> Prop) (rnd : R -> R) :=
   forall x : R, D x -> rnd (rnd x) = rnd x.
-
+*)
 
 Definition Rounding_for_Format (D:R->Prop) (F : R -> Prop) (rnd : R->R) :=
-   MonotoneP D rnd /\ InvolutiveP D rnd 
-           /\  forall x : R, D x -> F (rnd x)
-           /\  forall x : R, D x -> F x -> rnd x =x. 
+   MonotoneP D rnd
+           /\ (forall x : R, D x -> F (rnd x))
+           /\ (forall x : R, D x -> F x -> rnd x = x).
 
 
 (* unbounded floating-point format *)
@@ -63,17 +64,17 @@ End Def.
 Section RND.
 
 (* property of being a rounding toward -inf *)
-Definition Rnd_DN (D:R->Prop) (F : R -> Prop) (rnd : R->R) :=
-  forall x:R, D x ->  
-     F (rnd x) /\ (rnd x <= x)%R /\
-     forall g : R, F g -> (g <= x)%R -> (g <= rnd x)%R.
+Definition Rnd_DN (D : R -> Prop) (F : R -> Prop) (rnd : R -> R) :=
+  forall x : R, D x ->  
+  D (rnd x) /\ F (rnd x) /\ (rnd x <= x)%R /\
+  forall g : R, F g -> (g <= x)%R -> (g <= rnd x)%R.
 
 
 (* property of being a rounding toward +inf *)
-Definition Rnd_UP (D:R->Prop) (F : R -> Prop) (rnd : R->R) :=
-  forall x:R, D x ->  
-     F (rnd x) /\ (x <= rnd x)%R /\
-     forall g : R, F g -> (x <= g)%R -> (rnd x <= g)%R.
+Definition Rnd_UP (D : R -> Prop) (F : R -> Prop) (rnd : R -> R) :=
+  forall x : R, D x ->
+  D (rnd x) /\ F (rnd x) /\ (x <= rnd x)%R /\
+  forall g : R, F g -> (x <= g)%R -> (rnd x <= g)%R.
 
 (* property of being a rounding toward zero *)
 Definition Rnd_ZR (D:R->Prop) (F : R -> Prop) (rnd : R->R) :=
