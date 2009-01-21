@@ -22,15 +22,13 @@ Definition MonotoneP (D: R -> Prop) (rnd : R -> R) :=
   forall x y: R, D x -> D y ->
      (x <= y)%R -> (rnd x <= rnd y)%R.
 
-(*
-Definition InvolutiveP (D: R -> Prop) (rnd : R -> R) :=
-  forall x : R, D x -> rnd (rnd x) = rnd x.
-*)
+
+Definition InvolutiveP (D F : R -> Prop) (rnd : R -> R) :=
+    (forall x : R, D x -> F (rnd x))
+        /\ (forall x : R, D x -> F x -> rnd x = x). 
 
 Definition Rounding_for_Format (D:R->Prop) (F : R -> Prop) (rnd : R->R) :=
-   MonotoneP D rnd
-           /\ (forall x : R, D x -> F (rnd x))
-           /\ (forall x : R, D x -> F x -> rnd x = x).
+   MonotoneP D rnd /\ InvolutiveP  D F rnd.
 
 
 (* unbounded floating-point format *)
@@ -64,17 +62,22 @@ End Def.
 Section RND.
 
 (* property of being a rounding toward -inf *)
-Definition Rnd_DN (D : R -> Prop) (F : R -> Prop) (rnd : R -> R) :=
-  forall x : R, D x ->  
-  D (rnd x) /\ F (rnd x) /\ (rnd x <= x)%R /\
-  forall g : R, F g -> (g <= x)%R -> (g <= rnd x)%R.
+Definition Rnd_DN_pt (F : R -> Prop) (x f : R) :=
+  F f /\ (f <= x)%R /\
+  forall g : R, F g -> (g <= x)%R -> (g <= f)%R.
 
+Definition Rnd_DN (D : R -> Prop) (F : R -> Prop) (rnd : R -> R) :=
+  forall x : R, D x ->
+  D (rnd x) /\ Rnd_DN_pt F x (rnd x).
 
 (* property of being a rounding toward +inf *)
+Definition Rnd_UP_pt (F : R -> Prop) (x f : R) :=
+  F f /\ (x <= f)%R /\
+  forall g : R, F g -> (x <= g)%R -> (f <= g)%R.
+
 Definition Rnd_UP (D : R -> Prop) (F : R -> Prop) (rnd : R -> R) :=
   forall x : R, D x ->
-  D (rnd x) /\ F (rnd x) /\ (x <= rnd x)%R /\
-  forall g : R, F g -> (x <= g)%R -> (rnd x <= g)%R.
+  D (rnd x) /\ Rnd_UP_pt F x (rnd x).
 
 (* property of being a rounding toward zero *)
 Definition Rnd_ZR (D:R->Prop) (F : R -> Prop) (rnd : R->R) :=
@@ -90,8 +93,10 @@ assert (F 0%R).
 replace 0%R with (rnd 0%R).
 eapply H1 ; repeat split ; apply Rle_refl.
 apply Rle_antisym.
-now destruct (H1 0%R); repeat split ; auto with real.
-now destruct (H2 0%R); repeat split ; auto with real.
+destruct (H1 0%R); repeat split ; auto with real.
+apply H0.
+destruct (H2 0%R); repeat split ; auto with real.
+apply H0.
 intros x.
 destruct (Rle_or_lt 0 x).
 (* positive *)
@@ -123,11 +128,13 @@ Qed.
 
 
 (* property of being a rounding to nearest *)
-Definition Rnd_N (D:R->Prop) (F : R -> Prop) (rnd : R->R) :=
-  forall x:R, D x ->  
-     F (rnd x) /\
-     forall g : R, F g -> (Rabs (rnd x-x) <= Rabs (g-x))%R.
+Definition Rnd_N_pt (F : R -> Prop) (x f : R) :=
+  F f /\
+  forall g : R, F g -> (Rabs (f - x) <= Rabs (g - x))%R.
 
+Definition Rnd_N (D : R -> Prop) (F : R -> Prop) (rnd : R -> R) :=
+  forall x : R, D x ->  
+  Rnd_N_pt F x (rnd x).
 
 Definition Rnd_NA (D:R->Prop) (F : R -> Prop) (rnd : R->R) :=
    Rnd_N D F rnd /\
