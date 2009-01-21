@@ -5,15 +5,15 @@ FILES = \
 
 data_DATA = $(FILES:=o)
 EXTRA_DIST = $(FILES)
-CLEANFILES = $(FILES:=o) $(FILES:=d)
+CLEANFILES = $(FILES:=o) $(FILES:=d) $(FILES:.v=.glob)
 
 datadir = $(libdir)
 
-%.vo: %.v
+.vo.v:
 	@echo COQC $<
 	@$(COQC) $(COQRFLAG) $<
 
-%.vd: %.v
+.vd.v:
 	@echo COQDEP $<
 	@$(COQDEP) -I . $< > $@
 
