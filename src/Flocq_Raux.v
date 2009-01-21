@@ -1,6 +1,23 @@
 Require Export Reals.
 Require Export ZArith.
 
+Lemma Rabs_right1 :
+  forall x, (0 <= x)%R -> Rabs x = x.
+Proof.
+intros.
+apply Rabs_right.
+now apply Rle_ge.
+Qed.
+
+Lemma Rle_0_minus :
+  forall x y, (x <= y)%R -> (0 <= y - x)%R.
+Proof.
+intros.
+apply Rge_le.
+apply Rge_minus.
+now apply Rle_ge.
+Qed.
+
 Section Z2R.
 
 Fixpoint P2R (p : positive) :=

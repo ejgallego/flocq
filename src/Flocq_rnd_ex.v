@@ -22,15 +22,13 @@ now eapply H2.
 Qed.
 
 Theorem Rnd_DN_unicity :
-  forall D F : R -> Prop,
+  forall F : R -> Prop,
   forall rnd1 rnd2 : R -> R,
-  Rnd_DN D F rnd1 -> Rnd_DN D F rnd2 ->
-  forall x, D x -> rnd1 x = rnd2 x.
+  Rnd_DN F rnd1 -> Rnd_DN F rnd2 ->
+  forall x, rnd1 x = rnd2 x.
 Proof.
-intros D F rnd1 rnd2 H1 H2 x Hx.
-eapply Rnd_DN_pt_unicity.
-now eapply H1.
-now eapply H2.
+intros F rnd1 rnd2 H1 H2 x.
+now eapply Rnd_DN_pt_unicity.
 Qed.
 
 Theorem Rnd_UP_pt_unicity :
@@ -50,309 +48,379 @@ now eapply H2.
 Qed.
 
 Theorem Rnd_UP_unicity :
-  forall D F : R -> Prop,
+  forall F : R -> Prop,
   forall rnd1 rnd2 : R -> R,
-  Rnd_UP D F rnd1 -> Rnd_UP D F rnd2 ->
-  forall x, D x -> rnd1 x = rnd2 x.
+  Rnd_UP F rnd1 -> Rnd_UP F rnd2 ->
+  forall x, rnd1 x = rnd2 x.
 Proof.
-intros D F rnd1 rnd2 H1 H2 x Hx.
-eapply Rnd_UP_pt_unicity.
-now eapply H1.
-now eapply H2.
+intros F rnd1 rnd2 H1 H2 x.
+now eapply Rnd_UP_pt_unicity.
 Qed.
 
 Theorem Rnd_DN_UP_pt_sym :
   forall F : R -> Prop,
   ( forall x, F x -> F (- x) ) ->
-  forall x f1 f2 : R,
-  Rnd_DN_pt F (-x) f1 -> Rnd_UP_pt F x f2 ->
-  f1 = - f2.
+  forall x f : R,
+  Rnd_DN_pt F (-x) (-f) -> Rnd_UP_pt F x f.
 Proof.
-intros F HF x f1 f2 H1 H2.
-eapply Rnd_DN_pt_unicity.
-apply H1.
+intros F HF x f H.
+rewrite <- (Ropp_involutive f).
 repeat split.
 apply HF.
-apply H2.
-apply Ropp_le_contravar.
-apply H2.
+apply H.
+apply Ropp_le_cancel.
+rewrite Ropp_involutive.
+apply H.
 intros.
 apply Ropp_le_cancel.
 rewrite Ropp_involutive.
-apply H2.
+apply H.
 now apply HF.
-apply Ropp_le_cancel.
-now rewrite Ropp_involutive.
+now apply Ropp_le_contravar.
 Qed.
 
 Theorem Rnd_DN_UP_sym :
-  forall D F : R -> Prop,
-  ( forall x, D x -> D (- x) ) ->
+  forall F : R -> Prop,
   ( forall x, F x -> F (- x) ) ->
   forall rnd1 rnd2 : R -> R,
-  Rnd_DN D F rnd1 -> Rnd_UP D F rnd2 ->
-  forall x, D x -> rnd1 (- x) = - rnd2 x.
+  Rnd_DN F rnd1 -> Rnd_UP F rnd2 ->
+  forall x, rnd1 (- x) = - rnd2 x.
 Proof.
-intros D F HD HF rnd1 rnd2 H1 H2 x Hx.
-eapply Rnd_DN_UP_pt_sym.
+intros F HF rnd1 rnd2 H1 H2 x.
+rewrite <- (Ropp_involutive (rnd1 (-x))).
+apply f_equal.
+apply (Rnd_UP_unicity F (fun x => - rnd1 (-x))) ; trivial.
+intros y.
+apply Rnd_DN_UP_pt_sym.
 apply HF.
-eapply H1.
-now apply HD.
-now eapply H2.
+rewrite Ropp_involutive.
+apply H1.
 Qed.
 
 Theorem Rnd_DN_involutive :
-  forall D F : R -> Prop,
+  forall F : R -> Prop,
   forall rnd : R -> R,
-  Rnd_DN D F rnd ->
-  InvolutiveP D F rnd.
+  Rnd_DN F rnd ->
+  InvolutiveP F rnd.
 Proof.
-intros D F rnd Hrnd.
+intros F rnd Hrnd.
 split.
-intros x Hx.
+intros x.
 now eapply Hrnd. 
-intros x Hx Hxx.
-destruct (Hrnd x Hx) as (H1,(H2,(H3,H4))).
+intros x Hx.
+destruct (Hrnd x) as (H1,(H2,H3)).
 apply Rle_antisym; trivial.
-apply H4; auto with real.
+apply H3; auto with real.
 Qed.
 
 Theorem Rnd_DN_monotone :
-  forall D F : R -> Prop,
+  forall F : R -> Prop,
   forall rnd : R -> R,
-  Rnd_DN D F rnd ->
-  MonotoneP D rnd.
+  Rnd_DN F rnd ->
+  MonotoneP rnd.
 Proof.
-intros D F rnd Hrnd x y Hx Hy Hxy.
+intros F rnd Hrnd x y Hxy.
 destruct (Rle_or_lt x (rnd y)).
 apply Rle_trans with (2 := H).
 now eapply Hrnd.
 eapply Hrnd.
-apply Hy.
 now eapply Hrnd.
 apply Rle_trans with (2 := Hxy).
 now eapply Hrnd.
 Qed.
 
 Theorem Rnd_UP_monotone :
-  forall D F : R -> Prop,
+  forall F : R -> Prop,
   forall rnd : R -> R,
-  Rnd_UP D F rnd ->
-  MonotoneP D rnd.
+  Rnd_UP F rnd ->
+  MonotoneP rnd.
 Proof.
-intros D F rnd Hrnd x y Hx Hy Hxy.
+intros F rnd Hrnd x y Hxy.
 destruct (Rle_or_lt (rnd x) y).
 apply Rle_trans with (1 := H).
 now eapply Hrnd.
 eapply Hrnd.
-apply Hx.
 now eapply Hrnd.
 apply Rle_trans with (1 := Hxy).
 now eapply Hrnd.
 Qed.
 
 Theorem Rnd_UP_involutive :
-  forall D F : R -> Prop,
+  forall F : R -> Prop,
   forall rnd : R -> R,
-  Rnd_UP D F rnd ->
-  InvolutiveP D F rnd.
+  Rnd_UP F rnd ->
+  InvolutiveP F rnd.
 Proof.
-intros D F rnd Hrnd.
+intros F rnd Hrnd.
 split.
-intros x Hx.
+intros x.
 now eapply Hrnd. 
-intros x Hx Hxx.
-destruct (Hrnd x Hx) as (H1,(H2,(H3,H4))).
+intros x Hx.
+destruct (Hrnd x) as (H1,(H2,H3)).
 apply Rle_antisym; trivial.
-apply H4; auto with real.
+apply H3; auto with real.
 Qed.
 
 Theorem Rnd_DN_pt_le_rnd :
-  forall D F : R -> Prop,
+  forall F : R -> Prop,
   forall rnd : R -> R,
-  Rounding_for_Format D F rnd -> 
+  Rounding_for_Format F rnd -> 
   forall x fd : R,
-  D x ->
-  D fd ->
   Rnd_DN_pt F x fd ->
   fd <= rnd x.
 Proof.
-intros D F rnd (Hr1,(Hr2,Hr3)) x fd Hx Hd1 Hd2.
+intros F rnd (Hr1,(Hr2,Hr3)) x fd Hd.
 replace fd with (rnd fd).
-apply Hr1 ; trivial.
-apply Hd2.
+apply Hr1.
+apply Hd.
 apply Hr3.
-exact Hd1.
-apply Hd2.
+apply Hd.
 Qed.
 
 Theorem Rnd_DN_le_rnd :
-  forall D F : R -> Prop,
+  forall F : R -> Prop,
   forall rndd rnd: R -> R,
-  Rnd_DN D F rndd -> 
-  Rounding_for_Format D F rnd -> 
-  forall x, D x -> rndd x <= rnd x.
+  Rnd_DN F rndd -> 
+  Rounding_for_Format F rnd -> 
+  forall x, rndd x <= rnd x.
 Proof.
-intros D F rndd rnd Hd Hr x Hx.
+intros F rndd rnd Hd Hr x.
 eapply Rnd_DN_pt_le_rnd.
 apply Hr.
-apply Hx.
-now eapply Hd.
-now eapply Hd.
+apply Hd.
+Qed.
 
-intros D F rndd rnd Hd (Hr1,(Hr2,Hr3)) x Hx.
-destruct (Hd x Hx) as (H1,(H2,(H3,H4))).
-replace (rndd x) with (rnd (rndd x)).
-now apply Hr1.
-now apply Hr3.
+Theorem Rnd_UP_pt_ge_rnd :
+  forall F : R -> Prop,
+  forall rnd : R -> R,
+  Rounding_for_Format F rnd -> 
+  forall x fu : R,
+  Rnd_UP_pt F x fu ->
+  rnd x <= fu.
+Proof.
+intros F rnd (Hr1,(Hr2,Hr3)) x fu Hu.
+replace fu with (rnd fu).
+apply Hr1.
+apply Hu.
+apply Hr3.
+apply Hu.
 Qed.
 
 Theorem Rnd_UP_ge_rnd :
-  forall D F : R -> Prop,
+  forall F : R -> Prop,
   forall rndu rnd: R -> R,
-  Rnd_UP D F rndu ->
-  Rounding_for_Format D F rnd -> 
-  forall x, D x -> rnd x <= rndu x.
+  Rnd_UP F rndu ->
+  Rounding_for_Format F rnd -> 
+  forall x, rnd x <= rndu x.
 Proof.
-intros D F rndu rnd Hu (Hr1,(Hr2,Hr3)) x Hx.
-destruct (Hu x Hx) as (H1,(H2,(H3,H4))).
-replace (rndu x) with (rnd (rndu x)).
-now apply Hr1.
-now apply Hr3.
+intros F rndu rnd Hu Hr x.
+eapply Rnd_UP_pt_ge_rnd.
+apply Hr.
+apply Hu.
 Qed.
 
-Theorem Rnd_UP_or_DN: 
-  forall D F : R -> Prop,
-  forall rndd rndu rnd: R -> R,
-  Rnd_DN D F rndd -> Rnd_UP D F rndu ->
-  Rounding_for_Format D F rnd ->
-  forall x, D x -> rnd x = rndd x \/ rnd x = rndu x.
+Lemma Only_DN_or_UP :
+  forall F : R -> Prop,
+  forall x fd fu f : R,
+  Rnd_DN_pt F x fd -> Rnd_UP_pt F x fu ->
+  F f -> (fd <= f <= fu)%R ->
+  f = fd \/ f = fu.
 Proof.
-intros D F rndd rndu rnd Hd Hu Hr x Hx.
-destruct (Rnd_DN_le_rnd _ _ _ _ Hd Hr x Hx) as [Hdlt|H].
+intros F x fd fu f Hd Hu Hf ([Hdf|Hdf], Hfu).
 2 : now left.
-destruct (Rnd_UP_ge_rnd _ _ _ _ Hu Hr x Hx) as [Hugt|H].
+destruct Hfu.
 2 : now right.
-destruct Hr as (Hr1,(Hr2,Hr3)).
-destruct (Rle_or_lt x (rnd x)).
-elim Rlt_not_le with (1 := Hugt).
-eapply Hu ; trivial.
-now apply Hr2.
-elim Rlt_not_le with (1 := Hdlt).
-eapply Hd ; auto with real.
+destruct (Rle_or_lt x f).
+elim Rlt_not_le with (1 := H).
+now apply Hu.
+elim Rlt_not_le with (1 := Hdf).
+apply Hd ; auto with real.
 Qed.
+
+Theorem Rnd_DN_or_UP_pt :
+  forall F : R -> Prop,
+  forall rnd : R -> R,
+  Rounding_for_Format F rnd ->
+  forall x fd fu : R,
+  Rnd_DN_pt F x fd -> Rnd_UP_pt F x fu ->
+  rnd x = fd \/ rnd x = fu.
+Proof.
+intros F rnd Hr x fd fu Hd Hu.
+eapply Only_DN_or_UP ; try eassumption.
+apply Hr.
+split.
+eapply Rnd_DN_pt_le_rnd ; eassumption.
+eapply Rnd_UP_pt_ge_rnd ; eassumption.
+Qed.
+
+Theorem Rnd_DN_or_UP :
+  forall F : R -> Prop,
+  forall rndd rndu rnd : R -> R,
+  Rnd_DN F rndd -> Rnd_UP F rndu ->
+  Rounding_for_Format F rnd ->
+  forall x, rnd x = rndd x \/ rnd x = rndu x.
+Proof.
+intros F rndd rndu rnd Hd Hu Hr x.
+eapply Rnd_DN_or_UP_pt.
+apply Hr.
+apply Hd.
+apply Hu.
+Qed.
+
+Theorem Rnd_N_pt_DN_or_UP :
+  forall F : R -> Prop,
+  forall x fd fu f : R,
+  Rnd_DN_pt F x fd -> Rnd_UP_pt F x fu ->
+  Rnd_N_pt F x f ->
+  f = fd \/ f = fu.
+Proof.
+intros F x fd fu f Hd Hu Hf.
+eapply Only_DN_or_UP ; try eassumption.
+apply Hf.
+split.
+(* fd <= f *)
+destruct (Rle_or_lt x f).
+apply Rle_trans with (2 := H).
+apply Hd.
+assert (Hd' := proj2 Hf fd).
+apply Ropp_le_cancel.
+apply Rplus_le_reg_l with x.
+replace (x + -f) with (Rabs (f - x)).
+replace (x + -fd) with (Rabs (fd - x)).
+apply Hd'.
+apply Hd.
+rewrite Rabs_left1.
+ring.
+apply Rle_minus.
+apply Hd.
+rewrite Rabs_left.
+ring.
+now apply Rlt_minus.
+(* f <= fu *)
+destruct (Rle_or_lt x f).
+assert (Hu' := proj2 Hf fu).
+apply Rplus_le_reg_l with (-x).
+replace (-x + f) with (Rabs (f - x)).
+replace (-x + fu) with (Rabs (fu - x)).
+apply Hu'.
+apply Hu.
+rewrite Rabs_right1.
+ring.
+apply Rle_0_minus.
+apply Hu.
+rewrite Rabs_right1.
+ring.
+now apply Rle_0_minus.
+apply Rlt_le.
+apply Rlt_le_trans with (1 := H).
+apply Hu.
+Qed.
+
+(*
+Theorem Rnd_N_pt_monotone :
+  forall F : R -> Prop,
+  forall x y f g : R,
+  Rnd_N_pt F x f -> Rnd_N_pt F y g ->
+  x < y -> f <= g.
+Proof.
+intros F x y f g Hx Hy Hxy.
+*)
 
 Theorem Rnd_0 :
-  forall D F : R -> Prop,
+  forall F : R -> Prop,
   forall rnd : R -> R, 
-  D 0 -> F 0 ->  
-  Rounding_for_Format D F rnd ->
+  F 0 ->  
+  Rounding_for_Format F rnd ->
   rnd 0 = 0.
 Proof.
-intros D F rnd T1 T2 (H1,(H2,H3)).
-now apply H3.
+intros F rnd H0 (_,H2).
+now apply H2.
 Qed.
 
-
 Theorem Rnd_pos_imp_pos :
-  forall D F : R -> Prop,
+  forall F : R -> Prop,
   forall rnd : R -> R, 
-  D 0 -> F 0 ->  
-  Rounding_for_Format D F rnd ->
-  forall x, D x -> 0 <= x -> 0 <= rnd x.
+  F 0 ->  
+  Rounding_for_Format F rnd ->
+  forall x, 0 <= x -> 0 <= rnd x.
 Proof.
-intros D F rnd T1 T2 H x Hx H'.
-rewrite <- Rnd_0 with (3:=H); trivial.
+intros F rnd H0 H x H'.
+rewrite <- Rnd_0 with (2 := H) ; trivial.
 now apply H.
 Qed.
 
 Theorem Rnd_neg_imp_neg :
-  forall D F : R -> Prop,
+  forall F : R -> Prop,
   forall rnd : R -> R, 
-  D 0 -> F 0 ->  
-  Rounding_for_Format D F rnd ->
-  forall x, D x -> x <= 0 -> rnd x <= 0.
+  F 0 ->  
+  Rounding_for_Format F rnd ->
+  forall x, x <= 0 -> rnd x <= 0.
 Proof.
-intros D F rnd T1 T2 H x Hx H'.
-rewrite <- Rnd_0 with (3:=H); trivial.
+intros F rnd H0 H x H'.
+rewrite <- Rnd_0 with (2 := H) ; trivial.
 now apply H.
 Qed.
 
-Variable beta: radix.
-
-Notation bpow := (epow beta).
-
-
 (* ensures a real number can always be rounded toward -inf *)
 Definition satisfies_DN (F : R -> Prop) :=
-  exists rnd:R-> R, Rnd_DN R_whole F rnd.
+  exists rnd : R-> R, Rnd_DN F rnd.
 
 Definition satisfies_any (F : R -> Prop) :=
   F 0%R /\ (forall x : R, F x -> F (-x)%R) /\
      satisfies_DN F.
 
-Theorem satisfies_any_imp_UP: forall (F:R->Prop),
-   satisfies_any F ->
-       exists rnd:R-> R, Rnd_UP R_whole F rnd.
+Theorem satisfies_any_imp_UP :
+  forall F : R -> Prop,
+  satisfies_any F ->
+  exists rnd : R -> R, Rnd_UP F rnd.
+Proof.
 intros F (H1,(H2,(rnd,H3))).
-exists (fun x=> -rnd(-x)).
-intros x _.
-destruct (H3 (-x) I) as (H4,(H5,(H6,H7))).
-repeat split.
-now apply H2.
-apply Ropp_le_cancel; rewrite Ropp_involutive.
-apply H6.
-intros.
-apply Ropp_le_cancel; rewrite Ropp_involutive.
-apply H7.
-now apply H2.
-now apply Ropp_le_contravar.
+exists (fun x => -rnd(-x)).
+intros x.
+apply Rnd_DN_UP_pt_sym.
+apply H2.
+now rewrite Ropp_involutive.
 Qed.
 
-Theorem satisfies_any_imp_ZR: forall (F:R->Prop),
-   satisfies_any F ->
-       exists rnd:R-> R, Rnd_ZR R_whole F rnd.
+Theorem satisfies_any_imp_ZR :
+  forall F : R -> Prop,
+  satisfies_any F ->
+  exists rnd : R -> R, Rnd_ZR F rnd.
+Proof.
 intros F (H1,(H2,(rnd,H3))).
 exists (fun x =>  match Rle_dec 0 x with
   | left _  => rnd x
   | right _ => - rnd (-x)
   end).
-assert (L:Rounding_for_Format R_whole F rnd).
+assert (K : Rounding_for_Format F rnd).
 split.
 now apply Rnd_DN_monotone with F.
 now apply Rnd_DN_involutive.
-split ; intros x (_, Hx).
-(* rnd DN *)
-destruct (Rle_dec 0 x) as [_|H'].
-split.
-refine (conj I _).
-now apply Rnd_pos_imp_pos with R_whole F.
-now eapply H3.
-elim (H' Hx).
-(* rnd UP *)
-destruct (Rle_dec 0 x) as [H'|H'].
-(* - zero *)
+intros x.
+destruct (Rle_dec 0 x) as [Hx|Hx] ; split.
+(* positive or zero *)
+intros _.
+apply H3.
+intros Hx'.
 replace x with 0 by now apply Rle_antisym.
-rewrite Rnd_0 with R_whole F rnd; trivial.
-repeat split; auto with real.
-exact I.
-(* - negative *)
-destruct (H3 (-x) I) as (H,(H4,H5)).
-repeat split.
-apply Ropp_le_cancel; rewrite Ropp_involutive, Ropp_0.
-apply Rnd_pos_imp_pos with R_whole F; auto with real.
-now apply H2.
-now apply Ropp_le_cancel; rewrite Ropp_involutive.
-intros.
-apply Ropp_le_cancel; rewrite Ropp_involutive.
-apply H5.
-now apply H2.
-now apply Ropp_le_contravar.
+rewrite Rnd_0 with F rnd ; trivial.
+repeat split ; auto with real.
+(* negative *)
+intros Hx'.
+elim (Hx Hx').
+intros Hx'.
+apply Rnd_DN_UP_pt_sym.
+apply H2.
+rewrite Ropp_involutive.
+apply H3.
 Qed.
 
-Theorem satisfies_any_imp_NA: forall (F:R->Prop),
-   satisfies_any F ->
-       exists rnd:R-> R, Rnd_NA R_whole F rnd.
+Theorem satisfies_any_imp_NA :
+  forall F : R -> Prop,
+  satisfies_any F ->
+  exists rnd : R -> R,
+  Rnd_NA F rnd.
+Proof.
 intros F Hany.
 assert (H' := Hany).
 destruct H' as (H1,(H2,(rndd,Hd))).
@@ -368,10 +436,9 @@ exists (fun x =>
   end).
 split.
 (* *** nearest *)
-intros x _.
 destruct (total_order_T (Rabs (rndu x - x)) (Rabs (rndd x - x))) as [[H|H]|H].
 (* |up(x) - x| < [dn(x) - x| *)
-destruct (Hu x I) as (_,(H3,(H4,H5))).
+destruct (Hu x) as (H3,(H4,H5)).
 split.
 exact H3.
 intros.
@@ -449,7 +516,7 @@ auto with real.
 apply Rle_minus.
 now eapply Hd.
 (* |up(x) - x| > [dn(x) - x| *)
-destruct (Hd x I) as (_,(H3,(H4,H5))).
+destruct (Hd x) as (H3,(H4,H5)).
 split.
 exact H3.
 intros.
@@ -472,10 +539,25 @@ auto with real.
 apply Rle_minus.
 now eapply Hd.
 (* *** away *)
-intros x y _ Hy Hg.
-destruct (total_order_T (Rabs (rndu x - x)) (Rabs (rndd x - x))) as [[H|H]|H].
-destruct (Rnd_UP_or_DN R_whole F rndd rndu rnd).
-
+intros f Hf.
+destruct (Rnd_N_pt_DN_or_UP F x (rndd x) (rndu x) f) as [K|K] ; trivial.
+rewrite K.
+destruct (total_order_T (Rabs (rndu x - x)) (Rabs (rndd x - x))) as [[H|H]|H] ;
+  try apply Rle_refl.
+elim Rlt_not_le with (1 := H).
+rewrite <- K.
+apply Hf.
+eapply Hu.
+destruct (Rle_dec (Rabs (rndd x)) (Rabs (rndu x))) ; auto with real.
+rewrite K.
+destruct (total_order_T (Rabs (rndu x - x)) (Rabs (rndd x - x))) as [[H|H]|H] ;
+  try apply Rle_refl.
+destruct (Rle_dec (Rabs (rndd x)) (Rabs (rndu x))) ; auto with real.
+elim Rgt_not_le with (1 := H).
+rewrite <- K.
+apply Hf.
+eapply Hd.
+Qed.
 
 
 (*
@@ -846,5 +928,10 @@ apply Rnd_DN_is_rounding.
 eapply FIX_format_satisfies_DN_UP.
 Qed.
 *)
+
+Variable beta: radix.
+
+Notation bpow := (epow beta).
+
 
 End RND_ex.
