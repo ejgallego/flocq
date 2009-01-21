@@ -15,6 +15,6 @@ datadir = $(libdir)
 
 %.vd: %.v
 	@echo COQDEP $<
-	@$(COQDEP) $< > $@
+	@$(COQDEP) -I . $< > $@
 
 -include $(FILES:=d)
