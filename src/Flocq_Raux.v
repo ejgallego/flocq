@@ -1,6 +1,8 @@
 Require Export Reals.
 Require Export ZArith.
 
+Section Rmissing.
+
 Lemma Rle_0_minus :
   forall x y, (x <= y)%R -> (0 <= y - x)%R.
 Proof.
@@ -27,6 +29,18 @@ now right.
 rewrite H.
 now destruct (Rcase_abs y) as [_|_] ; [right|left].
 Qed.
+
+Lemma Rmult_lt_reg_r :
+  forall r r1 r2 : R, (0 < r)%R ->
+  (r1 * r < r2 * r)%R -> (r1 < r2)%R.
+Proof.
+intros.
+apply Rmult_lt_reg_l with r.
+exact H.
+now rewrite 2!(Rmult_comm r).
+Qed.
+
+End Rmissing.
 
 Section Z2R.
 

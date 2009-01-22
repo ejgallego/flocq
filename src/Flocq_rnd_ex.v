@@ -863,11 +863,15 @@ intros r; unfold floor_int in |- *.
 generalize (archimed r); intros T; elim T; intros H1 H2; clear T.
 unfold Rminus, Zminus; rewrite plus_IZR; simpl in |- *; auto with real. 
 Qed.
+*)
 
+Variable beta : radix.
 
-Variable radix emin prec : Z.
+Notation bpow := (epow beta).
 
+Variable emin prec : Z.
 
+(*
 Definition RND_DN_pos_fn (r : R) :=
   match Rle_dec (powerRZ (IZR radix) (prec-1+emin)) r with
   | left _ =>
@@ -1043,83 +1047,89 @@ change R0 with (IZR 0).
 apply IZR_lt.
 exact radix_gt_0.
 Qed.
+*)
 
-Theorem FIX_format_satisfies_DN_UP :
-  satisfies_DN_UP (FIX_format radix emin).
+Definition rnd_DN_FIX emin x :=
+  F2R (Float beta (up (x * bpow (Zopp emin)) - 1) emin).
+
+Theorem FIX_format_satisfies_any :
+  satisfies_any (FIX_format beta emin).
 Proof.
-intros.
-assert (Hdn: satisfies_DN (FIX_format radix emin)).
+split.
+exists (Float beta 0 emin).
+split.
+unfold F2R.
+now rewrite Rmult_0_l.
+apply refl_equal.
+split.
+intros x ((m,e),(H1,H2)).
+exists (Float beta (-m) emin).
+split.
+rewrite H1.
+unfold F2R.
+simpl.
+rewrite opp_Z2R, Ropp_mult_distr_l_reverse.
+now rewrite <- H2.
+apply refl_equal.
+(* . *)
+unfold satisfies_DN.
+exists (rnd_DN_FIX emin).
 intros x.
-pose (m := up (x * powerRZ (IZR radix) (Zopp emin))).
-pose (f := Float radix (m - 1) emin).
-exists (F2R f).
+unfold rnd_DN_FIX.
+set (m := up (x * bpow (Zopp emin))).
+set (f := Float beta (m - 1) emin).
 split.
 now exists f.
 split.
 unfold F2R, f, m.
 simpl.
 pattern x at 2 ; rewrite <- Rmult_1_r.
-change R1 with (powerRZ (IZR radix) 0).
+change 1 with (bpow Z0).
 rewrite <- (Zplus_opp_l emin).
-rewrite powerRZ_add.
+rewrite epow_add.
 rewrite <- Rmult_assoc.
 apply Rmult_le_compat_r.
-apply powerRZ_radix_ge_0.
-generalize (x * powerRZ (IZR radix) (- emin))%R.
+apply epow_ge_0.
+generalize (x * bpow (- emin)%Z)%R.
 clear.
 intros.
-unfold Zminus.
-rewrite plus_IZR.
+rewrite minus_Z2R.
 simpl.
-pattern r at 2 ; replace r with ((r + 1) + -1)%R by ring.
-apply Rplus_le_compat_r.
-replace (IZR (up r)) with (r + (IZR (up r) - r))%R by ring.
-apply Rplus_le_compat_l.
+apply Rminus_le.
+replace (Z2R (up r) - 1 - r) with ((Z2R (up r) - r) - 1) by ring.
+apply Rle_minus.
+rewrite Z2R_IZR.
 eapply for_base_fp.
-apply IZR_radix_neq_0.
-intros g (fx,(H1,H2)) H3.
+intros g ((mx,ex),(H1,H2)) H3.
 rewrite H1.
 unfold F2R.
 rewrite H2.
-simpl (Fexp f).
+simpl.
 apply Rmult_le_compat_r.
-apply powerRZ_radix_ge_0.
-apply IZR_le.
+apply epow_ge_0.
+apply Z2R_le.
 apply Zlt_succ_le.
-apply lt_IZR.
-eapply Rmult_lt_reg_l.
-apply (powerRZ_radix_gt_0 emin).
-do 2 rewrite (Rmult_comm (powerRZ (IZR radix) emin)).
+apply lt_Z2R.
+apply Rmult_lt_reg_r with (bpow emin).
+apply epow_gt_0.
 apply Rle_lt_trans with x.
 rewrite <- H2.
-fold (F2R fx).
+change (F2R (Float beta mx ex) <= x).
 now rewrite <- H1.
 pattern x ; rewrite <- Rmult_1_r.
-change R1 with (powerRZ (IZR radix) 0).
+change R1 with (bpow Z0).
 rewrite <- (Zplus_opp_l emin).
-rewrite powerRZ_add.
+rewrite epow_add.
 rewrite <- Rmult_assoc.
 apply Rmult_lt_compat_r.
-apply powerRZ_radix_gt_0.
-simpl.
+apply epow_gt_0.
 change (m - 1)%Z with (Zpred m).
 rewrite <- Zsucc_pred.
+rewrite Z2R_IZR.
 eapply archimed.
-apply IZR_radix_neq_0.
-(* . *)
-apply satisfies_DN_imp_UP.
-intros x (f,(Hx,He)).
-exists (Float radix (-(Fnum f))%Z (Fexp f)).
-repeat split.
-rewrite Hx.
-unfold F2R.
-simpl.
-rewrite Ropp_Ropp_IZR.
-now rewrite Ropp_mult_distr_l_reverse.
-exact He.
-exact Hdn.
 Qed.
 
+(*
 Theorem Rnd_DN_is_FLT_rounding :
   FLT_RoundedModeP radix emin prec (Rnd_DN (FLT_format radix emin prec)).
 Proof.
@@ -1136,10 +1146,5 @@ apply Rnd_DN_is_rounding.
 eapply FIX_format_satisfies_DN_UP.
 Qed.
 *)
-
-Variable beta: radix.
-
-Notation bpow := (epow beta).
-
 
 End RND_ex.
