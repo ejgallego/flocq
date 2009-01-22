@@ -569,69 +569,74 @@ rewrite <- Rnd_0 with (2 := H) ; trivial.
 now apply H.
 Qed.
 
-(* ensures a real number can always be rounded toward -inf *)
-Definition satisfies_DN (F : R -> Prop) :=
-  exists rnd : R-> R, Rnd_DN F rnd.
+(* ensures a real number can always be rounded *)
+Inductive satisfies_any (F : R -> Prop) :=
+  Satisfies_any :
+    F 0 -> ( forall x : R, F x -> F (-x) ) ->
+    forall rnd : R -> R, Rnd_DN F rnd -> satisfies_any F.
 
-Definition satisfies_any (F : R -> Prop) :=
-  F 0%R /\ (forall x : R, F x -> F (-x)%R) /\
-     satisfies_DN F.
+Theorem satisfies_any_imp_DN :
+  forall F : R -> Prop,
+  satisfies_any F ->
+  { rnd : R -> R | Rnd_DN F rnd }.
+Proof.
+intros F (_,_,rnd,Hr).
+now exists rnd.
+Qed.
 
 Theorem satisfies_any_imp_UP :
   forall F : R -> Prop,
   satisfies_any F ->
-  exists rnd : R -> R, Rnd_UP F rnd.
+  { rnd : R -> R | Rnd_UP F rnd }.
 Proof.
-intros F (H1,(H2,(rnd,H3))).
-exists (fun x => -rnd(-x)).
+intros F (_,H,rnd,Hr).
+exists (fun x => - rnd (-x)).
 intros x.
 apply Rnd_DN_UP_pt_sym.
-apply H2.
+apply H.
 now rewrite Ropp_involutive.
 Qed.
 
 Theorem satisfies_any_imp_ZR :
   forall F : R -> Prop,
   satisfies_any F ->
-  exists rnd : R -> R, Rnd_ZR F rnd.
+  { rnd : R -> R | Rnd_ZR F rnd }.
 Proof.
-intros F (H1,(H2,(rnd,H3))).
-exists (fun x =>  match Rle_dec 0 x with
-  | left _  => rnd x
-  | right _ => - rnd (-x)
+intros F S.
+destruct (satisfies_any_imp_DN F S) as (rndd, Hd).
+destruct (satisfies_any_imp_UP F S) as (rndu, Hu).
+exists (fun x =>
+  match Rle_dec 0 x with
+  | left _  => rndd x
+  | right _ => rndu x
   end).
-assert (K : Rounding_for_Format F rnd).
-split.
-now apply Rnd_DN_monotone with F.
-now apply Rnd_DN_idempotent.
 intros x.
 destruct (Rle_dec 0 x) as [Hx|Hx] ; split.
 (* positive or zero *)
 intros _.
-apply H3.
+apply Hd.
 intros Hx'.
 replace x with 0 by now apply Rle_antisym.
-rewrite Rnd_0 with F rnd ; trivial.
+generalize S. intros (S0,_,_,_).
+rewrite Rnd_0 with F rndd ; trivial.
 repeat split ; auto with real.
+split.
+now apply Rnd_DN_monotone with F.
+now apply Rnd_DN_idempotent.
 (* negative *)
 intros Hx'.
 elim (Hx Hx').
 intros Hx'.
-apply Rnd_DN_UP_pt_sym.
-apply H2.
-rewrite Ropp_involutive.
-apply H3.
+apply Hu.
 Qed.
 
 Theorem satisfies_any_imp_NA :
   forall F : R -> Prop,
   satisfies_any F ->
-  exists rnd : R -> R,
-  Rnd_NA F rnd.
+  { rnd : R -> R | Rnd_NA F rnd }.
 Proof.
 intros F Hany.
-assert (H' := Hany).
-destruct H' as (H1,(H2,(rndd,Hd))).
+destruct (satisfies_any_imp_DN F Hany) as (rndd, Hd).
 destruct (satisfies_any_imp_UP F Hany) as (rndu, Hu).
 exists (fun x =>
   match total_order_T (Rabs (rndu x - x)) (Rabs (rndd x - x)) with
@@ -651,10 +656,10 @@ split.
 exact H3.
 intros.
 destruct (Rle_or_lt x g).
-rewrite Rabs_right.
-2 : apply Rge_minus ; apply Rle_ge ; exact H4.
-rewrite Rabs_right.
-2 : apply Rge_minus ; apply Rle_ge ; exact H6.
+rewrite Rabs_pos_eq.
+2 : now apply Rle_0_minus.
+rewrite Rabs_pos_eq.
+2 : now apply Rle_0_minus.
 apply Rplus_le_compat_r.
 now apply H5.
 apply Rlt_le.
@@ -1049,19 +1054,16 @@ exact radix_gt_0.
 Qed.
 *)
 
-Definition rnd_DN_FIX emin x :=
-  F2R (Float beta (up (x * bpow (Zopp emin)) - 1) emin).
-
 Theorem FIX_format_satisfies_any :
   satisfies_any (FIX_format beta emin).
 Proof.
-split.
+refine ((fun D => Satisfies_any _ _ _ (projT1 D) (projT2 D)) _).
+(* symmetric set *)
 exists (Float beta 0 emin).
 split.
 unfold F2R.
 now rewrite Rmult_0_l.
 apply refl_equal.
-split.
 intros x ((m,e),(H1,H2)).
 exists (Float beta (-m) emin).
 split.
@@ -1071,11 +1073,9 @@ simpl.
 rewrite opp_Z2R, Ropp_mult_distr_l_reverse.
 now rewrite <- H2.
 apply refl_equal.
-(* . *)
-unfold satisfies_DN.
-exists (rnd_DN_FIX emin).
+(* rounding down *)
+exists (fun x => F2R (Float beta (up (x * bpow (Zopp emin)) - 1) emin)).
 intros x.
-unfold rnd_DN_FIX.
 set (m := up (x * bpow (Zopp emin))).
 set (f := Float beta (m - 1) emin).
 split.
