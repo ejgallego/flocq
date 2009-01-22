@@ -448,6 +448,68 @@ intros x Hx.
 now apply Rnd_N_pt_involutive with F.
 Qed.
 
+Theorem Rnd_NA_pt_monotone :
+  forall F : R -> Prop,
+  F 0 ->
+  forall x y f g : R,
+  Rnd_NA_pt F x f -> Rnd_NA_pt F y g ->
+  x <= y -> f <= g.
+Proof.
+intros F HF x y f g (Hf,Hx) (Hg,Hy) [Hxy|Hxy].
+now apply Rnd_N_pt_monotone with F x y.
+apply Req_le.
+rewrite <- Hxy in Hg, Hy.
+clear y Hxy.
+assert (K: f = g \/ f = -g).
+apply Rabs_eq_Rabs.
+apply Rle_antisym.
+now apply Hy.
+now apply Hx.
+destruct K as [K|K].
+exact K.
+rewrite K.
+rewrite K in Hf.
+clear f Hx Hy K.
+unfold Rnd_N_pt in Hf, Hg.
+assert (L: g + x = g - x \/  g + x = x - g).
+rewrite <- (Ropp_minus_distr g x).
+apply Rabs_eq_Rabs.
+rewrite <- Rabs_Ropp.
+rewrite Ropp_plus_distr.
+fold (-g - x).
+apply Rle_antisym.
+now apply Hf.
+now apply Hg.
+destruct L as [L|L].
+assert (g = 0).
+apply Rnd_N_pt_involutive with F.
+replace 0 with x.
+exact Hg.
+apply Rmult_eq_reg_l with 2.
+rewrite Rmult_0_r.
+rewrite <- (Rminus_diag_eq _ _ L).
+ring.
+now apply (Z2R_neq 2 0).
+exact HF.
+rewrite H.
+apply Ropp_0.
+apply Rplus_eq_reg_l with x.
+fold (x - g).
+rewrite <- L.
+apply Rplus_comm.
+Qed.
+
+Theorem Rnd_NA_monotone :
+  forall F : R -> Prop,
+  F 0 ->
+  forall rnd : R -> R,
+  Rnd_NA F rnd ->
+  MonotoneP rnd.
+Proof.
+intros F rnd Hr x y Hxy.
+now apply Rnd_NA_pt_monotone with F.
+Qed.
+
 Theorem Rnd_NA_pt_involutive :
   forall F : R -> Prop,
   forall x f : R,

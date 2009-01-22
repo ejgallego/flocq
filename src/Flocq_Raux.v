@@ -10,6 +10,24 @@ apply Rge_minus.
 now apply Rle_ge.
 Qed.
 
+Lemma Rabs_eq_Rabs :
+  forall x y : R,
+  Rabs x = Rabs y -> x = y \/ x = Ropp y.
+Proof.
+intros x y H.
+unfold Rabs in H.
+destruct (Rcase_abs x) as [_|_].
+assert (H' := f_equal Ropp H).
+rewrite Ropp_involutive in H'.
+rewrite H'.
+destruct (Rcase_abs y) as [_|_].
+left.
+apply Ropp_involutive.
+now right.
+rewrite H.
+now destruct (Rcase_abs y) as [_|_] ; [right|left].
+Qed.
+
 Section Z2R.
 
 Fixpoint P2R (p : positive) :=
