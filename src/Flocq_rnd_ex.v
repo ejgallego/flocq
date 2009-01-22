@@ -119,7 +119,7 @@ intros F rnd Hr x y Hxy.
 now eapply Rnd_DN_pt_monotone.
 Qed.
 
-Theorem Rnd_DN_pt_involutive :
+Theorem Rnd_DN_pt_idempotent :
   forall F : R -> Prop,
   forall x f : R,
   Rnd_DN_pt F x f -> F x ->
@@ -133,18 +133,18 @@ exact Hx.
 apply Rle_refl.
 Qed.
 
-Theorem Rnd_DN_involutive :
+Theorem Rnd_DN_idempotent :
   forall F : R -> Prop,
   forall rnd : R -> R,
   Rnd_DN F rnd ->
-  InvolutiveP F rnd.
+  IdempotentP F rnd.
 Proof.
 intros F rnd Hr.
 split.
 intros.
 eapply Hr.
 intros x Hx.
-now apply Rnd_DN_pt_involutive with (2 := Hx).
+now apply Rnd_DN_pt_idempotent with (2 := Hx).
 Qed.
 
 Theorem Rnd_UP_pt_monotone :
@@ -169,7 +169,7 @@ intros F rnd Hr x y Hxy.
 now eapply Rnd_UP_pt_monotone.
 Qed.
 
-Theorem Rnd_UP_pt_involutive :
+Theorem Rnd_UP_pt_idempotent :
   forall F : R -> Prop,
   forall x f : R,
   Rnd_UP_pt F x f -> F x ->
@@ -183,18 +183,18 @@ apply Rle_refl.
 exact Hx1.
 Qed.
 
-Theorem Rnd_UP_involutive :
+Theorem Rnd_UP_idempotent :
   forall F : R -> Prop,
   forall rnd : R -> R,
   Rnd_UP F rnd ->
-  InvolutiveP F rnd.
+  IdempotentP F rnd.
 Proof.
 intros F rnd Hr.
 split.
 intros.
 eapply Hr.
 intros x Hx.
-now apply Rnd_UP_pt_involutive with (2 := Hx).
+now apply Rnd_UP_pt_idempotent with (2 := Hx).
 Qed.
 
 Theorem Rnd_DN_pt_le_rnd :
@@ -414,7 +414,7 @@ rewrite Hxy.
 apply Rle_refl.
 Qed.
 
-Theorem Rnd_N_pt_involutive :
+Theorem Rnd_N_pt_idempotent :
   forall F : R -> Prop,
   forall x f : R,
   Rnd_N_pt F x f -> F x ->
@@ -434,18 +434,18 @@ apply Rabs_R0.
 apply Rabs_pos.
 Qed.
 
-Theorem Rnd_N_involutive :
+Theorem Rnd_N_idempotent :
   forall F : R -> Prop,
   forall rnd : R -> R,
   Rnd_N F rnd ->
-  InvolutiveP F rnd.
+  IdempotentP F rnd.
 Proof.
 intros F rnd Hr.
 split.
 intros x.
 eapply Hr.
 intros x Hx.
-now apply Rnd_N_pt_involutive with F.
+now apply Rnd_N_pt_idempotent with F.
 Qed.
 
 Theorem Rnd_NA_pt_monotone :
@@ -482,7 +482,7 @@ now apply Hf.
 now apply Hg.
 destruct L as [L|L].
 assert (g = 0).
-apply Rnd_N_pt_involutive with F.
+apply Rnd_N_pt_idempotent with F.
 replace 0 with x.
 exact Hg.
 apply Rmult_eq_reg_l with 2.
@@ -510,28 +510,28 @@ intros F rnd Hr x y Hxy.
 now apply Rnd_NA_pt_monotone with F.
 Qed.
 
-Theorem Rnd_NA_pt_involutive :
+Theorem Rnd_NA_pt_idempotent :
   forall F : R -> Prop,
   forall x f : R,
   Rnd_NA_pt F x f -> F x ->
   f = x.
 Proof.
 intros F x f (Hf,_) Hx.
-now apply Rnd_N_pt_involutive with F.
+now apply Rnd_N_pt_idempotent with F.
 Qed.
 
-Theorem Rnd_NA_involutive :
+Theorem Rnd_NA_idempotent :
   forall F : R -> Prop,
   forall rnd : R -> R,
   Rnd_NA F rnd ->
-  InvolutiveP F rnd.
+  IdempotentP F rnd.
 Proof.
 intros F rnd Hr.
 split.
 intros x.
 eapply Hr.
 intros x Hx.
-now apply Rnd_NA_pt_involutive with F.
+now apply Rnd_NA_pt_idempotent with F.
 Qed.
 
 Theorem Rnd_0 :
@@ -603,7 +603,7 @@ exists (fun x =>  match Rle_dec 0 x with
 assert (K : Rounding_for_Format F rnd).
 split.
 now apply Rnd_DN_monotone with F.
-now apply Rnd_DN_involutive.
+now apply Rnd_DN_idempotent.
 intros x.
 destruct (Rle_dec 0 x) as [Hx|Hx] ; split.
 (* positive or zero *)
@@ -784,10 +784,10 @@ destruct (Hdn (-x)%R) as (yn,(H1,(H2,H3))).
 exists (-yn)%R.
 repeat split.
 now apply Hneg.
-rewrite <- (Ropp_involutive x).
+rewrite <- (Ropp_idempotent x).
 now apply Ropp_le_contravar.
 intros z Hz Hxz.
-rewrite <- (Ropp_involutive z).
+rewrite <- (Ropp_idempotent z).
 apply Ropp_le_contravar.
 apply H3.
 now apply Hneg.

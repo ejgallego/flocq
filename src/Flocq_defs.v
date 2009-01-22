@@ -23,12 +23,12 @@ Definition MonotoneP (rnd : R -> R) :=
   (x <= y)%R -> (rnd x <= rnd y)%R.
 
 
-Definition InvolutiveP (F : R -> Prop) (rnd : R -> R) :=
+Definition IdempotentP (F : R -> Prop) (rnd : R -> R) :=
     (forall x : R, F (rnd x))
         /\ (forall x : R, F x -> rnd x = x). 
 
 Definition Rounding_for_Format (F : R -> Prop) (rnd : R -> R) :=
-   MonotoneP rnd /\ InvolutiveP F rnd.
+   MonotoneP rnd /\ IdempotentP F rnd.
 
 (* unbounded floating-point format *)
 Definition FLX_format (prec : Z) (x : R) :=
