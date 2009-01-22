@@ -2,16 +2,15 @@ Require Import Flocq_Raux.
 
 Section Def.
 
-Variable beta: radix.
-
-Notation bpow := (epow beta).
-
 Record float (beta : radix) := Float { Fnum : Z ; Fexp : Z }.
+
 Implicit Arguments Fnum [[beta]].
 Implicit Arguments Fexp [[beta]].
 
-Definition F2R {beta : radix} (f : float beta) :=
-  (Z2R (Fnum f) * bpow (Fexp f))%R.
+Variable beta : radix.
+
+Definition F2R (f : float beta) :=
+  (Z2R (Fnum f) * epow beta (Fexp f))%R.
 
 (* A rounding mode will be a function, ie a R -> R                         *)
 (* It will then have to satisfy a number of properties on a given domain D *)
@@ -55,6 +54,10 @@ Definition FIX_RoundingModeP (emin : Z) (rnd : R -> R):=
   Rounding_for_Format (FIX_format emin) rnd.
 
 End Def.
+
+Implicit Arguments Fnum [[beta]].
+Implicit Arguments Fexp [[beta]].
+Implicit Arguments F2R [[beta]].
 
 Section RND.
 
