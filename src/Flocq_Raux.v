@@ -79,6 +79,14 @@ apply Ropp_eq_compat.
 apply P2R_INR.
 Qed.
 
+Lemma opp_Z2R :
+  forall n, Z2R (-n) = (- Z2R n)%R.
+Proof.
+intros.
+repeat rewrite Z2R_IZR.
+apply Ropp_Ropp_IZR.
+Qed.
+
 Lemma plus_Z2R :
   forall m n, (Z2R (m + n) = Z2R m + Z2R n)%R.
 Proof.
