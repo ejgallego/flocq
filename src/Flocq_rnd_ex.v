@@ -119,20 +119,32 @@ intros F rnd Hr x y Hxy.
 now eapply Rnd_DN_pt_monotone.
 Qed.
 
+Theorem Rnd_DN_pt_involutive :
+  forall F : R -> Prop,
+  forall x f : R,
+  Rnd_DN_pt F x f -> F x ->
+  f = x.
+Proof.
+intros F x f (_,(Hx1,Hx2)) Hx.
+apply Rle_antisym.
+exact Hx1.
+apply Hx2.
+exact Hx.
+apply Rle_refl.
+Qed.
+
 Theorem Rnd_DN_involutive :
   forall F : R -> Prop,
   forall rnd : R -> R,
   Rnd_DN F rnd ->
   InvolutiveP F rnd.
 Proof.
-intros F rnd Hrnd.
+intros F rnd Hr.
 split.
-intros x.
-now eapply Hrnd. 
+intros.
+eapply Hr.
 intros x Hx.
-destruct (Hrnd x) as (H1,(H2,H3)).
-apply Rle_antisym; trivial.
-apply H3; auto with real.
+now apply Rnd_DN_pt_involutive with (2 := Hx).
 Qed.
 
 Theorem Rnd_UP_pt_monotone :
@@ -157,20 +169,32 @@ intros F rnd Hr x y Hxy.
 now eapply Rnd_UP_pt_monotone.
 Qed.
 
+Theorem Rnd_UP_pt_involutive :
+  forall F : R -> Prop,
+  forall x f : R,
+  Rnd_UP_pt F x f -> F x ->
+  f = x.
+Proof.
+intros F x f (_,(Hx1,Hx2)) Hx.
+apply Rle_antisym.
+apply Hx2.
+exact Hx.
+apply Rle_refl.
+exact Hx1.
+Qed.
+
 Theorem Rnd_UP_involutive :
   forall F : R -> Prop,
   forall rnd : R -> R,
   Rnd_UP F rnd ->
   InvolutiveP F rnd.
 Proof.
-intros F rnd Hrnd.
+intros F rnd Hr.
 split.
-intros x.
-now eapply Hrnd. 
+intros.
+eapply Hr.
 intros x Hx.
-destruct (Hrnd x) as (H1,(H2,H3)).
-apply Rle_antisym; trivial.
-apply H3; auto with real.
+now apply Rnd_UP_pt_involutive with (2 := Hx).
 Qed.
 
 Theorem Rnd_DN_pt_le_rnd :
@@ -390,6 +414,26 @@ rewrite Hxy.
 apply Rle_refl.
 Qed.
 
+Theorem Rnd_N_pt_involutive :
+  forall F : R -> Prop,
+  forall x f : R,
+  Rnd_N_pt F x f -> F x ->
+  f = x.
+Proof.
+intros F x f (_,Hf) Hx.
+apply Rminus_diag_uniq.
+destruct (Req_dec (f - x) 0) as [H|H].
+exact H.
+elim Rabs_no_R0 with (1 := H).
+apply Rle_antisym.
+replace 0 with (Rabs (x - x)).
+now apply Hf.
+unfold Rminus.
+rewrite Rplus_opp_r.
+apply Rabs_R0.
+apply Rabs_pos.
+Qed.
+
 Theorem Rnd_N_involutive :
   forall F : R -> Prop,
   forall rnd : R -> R,
@@ -401,18 +445,31 @@ split.
 intros x.
 eapply Hr.
 intros x Hx.
-destruct (Hr x) as (Hr1,Hr2).
-apply Rminus_diag_uniq.
-destruct (Req_dec (rnd x - x) 0) as [H|H].
-exact H.
-elim Rabs_no_R0 with (1 := H).
-apply Rle_antisym.
-replace 0 with (Rabs (x - x)).
-now apply Hr2.
-unfold Rminus.
-rewrite Rplus_opp_r.
-apply Rabs_R0.
-apply Rabs_pos.
+now apply Rnd_N_pt_involutive with F.
+Qed.
+
+Theorem Rnd_NA_pt_involutive :
+  forall F : R -> Prop,
+  forall x f : R,
+  Rnd_NA_pt F x f -> F x ->
+  f = x.
+Proof.
+intros F x f (Hf,_) Hx.
+now apply Rnd_N_pt_involutive with F.
+Qed.
+
+Theorem Rnd_NA_involutive :
+  forall F : R -> Prop,
+  forall rnd : R -> R,
+  Rnd_NA F rnd ->
+  InvolutiveP F rnd.
+Proof.
+intros F rnd Hr.
+split.
+intros x.
+eapply Hr.
+intros x Hx.
+now apply Rnd_NA_pt_involutive with F.
 Qed.
 
 Theorem Rnd_0 :
