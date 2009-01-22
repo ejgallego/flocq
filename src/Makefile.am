@@ -9,12 +9,14 @@ CLEANFILES = $(FILES:=o) $(FILES:=d) $(FILES:.v=.glob)
 
 datadir = $(libdir)
 
-.vo.v:
+.v.vo:
 	@echo COQC $<
 	@$(COQC) $(COQRFLAG) $<
 
-.vd.v:
+.v.vd:
 	@echo COQDEP $<
 	@$(COQDEP) -I . $< > $@
+
+SUFFIXES = .v .vo .vd
 
 -include $(FILES:=d)
