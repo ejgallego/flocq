@@ -97,6 +97,28 @@ rewrite Ropp_involutive.
 apply H1.
 Qed.
 
+Theorem Rnd_DN_pt_monotone :
+  forall F : R -> Prop,
+  forall x y f g : R,
+  Rnd_DN_pt F x f -> Rnd_DN_pt F y g ->
+  x <= y -> f <= g.
+Proof.
+intros F x y f g (Hx1,(Hx2,_)) (Hy1,(_,Hy2)) Hxy.
+apply Hy2.
+apply Hx1.
+now apply Rle_trans with (2 := Hxy).
+Qed.
+
+Theorem Rnd_DN_monotone :
+  forall F : R -> Prop,
+  forall rnd : R -> R,
+  Rnd_DN F rnd ->
+  MonotoneP rnd.
+Proof.
+intros F rnd Hr x y Hxy.
+now eapply Rnd_DN_pt_monotone.
+Qed.
+
 Theorem Rnd_DN_involutive :
   forall F : R -> Prop,
   forall rnd : R -> R,
@@ -113,20 +135,16 @@ apply Rle_antisym; trivial.
 apply H3; auto with real.
 Qed.
 
-Theorem Rnd_DN_monotone :
+Theorem Rnd_UP_pt_monotone :
   forall F : R -> Prop,
-  forall rnd : R -> R,
-  Rnd_DN F rnd ->
-  MonotoneP rnd.
+  forall x y f g : R,
+  Rnd_UP_pt F x f -> Rnd_UP_pt F y g ->
+  x <= y -> f <= g.
 Proof.
-intros F rnd Hrnd x y Hxy.
-destruct (Rle_or_lt x (rnd y)).
-apply Rle_trans with (2 := H).
-now eapply Hrnd.
-eapply Hrnd.
-now eapply Hrnd.
-apply Rle_trans with (2 := Hxy).
-now eapply Hrnd.
+intros F x y f g (Hx1,(_,Hx2)) (Hy1,(Hy2,_)) Hxy.
+apply Hx2.
+apply Hy1.
+now apply Rle_trans with (1 := Hxy).
 Qed.
 
 Theorem Rnd_UP_monotone :
@@ -135,14 +153,8 @@ Theorem Rnd_UP_monotone :
   Rnd_UP F rnd ->
   MonotoneP rnd.
 Proof.
-intros F rnd Hrnd x y Hxy.
-destruct (Rle_or_lt (rnd x) y).
-apply Rle_trans with (1 := H).
-now eapply Hrnd.
-eapply Hrnd.
-now eapply Hrnd.
-apply Rle_trans with (1 := Hxy).
-now eapply Hrnd.
+intros F rnd Hr x y Hxy.
+now eapply Rnd_UP_pt_monotone.
 Qed.
 
 Theorem Rnd_UP_involutive :
@@ -304,11 +316,11 @@ replace (-x + f) with (Rabs (f - x)).
 replace (-x + fu) with (Rabs (fu - x)).
 apply Hu'.
 apply Hu.
-rewrite Rabs_right1.
+rewrite Rabs_pos_eq.
 ring.
 apply Rle_0_minus.
 apply Hu.
-rewrite Rabs_right1.
+rewrite Rabs_pos_eq.
 ring.
 now apply Rle_0_minus.
 apply Rlt_le.
@@ -316,15 +328,92 @@ apply Rlt_le_trans with (1 := H).
 apply Hu.
 Qed.
 
-(*
 Theorem Rnd_N_pt_monotone :
   forall F : R -> Prop,
   forall x y f g : R,
   Rnd_N_pt F x f -> Rnd_N_pt F y g ->
   x < y -> f <= g.
 Proof.
-intros F x y f g Hx Hy Hxy.
-*)
+intros F x y f g (Hf,Hx) (Hg,Hy) Hxy.
+apply Rnot_lt_le.
+intros Hgf.
+assert (Hfgx := Hx g Hg).
+assert (Hgfy := Hy f Hf).
+clear F Hf Hg Hx Hy.
+destruct (Rle_or_lt x g) as [Hxg|Hgx].
+(* x <= g < f *)
+apply Rle_not_lt with (1 := Hfgx).
+rewrite 2!Rabs_pos_eq.
+now apply Rplus_lt_compat_r.
+apply Rle_0_minus.
+apply Rlt_le.
+now apply Rle_lt_trans with (1 := Hxg).
+now apply Rle_0_minus.
+assert (Hgy := Rlt_trans _ _ _ Hgx Hxy).
+destruct (Rle_or_lt f y) as [Hfy|Hyf].
+(* g < f <= y *)
+apply Rle_not_lt with (1 := Hgfy).
+rewrite (Rabs_left (g - y)).
+2: now apply Rlt_minus.
+rewrite Rabs_left1.
+apply Ropp_lt_contravar.
+now apply Rplus_lt_compat_r.
+now apply Rle_minus.
+(* g < x < y < f *)
+rewrite Rabs_left, Rabs_pos_eq, Ropp_minus_distr in Hgfy.
+rewrite Rabs_pos_eq, Rabs_left, Ropp_minus_distr in Hfgx.
+apply Rle_not_lt with (1 := Rplus_le_compat _ _ _ _ Hfgx Hgfy).
+apply Rminus_lt.
+ring_simplify.
+apply Rlt_minus.
+apply Rmult_lt_compat_l.
+now apply (Z2R_lt 0 2).
+exact Hxy.
+now apply Rlt_minus.
+apply Rle_0_minus.
+apply Rlt_le.
+now apply Rlt_trans with (1 := Hxy).
+apply Rle_0_minus.
+now apply Rlt_le.
+now apply Rlt_minus.
+Qed.
+
+Theorem Rnd_N_monotone :
+  forall F : R -> Prop,
+  forall rnd : R -> R,
+  Rnd_N F rnd ->
+  MonotoneP rnd.
+Proof.
+intros F rnd Hr x y [Hxy|Hxy].
+now apply Rnd_N_pt_monotone with F x y.
+rewrite Hxy.
+apply Rle_refl.
+Qed.
+
+Theorem Rnd_N_involutive :
+  forall F : R -> Prop,
+  forall rnd : R -> R,
+  Rnd_N F rnd ->
+  InvolutiveP F rnd.
+Proof.
+intros F rnd Hr.
+split.
+intros x.
+eapply Hr.
+intros x Hx.
+destruct (Hr x) as (Hr1,Hr2).
+apply Rminus_diag_uniq.
+destruct (Req_dec (rnd x - x) 0) as [H|H].
+exact H.
+elim Rabs_no_R0 with (1 := H).
+apply Rle_antisym.
+replace 0 with (Rabs (x - x)).
+now apply Hr2.
+unfold Rminus.
+rewrite Rplus_opp_r.
+apply Rabs_R0.
+apply Rabs_pos.
+Qed.
 
 Theorem Rnd_0 :
   forall F : R -> Prop,
