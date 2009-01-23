@@ -1,7 +1,9 @@
 FILES = \
 	Flocq_Raux.v \
 	Flocq_defs.v \
-	Flocq_rnd_ex.v
+	Flocq_rnd_FIX.v \
+	Flocq_rnd_ex.v \
+	Flocq_rnd_prop.v
 
 data_DATA = $(FILES:=o)
 EXTRA_DIST = $(FILES)
