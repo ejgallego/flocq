@@ -774,53 +774,6 @@ Qed.
 
 
 (*
-(* symmetric sets are simpler *)
-Theorem satisfies_DN_imp_UP :
-  forall is_float : R -> Prop,
-  ( forall x : R, is_float x -> is_float (-x)%R ) ->
-  satisfies_DN is_float ->
-  satisfies_DN_UP is_float.
-Proof.
-intros is_float Hneg Hdn.
-split.
-apply Hdn.
-intros x.
-destruct (Hdn (-x)%R) as (yn,(H1,(H2,H3))).
-exists (-yn)%R.
-repeat split.
-now apply Hneg.
-rewrite <- (Ropp_idempotent x).
-now apply Ropp_le_contravar.
-intros z Hz Hxz.
-rewrite <- (Ropp_idempotent z).
-apply Ropp_le_contravar.
-apply H3.
-now apply Hneg.
-now apply Ropp_le_contravar.
-Qed.
-
-Theorem Rnd_DN_is_rounding :
-  forall is_float : R -> Prop,
-  satisfies_DN is_float ->
-  RoundedModeP (Rnd_DN is_float) /\ Compatible_With_Format is_float (Rnd_DN is_float).
-Proof.
-intros is_float K.
-repeat split ; try apply Rle_refl ; trivial.
-(* monotone *)
-intros x y f g Hx Hy Hxy.
-eapply Hy.
-eapply Hx.
-apply Rle_trans with (2 := Hxy).
-eapply Hx.
-(* . *)
-eapply H.
-intros Hx.
-eapply Hx.
-Qed.
-
-
-
-
 Theorem exp_ln_powerRZ :
  forall u v : Z, (0 < u)%Z -> exp (ln (IZR u) * (IZR v)) = powerRZ (IZR u) v.
 admit.
@@ -1128,23 +1081,5 @@ rewrite <- Zsucc_pred.
 rewrite Z2R_IZR.
 eapply archimed.
 Qed.
-
-(*
-Theorem Rnd_DN_is_FLT_rounding :
-  FLT_RoundedModeP radix emin prec (Rnd_DN (FLT_format radix emin prec)).
-Proof.
-intros.
-apply Rnd_DN_is_rounding.
-eapply FLT_format_satisfies_DN_UP.
-Qed.
-
-Theorem Rnd_DN_is_FIX_rounding :
-  FIX_RoundedModeP radix emin (Rnd_DN (FIX_format radix emin)).
-Proof.
-intros.
-apply Rnd_DN_is_rounding.
-eapply FIX_format_satisfies_DN_UP.
-Qed.
-*)
 
 End RND_ex.
