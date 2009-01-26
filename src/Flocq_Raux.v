@@ -40,6 +40,17 @@ exact H.
 now rewrite 2!(Rmult_comm r).
 Qed.
 
+Lemma exp_increasing_weak :
+  forall x y : R,
+  (x <= y)%R -> (exp x <= exp y)%R.
+Proof.
+intros x y [H|H].
+apply Rlt_le.
+now apply exp_increasing.
+rewrite H.
+apply Rle_refl.
+Qed.
+
 End Rmissing.
 
 Section Z2R.
@@ -183,7 +194,7 @@ End Z2R.
 
 Section pow.
 
-Record radix :=  { radix_val :Z ; radix_prop :  (2 <= radix_val )%Z }.
+Record radix :=  { radix_val : Z ; radix_prop :  (2 <= radix_val )%Z }.
 
 Variable r: radix.
 
@@ -245,7 +256,7 @@ destruct r; simpl; auto with zarith.
 Qed.
 
 Lemma epow_add :
-  forall e1 e2 : Z, (epow (e1+e2) = epow e1 * epow e2)%R.
+  forall e1 e2 : Z, (epow (e1 + e2) = epow e1 * epow e2)%R.
 Proof.
 intros.
 repeat rewrite epow_powerRZ.
@@ -262,5 +273,197 @@ unfold epow, Zpower_pos, iter_pos.
 now rewrite Zmult_1_r.
 Qed.
 
-End pow.
+Lemma Z2R_Zpower :
+  forall e : Z,
+  (0 <= e)%Z ->
+  Z2R (Zpower (radix_val r) e) = epow e.
+Proof.
+intros [|e|e] H.
+split.
+split.
+now elim H.
+Qed.
 
+Lemma epow_lt_aux :
+  forall e1 e2 : Z,
+  (e1 < e2)%Z -> (epow e1 < epow e2)%R.
+Proof.
+intros e1 e2 H.
+replace e2 with (e1 + (e2 - e1))%Z by ring.
+rewrite <- (Rmult_1_r (epow e1)).
+rewrite epow_add.
+apply Rmult_lt_compat_l.
+apply epow_gt_0.
+assert (0 < e2 - e1)%Z by omega.
+destruct (e2 - e1)%Z ; try discriminate H0.
+clear.
+unfold epow.
+apply (Z2R_lt 1).
+rewrite Zpower_pos_nat.
+case_eq (nat_of_P p).
+intros H.
+elim (lt_irrefl 0).
+pattern O at 2 ; rewrite <- H.
+apply lt_O_nat_of_P.
+intros n _.
+assert (1 < Zpower_nat (radix_val r) 1)%Z.
+unfold Zpower_nat, iter_nat.
+rewrite Zmult_1_r.
+generalize (radix_prop r).
+omega.
+induction n.
+exact H.
+change (S (S n)) with (1 + (S n))%nat.
+rewrite Zpower_nat_is_exp.
+change 1%Z with (1 * 1)%Z.
+apply Zmult_lt_compat.
+now split.
+now split.
+Qed.
+
+Lemma epow_lt :
+  forall e1 e2 : Z,
+  (e1 < e2)%Z <-> (epow e1 < epow e2)%R.
+Proof.
+intros e1 e2.
+split.
+apply epow_lt_aux.
+intros H.
+apply Zgt_lt.
+apply Znot_le_gt.
+intros H'.
+apply Rlt_not_le with (1 := H).
+destruct (Zle_lt_or_eq _ _ H').
+apply Rlt_le.
+now apply epow_lt_aux.
+apply Req_le.
+now apply f_equal.
+Qed.
+
+Lemma epow_le :
+  forall e1 e2 : Z,
+  (e1 <= e2)%Z <-> (epow e1 <= epow e2)%R.
+Proof.
+intros e1 e2.
+split.
+intros H.
+apply Rnot_lt_le.
+intros H'.
+apply Zle_not_gt with (1 := H).
+apply Zlt_gt.
+now apply <- epow_lt.
+intros H.
+apply Znot_gt_le.
+intros H'.
+apply Rle_not_lt with (1 := H).
+apply -> epow_lt.
+now apply Zgt_lt.
+Qed.
+
+Lemma epow_eq :
+  forall e1 e2 : Z,
+  e1 = e2 -> epow e1 = epow e2.
+Proof.
+intros.
+apply Rle_antisym.
+apply -> epow_le.
+now apply Zeq_le.
+apply -> epow_le.
+apply Zeq_le.
+now apply eq_sym.
+Qed.
+
+Lemma epow_exp :
+  forall e : Z,
+  epow e = exp (Z2R e * ln (Z2R (radix_val r))).
+Proof.
+(* positive case *)
+assert (forall e, epow (Zpos e) = exp (Z2R (Zpos e) * ln (Z2R (radix_val r)))).
+intros e.
+unfold epow.
+rewrite Zpower_pos_nat.
+unfold Z2R at 2.
+rewrite P2R_INR.
+induction (nat_of_P e).
+rewrite Rmult_0_l.
+unfold Zpower_nat, iter_nat.
+now rewrite exp_0.
+change (S n) with (1 + n)%nat.
+rewrite plus_INR.
+rewrite Zpower_nat_is_exp.
+rewrite Rmult_plus_distr_r.
+rewrite exp_plus.
+rewrite Rmult_1_l.
+rewrite exp_ln.
+rewrite <- IHn.
+rewrite <- mult_Z2R.
+apply f_equal.
+unfold Zpower_nat at 1, iter_nat.
+now rewrite Zmult_1_r.
+apply (Z2R_lt 0).
+generalize (radix_prop r).
+omega.
+(* general case *)
+intros [|e|e].
+rewrite Rmult_0_l.
+now rewrite exp_0.
+apply H.
+unfold epow.
+change (Z2R (Zpower_pos (radix_val r) e)) with (epow (Zpos e)).
+rewrite H.
+rewrite <- exp_Ropp.
+rewrite <- Ropp_mult_distr_l_reverse.
+now rewrite <- opp_Z2R.
+Qed.
+
+Lemma ln_beta :
+  forall x : R, (0 < x)%R ->
+  {e | (epow (e - 1)%Z <= x < epow e)%R}.
+Proof.
+intros x Hx.
+set (fact := ln (Z2R (radix_val r))).
+(* . *)
+assert (0 < fact)%R.
+apply exp_lt_inv.
+rewrite exp_0.
+unfold fact.
+rewrite exp_ln.
+apply (Z2R_lt 1).
+generalize (radix_prop r).
+omega.
+apply (Z2R_lt 0).
+generalize (radix_prop r).
+omega.
+(* . *)
+exists (up (ln x / fact))%Z.
+rewrite 2!epow_exp.
+fold fact.
+pattern x at 2 3 ; replace x with (exp (ln x / fact * fact)).
+split.
+rewrite minus_Z2R.
+apply exp_increasing_weak.
+apply Rmult_le_compat_r.
+now apply Rlt_le.
+simpl (Z2R 1).
+pattern (ln x / fact)%R at 2 ; replace (ln x / fact)%R with (1 + (ln x / fact - 1))%R by ring.
+replace (Z2R (up (ln x / fact)) - 1)%R with ((Z2R (up (ln x / fact)) - ln x / fact) + (ln x / fact - 1))%R by ring.
+apply Rplus_le_compat_r.
+rewrite Z2R_IZR.
+eapply for_base_fp.
+apply exp_increasing.
+apply Rmult_lt_compat_r.
+exact H.
+rewrite Z2R_IZR.
+apply Rplus_lt_reg_r with (- (ln x / fact))%R.
+rewrite Rplus_opp_l.
+rewrite Rplus_comm.
+eapply for_base_fp.
+unfold Rdiv.
+rewrite Rmult_assoc.
+rewrite Rinv_l.
+rewrite Rmult_1_r.
+now apply exp_ln.
+now apply Rgt_not_eq.
+Qed.
+
+End pow.
