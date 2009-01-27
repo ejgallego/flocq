@@ -1,5 +1,6 @@
 Require Import Flocq_Raux.
 Require Import Flocq_defs.
+Require Import Flocq_float_prop.
 Require Import Flocq_rnd_ex.
 Require Import Flocq_rnd_prop.
 Require Import Flocq_rnd_FIX.
@@ -11,65 +12,6 @@ Open Scope R_scope.
 Variable beta : radix.
 
 Notation bpow := (epow beta).
-
-Lemma F2R_pos_imp_Fnum_pos :
-  forall f : float beta,
-  0 <= F2R f ->
-  (0 <= Fnum f)%Z.
-Proof.
-intros f H.
-apply le_Z2R.
-apply Rmult_le_reg_l with (bpow (Fexp f)).
-apply epow_gt_0.
-rewrite Rmult_0_r.
-now rewrite Rmult_comm.
-Qed.
-
-Lemma F2R_constrain :
-  forall m e e' p : Z,
-  (Zabs m < Zpower (radix_val beta) p)%Z ->
-  bpow e' <= F2R (Float beta m e) ->
-  exists m' : Z,
-  F2R (Float beta m e) = F2R (Float beta m' (e' - (p - 1))).
-Proof.
-intros m e e' p Hm Hf.
-exists (m * Zpower (radix_val beta) (e - (e' - (p - 1))))%Z.
-unfold F2R.
-simpl.
-rewrite mult_Z2R.
-rewrite Rmult_assoc.
-apply Rmult_eq_compat_l.
-rewrite Z2R_Zpower.
-rewrite <- epow_add.
-apply f_equal.
-ring.
-assert (e' <= e + (p - 1))%Z.
-2: omega.
-apply Zlt_succ_le.
-unfold Zsucc.
-replace (e + (p - 1) + 1)%Z with (e + p)%Z by ring.
-apply <- epow_lt.
-apply Rle_lt_trans with (1 := Hf).
-unfold F2R.
-rewrite epow_add.
-rewrite Rmult_comm.
-apply Rmult_lt_compat_l.
-apply epow_gt_0.
-simpl.
-apply Rle_lt_trans with (1 := RRle_abs _).
-rewrite Z2R_IZR.
-rewrite Rabs_Zabs.
-rewrite <- Z2R_IZR.
-replace (bpow p) with (Z2R (Zpower (radix_val beta) p)).
-now apply Z2R_lt.
-rewrite Z2R_Zpower.
-apply refl_equal.
-clear -Hm.
-destruct p as [_|p|p] ; try discriminate.
-simpl in Hm.
-elim Zlt_not_le with (1 := Hm).
-apply Zabs_pos.
-Qed.
 
 Variable prec : Z.
 Variable Hp : Zlt 0 prec.
@@ -108,15 +50,15 @@ exists (fun x =>
   | inleft (right Hx) => Z0
   | inright Hx => projS1 (ln_beta beta _ (Hh _ Hx))
   end prec in
-  match FIX_format_satisfies_any beta e with
-  | Satisfies_any _ _ rnd Hr => rnd x
+  match satisfies_any_imp_DN _ (FIX_format_satisfies_any beta e) with
+  | exist rnd Hr => rnd x
   end).
 intros x.
 destruct (total_order_T 0 x) as [[Hx|Hx]|Hx].
 (* x positive *)
 clear Hh.
 set (e := (projT1 (ln_beta beta x Hx) - prec)%Z).
-destruct (FIX_format_satisfies_any beta e) as (_,_,rnd,Hr).
+destruct (satisfies_any_imp_DN _ (FIX_format_satisfies_any beta e)) as (rnd,Hr).
 destruct (Hr x) as ((f,(Hr1,Hr2)),(Hr3,Hr4)).
 destruct (ln_beta beta x Hx) as (e', Hb).
 simpl in e.
@@ -139,13 +81,10 @@ rewrite <- Z2R_Zpower.
 apply Z2R_le.
 rewrite <- (Zabs_eq (Fnum f)).
 exact Hm.
-apply F2R_pos_imp_Fnum_pos.
+apply F2R_ge_0_imp_Fnum.
 rewrite <- Hr1.
 apply Rnd_pos_imp_pos with (FIX_format beta e).
-exists (Float beta 0 e).
-repeat split.
-unfold F2R.
-now rewrite Rmult_0_l.
+apply (FIX_format_satisfies_any beta e).
 split.
 now apply Rnd_DN_monotone with (FIX_format beta e).
 now apply Rnd_DN_idempotent.
@@ -171,7 +110,7 @@ ring.
 omega.
 apply Hb.
 apply Hr4.
-destruct (F2R_constrain mg eg (e' - 1) prec Hg2) as (mg',Hg).
+destruct (F2R_prec_normalize beta mg eg (e' - 1) prec Hg2) as (mg',Hg).
 rewrite <- Hg1.
 now apply Rlt_le.
 rewrite Hg1, Hg.
