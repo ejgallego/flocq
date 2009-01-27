@@ -22,6 +22,25 @@ rewrite Rmult_0_r.
 now rewrite Rmult_comm.
 Qed.
 
+Lemma F2R_le_0_imp_Fnum :
+  forall f : float beta,
+  F2R f <= 0 ->
+  (Fnum f <= 0)%Z.
+Proof.
+intros f H.
+apply le_Z2R.
+apply Ropp_le_cancel.
+apply Rmult_le_reg_l with (bpow (Fexp f)).
+apply epow_gt_0.
+simpl (Z2R 0).
+rewrite Ropp_0.
+rewrite Rmult_0_r.
+rewrite Ropp_mult_distr_r_reverse.
+rewrite <- Ropp_0.
+apply Ropp_le_contravar.
+now rewrite Rmult_comm.
+Qed.
+
 Lemma F2R_prec_normalize :
   forall m e e' p : Z,
   (Zabs m < Zpower (radix_val beta) p)%Z ->
