@@ -180,6 +180,12 @@ repeat rewrite Z2R_IZR.
 apply IZR_lt.
 Qed.
 
+Lemma Z2R_lt_le:  forall e1 e2, (Z2R (e1-1) < Z2R e2)%R -> (Z2R e1 <= Z2R e2)%R.
+intros.
+apply Z2R_le.
+assert (e1 -1 < e2)%Z; auto with zarith.
+now apply lt_Z2R.
+Qed.
 
 Lemma Z2R_neq :
 forall m n, (m <> n)%Z -> (Z2R m <> Z2R n)%R.
@@ -187,6 +193,13 @@ Proof.
 intros m n.
 repeat rewrite Z2R_IZR.
 apply IZR_neq.
+Qed.
+
+
+Lemma Rabs_Z2R: forall z, Rabs (Z2R z) = Z2R (Zabs z).
+intros.
+repeat rewrite Z2R_IZR.
+apply Rabs_Zabs. 
 Qed.
 
 End Z2R.
@@ -197,6 +210,13 @@ Section pow.
 Record radix :=  { radix_val : Z ; radix_prop :  (2 <= radix_val )%Z }.
 
 Variable r: radix.
+
+Lemma radix_pos: (0 < Z2R (radix_val r))%R.
+destruct r; simpl.
+apply Rle_lt_trans with (Z2R 0).
+right; reflexivity.
+apply Z2R_lt; auto with zarith.
+Qed.
 
 Definition epow e :=
   match e with
@@ -272,6 +292,29 @@ Proof.
 unfold epow, Zpower_pos, iter_pos.
 now rewrite Zmult_1_r.
 Qed.
+
+Lemma epow_add1 :
+  forall e : Z, (epow (e+1) = Z2R (radix_val r) * epow e)%R.
+Proof.
+intros.
+rewrite <- epow_1.
+rewrite <- epow_add.
+now rewrite Zplus_comm.
+Qed.
+
+
+Lemma epow_opp :
+  forall e : Z, (epow (-e) = /epow e)%R.
+Proof.
+intros e; destruct e.
+simpl; now rewrite Rinv_1.
+now replace (-Zpos p)%Z with (Zneg p) by reflexivity.
+replace (-Zneg p)%Z with (Zpos p) by reflexivity.
+simpl; rewrite Rinv_involutive; trivial.
+generalize (epow_gt_0 (Zpos p)).
+simpl; auto with real.
+Qed.
+
 
 Lemma Z2R_Zpower :
   forall e : Z,
@@ -370,7 +413,7 @@ apply -> epow_le.
 now apply Zeq_le.
 apply -> epow_le.
 apply Zeq_le.
-now apply eq_sym.
+now apply sym_eq.
 Qed.
 
 Lemma epow_exp :
@@ -464,6 +507,32 @@ rewrite Rinv_l.
 rewrite Rmult_1_r.
 now apply exp_ln.
 now apply Rgt_not_eq.
+Qed.
+
+
+Lemma Zpower_pos_lt: forall b z, (0 < b)%Z -> (0 < Zpower_pos b z)%Z.
+intros; apply lt_Z2R.
+simpl; rewrite Zpower_pos_powerRZ.
+apply powerRZ_lt.
+apply Rle_lt_trans with (Z2R 0).
+right; reflexivity.
+now apply Z2R_lt.
+Qed.
+
+Lemma Zpower_lt: forall b z, (0 < b)%Z -> (0 < z)%Z -> (0 < Zpower b z)%Z.
+intros.
+destruct z; unfold Zpower; auto with zarith.
+now apply Zpower_pos_lt.
+absurd (0 <= Zneg p)%Z; auto with zarith.
+Qed.
+
+Lemma vNum_gt_1: forall prec, (0 < prec)%Z -> (1 < radix_val r ^ prec)%Z.
+intros.
+apply lt_Z2R.
+rewrite Z2R_Zpower; auto with zarith.
+apply Rle_lt_trans with (epow 0%Z).
+right; reflexivity.
+now apply -> epow_lt.
 Qed.
 
 End pow.
