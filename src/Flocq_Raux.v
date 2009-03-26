@@ -40,6 +40,16 @@ exact H.
 now rewrite 2!(Rmult_comm r).
 Qed.
 
+Lemma Rmult_le_reg_r :
+  forall r r1 r2 : R, (0 < r)%R ->
+  (r1 * r <= r2 * r)%R -> (r1 <= r2)%R.
+Proof.
+intros.
+apply Rmult_le_reg_l with r.
+exact H.
+now rewrite 2!(Rmult_comm r).
+Qed.
+
 Lemma exp_increasing_weak :
   forall x y : R,
   (x <= y)%R -> (exp x <= exp y)%R.
@@ -509,6 +519,37 @@ now apply exp_ln.
 now apply Rgt_not_eq.
 Qed.
 
+Lemma epow_unique :
+  forall x e1 e2,
+  (epow (e1 - 1) <= x < epow e1)%R ->
+  (epow (e2 - 1) <= x < epow e2)%R ->
+  e1 = e2.
+Proof.
+intros x e1 e2 (H1a,H1b) (H2a,H2b).
+destruct (Z_dec e1 e2) as [[H|H]|H].
+elim (Rlt_irrefl x).
+apply Rlt_le_trans with (1 := H1b).
+apply Rle_trans with (2 := H2a).
+apply -> epow_le.
+omega.
+elim (Rlt_irrefl x).
+apply Rlt_le_trans with (1 := H2b).
+apply Rle_trans with (2 := H1a).
+apply -> epow_le.
+omega.
+exact H.
+Qed.
+
+Lemma ln_beta_unique :
+  forall (x : R) (e : Z) (Hx : (0 < x)%R),
+  (epow (e - 1) <= x < epow e)%R ->
+  projT1 (ln_beta x Hx) = e.
+Proof.
+intros x e1 Hx H1.
+destruct (ln_beta x Hx) as (e2, H2).
+apply epow_unique with (2 := H1).
+exact H2.
+Qed.
 
 Lemma Zpower_pos_lt: forall b z, (0 < b)%Z -> (0 < Zpower_pos b z)%Z.
 intros; apply lt_Z2R.
