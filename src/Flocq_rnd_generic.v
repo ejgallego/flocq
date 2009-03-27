@@ -1,6 +1,7 @@
 Require Import Flocq_Raux.
 Require Import Flocq_defs.
 Require Import Flocq_rnd_ex.
+Require Import Flocq_float_prop.
 
 Section RND_generic.
 
@@ -37,8 +38,7 @@ intros x ((m,e),(H1,H2)).
 exists (Float beta (-m) e).
 split.
 rewrite H1.
-unfold F2R. simpl.
-now rewrite opp_Z2R, Ropp_mult_distr_l_reverse.
+apply opp_F2R.
 intros H3.
 simpl in H2.
 assert (H4 := Ropp_neq_0_compat _ H3).
@@ -342,8 +342,8 @@ rewrite Rmult_1_r.
 rewrite Ropp_mult_distr_l_reverse.
 rewrite <- epow_add.
 replace (ex - fexp ex + fexp ex)%Z with ex by ring.
-rewrite <- (Ropp_involutive x).
-apply Ropp_le_contravar.
+apply Ropp_le_cancel.
+rewrite Ropp_involutive.
 now apply Rlt_le.
 rewrite Z2R_IZR.
 exact (proj1 (archimed _)).
@@ -519,9 +519,8 @@ apply lt_Z2R.
 apply Rmult_lt_reg_r with (bpow ge).
 apply epow_gt_0.
 rewrite Rmult_0_l.
-rewrite opp_Z2R.
-rewrite Ropp_mult_distr_l_reverse.
-unfold F2R in Hg1. simpl in Hg1.
+change (0 < F2R (Float beta (-gm) ge))%R.
+rewrite <- opp_F2R.
 rewrite <- Hg1.
 rewrite <- Ropp_0.
 now apply Ropp_lt_contravar.
