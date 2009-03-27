@@ -39,19 +39,11 @@ Definition FLT_format (emin prec : Z) (x : R) :=
   exists f : float beta,
   x = F2R f /\ (Zabs (Fnum f) < Zpower (radix_val beta) prec)%Z /\ (emin <= Fexp f)%Z.
 
-(* fixed-point format *)
-Definition FIX_format (emin : Z) (x : R) :=
-  exists f : float beta,
-  x = F2R f /\ (Fexp f = emin)%Z.
-
 Definition FLX_RoundingModeP (prec : Z) (rnd : R -> R):=
   Rounding_for_Format (FLX_format prec) rnd.
 
 Definition FLT_RoundingModeP (emin prec : Z) (rnd : R -> R):=
   Rounding_for_Format (FLT_format emin prec) rnd.
-
-Definition FIX_RoundingModeP (emin : Z) (rnd : R -> R):=
-  Rounding_for_Format (FIX_format emin) rnd.
 
 End Def.
 
