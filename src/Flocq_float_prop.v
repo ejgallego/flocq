@@ -3,15 +3,13 @@ Require Import Flocq_defs.
 
 Section Float_prop.
 
-Open Scope R_scope.
-
 Variable beta : radix.
 
 Notation bpow := (epow beta).
 
-Lemma F2R_ge_0_imp_Fnum :
+Theorem F2R_ge_0_imp_Fnum :
   forall f : float beta,
-  0 <= F2R f ->
+  (0 <= F2R f)%R ->
   (0 <= Fnum f)%Z.
 Proof.
 intros f H.
@@ -22,9 +20,9 @@ rewrite Rmult_0_r.
 now rewrite Rmult_comm.
 Qed.
 
-Lemma F2R_le_0_imp_Fnum :
+Theorem F2R_le_0_imp_Fnum :
   forall f : float beta,
-  F2R f <= 0 ->
+  (F2R f <= 0)%R ->
   (Fnum f <= 0)%Z.
 Proof.
 intros f H.
@@ -41,10 +39,35 @@ apply Ropp_le_contravar.
 now rewrite Rmult_comm.
 Qed.
 
-Lemma F2R_prec_normalize :
+Theorem abs_F2R :
+  forall m e : Z,
+  Rabs (F2R (Float beta m e)) = F2R (Float beta (Zabs m) e).
+Proof.
+intros m e.
+unfold F2R.
+rewrite Rabs_mult.
+rewrite Rabs_Z2R.
+simpl.
+apply f_equal.
+apply Rabs_right.
+apply Rle_ge.
+apply epow_ge_0.
+Qed.
+
+Theorem opp_F2R :
+  forall m e : Z,
+  Ropp (F2R (Float beta m e)) = F2R (Float beta (Zopp m) e).
+Proof.
+intros m e.
+unfold F2R. simpl.
+rewrite <- Ropp_mult_distr_l_reverse.
+now rewrite opp_Z2R.
+Qed.
+
+Theorem F2R_prec_normalize_pos :
   forall m e e' p : Z,
   (Zabs m < Zpower (radix_val beta) p)%Z ->
-  bpow e' <= F2R (Float beta m e) ->
+  (bpow e' <= F2R (Float beta m e))%R ->
   exists m' : Z,
   F2R (Float beta m e) = F2R (Float beta m' (e' - (p - 1))).
 Proof.
@@ -85,6 +108,32 @@ destruct p as [_|p|p] ; try discriminate.
 simpl in Hm.
 elim Zlt_not_le with (1 := Hm).
 apply Zabs_pos.
+Qed.
+
+Theorem F2R_prec_normalize :
+  forall m e e' p : Z,
+  (Zabs m < Zpower (radix_val beta) p)%Z ->
+  (bpow e' <= Rabs (F2R (Float beta m e)))%R ->
+  exists m' : Z,
+  F2R (Float beta m e) = F2R (Float beta m' (e' - (p - 1))).
+Proof.
+intros [|m|m] e e' p Hm Hf.
+exists Z0.
+unfold F2R. simpl.
+now rewrite 2!Rmult_0_l.
+(* . *)
+apply F2R_prec_normalize_pos.
+exact Hm.
+now rewrite abs_F2R in Hf.
+(* . *)
+destruct (F2R_prec_normalize_pos (Zpos m) e e' p) as (m', Hm').
+exact Hm.
+now rewrite abs_F2R in Hf.
+exists (Zopp m').
+rewrite <- opp_F2R.
+rewrite <- Hm'.
+unfold F2R. simpl.
+apply Ropp_mult_distr_l_reverse.
 Qed.
 
 End Float_prop.

@@ -12,6 +12,30 @@ Inductive satisfies_any (F : R -> Prop) :=
     F 0 -> ( forall x : R, F x -> F (-x) ) ->
     forall rnd : R -> R, Rnd_DN F rnd -> satisfies_any F.
 
+Theorem satisfies_any_eq :
+  forall F1 F2 : R -> Prop,
+  ( forall x, F1 x <-> F2 x ) ->
+  satisfies_any F1 ->
+  satisfies_any F2.
+Proof.
+intros F1 F2 Heq (Hzero, Hsym, rnd, Hrnd).
+refine (Satisfies_any _ _ _ rnd _).
+now apply -> Heq.
+intros x Hx.
+apply -> Heq.
+apply Hsym.
+now apply <- Heq.
+intros x.
+destruct (Hrnd x) as (H1, (H2, H3)).
+split.
+now apply -> Heq.
+split.
+exact H2.
+intros g Hg Hgx.
+apply H3 ; try assumption.
+now apply <- Heq.
+Qed.
+
 Theorem satisfies_any_imp_DN :
   forall F : R -> Prop,
   satisfies_any F ->

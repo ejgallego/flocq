@@ -29,18 +29,10 @@ Definition IdempotentP (F : R -> Prop) (rnd : R -> R) :=
 Definition Rounding_for_Format (F : R -> Prop) (rnd : R -> R) :=
    MonotoneP rnd /\ IdempotentP F rnd.
 
-(* unbounded floating-point format *)
-Definition FLX_format (prec : Z) (x : R) :=
-  exists f : float beta,
-  x = F2R f /\ (Zabs (Fnum f) < Zpower (radix_val beta) prec)%Z.
-
 (* floating-point format with gradual underflow *)
 Definition FLT_format (emin prec : Z) (x : R) :=
   exists f : float beta,
   x = F2R f /\ (Zabs (Fnum f) < Zpower (radix_val beta) prec)%Z /\ (emin <= Fexp f)%Z.
-
-Definition FLX_RoundingModeP (prec : Z) (rnd : R -> R):=
-  Rounding_for_Format (FLX_format prec) rnd.
 
 Definition FLT_RoundingModeP (emin prec : Z) (rnd : R -> R):=
   Rounding_for_Format (FLT_format emin prec) rnd.
