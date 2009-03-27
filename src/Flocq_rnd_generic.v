@@ -19,8 +19,8 @@ Variable valid_fexp :
 
 Definition generic_format (x : R) :=
   exists f : float beta,
-  x = F2R f /\ (x = R0 \/
-  forall H: (0 < Rabs x)%R, Fexp f = fexp (projT1 (ln_beta beta _ H))).
+  x = F2R f /\ forall (H : x <> R0),
+  Fexp f = fexp (projT1 (ln_beta beta _ (Rabs_pos_lt _ H))).
 
 Theorem generic_format_satisfies_any :
   satisfies_any generic_format.
@@ -29,25 +29,28 @@ refine ((fun D => Satisfies_any _ _ _ (projT1 D) (projT2 D)) _).
 (* symmetric set *)
 exists (Float beta 0 0).
 split.
-unfold F2R.
+unfold F2R. simpl.
 now rewrite Rmult_0_l.
-now left.
+intros H.
+now elim H.
 intros x ((m,e),(H1,H2)).
 exists (Float beta (-m) e).
 split.
 rewrite H1.
-unfold F2R.
-simpl.
+unfold F2R. simpl.
 now rewrite opp_Z2R, Ropp_mult_distr_l_reverse.
-destruct H2.
-left.
-rewrite H.
-now rewrite Ropp_0.
-right.
-rewrite Rabs_Ropp.
-intros H0.
-specialize (H H0).
-now rewrite <- H.
+intros H3.
+simpl in H2.
+assert (H4 := Ropp_neq_0_compat _ H3).
+rewrite Ropp_involutive in H4.
+rewrite (H2 H4).
+clear H2.
+destruct (ln_beta beta (Rabs x)) as (ex, H5).
+simpl.
+apply f_equal.
+apply sym_eq.
+apply ln_beta_unique.
+now rewrite Rabs_Ropp.
 (* rounding down *)
 assert (Hxx : forall x, (0 > x)%R -> (0 < -x)%R).
 intros.
@@ -113,7 +116,7 @@ apply False_ind.
 omega.
 split.
 (* - . rounded *)
-eexists ; split ; [ reflexivity | right ].
+eexists ; split ; [ reflexivity | idtac ].
 intros He9.
 simpl.
 apply f_equal.
@@ -126,8 +129,7 @@ exact Hbl.
 (* - . . bounded right *)
 clear Hbl.
 apply Rle_lt_trans with (2 := Hx2).
-unfold F2R.
-simpl.
+unfold F2R. simpl.
 pattern x at 2 ; replace x with ((x * bpow (- fexp ex)%Z) * bpow (fexp ex))%R.
 generalize (x * bpow (- fexp ex)%Z)%R.
 clear.
@@ -151,8 +153,7 @@ apply Rle_trans with (2 := Hbl).
 apply epow_ge_0.
 split.
 (* - . smaller *)
-unfold F2R.
-simpl.
+unfold F2R. simpl.
 generalize (fexp ex).
 clear.
 intros e.
@@ -176,11 +177,7 @@ destruct (Rle_or_lt g R0) as [Hg3|Hg3].
 apply Rle_trans with (2 := Hbl).
 apply Rle_trans with (1 := Hg3).
 apply epow_ge_0.
-destruct Hg2 as [Hg2|Hg2].
-rewrite Hg2 in Hg3.
-elim (Rlt_irrefl _ Hg3).
-rewrite (Rabs_pos_eq _ (Rlt_le _ _ Hg3)) in Hg2.
-specialize (Hg2 Hg3).
+specialize (Hg2 (Rgt_not_eq _ _ Hg3)).
 apply Rnot_lt_le.
 intros Hrg.
 assert (bpow (ex - 1)%Z <= g < bpow ex)%R.
@@ -188,6 +185,7 @@ split.
 apply Rle_trans with (1 := Hbl).
 now apply Rlt_le.
 now apply Rle_lt_trans with (1 := Hgx).
+rewrite <- (Rabs_pos_eq g (Rlt_le _ _ Hg3)) in H.
 rewrite ln_beta_unique with (1 := H) in Hg2.
 simpl in Hg2.
 apply Rlt_not_le with (1 := Hrg).
@@ -221,29 +219,28 @@ exists (Float beta Z0 (fexp ex)).
 split.
 unfold F2R. simpl.
 now rewrite Rmult_0_l.
-now left.
+intros H.
+now elim H.
 split.
 now apply Rlt_le.
 (* - . biggest *)
 intros g ((gm, ge), (Hg1, Hg2)) Hgx.
 apply Rnot_lt_le.
 intros Hg3.
-destruct Hg2 as [Hg2|Hg2].
-rewrite Hg2 in Hg3.
-elim (Rlt_irrefl _ Hg3).
-rewrite (Rabs_pos_eq _ (Rlt_le _ _ Hg3)) in Hg2.
-specialize (Hg2 Hg3).
+specialize (Hg2 (Rgt_not_eq _ _ Hg3)).
 destruct (ln_beta beta g Hg3) as (ge', Hg4).
-simpl in Hg2.
+generalize Hg4. intros Hg5.
+rewrite <- (Rabs_pos_eq g (Rlt_le _ _ Hg3)) in Hg5.
+rewrite ln_beta_unique with (1 := Hg5) in Hg2.
 apply (Rlt_not_le _ _ (Rle_lt_trans _ _ _ Hgx Hx2)).
 apply Rle_trans with (bpow ge).
 apply -> epow_le.
+simpl in Hg2.
 rewrite Hg2.
 rewrite (proj2 (proj2 (valid_fexp ex) He1) ge').
 exact He1.
 apply Zle_trans with (2 := He1).
-cut (ge' - 1 < ex)%Z.
-omega.
+cut (ge' - 1 < ex)%Z. omega.
 apply <- epow_lt.
 apply Rle_lt_trans with (2 := Hx2).
 apply Rle_trans with (2 := Hgx).
@@ -282,7 +279,8 @@ exists (Float beta 0 0).
 split.
 unfold F2R.
 now rewrite Rmult_0_l.
-now left.
+intros H.
+now elim H.
 rewrite <- Hx.
 split.
 apply Rle_refl.
@@ -354,21 +352,20 @@ split.
 destruct (Rle_lt_or_eq_dec _ _ Hbl) as [Hbl2|Hbl2].
 (* - . . not a radix power *)
 eexists ; split ; [ reflexivity | idtac ].
-right.
-rewrite Rabs_left.
 intros Hr.
 simpl.
 apply f_equal.
 apply sym_eq.
 apply ln_beta_unique.
+rewrite Rabs_left.
 split.
-rewrite <- (Ropp_involutive (bpow (ex - 1)%Z)).
-apply Ropp_le_contravar.
+apply Ropp_le_cancel.
+rewrite Ropp_involutive.
 apply Rle_trans with (1 := Hbr).
-rewrite <- (Ropp_involutive x).
-now apply Ropp_le_contravar.
-rewrite <- (Ropp_involutive (bpow ex)).
-now apply Ropp_lt_contravar.
+apply Ropp_le_cancel.
+now rewrite Ropp_involutive.
+apply Ropp_lt_cancel.
+now rewrite Ropp_involutive.
 apply Rle_lt_trans with (1 := Hbr).
 exact Hx.
 (* - . . a radix power *)
@@ -389,13 +386,12 @@ cut (0 <= ex - fexp (ex + 1))%Z. 2: omega.
 case (ex - fexp (ex + 1))%Z ; trivial.
 intros ep H.
 now elim H.
-right.
-rewrite Rabs_Ropp.
-rewrite Rabs_right.
-intros H9.
+intros H.
 apply f_equal.
 apply sym_eq.
 apply ln_beta_unique.
+rewrite Rabs_Ropp.
+rewrite Rabs_right.
 split.
 apply -> epow_le.
 omega.
@@ -411,14 +407,8 @@ apply Rnot_lt_le.
 intros Hg3.
 assert (Hg4 : (g < 0)%R).
 now apply Rle_lt_trans with (1 := Hgx).
-destruct Hg2 as [Hg2|Hg2].
-rewrite Hg2 in Hg4.
-elim (Rlt_irrefl _ Hg4).
-rewrite (Rabs_left _ Hg4) in Hg2.
-assert (Hg5 := Ropp_0_gt_lt_contravar _ Hg4).
-specialize (Hg2 Hg5).
-simpl in Hg2.
-destruct (ln_beta beta (- g) Hg5) as (ge', Hge).
+specialize (Hg2 (Rlt_not_eq _ _ Hg4)).
+destruct (ln_beta beta (Rabs g) (Rabs_pos_lt g (Rlt_not_eq g 0 Hg4))) as (ge', Hge).
 simpl in Hg2.
 apply Rlt_not_le with (1 := Hg3).
 rewrite Hg1.
@@ -428,16 +418,17 @@ assert (Hge' : ge' = ex).
 apply epow_unique with (1 := Hge).
 split.
 apply Rle_trans with (1 := Hx1).
+rewrite Rabs_left with (1 := Hg4).
 now apply Ropp_le_contravar.
 apply Ropp_lt_cancel.
-apply Rle_lt_trans with (1 := Hbl).
-now rewrite Ropp_involutive.
+rewrite Rabs_left with (1 := Hg4).
+rewrite Ropp_involutive.
+now apply Rle_lt_trans with (1 := Hbl).
 rewrite Hge'.
 apply Rmult_le_compat_r.
 apply epow_ge_0.
 apply Z2R_le.
-cut (gm < up (x * bpow (- fexp ex)%Z))%Z.
-omega.
+cut (gm < up (x * bpow (- fexp ex)%Z))%Z. omega.
 apply lt_IZR.
 apply Rle_lt_trans with (2 := proj1 (archimed _)).
 rewrite <- Z2R_IZR.
@@ -472,24 +463,24 @@ clear.
 case (fexp ex - fexp (fexp ex + 1))%Z ; trivial.
 intros ep Hp.
 now elim Hp.
-right.
-rewrite Rabs_Ropp.
-rewrite Rabs_right.
-intros H9.
+intros H.
 apply f_equal.
 apply sym_eq.
 apply ln_beta_unique.
+rewrite Rabs_left.
+rewrite Ropp_involutive.
 split.
 replace (fexp ex + 1 - 1)%Z with (fexp ex) by ring.
 apply Rle_refl.
 apply -> epow_lt.
 apply Zlt_succ.
-apply Rle_ge.
-apply epow_ge_0.
+rewrite <- Ropp_0.
+apply Ropp_lt_contravar.
+apply epow_gt_0.
 split.
 (* - . smaller *)
-rewrite <- (Ropp_involutive x).
-apply Ropp_le_contravar.
+apply Ropp_le_cancel.
+rewrite Ropp_involutive.
 apply Rlt_le.
 apply Rlt_le_trans with (1 := Hx2).
 now apply -> epow_le.
@@ -499,15 +490,10 @@ apply Rnot_lt_le.
 intros Hg3.
 assert (Hg4 : (g < 0)%R).
 now apply Rle_lt_trans with (1 := Hgx).
-destruct Hg2 as [Hg2|Hg2].
-rewrite Hg2 in Hg4.
-elim (Rlt_irrefl _ Hg4).
-rewrite (Rabs_left _ Hg4) in Hg2.
-assert (Hg5 := Ropp_0_gt_lt_contravar _ Hg4).
-specialize (Hg2 Hg5).
+specialize (Hg2 (Rlt_not_eq _ _ Hg4)).
+destruct (ln_beta beta (Rabs g) (Rabs_pos_lt g (Rlt_not_eq g 0 Hg4))) as (ge', Hge).
 simpl in Hg2.
-destruct (ln_beta beta (- g) Hg5) as (ge', Hge).
-simpl in Hg2.
+rewrite (Rabs_left _ Hg4) in Hge.
 assert (Hge' : (ge' <= fexp ex)%Z).
 cut (ge' - 1 < fexp ex)%Z. omega.
 apply <- epow_lt.
@@ -536,7 +522,9 @@ rewrite Rmult_0_l.
 rewrite opp_Z2R.
 rewrite Ropp_mult_distr_l_reverse.
 unfold F2R in Hg1. simpl in Hg1.
-now rewrite <- Hg1.
+rewrite <- Hg1.
+rewrite <- Ropp_0.
+now apply Ropp_lt_contravar.
 apply Rle_trans with (1 * bpow (ge - ge')%Z)%R.
 rewrite Rmult_1_l.
 cut (0 <= ge - ge')%Z. 2: omega.
