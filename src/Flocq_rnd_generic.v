@@ -565,4 +565,121 @@ apply epow_gt_0.
 exact Hx.
 Qed.
 
+Theorem Rnd_DN_pt_small_pos :
+  forall x ex,
+  (bpow (ex - 1)%Z <= x < bpow ex)%R ->
+  (ex <= fexp ex)%Z ->
+  Rnd_DN_pt generic_format x R0.
+Proof.
+intros x ex Hx He.
+split.
+exists (Float beta 0 0).
+unfold F2R. simpl.
+split.
+now rewrite Rmult_0_l.
+intros H.
+now elim H.
+split.
+apply Rle_trans with (2 := proj1 Hx).
+apply epow_ge_0.
+(* . *)
+intros g ((gm, ge), (Hg1, Hg2)) Hgx.
+apply Rnot_lt_le.
+intros Hg3.
+specialize (Hg2 (Rgt_not_eq _ _ Hg3)).
+destruct (ln_beta beta (Rabs g) (Rabs_pos_lt g (Rgt_not_eq g 0 Hg3))) as (eg, Hg4).
+simpl in Hg2.
+rewrite Rabs_right in Hg4.
+apply Rle_not_lt with (1 := Hgx).
+rewrite Hg1.
+apply Rlt_le_trans with (1 := proj2 Hx).
+rewrite (proj2 (proj2 (prop_exp _) He) eg) in Hg2.
+rewrite Hg2.
+apply Rle_trans with (bpow (fexp ex)).
+now apply -> epow_le.
+rewrite <- Hg2.
+rewrite Hg1 in Hg3.
+apply epow_le_F2R with (1 := Hg3).
+apply epow_lt_epow with beta.
+apply Rlt_le_trans with (bpow ex).
+apply Rle_lt_trans with (2 := proj2 Hx).
+now apply Rle_trans with g.
+now apply -> epow_le.
+apply Rle_ge.
+now apply Rlt_le.
+Qed.
+
+Theorem Rnd_UP_pt_small_pos :
+  forall x ex,
+  (bpow (ex - 1)%Z <= x < bpow ex)%R ->
+  (ex <= fexp ex)%Z ->
+  Rnd_UP_pt generic_format x (bpow (fexp ex)).
+Proof.
+intros x ex Hx He.
+assert (bpow (fexp ex) = F2R (Float beta 1 (fexp ex))).
+unfold F2R. simpl.
+now rewrite Rmult_1_l.
+destruct (F2R_prec_normalize beta 1 (fexp ex) (fexp ex) ((fexp ex + 1) - fexp (fexp ex + 1))) as (m, H0).
+apply vNum_gt_1.
+generalize (proj1 (proj2 (prop_exp ex) He)).
+omega.
+rewrite <- H.
+apply RRle_abs.
+split.
+(* . *)
+rewrite H.
+eexists ; split ; [ apply H0 | idtac ].
+simpl.
+intros H1.
+ring_simplify.
+apply f_equal.
+apply sym_eq.
+apply ln_beta_unique.
+rewrite <- H.
+split.
+replace (fexp ex + 1 - 1)%Z with (fexp ex) by ring.
+apply RRle_abs.
+rewrite Rabs_right.
+apply -> epow_lt.
+apply Zle_lt_succ.
+apply Zle_refl.
+apply Rle_ge.
+apply epow_ge_0.
+split.
+(* . *)
+apply Rlt_le.
+apply Rlt_le_trans with (1 := proj2 Hx).
+now apply -> epow_le.
+(* . *)
+intros g ((gm, ge), (Hg1, Hg2)) Hgx.
+assert (g <> R0).
+apply Rgt_not_eq.
+apply Rlt_le_trans with (2 := Hgx).
+apply Rlt_le_trans with (2 := proj1 Hx).
+apply epow_gt_0.
+specialize (Hg2 H1).
+destruct (ln_beta beta (Rabs g) (Rabs_pos_lt g H1)) as (eg, Hg3).
+simpl in Hg2.
+apply Rnot_lt_le.
+intros Hgp.
+apply Rlt_not_le with (1 := Hgp).
+rewrite <- (proj2 (proj2 (prop_exp ex) He) eg).
+rewrite <- Hg2.
+rewrite Hg1.
+apply (epow_le_F2R _ (Float beta gm ge)).
+rewrite <- Hg1.
+apply Rlt_le_trans with (2 := Hgx).
+apply Rlt_le_trans with (2 := proj1 Hx).
+apply epow_gt_0.
+apply epow_lt_epow with beta.
+apply Rle_lt_trans with g.
+rewrite <- (Rabs_right g).
+apply Hg3.
+apply Rle_ge.
+apply Rle_trans with (2 := Hgx).
+apply Rle_trans with (2 := proj1 Hx).
+apply epow_ge_0.
+exact Hgp.
+Qed.
+
 End RND_generic.

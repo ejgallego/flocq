@@ -39,6 +39,34 @@ apply Ropp_le_contravar.
 now rewrite Rmult_comm.
 Qed.
 
+Theorem F2R_gt_0_imp_Fnum :
+  forall f : float beta,
+  (0 < F2R f)%R ->
+  (0 < Fnum f)%Z.
+Proof.
+intros f H.
+apply lt_Z2R.
+apply Rmult_lt_reg_l with (bpow (Fexp f)).
+apply epow_gt_0.
+rewrite Rmult_0_r.
+now rewrite Rmult_comm.
+Qed.
+
+Theorem epow_le_F2R :
+  forall f : float beta,
+  (0 < F2R f)%R ->
+  (bpow (Fexp f) <= F2R f)%R.
+Proof.
+intros f H.
+rewrite <- (Rmult_1_l (bpow (Fexp f))).
+unfold F2R. simpl.
+apply Rmult_le_compat_r.
+apply epow_ge_0.
+apply (Z2R_le 1).
+apply (Zlt_le_succ 0).
+now apply F2R_gt_0_imp_Fnum.
+Qed.
+
 Theorem abs_F2R :
   forall m e : Z,
   Rabs (F2R (Float beta m e)) = F2R (Float beta (Zabs m) e).
