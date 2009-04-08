@@ -11,12 +11,14 @@ Notation bpow := (epow beta).
 
 Variable fexp : Z -> Z.
 
-Variable valid_fexp :
- forall k : Z,
- ( (fexp k < k)%Z -> (fexp (k + 1) <= k)%Z ) /\
- ( (k <= fexp k)%Z ->
-   (fexp (fexp k + 1) <= fexp k)%Z /\
-   forall l : Z, (l <= fexp k)%Z -> fexp l = fexp k ).
+Definition valid_exp :=
+  forall k : Z,
+  ( (fexp k < k)%Z -> (fexp (k + 1) <= k)%Z ) /\
+  ( (k <= fexp k)%Z ->
+    (fexp (fexp k + 1) <= fexp k)%Z /\
+    forall l : Z, (l <= fexp k)%Z -> fexp l = fexp k ).
+
+Variable prop_exp : valid_exp.
 
 Definition generic_format (x : R) :=
   exists f : float beta,
@@ -237,7 +239,7 @@ apply Rle_trans with (bpow ge).
 apply -> epow_le.
 simpl in Hg2.
 rewrite Hg2.
-rewrite (proj2 (proj2 (valid_fexp ex) He1) ge').
+rewrite (proj2 (proj2 (prop_exp ex) He1) ge').
 exact He1.
 apply Zle_trans with (2 := He1).
 cut (ge' - 1 < ex)%Z. omega.
@@ -370,7 +372,7 @@ apply Rle_lt_trans with (1 := Hbr).
 exact Hx.
 (* - . . a radix power *)
 rewrite <- Hbl2.
-generalize (proj1 (valid_fexp _) He1).
+generalize (proj1 (prop_exp _) He1).
 clear.
 intros He2.
 exists (Float beta (- Zpower (radix_val beta) (ex - fexp (ex + 1))) (fexp (ex + 1))).
@@ -449,7 +451,7 @@ rewrite Ropp_mult_distr_l_reverse.
 rewrite Rmult_1_l.
 (* - . rounded *)
 split.
-destruct (proj2 (valid_fexp _) He1) as (He2, _).
+destruct (proj2 (prop_exp _) He1) as (He2, _).
 exists (Float beta (- Zpower (radix_val beta) (fexp ex - fexp (fexp ex + 1))) (fexp (fexp ex + 1))).
 unfold F2R. simpl.
 split.
@@ -500,7 +502,7 @@ apply <- epow_lt.
 apply Rle_lt_trans with (1 := proj1 Hge).
 apply Ropp_lt_cancel.
 now rewrite Ropp_involutive.
-rewrite (proj2 (proj2 (valid_fexp _) He1) _ Hge') in Hg2.
+rewrite (proj2 (proj2 (prop_exp _) He1) _ Hge') in Hg2.
 rewrite <- Hg2 in Hge'.
 apply Rlt_not_le with (1 := proj2 Hge).
 rewrite Hg1.

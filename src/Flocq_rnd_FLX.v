@@ -21,11 +21,18 @@ Definition FLX_format (x : R) :=
 Definition FLX_RoundingModeP (rnd : R -> R):=
   Rounding_for_Format FLX_format rnd.
 
-Theorem FLX_format_satisfies_any :
-  satisfies_any FLX_format.
+Definition FLX_exp (e : Z) := (e - prec)%Z.
+
+Theorem FLX_exp_correct : valid_exp FLX_exp.
 Proof.
-pose (fexp e := (e - prec)%Z).
-refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta fexp _)).
+intros k.
+unfold FLX_exp.
+repeat split ; intros ; omega.
+Qed.
+
+Theorem FLX_format_generic :
+  forall x : R, generic_format beta FLX_exp x <-> FLX_format x.
+Proof.
 split.
 (* . *)
 intros ((xm, xe), (Hx1, Hx2)).
@@ -51,7 +58,7 @@ apply Rmult_lt_reg_r with (bpow (ex - prec)%Z).
 apply epow_gt_0.
 rewrite <- epow_add.
 replace (prec + (ex - prec))%Z with ex by ring.
-change (ex - prec)%Z with (fexp ex).
+change (ex - prec)%Z with (FLX_exp ex).
 rewrite <- Hx2.
 replace (Z2R (Zabs xm) * bpow xe)%R with (Rabs x).
 exact (proj2 Hx4).
@@ -78,16 +85,21 @@ replace (ex - 1 - (prec - 1))%Z with (ex - prec)%Z in Hx5 by ring.
 rewrite Hx5.
 eexists ; repeat split.
 intros H.
-change (Fexp (Float beta mx (ex - prec))) with (fexp ex).
+change (Fexp (Float beta mx (ex - prec))) with (FLX_exp ex).
 apply f_equal.
 apply sym_eq.
 apply ln_beta_unique.
 rewrite <- Hx5.
 now rewrite <- Hx1.
-(* . *)
-intros k.
-unfold fexp.
-repeat split ; intros ; omega.
+Qed.
+
+Theorem FLX_format_satisfies_any :
+  satisfies_any FLX_format.
+Proof.
+pose (fexp e := (e - prec)%Z).
+refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta fexp _)).
+exact FLX_format_generic.
+exact FLX_exp_correct.
 Qed.
 
 End RND_FIX.

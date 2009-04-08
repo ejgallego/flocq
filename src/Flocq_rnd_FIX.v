@@ -19,11 +19,22 @@ Definition FIX_format (x : R) :=
 Definition FIX_RoundingModeP (rnd : R -> R):=
   Rounding_for_Format FIX_format rnd.
 
-Theorem FIX_format_satisfies_any :
-  satisfies_any FIX_format.
+Definition FIX_exp (e : Z) := emin.
+
+Theorem FIX_exp_correct : valid_exp FIX_exp.
 Proof.
-pose (fexp (e : Z) := emin).
-refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta fexp _)).
+intros k.
+unfold FIX_exp.
+split ; intros H.
+now apply Zlt_le_weak.
+split.
+apply Zle_refl.
+now intros _ _.
+Qed.
+
+Theorem FIX_format_generic :
+  forall x : R, generic_format beta FIX_exp x <-> FIX_format x.
+Proof.
 split.
 (* . *)
 intros ((xm, xe), (Hx1, Hx2)).
@@ -38,23 +49,23 @@ repeat split.
 rewrite Hx1.
 apply (f_equal (fun e => F2R (Float beta xm e))).
 simpl in Hx2.
-unfold fexp in Hx2.
-apply Hx2.
+now unfold FIX_exp in Hx2.
 (* . *)
 intros ((xm, xe), (Hx1, Hx2)).
-exists (Float beta xm (fexp xe)).
+exists (Float beta xm (FIX_exp xe)).
 split.
-unfold fexp.
+unfold FIX_exp.
 now rewrite <- Hx2.
 now intros Hx3.
-(* . *)
-intros k.
-unfold fexp.
-split ; intros H.
-now apply Zlt_le_weak.
-split.
-apply Zle_refl.
-now intros _ _.
+Qed.
+
+Theorem FIX_format_satisfies_any :
+  satisfies_any FIX_format.
+Proof.
+pose (fexp (e : Z) := emin).
+refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta fexp _)).
+exact FIX_format_generic.
+exact FIX_exp_correct.
 Qed.
 
 End RND_FIX.
