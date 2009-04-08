@@ -252,7 +252,7 @@ apply Rmult_eq_compat_l.
 exact IHn0.
 Qed.
 
-Theorem epow_powerRZ :
+Lemma epow_powerRZ :
    forall e,
   epow e = powerRZ (Z2R (radix_val r)) e.
 Proof.
@@ -263,7 +263,7 @@ now rewrite Zpower_pos_powerRZ.
 Qed.
 
 
-Theorem  epow_ge_0 :
+Lemma  epow_ge_0 :
   forall e : Z, (0 <= epow e)%R.
 Proof.
 intros.
@@ -519,6 +519,17 @@ now apply exp_ln.
 now apply Rgt_not_eq.
 Qed.
 
+Lemma epow_lt_epow :
+  forall e1 e2,
+  (epow (e1 - 1) < epow e2)%R ->
+  (e1 <= e2)%Z.
+Proof.
+intros e1 e2 He.
+rewrite (Zsucc_pred e1).
+apply Zlt_le_succ.
+now apply <- epow_lt.
+Qed.
+
 Lemma epow_unique :
   forall x e1 e2,
   (epow (e1 - 1) <= x < epow e1)%R ->
@@ -526,18 +537,10 @@ Lemma epow_unique :
   e1 = e2.
 Proof.
 intros x e1 e2 (H1a,H1b) (H2a,H2b).
-destruct (Z_dec e1 e2) as [[H|H]|H].
-elim (Rlt_irrefl x).
-apply Rlt_le_trans with (1 := H1b).
-apply Rle_trans with (2 := H2a).
-apply -> epow_le.
-omega.
-elim (Rlt_irrefl x).
-apply Rlt_le_trans with (1 := H2b).
-apply Rle_trans with (2 := H1a).
-apply -> epow_le.
-omega.
-exact H.
+apply Zle_antisym ;
+  apply epow_lt_epow ;
+  apply Rle_lt_trans with x ;
+  assumption.
 Qed.
 
 Lemma ln_beta_unique :
