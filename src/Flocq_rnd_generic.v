@@ -25,61 +25,14 @@ Definition generic_format (x : R) :=
   x = F2R f /\ forall (H : x <> R0),
   Fexp f = fexp (projT1 (ln_beta beta _ (Rabs_pos_lt _ H))).
 
-Theorem generic_format_satisfies_any :
-  satisfies_any generic_format.
+Theorem generic_DN_pt_large_pos_ge_pow :
+  forall x ex,
+  (fexp ex < ex)%Z ->
+  (bpow (ex - 1)%Z <= x)%R ->
+  (bpow (ex - 1)%Z <= F2R (Float beta (up (x * bpow (- fexp ex)%Z) - 1) (fexp ex)))%R.
 Proof.
-refine ((fun D => Satisfies_any _ _ _ (projT1 D) (projT2 D)) _).
-(* symmetric set *)
-exists (Float beta 0 0).
-split.
+intros x ex He1 Hx1.
 unfold F2R. simpl.
-now rewrite Rmult_0_l.
-intros H.
-now elim H.
-intros x ((m,e),(H1,H2)).
-exists (Float beta (-m) e).
-split.
-rewrite H1.
-apply opp_F2R.
-intros H3.
-simpl in H2.
-assert (H4 := Ropp_neq_0_compat _ H3).
-rewrite Ropp_involutive in H4.
-rewrite (H2 H4).
-clear H2.
-destruct (ln_beta beta (Rabs x)) as (ex, H5).
-simpl.
-apply f_equal.
-apply sym_eq.
-apply ln_beta_unique.
-now rewrite Rabs_Ropp.
-(* rounding down *)
-assert (Hxx : forall x, (0 > x)%R -> (0 < -x)%R).
-intros.
-now apply Ropp_0_gt_lt_contravar.
-exists (fun x =>
-  match total_order_T 0 x with
-  | inleft (left Hx) =>
-    let e := fexp (projT1 (ln_beta beta _ Hx)) in
-    F2R (Float beta (up (x * bpow (Zopp e)) - 1) e)
-  | inleft (right _) => R0
-  | inright Hx =>
-    let e := fexp (projT1 (ln_beta beta _ (Hxx _ Hx))) in
-    F2R (Float beta (up (x * bpow (Zopp e)) - 1) e)
-  end).
-intros x.
-destruct (total_order_T 0 x) as [[Hx|Hx]|Hx].
-(* positive *)
-clear Hxx.
-destruct (ln_beta beta x Hx) as (ex, (Hx1, Hx2)).
-simpl.
-destruct (Z_lt_le_dec (fexp ex) ex) as [He1|He1].
-(* - positive big enough *)
-assert (Hbl : (bpow (ex - 1)%Z <= F2R (Float beta (up (x * bpow (- fexp ex)%Z) - 1) (fexp ex)))%R).
-(* - . bounded left *)
-clear Hx2.
-unfold F2R.
-simpl.
 replace (ex - 1)%Z with ((ex - 1 - fexp ex) + fexp ex)%Z by ring.
 rewrite epow_add.
 apply Rmult_le_compat_r.
@@ -116,6 +69,18 @@ assert (ex - 1 - fexp ex < 0)%Z.
 now rewrite H.
 apply False_ind.
 omega.
+Qed.
+
+Theorem generic_DN_pt_pos :
+  forall x ex,
+  (bpow (ex - 1)%Z <= x < bpow ex)%R ->
+  Rnd_DN_pt generic_format x (F2R (Float beta (up (x * bpow (Zopp (fexp ex))) - 1) (fexp ex))).
+Proof.
+intros x ex (Hx1, Hx2).
+destruct (Z_lt_le_dec (fexp ex) ex) as [He1|He1].
+(* - positive big enough *)
+assert (Hbl : (bpow (ex - 1)%Z <= F2R (Float beta (up (x * bpow (- fexp ex)%Z) - 1) (fexp ex)))%R).
+now apply generic_DN_pt_large_pos_ge_pow.
 split.
 (* - . rounded *)
 eexists ; split ; [ reflexivity | idtac ].
@@ -128,8 +93,6 @@ clear He9.
 rewrite Rabs_right.
 split.
 exact Hbl.
-(* - . . bounded right *)
-clear Hbl.
 apply Rle_lt_trans with (2 := Hx2).
 unfold F2R. simpl.
 pattern x at 2 ; replace x with ((x * bpow (- fexp ex)%Z) * bpow (fexp ex))%R.
@@ -149,7 +112,6 @@ rewrite Rmult_assoc.
 rewrite <- epow_add.
 rewrite Zplus_opp_l.
 apply Rmult_1_r.
-(* - . . *)
 apply Rle_ge.
 apply Rle_trans with (2 := Hbl).
 apply epow_ge_0.
@@ -224,7 +186,8 @@ now rewrite Rmult_0_l.
 intros H.
 now elim H.
 split.
-now apply Rlt_le.
+apply Rle_trans with (2 := Hx1).
+apply epow_ge_0.
 (* - . biggest *)
 intros g ((gm, ge), (Hg1, Hg2)) Hgx.
 apply Rnot_lt_le.
@@ -266,7 +229,8 @@ rewrite <- (Zplus_0_l 1).
 apply up_tech.
 apply Rlt_le.
 apply Rmult_lt_0_compat.
-exact Hx.
+apply Rlt_le_trans with (2 := Hx1).
+apply epow_gt_0.
 apply epow_gt_0.
 change (IZR (0 + 1)) with (bpow Z0).
 rewrite <- (Zplus_opp_r (fexp ex)).
@@ -275,23 +239,19 @@ apply Rmult_lt_compat_r.
 apply epow_gt_0.
 apply Rlt_le_trans with (1 := Hx2).
 now apply -> epow_le.
-(* zero *)
-split.
-exists (Float beta 0 0).
-split.
-unfold F2R.
-now rewrite Rmult_0_l.
-intros H.
-now elim H.
-rewrite <- Hx.
-split.
-apply Rle_refl.
-intros g _ H.
-exact H.
-(* negative *)
-destruct (ln_beta beta (- x) (Hxx x Hx)) as (ex, (Hx1, Hx2)).
-simpl.
-clear Hxx.
+Qed.
+
+Theorem generic_DN_pt_neg :
+  forall x ex,
+  (bpow (ex - 1)%Z <= -x < bpow ex)%R ->
+  Rnd_DN_pt generic_format x (F2R (Float beta (up (x * bpow (Zopp (fexp ex))) - 1) (fexp ex))).
+Proof.
+intros x ex (Hx1, Hx2).
+assert (Hx : (x < 0)%R).
+apply Ropp_lt_cancel.
+rewrite Ropp_0.
+apply Rlt_le_trans with (2 := Hx1).
+apply epow_gt_0.
 assert (Hbr : (F2R (Float beta (up (x * bpow (- fexp ex)%Z) - 1) (fexp ex)) <= x)%R).
 (* - bounded right *)
 unfold F2R. simpl.
@@ -565,7 +525,74 @@ apply epow_gt_0.
 exact Hx.
 Qed.
 
-Theorem Rnd_DN_pt_small_pos :
+Theorem generic_format_satisfies_any :
+  satisfies_any generic_format.
+Proof.
+refine ((fun D => Satisfies_any _ _ _ (projT1 D) (projT2 D)) _).
+(* symmetric set *)
+exists (Float beta 0 0).
+split.
+unfold F2R. simpl.
+now rewrite Rmult_0_l.
+intros H.
+now elim H.
+intros x ((m,e),(H1,H2)).
+exists (Float beta (-m) e).
+split.
+rewrite H1.
+apply opp_F2R.
+intros H3.
+simpl in H2.
+assert (H4 := Ropp_neq_0_compat _ H3).
+rewrite Ropp_involutive in H4.
+rewrite (H2 H4).
+clear H2.
+destruct (ln_beta beta (Rabs x)) as (ex, H5).
+simpl.
+apply f_equal.
+apply sym_eq.
+apply ln_beta_unique.
+now rewrite Rabs_Ropp.
+(* rounding down *)
+assert (Hxx : forall x, (0 > x)%R -> (0 < -x)%R).
+intros.
+now apply Ropp_0_gt_lt_contravar.
+exists (fun x =>
+  match total_order_T 0 x with
+  | inleft (left Hx) =>
+    let e := fexp (projT1 (ln_beta beta _ Hx)) in
+    F2R (Float beta (up (x * bpow (Zopp e)) - 1) e)
+  | inleft (right _) => R0
+  | inright Hx =>
+    let e := fexp (projT1 (ln_beta beta _ (Hxx _ Hx))) in
+    F2R (Float beta (up (x * bpow (Zopp e)) - 1) e)
+  end).
+intros x.
+destruct (total_order_T 0 x) as [[Hx|Hx]|Hx].
+(* positive *)
+destruct (ln_beta beta x Hx) as (ex, Hx').
+simpl.
+now apply generic_DN_pt_pos.
+(* zero *)
+split.
+exists (Float beta 0 0).
+split.
+unfold F2R.
+now rewrite Rmult_0_l.
+intros H.
+now elim H.
+rewrite <- Hx.
+split.
+apply Rle_refl.
+intros g _ H.
+exact H.
+(* negative *)
+destruct (ln_beta beta (- x) (Hxx x Hx)) as (ex, Hx').
+simpl.
+now apply generic_DN_pt_neg.
+Qed.
+
+Theorem generic_DN_pt_small_pos :
   forall x ex,
   (bpow (ex - 1)%Z <= x < bpow ex)%R ->
   (ex <= fexp ex)%Z ->
@@ -609,7 +636,7 @@ apply Rle_ge.
 now apply Rlt_le.
 Qed.
 
-Theorem Rnd_UP_pt_small_pos :
+Theorem generic_UP_pt_small_pos :
   forall x ex,
   (bpow (ex - 1)%Z <= x < bpow ex)%R ->
   (ex <= fexp ex)%Z ->
@@ -682,38 +709,7 @@ apply epow_ge_0.
 exact Hgp.
 Qed.
 
-Theorem Rnd_DN_pt_large_pos :
-  forall x xd ex,
-  (bpow (ex - 1)%Z <= x < bpow ex)%R ->
-  (fexp ex < ex)%Z ->
-  Rnd_DN_pt generic_format x xd ->
-  (bpow (ex - 1)%Z <= xd)%R.
-Proof.
-intros x xd ex Hx He (_, (_, Hd)).
-apply Hd with (2 := proj1 Hx).
-exists (Float beta (Zpower (radix_val beta) ((ex - 1) - fexp ex)) (fexp ex)).
-unfold F2R. simpl.
-split.
-(* . *)
-rewrite Z2R_Zpower.
-rewrite <- epow_add.
-apply f_equal.
-ring.
-omega.
-(* . *)
-intros H.
-apply f_equal.
-apply sym_eq.
-apply ln_beta_unique.
-rewrite Rabs_pos_eq.
-split.
-apply Rle_refl.
-apply -> epow_lt.
-apply Zlt_pred.
-apply epow_ge_0.
-Qed.
-
-Theorem Rnd_UP_pt_large_pos :
+Theorem generic_UP_pt_large_pos_le_pow :
   forall x xu ex,
   (bpow (ex - 1)%Z <= x < bpow ex)%R ->
   (fexp ex < ex)%Z ->
