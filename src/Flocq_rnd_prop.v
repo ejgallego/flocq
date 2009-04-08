@@ -79,6 +79,28 @@ now apply HF.
 now apply Ropp_le_contravar.
 Qed.
 
+Theorem Rnd_UP_DN_pt_sym :
+  forall F : R -> Prop,
+  ( forall x, F x -> F (- x) ) ->
+  forall x f : R,
+  Rnd_UP_pt F (-x) (-f) -> Rnd_DN_pt F x f.
+Proof.
+intros F HF x f H.
+rewrite <- (Ropp_involutive f).
+repeat split.
+apply HF.
+apply H.
+apply Ropp_le_cancel.
+rewrite Ropp_involutive.
+apply H.
+intros.
+apply Ropp_le_cancel.
+rewrite Ropp_involutive.
+apply H.
+now apply HF.
+now apply Ropp_le_contravar.
+Qed.
+
 Theorem Rnd_DN_UP_sym :
   forall F : R -> Prop,
   ( forall x, F x -> F (- x) ) ->
