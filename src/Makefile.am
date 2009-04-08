@@ -7,7 +7,8 @@ FILES = \
 	Flocq_rnd_FLT.v \
 	Flocq_rnd_FLX.v \
 	Flocq_rnd_generic.v \
-	Flocq_rnd_prop.v
+	Flocq_rnd_prop.v \
+	Flocq_ulp.v
 
 data_DATA = $(FILES:=o)
 EXTRA_DIST = $(FILES)
