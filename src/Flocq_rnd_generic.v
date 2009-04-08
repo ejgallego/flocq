@@ -537,7 +537,7 @@ intros ep _.
 simpl.
 apply (Z2R_le 1).
 apply (Zlt_le_succ 0).
-apply Zpower_pos_lt.
+apply Zpower_pos_gt_0.
 now apply Zlt_le_trans with (2 := radix_prop beta).
 intros ep Hp. now elim Hp.
 apply Rmult_le_compat_r.
@@ -620,7 +620,7 @@ assert (bpow (fexp ex) = F2R (Float beta 1 (fexp ex))).
 unfold F2R. simpl.
 now rewrite Rmult_1_l.
 destruct (F2R_prec_normalize beta 1 (fexp ex) (fexp ex) ((fexp ex + 1) - fexp (fexp ex + 1))) as (m, H0).
-apply vNum_gt_1.
+apply Zpower_gt_1.
 generalize (proj1 (proj2 (prop_exp ex) He)).
 omega.
 rewrite <- H.
@@ -680,6 +680,70 @@ apply Rle_trans with (2 := Hgx).
 apply Rle_trans with (2 := proj1 Hx).
 apply epow_ge_0.
 exact Hgp.
+Qed.
+
+Theorem Rnd_DN_pt_large_pos :
+  forall x xd ex,
+  (bpow (ex - 1)%Z <= x < bpow ex)%R ->
+  (fexp ex < ex)%Z ->
+  Rnd_DN_pt generic_format x xd ->
+  (bpow (ex - 1)%Z <= xd)%R.
+Proof.
+intros x xd ex Hx He (_, (_, Hd)).
+apply Hd with (2 := proj1 Hx).
+exists (Float beta (Zpower (radix_val beta) ((ex - 1) - fexp ex)) (fexp ex)).
+unfold F2R. simpl.
+split.
+(* . *)
+rewrite Z2R_Zpower.
+rewrite <- epow_add.
+apply f_equal.
+ring.
+omega.
+(* . *)
+intros H.
+apply f_equal.
+apply sym_eq.
+apply ln_beta_unique.
+rewrite Rabs_pos_eq.
+split.
+apply Rle_refl.
+apply -> epow_lt.
+apply Zlt_pred.
+apply epow_ge_0.
+Qed.
+
+Theorem Rnd_UP_pt_large_pos :
+  forall x xu ex,
+  (bpow (ex - 1)%Z <= x < bpow ex)%R ->
+  (fexp ex < ex)%Z ->
+  Rnd_UP_pt generic_format x xu ->
+  (xu <= bpow ex)%R.
+Proof.
+intros x xu ex Hx He (((dm, de), (Hu1, Hu2)), (Hu3, Hu4)).
+apply Hu4 with (2 := (Rlt_le _ _ (proj2 Hx))).
+exists (Float beta (Zpower (radix_val beta) (ex - fexp (ex + 1))) (fexp (ex + 1))).
+unfold F2R. simpl.
+split.
+(* . *)
+rewrite Z2R_Zpower.
+rewrite <- epow_add.
+apply f_equal.
+ring.
+generalize (proj1 (prop_exp _) He).
+omega.
+(* . *)
+intros H.
+apply f_equal.
+apply sym_eq.
+apply ln_beta_unique.
+rewrite Rabs_pos_eq.
+split.
+ring_simplify (ex + 1 - 1)%Z.
+apply Rle_refl.
+apply -> epow_lt.
+apply Zlt_succ.
+apply epow_ge_0.
 Qed.
 
 End RND_generic.

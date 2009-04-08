@@ -554,29 +554,38 @@ apply epow_unique with (2 := H1).
 exact H2.
 Qed.
 
-Lemma Zpower_pos_lt: forall b z, (0 < b)%Z -> (0 < Zpower_pos b z)%Z.
-intros; apply lt_Z2R.
-simpl; rewrite Zpower_pos_powerRZ.
+Lemma Zpower_pos_gt_0 :
+  forall b p, (0 < b)%Z ->
+  (0 < Zpower_pos b p)%Z.
+Proof.
+intros b p Hb.
+apply lt_Z2R.
+rewrite Zpower_pos_powerRZ.
 apply powerRZ_lt.
-apply Rle_lt_trans with (Z2R 0).
-right; reflexivity.
-now apply Z2R_lt.
+now apply (Z2R_lt 0).
 Qed.
 
-Lemma Zpower_lt: forall b z, (0 < b)%Z -> (0 < z)%Z -> (0 < Zpower b z)%Z.
-intros.
-destruct z; unfold Zpower; auto with zarith.
-now apply Zpower_pos_lt.
-absurd (0 <= Zneg p)%Z; auto with zarith.
+Lemma Zpower_gt_0 :
+  forall b p,
+  (0 < b)%Z -> (0 < p)%Z ->
+  (0 < Zpower b p)%Z.
+Proof.
+intros b p Hb Hz.
+unfold Zpower.
+destruct p ; try easy.
+now apply Zpower_pos_gt_0.
 Qed.
 
-Lemma vNum_gt_1: forall prec, (0 < prec)%Z -> (1 < radix_val r ^ prec)%Z.
+Lemma Zpower_gt_1 :
+  forall p,
+  (0 < p)%Z ->
+  (1 < Zpower (radix_val r) p)%Z.
+Proof.
 intros.
 apply lt_Z2R.
-rewrite Z2R_Zpower; auto with zarith.
-apply Rle_lt_trans with (epow 0%Z).
-right; reflexivity.
-now apply -> epow_lt.
+rewrite Z2R_Zpower.
+now apply -> (epow_lt 0).
+now apply Zlt_le_weak.
 Qed.
 
 End pow.

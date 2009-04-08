@@ -81,7 +81,7 @@ exists (Float beta 1 (prec+emin)).
 split.
 unfold F2R; simpl; auto with real.
 simpl.
-now apply vNum_gt_1.
+now apply Zpower_gt_1.
 unfold F2R; apply Rmult_le_compat_r.
 apply epow_ge_0.
 rewrite <- Z2R_Zpower; auto with zarith.

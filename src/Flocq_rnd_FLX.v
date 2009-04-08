@@ -42,7 +42,7 @@ split.
 unfold F2R. simpl.
 now rewrite Rmult_0_l.
 simpl.
-apply Zpower_lt.
+apply Zpower_gt_0.
 now apply Zlt_le_trans with (2 := radix_prop beta).
 exact Hp.
 specialize (Hx2 Hx3).
