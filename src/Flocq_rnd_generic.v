@@ -192,14 +192,13 @@ Theorem generic_DN_pt_neg :
   (bpow (ex - 1)%Z <= -x < bpow ex)%R ->
   Rnd_DN_pt generic_format x (F2R (Float beta (Zfloor (x * bpow (Zopp (fexp ex)))) (fexp ex))).
 Proof.
-unfold Zfloor.
 intros x ex (Hx1, Hx2).
 assert (Hx : (x < 0)%R).
 apply Ropp_lt_cancel.
 rewrite Ropp_0.
 apply Rlt_le_trans with (2 := Hx1).
 apply epow_gt_0.
-assert (Hbr : (F2R (Float beta (up (x * bpow (- fexp ex)%Z) - 1) (fexp ex)) <= x)%R).
+assert (Hbr : (F2R (Float beta (Zfloor (x * bpow (- fexp ex)%Z)) (fexp ex)) <= x)%R).
 (* - bounded right *)
 unfold F2R. simpl.
 pattern x at 2 ; rewrite <- Rmult_1_r.
@@ -207,21 +206,12 @@ change R1 with (bpow Z0).
 rewrite <- (Zplus_opp_l (fexp ex)).
 rewrite epow_add.
 rewrite <- Rmult_assoc.
-generalize (x * bpow (- fexp ex)%Z)%R.
-clear.
-intros x.
 apply Rmult_le_compat_r.
 apply epow_ge_0.
-rewrite minus_Z2R.
-simpl.
-rewrite Z2R_IZR.
-apply Rplus_le_reg_l with (-x + 1)%R.
-ring_simplify.
-rewrite Rplus_comm.
-exact (proj2 (archimed x)).
+apply Zfloor_lb.
 destruct (Z_lt_le_dec (fexp ex) ex) as [He1|He1].
 (* - negative big enough *)
-assert (Hbl : (- bpow ex <= F2R (Float beta (up (x * bpow (- fexp ex)%Z) - 1) (fexp ex)))%R).
+assert (Hbl : (- bpow ex <= F2R (Float beta (Zfloor (x * bpow (- fexp ex)%Z)) (fexp ex)))%R).
 (* - . bounded left *)
 unfold F2R. simpl.
 pattern ex at 1 ; replace ex with (ex - fexp ex + fexp ex)%Z by ring.
@@ -229,33 +219,22 @@ rewrite epow_add.
 rewrite <- Ropp_mult_distr_l_reverse.
 apply Rmult_le_compat_r.
 apply epow_ge_0.
-cut (0 < ex - fexp ex)%Z. 2: omega.
-case_eq (ex - fexp ex)%Z ; try (intros ; discriminate H0).
-intros ep Hp _.
-simpl.
-rewrite <- opp_Z2R.
-apply Z2R_le.
-cut (- Zpower_pos (radix_val beta) ep < up (x * bpow (- fexp ex)%Z))%Z.
+assert (Hp : (- bpow (ex - fexp ex)%Z = Z2R (- Zpower (radix_val beta) (ex - fexp ex)))%R).
+rewrite <- Z2R_Zpower.
+now rewrite opp_Z2R.
 omega.
-apply lt_Z2R.
-apply Rle_lt_trans with (x * bpow (- fexp ex)%Z)%R.
-rewrite opp_Z2R.
-change (- bpow (Zpos ep) <= x * bpow (- fexp ex)%Z)%R.
+rewrite Hp.
+apply Z2R_le.
+apply Zfloor_lub.
 rewrite <- Hp.
-apply Rmult_le_reg_r with (bpow (fexp ex)).
-apply epow_gt_0.
-rewrite Rmult_assoc.
-rewrite <- epow_add.
-rewrite Zplus_opp_l.
-rewrite Rmult_1_r.
-rewrite Ropp_mult_distr_l_reverse.
-rewrite <- epow_add.
-replace (ex - fexp ex + fexp ex)%Z with ex by ring.
+unfold Zminus.
+rewrite epow_add.
+rewrite <- Ropp_mult_distr_l_reverse.
+apply Rmult_le_compat_r.
+apply epow_ge_0.
 apply Ropp_le_cancel.
 rewrite Ropp_involutive.
 now apply Rlt_le.
-rewrite Z2R_IZR.
-exact (proj1 (archimed _)).
 split.
 (* - . rounded *)
 destruct (Rle_lt_or_eq_dec _ _ Hbl) as [Hbl2|Hbl2].
@@ -290,10 +269,9 @@ rewrite epow_add.
 rewrite <- Ropp_mult_distr_l_reverse.
 rewrite opp_Z2R.
 apply (f_equal (fun x => (- x * _)%R)).
-cut (0 <= ex - fexp (ex + 1))%Z. 2: omega.
-case (ex - fexp (ex + 1))%Z ; trivial.
-intros ep H.
-now elim H.
+apply sym_eq.
+apply Z2R_Zpower.
+omega.
 apply f_equal.
 apply sym_eq.
 apply ln_beta_unique.
@@ -335,10 +313,7 @@ rewrite Hge'.
 apply Rmult_le_compat_r.
 apply epow_ge_0.
 apply Z2R_le.
-cut (gm < up (x * bpow (- fexp ex)%Z))%Z. omega.
-apply lt_IZR.
-apply Rle_lt_trans with (2 := proj1 (archimed _)).
-rewrite <- Z2R_IZR.
+apply Zfloor_lub.
 apply Rmult_le_reg_r with (bpow (fexp ex)).
 apply epow_gt_0.
 rewrite Rmult_assoc.
@@ -350,7 +325,7 @@ rewrite <- Hg2.
 unfold F2R in Hg1. simpl in Hg1.
 now rewrite <- Hg1.
 (* - negative too small *)
-cutrewrite (up (x * bpow (- fexp ex)%Z) = 0%Z).
+replace (Zfloor (x * bpow (- fexp ex)%Z)) with (-1)%Z.
 unfold F2R. simpl.
 rewrite Ropp_mult_distr_l_reverse.
 rewrite Rmult_1_l.
@@ -365,24 +340,20 @@ pattern (fexp ex) at 1 ; replace (fexp ex) with (fexp ex - fexp (fexp ex + 1) + 
 rewrite epow_add.
 rewrite Ropp_mult_distr_l_reverse.
 apply (f_equal (fun x => (- (x * _))%R)).
-cut (0 <= fexp ex - fexp (fexp ex + 1))%Z. 2: omega.
-clear.
-case (fexp ex - fexp (fexp ex + 1))%Z ; trivial.
-intros ep Hp.
-now elim Hp.
+apply sym_eq.
+apply Z2R_Zpower.
+omega.
 apply f_equal.
 apply sym_eq.
 apply ln_beta_unique.
-rewrite Rabs_left.
-rewrite Ropp_involutive.
+rewrite Rabs_Ropp.
+rewrite Rabs_pos_eq.
 split.
 replace (fexp ex + 1 - 1)%Z with (fexp ex) by ring.
 apply Rle_refl.
 apply -> epow_lt.
 apply Zlt_succ.
-rewrite <- Ropp_0.
-apply Ropp_lt_contravar.
-apply epow_gt_0.
+apply epow_ge_0.
 split.
 (* - . smaller *)
 apply Ropp_le_cancel.
@@ -432,37 +403,27 @@ rewrite <- Ropp_0.
 now apply Ropp_lt_contravar.
 apply Rle_trans with (1 * bpow (ge - ge')%Z)%R.
 rewrite Rmult_1_l.
-cut (0 <= ge - ge')%Z. 2: omega.
-clear.
-case (ge - ge')%Z.
-intros _.
-apply Rle_refl.
-intros ep _.
-simpl.
-apply (Z2R_le 1).
-apply (Zlt_le_succ 0).
-apply Zpower_pos_gt_0.
-now apply Zlt_le_trans with (2 := radix_prop beta).
-intros ep Hp. now elim Hp.
+apply -> (epow_le beta 0).
+omega.
 apply Rmult_le_compat_r.
 apply epow_ge_0.
 now apply (Z2R_le 1).
 (* - . . *)
 apply sym_eq.
-apply (up_tech _ (-1)).
-apply Ropp_le_cancel.
+apply Zfloor_imp.
 simpl.
-rewrite Ropp_involutive.
-change R1 with (bpow Z0).
-rewrite <- (Zplus_opp_r (fexp ex)).
-rewrite epow_add.
-rewrite <- Ropp_mult_distr_l_reverse.
+split.
+apply Rle_trans with (- bpow ex * bpow (- fexp ex)%Z)%R.
+rewrite Ropp_mult_distr_l_reverse.
+rewrite <- epow_add.
+apply Ropp_le_contravar.
+apply (proj1 (epow_le beta _ 0)).
+omega.
 apply Rmult_le_compat_r.
 apply epow_ge_0.
-apply Rlt_le.
-apply Rlt_le_trans with (1 := Hx2).
-now apply -> epow_le.
-simpl.
+apply Ropp_le_cancel.
+rewrite Ropp_involutive.
+now apply Rlt_le.
 rewrite <- (Rmult_0_l (bpow (- fexp ex)%Z)).
 apply Rmult_lt_compat_r.
 apply epow_gt_0.
@@ -489,11 +450,11 @@ exists (fun x =>
   match total_order_T 0 x with
   | inleft (left Hx) =>
     let e := fexp (projT1 (ln_beta beta x)) in
-    F2R (Float beta (up (x * bpow (Zopp e)) - 1) e)
+    F2R (Float beta (Zfloor (x * bpow (Zopp e))) e)
   | inleft (right _) => R0
   | inright Hx =>
     let e := fexp (projT1 (ln_beta beta (-x))) in
-    F2R (Float beta (up (x * bpow (Zopp e)) - 1) e)
+    F2R (Float beta (Zfloor (x * bpow (Zopp e))) e)
   end).
 intros x.
 destruct (total_order_T 0 x) as [[Hx|Hx]|Hx].
