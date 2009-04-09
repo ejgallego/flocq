@@ -122,4 +122,58 @@ now rewrite <- Rabs_Ropp.
 now apply ulp_pred_succ_pt_pos.
 Qed.
 
+Theorem ulp_error :
+  forall rnd : R -> R,
+  Rounding_for_Format F rnd ->
+  forall x,
+  (Rabs (rnd x - x) < ulp x)%R.
+Proof.
+intros rnd Hrnd x.
+assert (Hs := generic_format_satisfies_any beta _ prop_exp).
+destruct (satisfies_any_imp_DN F Hs) as (rndd, Hd).
+specialize (Hd x).
+destruct (Rle_lt_or_eq_dec (rndd x) x) as [Hxd|Hxd].
+(* x = rnd x *)
+apply Hd.
+assert (Fx : ~F x).
+intros Fx.
+apply Rlt_not_le with (1 := Hxd).
+apply Req_le.
+apply sym_eq.
+now apply Rnd_DN_pt_idempotent with (1 := Hd).
+destruct (satisfies_any_imp_UP F Hs) as (rndu, Hu).
+specialize (Hu x).
+assert (Hxu : (x < rndu x)%R).
+apply Rnot_le_lt.
+intros Hxu.
+apply Fx.
+rewrite Rle_antisym with (2 := Hxu).
+apply Hu.
+apply Hu.
+rewrite (ulp_pred_succ_pt _ _ _ Fx Hd Hu) in Hxu, Hu.
+destruct (Rnd_DN_or_UP_pt _ _ Hrnd _ _ _ Hd Hu) as [Hr|Hr] ;
+  rewrite Hr ; clear Hr.
+rewrite <- Ropp_minus_distr.
+rewrite Rabs_Ropp, Rabs_pos_eq.
+apply Rplus_lt_reg_r with (rndd x).
+now replace (rndd x + (x - rndd x))%R with x by ring.
+apply Rle_0_minus.
+apply Hd.
+rewrite Rabs_pos_eq.
+apply Rplus_lt_reg_r with (x - ulp x)%R.
+now ring_simplify.
+apply Rle_0_minus.
+apply Hu.
+(* x <> rnd x *)
+rewrite Hxd in Hd.
+rewrite (proj2 (proj2 Hrnd)).
+unfold Rminus.
+rewrite Rplus_opp_r.
+rewrite Rabs_R0.
+unfold ulp, F2R. simpl.
+rewrite Rmult_1_l.
+apply epow_gt_0.
+apply Hd.
+Qed.
+
 End Flocq_ulp.
