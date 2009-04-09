@@ -82,7 +82,6 @@ assert (Hu3 := generic_DN_pt_neg _ _ prop_exp _ _ Hx4).
 rewrite (Rnd_DN_pt_unicity _ _ _ _ Hd1 Hd2).
 rewrite <- (Ropp_involutive xu).
 rewrite (Rnd_DN_pt_unicity _ _ _ _ Hu2 Hu3).
-clear.
 unfold F2R. simpl.
 rewrite <- Rmult_plus_distr_r.
 rewrite <- Ropp_mult_distr_l_reverse.
@@ -91,7 +90,19 @@ rewrite <- opp_Z2R.
 change R1 with (Z2R 1).
 rewrite <- plus_Z2R.
 apply f_equal.
-admit.
+rewrite Ropp_mult_distr_l_reverse.
+apply Zceil_floor_neq.
+intros Hx5.
+assert (Hx6 : x = F2R (Float beta (Zfloor (x * bpow (- fexp ex)%Z)) (fexp ex))).
+unfold F2R. simpl.
+rewrite Hx5.
+rewrite Rmult_assoc.
+rewrite <- epow_add.
+rewrite Zplus_opp_l.
+now rewrite Rmult_1_r.
+apply Fx.
+rewrite Hx6.
+apply Hd2.
 (* . positive small *)
 rewrite Rnd_UP_pt_unicity with F x xu (bpow (fexp ex)).
 rewrite Rnd_DN_pt_unicity with F x xd R0.
