@@ -30,6 +30,15 @@ rewrite H.
 now destruct (Rcase_abs y) as [_|_] ; [right|left].
 Qed.
 
+Lemma Rplus_le_reg_r :
+  forall r r1 r2 : R,
+  (r1 + r <= r2 + r)%R -> (r1 <= r2)%R.
+Proof.
+intros.
+apply Rplus_le_reg_l with r.
+now rewrite 2!(Rplus_comm r).
+Qed.
+
 Lemma Rmult_lt_reg_r :
   forall r r1 r2 : R, (0 < r)%R ->
   (r1 * r < r2 * r)%R -> (r1 < r2)%R.
@@ -141,7 +150,6 @@ rewrite Ropp_Ropp_IZR.
 apply refl_equal.
 Qed.
 
-
 Lemma minus_Z2R :
   forall m n, (Z2R (m - n) = Z2R m - Z2R n)%R.
 Proof.
@@ -205,7 +213,6 @@ repeat rewrite Z2R_IZR.
 apply IZR_neq.
 Qed.
 
-
 Lemma Rabs_Z2R: forall z, Rabs (Z2R z) = Z2R (Zabs z).
 intros.
 repeat rewrite Z2R_IZR.
@@ -214,6 +221,55 @@ Qed.
 
 End Z2R.
 
+Section Floor_Ceil.
+
+Definition Zfloor (x : R) := (up x - 1)%Z.
+
+Lemma Zfloor_lb :
+  forall x : R,
+  (Z2R (Zfloor x) <= x)%R.
+Proof.
+intros x.
+unfold Zfloor.
+rewrite minus_Z2R.
+simpl.
+rewrite Z2R_IZR.
+apply Rplus_le_reg_r with (1 - x)%R.
+ring_simplify.
+exact (proj2 (archimed x)).
+Qed.
+
+Lemma Zfloor_lub :
+  forall n x,
+  (Z2R n <= x)%R ->
+  (n <= Zfloor x)%Z.
+Proof.
+intros n x Hnx.
+apply Zlt_succ_le.
+unfold Zfloor.
+change (n < Zsucc (Zpred (up x)))%Z.
+rewrite <- Zsucc_pred.
+apply lt_Z2R.
+apply Rle_lt_trans with (1 := Hnx).
+rewrite Z2R_IZR.
+exact (proj1 (archimed x)).
+Qed.
+
+Lemma Zfloor_imp :
+  forall n x,
+  (Z2R n <= x < Z2R (n + 1))%R ->
+  Zfloor x = n.
+Proof.
+intros n x Hnx.
+apply Zle_antisym.
+apply Zlt_succ_le.
+apply lt_Z2R.
+apply Rle_lt_trans with (2 := proj2 Hnx).
+apply Zfloor_lb.
+now apply Zfloor_lub.
+Qed.
+
+End Floor_Ceil.
 
 Section pow.
 
@@ -222,6 +278,7 @@ Record radix :=  { radix_val : Z ; radix_prop :  (2 <= radix_val )%Z }.
 Variable r: radix.
 
 Lemma radix_pos: (0 < Z2R (radix_val r))%R.
+Proof.
 destruct r; simpl.
 apply Rle_lt_trans with (Z2R 0).
 right; reflexivity.
@@ -234,7 +291,6 @@ Definition epow e :=
   | Zneg p => Rinv (Z2R (Zpower_pos (radix_val r) p))
   | Z0 => R1
   end.
-
 
 Lemma Zpower_pos_powerRZ :
   forall n m,
@@ -253,7 +309,7 @@ exact IHn0.
 Qed.
 
 Lemma epow_powerRZ :
-   forall e,
+  forall e,
   epow e = powerRZ (Z2R (radix_val r)) e.
 Proof.
 destruct e ; unfold epow.
@@ -261,7 +317,6 @@ reflexivity.
 now rewrite Zpower_pos_powerRZ.
 now rewrite Zpower_pos_powerRZ.
 Qed.
-
 
 Lemma  epow_ge_0 :
   forall e : Z, (0 <= epow e)%R.
@@ -312,7 +367,6 @@ rewrite <- epow_add.
 now rewrite Zplus_comm.
 Qed.
 
-
 Lemma epow_opp :
   forall e : Z, (epow (-e) = /epow e)%R.
 Proof.
@@ -324,7 +378,6 @@ simpl; rewrite Rinv_involutive; trivial.
 generalize (epow_gt_0 (Zpos p)).
 simpl; auto with real.
 Qed.
-
 
 Lemma Z2R_Zpower :
   forall e : Z,
