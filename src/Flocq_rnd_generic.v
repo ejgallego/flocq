@@ -643,22 +643,20 @@ Theorem generic_UP_pt_small_pos :
   Rnd_UP_pt generic_format x (bpow (fexp ex)).
 Proof.
 intros x ex Hx He.
-assert (bpow (fexp ex) = F2R (Float beta 1 (fexp ex))).
+assert (bpow (fexp ex) = F2R (Float beta (Zpower (radix_val beta) (fexp ex - fexp (fexp ex + 1))) (fexp (fexp ex + 1)))).
 unfold F2R. simpl.
-now rewrite Rmult_1_l.
-destruct (F2R_prec_normalize beta 1 (fexp ex) (fexp ex) ((fexp ex + 1) - fexp (fexp ex + 1))) as (m, H0).
-apply Zpower_gt_1.
+rewrite Z2R_Zpower.
+rewrite <- epow_add.
+apply f_equal.
+ring.
 generalize (proj1 (proj2 (prop_exp ex) He)).
 omega.
-rewrite <- H.
-apply RRle_abs.
 split.
 (* . *)
 rewrite H.
-eexists ; split ; [ apply H0 | idtac ].
+eexists ; repeat split.
 simpl.
 intros H1.
-ring_simplify.
 apply f_equal.
 apply sym_eq.
 apply ln_beta_unique.
@@ -684,8 +682,8 @@ apply Rgt_not_eq.
 apply Rlt_le_trans with (2 := Hgx).
 apply Rlt_le_trans with (2 := proj1 Hx).
 apply epow_gt_0.
-specialize (Hg2 H1).
-destruct (ln_beta beta (Rabs g) (Rabs_pos_lt g H1)) as (eg, Hg3).
+specialize (Hg2 H0).
+destruct (ln_beta beta (Rabs g) (Rabs_pos_lt g H0)) as (eg, Hg3).
 simpl in Hg2.
 apply Rnot_lt_le.
 intros Hgp.
