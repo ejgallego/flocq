@@ -19,18 +19,6 @@ Definition ulp x := F2R (Float beta 1 (fexp (projT1 (ln_beta beta (Rabs x))))).
 
 Definition F := generic_format beta fexp.
 
-Lemma zero_not_in_format :
-  forall x, ~ F x -> x <> R0.
-Proof.
-intros x Fx Hx.
-elim Fx.
-rewrite Hx.
-clear.
-exists (Float beta 0 _) ; repeat split.
-unfold F2R. simpl.
-now rewrite Rmult_0_l.
-Qed.
-
 Theorem ulp_pred_succ_pt_pos :
   forall x xd xu,
   Rlt 0 x -> ~ F x ->
@@ -98,9 +86,14 @@ Theorem ulp_pred_succ_pt :
   (xu = xd + ulp x)%R.
 Proof.
 intros x xd xu Fx Hd1 Hu1.
-destruct (Req_EM_T x 0) as [Hx1|Hx1].
-now elim zero_not_in_format with x.
-destruct (Rdichotomy x 0 Hx1) as [Hx2|Hx2].
+destruct (Rdichotomy x 0) as [Hx2|Hx2].
+(* zero *)
+intros Hx.
+elim Fx.
+rewrite Hx.
+exists (Float beta 0 _) ; repeat split.
+unfold F2R. simpl.
+now rewrite Rmult_0_l.
 (* negative *)
 assert (Hu2 : Rnd_DN_pt F (-x) (-xu)).
 apply Rnd_UP_DN_pt_sym.
