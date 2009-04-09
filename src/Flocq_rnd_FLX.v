@@ -96,8 +96,7 @@ Qed.
 Theorem FLX_format_satisfies_any :
   satisfies_any FLX_format.
 Proof.
-pose (fexp e := (e - prec)%Z).
-refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta fexp _)).
+refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FLX_exp _)).
 exact FLX_format_generic.
 exact FLX_exp_correct.
 Qed.

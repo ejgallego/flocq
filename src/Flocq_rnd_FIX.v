@@ -62,8 +62,7 @@ Qed.
 Theorem FIX_format_satisfies_any :
   satisfies_any FIX_format.
 Proof.
-pose (fexp (e : Z) := emin).
-refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta fexp _)).
+refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FIX_exp _)).
 exact FIX_format_generic.
 exact FIX_exp_correct.
 Qed.
