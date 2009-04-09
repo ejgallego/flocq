@@ -12,15 +12,9 @@ Variable beta : radix.
 Definition F2R (f : float beta) :=
   (Z2R (Fnum f) * epow beta (Fexp f))%R.
 
-(* A rounding mode will be a function, ie a R -> R                         *)
-(* It will then have to satisfy a number of properties on a given domain D *)
-(*    The domain will be used to formalize Overflow, flush to zero...      *)
-
-
 Definition MonotoneP (rnd : R -> R) :=
   forall x y : R,
   (x <= y)%R -> (rnd x <= rnd y)%R.
-
 
 Definition IdempotentP (F : R -> Prop) (rnd : R -> R) :=
     (forall x : R, F (rnd x))
