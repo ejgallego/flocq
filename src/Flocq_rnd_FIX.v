@@ -38,25 +38,14 @@ Proof.
 split.
 (* . *)
 intros ((xm, xe), (Hx1, Hx2)).
-destruct (Req_dec x 0) as [Hx3|Hx3].
-exists (Float beta 0 emin).
-repeat split.
-unfold F2R. simpl.
-now rewrite Rmult_0_l.
-specialize (Hx2 Hx3).
-exists (Float beta xm emin).
-repeat split.
 rewrite Hx1.
-apply (f_equal (fun e => F2R (Float beta xm e))).
-simpl in Hx2.
-now unfold FIX_exp in Hx2.
+eexists ; repeat split.
+now rewrite Hx2.
 (* . *)
 intros ((xm, xe), (Hx1, Hx2)).
-exists (Float beta xm (FIX_exp xe)).
-split.
-unfold FIX_exp.
-now rewrite <- Hx2.
-now intros Hx3.
+rewrite Hx1.
+eexists ; repeat split.
+now rewrite Hx2.
 Qed.
 
 Theorem FIX_format_satisfies_any :

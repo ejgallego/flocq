@@ -470,10 +470,10 @@ now rewrite <- opp_Z2R.
 Qed.
 
 Lemma ln_beta :
-  forall x : R, (0 < x)%R ->
-  {e | (epow (e - 1)%Z <= x < epow e)%R}.
+  forall x : R,
+  {e | (0 < x)%R -> (epow (e - 1)%Z <= x < epow e)%R}.
 Proof.
-intros x Hx.
+intros x.
 set (fact := ln (Z2R (radix_val r))).
 (* . *)
 assert (0 < fact)%R.
@@ -489,6 +489,7 @@ generalize (radix_prop r).
 omega.
 (* . *)
 exists (up (ln x / fact))%Z.
+intros Hx.
 rewrite 2!epow_exp.
 fold fact.
 pattern x at 2 3 ; replace x with (exp (ln x / fact * fact)).
@@ -544,14 +545,17 @@ apply Zle_antisym ;
 Qed.
 
 Lemma ln_beta_unique :
-  forall (x : R) (e : Z) (Hx : (0 < x)%R),
+  forall (x : R) (e : Z),
   (epow (e - 1) <= x < epow e)%R ->
-  projT1 (ln_beta x Hx) = e.
+  projT1 (ln_beta x) = e.
 Proof.
-intros x e1 Hx H1.
-destruct (ln_beta x Hx) as (e2, H2).
-apply epow_unique with (2 := H1).
-exact H2.
+intros x e1 Hx1.
+destruct (ln_beta x) as (e2, Hx2).
+apply epow_unique with (2 := Hx1).
+simpl.
+apply Hx2.
+apply Rlt_le_trans with (2 := proj1 Hx1).
+apply epow_gt_0.
 Qed.
 
 Lemma Zpower_pos_gt_0 :

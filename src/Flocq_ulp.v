@@ -14,11 +14,7 @@ Variable fexp : Z -> Z.
 
 Variable prop_exp : valid_exp fexp.
 
-Definition ulp x :=
-  match Req_EM_T x 0 with
-  | left _ => R0
-  | right Hx => F2R (Float beta 1 (fexp (projT1 (ln_beta beta (Rabs x) (Rabs_pos_lt _ Hx)))))
-  end.
+Definition ulp x := F2R (Float beta 1 (fexp (projT1 (ln_beta beta (Rabs x))))).
 
 Definition F := generic_format beta fexp.
 
@@ -29,12 +25,9 @@ intros x Fx Hx.
 elim Fx.
 rewrite Hx.
 clear.
-exists (Float beta 0 0).
-split.
+exists (Float beta 0 _) ; repeat split.
 unfold F2R. simpl.
 now rewrite Rmult_0_l.
-intros H.
-now elim H.
 Qed.
 
 Theorem ulp_pred_succ_pt :
@@ -48,8 +41,9 @@ destruct (Req_EM_T x 0) as [Hx1|Hx1].
 now elim zero_not_in_format with x.
 destruct (Rdichotomy x 0 Hx1) as [Hx2|Hx2].
 (* negative *)
-destruct (ln_beta beta (Rabs x) (Rabs_pos_lt x Hx1)) as (ex, Hx3).
+destruct (ln_beta beta (Rabs x)) as (ex, Hx3).
 simpl.
+specialize (Hx3 (Rabs_pos_lt x Hx1)).
 destruct (Z_lt_le_dec (fexp ex) ex) as [He1|He1].
 (* . negative big *)
 admit.
@@ -71,8 +65,9 @@ now eapply generic_format_satisfies_any.
 rewrite Ropp_0.
 now apply generic_DN_pt_small_pos with ex.
 (* positive *)
-destruct (ln_beta beta (Rabs x) (Rabs_pos_lt x Hx1)) as (ex, Hx3).
+destruct (ln_beta beta (Rabs x)) as (ex, Hx3).
 simpl.
+specialize (Hx3 (Rabs_pos_lt x Hx1)).
 rewrite (Rabs_pos_eq _ (Rlt_le _ _ Hx2)) in Hx3.
 destruct (Z_lt_le_dec (fexp ex) ex) as [He1|He1].
 (* . positive big *)

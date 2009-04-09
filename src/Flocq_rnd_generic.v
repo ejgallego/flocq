@@ -22,8 +22,7 @@ Variable prop_exp : valid_exp.
 
 Definition generic_format (x : R) :=
   exists f : float beta,
-  x = F2R f /\ forall (H : x <> R0),
-  Fexp f = fexp (projT1 (ln_beta beta _ (Rabs_pos_lt _ H))).
+  x = F2R f /\ Fexp f = fexp (projT1 (ln_beta beta (Rabs x))).
 
 Theorem generic_DN_pt_large_pos_ge_pow :
   forall x ex,
@@ -84,12 +83,10 @@ now apply generic_DN_pt_large_pos_ge_pow.
 split.
 (* - . rounded *)
 eexists ; split ; [ reflexivity | idtac ].
-intros He9.
 simpl.
 apply f_equal.
 apply sym_eq.
 apply ln_beta_unique.
-clear He9.
 rewrite Rabs_right.
 split.
 exact Hbl.
@@ -141,7 +138,6 @@ destruct (Rle_or_lt g R0) as [Hg3|Hg3].
 apply Rle_trans with (2 := Hbl).
 apply Rle_trans with (1 := Hg3).
 apply epow_ge_0.
-specialize (Hg2 (Rgt_not_eq _ _ Hg3)).
 apply Rnot_lt_le.
 intros Hrg.
 assert (bpow (ex - 1)%Z <= g < bpow ex)%R.
@@ -179,12 +175,9 @@ cutrewrite (up (x * bpow (- fexp ex)%Z) = 1%Z).
 unfold F2R. simpl.
 rewrite Rmult_0_l.
 split.
-exists (Float beta Z0 (fexp ex)).
-split.
+exists (Float beta Z0 _) ; repeat split.
 unfold F2R. simpl.
 now rewrite Rmult_0_l.
-intros H.
-now elim H.
 split.
 apply Rle_trans with (2 := Hx1).
 apply epow_ge_0.
@@ -192,8 +185,8 @@ apply epow_ge_0.
 intros g ((gm, ge), (Hg1, Hg2)) Hgx.
 apply Rnot_lt_le.
 intros Hg3.
-specialize (Hg2 (Rgt_not_eq _ _ Hg3)).
-destruct (ln_beta beta g Hg3) as (ge', Hg4).
+destruct (ln_beta beta g) as (ge', Hg4).
+specialize (Hg4 Hg3).
 generalize Hg4. intros Hg5.
 rewrite <- (Rabs_pos_eq g (Rlt_le _ _ Hg3)) in Hg5.
 rewrite ln_beta_unique with (1 := Hg5) in Hg2.
@@ -313,8 +306,7 @@ split.
 (* - . rounded *)
 destruct (Rle_lt_or_eq_dec _ _ Hbl) as [Hbl2|Hbl2].
 (* - . . not a radix power *)
-eexists ; split ; [ reflexivity | idtac ].
-intros Hr.
+eexists ; repeat split.
 simpl.
 apply f_equal.
 apply sym_eq.
@@ -348,7 +340,6 @@ cut (0 <= ex - fexp (ex + 1))%Z. 2: omega.
 case (ex - fexp (ex + 1))%Z ; trivial.
 intros ep H.
 now elim H.
-intros H.
 apply f_equal.
 apply sym_eq.
 apply ln_beta_unique.
@@ -369,9 +360,9 @@ apply Rnot_lt_le.
 intros Hg3.
 assert (Hg4 : (g < 0)%R).
 now apply Rle_lt_trans with (1 := Hgx).
-specialize (Hg2 (Rlt_not_eq _ _ Hg4)).
-destruct (ln_beta beta (Rabs g) (Rabs_pos_lt g (Rlt_not_eq g 0 Hg4))) as (ge', Hge).
+destruct (ln_beta beta (Rabs g)) as (ge', Hge).
 simpl in Hg2.
+specialize (Hge (Rabs_pos_lt g (Rlt_not_eq g 0 Hg4))).
 apply Rlt_not_le with (1 := Hg3).
 rewrite Hg1.
 unfold F2R. simpl.
@@ -425,7 +416,6 @@ clear.
 case (fexp ex - fexp (fexp ex + 1))%Z ; trivial.
 intros ep Hp.
 now elim Hp.
-intros H.
 apply f_equal.
 apply sym_eq.
 apply ln_beta_unique.
@@ -452,9 +442,9 @@ apply Rnot_lt_le.
 intros Hg3.
 assert (Hg4 : (g < 0)%R).
 now apply Rle_lt_trans with (1 := Hgx).
-specialize (Hg2 (Rlt_not_eq _ _ Hg4)).
-destruct (ln_beta beta (Rabs g) (Rabs_pos_lt g (Rlt_not_eq g 0 Hg4))) as (ge', Hge).
+destruct (ln_beta beta (Rabs g)) as (ge', Hge).
 simpl in Hg2.
+specialize (Hge (Rabs_pos_lt g (Rlt_not_eq g 0 Hg4))).
 rewrite (Rabs_left _ Hg4) in Hge.
 assert (Hge' : (ge' <= fexp ex)%Z).
 cut (ge' - 1 < fexp ex)%Z. omega.
@@ -530,66 +520,51 @@ Theorem generic_format_satisfies_any :
 Proof.
 refine ((fun D => Satisfies_any _ _ _ (projT1 D) (projT2 D)) _).
 (* symmetric set *)
-exists (Float beta 0 0).
-split.
+exists (Float beta 0 _) ; repeat split.
 unfold F2R. simpl.
 now rewrite Rmult_0_l.
-intros H.
-now elim H.
 intros x ((m,e),(H1,H2)).
-exists (Float beta (-m) e).
-split.
-rewrite H1.
-apply opp_F2R.
-intros H3.
-simpl in H2.
-assert (H4 := Ropp_neq_0_compat _ H3).
-rewrite Ropp_involutive in H4.
-rewrite (H2 H4).
-clear H2.
-destruct (ln_beta beta (Rabs x)) as (ex, H5).
-simpl.
-apply f_equal.
-apply sym_eq.
-apply ln_beta_unique.
-now rewrite Rabs_Ropp.
+exists (Float beta (-m) _) ; repeat split.
+rewrite H1 at 1.
+rewrite Rabs_Ropp.
+rewrite opp_F2R.
+apply (f_equal (fun v => F2R (Float beta (- m) v))).
+exact H2.
 (* rounding down *)
-assert (Hxx : forall x, (0 > x)%R -> (0 < -x)%R).
-intros.
-now apply Ropp_0_gt_lt_contravar.
 exists (fun x =>
   match total_order_T 0 x with
   | inleft (left Hx) =>
-    let e := fexp (projT1 (ln_beta beta _ Hx)) in
+    let e := fexp (projT1 (ln_beta beta x)) in
     F2R (Float beta (up (x * bpow (Zopp e)) - 1) e)
   | inleft (right _) => R0
   | inright Hx =>
-    let e := fexp (projT1 (ln_beta beta _ (Hxx _ Hx))) in
+    let e := fexp (projT1 (ln_beta beta (-x))) in
     F2R (Float beta (up (x * bpow (Zopp e)) - 1) e)
   end).
 intros x.
 destruct (total_order_T 0 x) as [[Hx|Hx]|Hx].
 (* positive *)
-destruct (ln_beta beta x Hx) as (ex, Hx').
+destruct (ln_beta beta x) as (ex, Hx').
 simpl.
-now apply generic_DN_pt_pos.
+apply generic_DN_pt_pos.
+now apply Hx'.
 (* zero *)
 split.
-exists (Float beta 0 0).
-split.
-unfold F2R.
+exists (Float beta 0 _) ; repeat split.
+unfold F2R. simpl.
 now rewrite Rmult_0_l.
-intros H.
-now elim H.
 rewrite <- Hx.
 split.
 apply Rle_refl.
 intros g _ H.
 exact H.
 (* negative *)
-destruct (ln_beta beta (- x) (Hxx x Hx)) as (ex, Hx').
+destruct (ln_beta beta (- x)) as (ex, Hx').
 simpl.
-now apply generic_DN_pt_neg.
+apply generic_DN_pt_neg.
+apply Hx'.
+rewrite <- Ropp_0.
+now apply Ropp_lt_contravar.
 Qed.
 
 Theorem generic_DN_pt_small_pos :
@@ -600,12 +575,9 @@ Theorem generic_DN_pt_small_pos :
 Proof.
 intros x ex Hx He.
 split.
-exists (Float beta 0 0).
+exists (Float beta 0 _) ; repeat split.
 unfold F2R. simpl.
-split.
 now rewrite Rmult_0_l.
-intros H.
-now elim H.
 split.
 apply Rle_trans with (2 := proj1 Hx).
 apply epow_ge_0.
@@ -613,9 +585,9 @@ apply epow_ge_0.
 intros g ((gm, ge), (Hg1, Hg2)) Hgx.
 apply Rnot_lt_le.
 intros Hg3.
-specialize (Hg2 (Rgt_not_eq _ _ Hg3)).
-destruct (ln_beta beta (Rabs g) (Rabs_pos_lt g (Rgt_not_eq g 0 Hg3))) as (eg, Hg4).
+destruct (ln_beta beta (Rabs g)) as (eg, Hg4).
 simpl in Hg2.
+specialize (Hg4 (Rabs_pos_lt g (Rgt_not_eq g 0 Hg3))).
 rewrite Rabs_right in Hg4.
 apply Rle_not_lt with (1 := Hgx).
 rewrite Hg1.
@@ -656,7 +628,6 @@ split.
 rewrite H.
 eexists ; repeat split.
 simpl.
-intros H1.
 apply f_equal.
 apply sym_eq.
 apply ln_beta_unique.
@@ -682,9 +653,9 @@ apply Rgt_not_eq.
 apply Rlt_le_trans with (2 := Hgx).
 apply Rlt_le_trans with (2 := proj1 Hx).
 apply epow_gt_0.
-specialize (Hg2 H0).
-destruct (ln_beta beta (Rabs g) (Rabs_pos_lt g H0)) as (eg, Hg3).
+destruct (ln_beta beta (Rabs g)) as (eg, Hg3).
 simpl in Hg2.
+specialize (Hg3 (Rabs_pos_lt g H0)).
 apply Rnot_lt_le.
 intros Hgp.
 apply Rlt_not_le with (1 := Hgp).
@@ -727,7 +698,6 @@ ring.
 generalize (proj1 (prop_exp _) He).
 omega.
 (* . *)
-intros H.
 apply f_equal.
 apply sym_eq.
 apply ln_beta_unique.

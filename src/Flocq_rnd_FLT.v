@@ -63,14 +63,11 @@ apply Zpower_gt_0.
 now apply Zlt_le_trans with (2 := radix_prop beta).
 exact Hp.
 apply Zle_refl.
-specialize (Hx2 Hx3).
-exists (Float beta xm xe).
-split.
-exact Hx1.
-simpl.
-destruct (ln_beta beta (Rabs x) (Rabs_pos_lt x Hx3)) as (ex, Hx4).
+rewrite Hx1.
+eexists ; repeat split.
+destruct (ln_beta beta (Rabs x)) as (ex, Hx4).
 simpl in Hx2.
-split.
+specialize (Hx4 (Rabs_pos_lt x Hx3)).
 apply lt_Z2R.
 rewrite Z2R_Zpower.
 apply Rmult_lt_reg_r with (bpow (ex - prec)%Z).
@@ -95,14 +92,12 @@ apply Zle_max_r.
 intros ((xm, xe), (Hx1, (Hx2, Hx3))).
 destruct (Req_dec x 0) as [Hx4|Hx4].
 rewrite Hx4.
-exists (Float beta 0 0).
-split.
+exists (Float beta 0 _) ; repeat split.
 unfold F2R. simpl.
 now rewrite Rmult_0_l.
-intros H.
-now elim H.
-destruct (ln_beta beta (Rabs x) (Rabs_pos_lt _ Hx4)) as (ex, Hx5).
 simpl in Hx2, Hx3.
+destruct (ln_beta beta (Rabs x)) as (ex, Hx5).
+specialize (Hx5 (Rabs_pos_lt _ Hx4)).
 assert (Hx6 : x = F2R (Float beta (xm * Zpower (radix_val beta) (xe - FLT_exp ex)) (FLT_exp ex))).
 rewrite Hx1.
 unfold F2R. simpl.
@@ -133,7 +128,6 @@ now apply Zlt_le_weak.
 exact Hx3.
 rewrite Hx6.
 eexists ; repeat split.
-intros H.
 simpl.
 apply f_equal.
 apply sym_eq.

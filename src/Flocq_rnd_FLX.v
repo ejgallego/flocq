@@ -45,13 +45,12 @@ simpl.
 apply Zpower_gt_0.
 now apply Zlt_le_trans with (2 := radix_prop beta).
 exact Hp.
-specialize (Hx2 Hx3).
-exists (Float beta xm xe).
-split.
-exact Hx1.
+rewrite Hx1.
+eexists ; repeat split.
 simpl.
-destruct (ln_beta beta (Rabs x) (Rabs_pos_lt x Hx3)) as (ex, Hx4).
+destruct (ln_beta beta (Rabs x)) as (ex, Hx4).
 simpl in Hx2.
+specialize (Hx4 (Rabs_pos_lt x Hx3)).
 apply lt_Z2R.
 rewrite Z2R_Zpower.
 apply Rmult_lt_reg_r with (bpow (ex - prec)%Z).
@@ -69,14 +68,12 @@ now apply Zlt_le_weak.
 intros ((xm, xe), (Hx1, Hx2)).
 destruct (Req_dec x 0) as [Hx3|Hx3].
 rewrite Hx3.
-exists (Float beta 0 0).
-split.
+exists (Float beta 0 _) ; repeat split.
 unfold F2R. simpl.
 now rewrite Rmult_0_l.
-intros H.
-now elim H.
-destruct (ln_beta beta (Rabs x) (Rabs_pos_lt _ Hx3)) as (ex, Hx4).
 simpl in Hx2.
+destruct (ln_beta beta (Rabs x)) as (ex, Hx4).
+specialize (Hx4 (Rabs_pos_lt _ Hx3)).
 destruct (F2R_prec_normalize beta xm xe (ex - 1) prec Hx2) as (mx, Hx5).
 rewrite <- Hx1.
 exact (proj1 Hx4).
@@ -84,7 +81,6 @@ rewrite Hx1.
 replace (ex - 1 - (prec - 1))%Z with (ex - prec)%Z in Hx5 by ring.
 rewrite Hx5.
 eexists ; repeat split.
-intros H.
 change (Fexp (Float beta mx (ex - prec))) with (FLX_exp ex).
 apply f_equal.
 apply sym_eq.
