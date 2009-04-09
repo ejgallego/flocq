@@ -72,6 +72,19 @@ Qed.
 
 End Rmissing.
 
+Section Zmissing.
+
+Lemma Zopp_le_cancel :
+  forall x y : Z,
+  (-y <= -x)%Z -> Zle x y.
+Proof.
+intros x y Hxy.
+apply Zplus_le_reg_r with (-x - y)%Z.
+now ring_simplify.
+Qed.
+
+End Zmissing.
+
 Section Z2R.
 
 Fixpoint P2R (p : positive) :=
@@ -267,6 +280,74 @@ apply lt_Z2R.
 apply Rle_lt_trans with (2 := proj2 Hnx).
 apply Zfloor_lb.
 now apply Zfloor_lub.
+Qed.
+
+Definition Zceil (x : R) := (- Zfloor (- x))%Z.
+
+Lemma Zceil_ub :
+  forall x : R,
+  (x <= Z2R (Zceil x))%R.
+Proof.
+intros x.
+unfold Zceil.
+rewrite opp_Z2R.
+apply Ropp_le_cancel.
+rewrite Ropp_involutive.
+apply Zfloor_lb.
+Qed.
+
+Lemma Zceil_lub :
+  forall n x,
+  (x <= Z2R n)%R ->
+  (Zceil x <= n)%Z.
+Proof.
+intros n x Hnx.
+unfold Zceil.
+apply Zopp_le_cancel.
+rewrite Zopp_involutive.
+apply Zfloor_lub.
+rewrite opp_Z2R.
+now apply Ropp_le_contravar.
+Qed.
+
+Lemma Zceil_imp :
+  forall n x,
+  (Z2R (n - 1) < x <= Z2R n)%R ->
+  Zceil x = n.
+Proof.
+intros n x Hnx.
+unfold Zceil.
+rewrite <- (Zopp_involutive n).
+apply f_equal.
+apply Zfloor_imp.
+split.
+rewrite opp_Z2R.
+now apply Ropp_le_contravar.
+rewrite <- (Zopp_involutive 1).
+rewrite <- Zopp_plus_distr.
+rewrite opp_Z2R.
+now apply Ropp_lt_contravar.
+Qed.
+
+Lemma Zceil_floor_neq :
+  forall x,
+  (Z2R (Zfloor x) <> x)%R ->
+  (Zceil x = Zfloor x + 1)%Z.
+Proof.
+intros x Hx.
+apply Zceil_imp.
+split.
+ring_simplify (Zfloor x + 1 - 1)%Z.
+apply Rnot_le_lt.
+intros H.
+apply Hx.
+apply Rle_antisym.
+apply Zfloor_lb.
+exact H.
+apply Rnot_lt_le.
+clear Hx. intros Hx.
+generalize (Zfloor_lub _ _ (Rlt_le _ _ Hx)).
+omega.
 Qed.
 
 End Floor_Ceil.
