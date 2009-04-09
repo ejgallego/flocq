@@ -28,7 +28,7 @@ Theorem generic_DN_pt_large_pos_ge_pow :
   forall x ex,
   (fexp ex < ex)%Z ->
   (bpow (ex - 1)%Z <= x)%R ->
-  (bpow (ex - 1)%Z <= F2R (Float beta (up (x * bpow (- fexp ex)%Z) - 1) (fexp ex)))%R.
+  (bpow (ex - 1)%Z <= F2R (Float beta (Zfloor (x * bpow (- fexp ex)%Z)) (fexp ex)))%R.
 Proof.
 intros x ex He1 Hx1.
 unfold F2R. simpl.
@@ -36,53 +36,45 @@ replace (ex - 1)%Z with ((ex - 1 - fexp ex) + fexp ex)%Z by ring.
 rewrite epow_add.
 apply Rmult_le_compat_r.
 apply epow_ge_0.
-assert (bpow (ex - 1 - fexp ex)%Z < Z2R (up (x * bpow (- fexp ex)%Z)))%R.
-rewrite Z2R_IZR.
-apply Rle_lt_trans with (2 := proj1 (archimed _)).
-unfold Zminus.
+assert (Hx2 : bpow (ex - 1 - fexp ex)%Z = Z2R (Zpower (radix_val beta) (ex - 1 - fexp ex))).
+apply sym_eq.
+apply Z2R_Zpower.
+omega.
+rewrite Hx2.
+apply Z2R_le.
+apply Zfloor_lub.
+rewrite <- Hx2.
+unfold Zminus at 1.
 rewrite epow_add.
 apply Rmult_le_compat_r.
 apply epow_ge_0.
 exact Hx1.
-case_eq (ex - 1 - fexp ex)%Z.
-intros He2.
-change (bpow 0%Z) with (Z2R 1).
-apply Z2R_le.
-change 1%Z at 1 with (1 + 1 - 1)%Z.
-apply Zplus_le_compat_r.
-apply (Zlt_le_succ 1).
-apply lt_Z2R.
-now rewrite He2 in H.
-intros ep He2.
-simpl.
-apply Z2R_le.
-replace (Zpower_pos (radix_val beta) ep) with (Zpower_pos (radix_val beta) ep + 1 - 1)%Z by ring.
-apply Zplus_le_compat_r.
-apply Zlt_le_succ.
-apply lt_Z2R.
-change (bpow (Zpos ep) < Z2R (up (x * bpow (- fexp ex)%Z)))%R.
-now rewrite <- He2.
-clear H Hx1.
-intros.
-assert (ex - 1 - fexp ex < 0)%Z.
-now rewrite H.
-apply False_ind.
-omega.
 Qed.
 
 Theorem generic_DN_pt_pos :
   forall x ex,
   (bpow (ex - 1)%Z <= x < bpow ex)%R ->
-  Rnd_DN_pt generic_format x (F2R (Float beta (up (x * bpow (Zopp (fexp ex))) - 1) (fexp ex))).
+  Rnd_DN_pt generic_format x (F2R (Float beta (Zfloor (x * bpow (Zopp (fexp ex)))) (fexp ex))).
 Proof.
 intros x ex (Hx1, Hx2).
 destruct (Z_lt_le_dec (fexp ex) ex) as [He1|He1].
 (* - positive big enough *)
-assert (Hbl : (bpow (ex - 1)%Z <= F2R (Float beta (up (x * bpow (- fexp ex)%Z) - 1) (fexp ex)))%R).
+assert (Hbl : (bpow (ex - 1)%Z <= F2R (Float beta (Zfloor (x * bpow (- fexp ex)%Z)) (fexp ex)))%R).
 now apply generic_DN_pt_large_pos_ge_pow.
+(* - . smaller *)
+assert (Hrx : (F2R (Float beta (Zfloor (x * bpow (- fexp ex)%Z)) (fexp ex)) <= x)%R).
+unfold F2R. simpl.
+pattern x at 2 ; replace x with ((x * bpow (- fexp ex)%Z) * bpow (fexp ex))%R.
+apply Rmult_le_compat_r.
+apply epow_ge_0.
+apply Zfloor_lb.
+rewrite Rmult_assoc.
+rewrite <- epow_add.
+rewrite Zplus_opp_l.
+apply Rmult_1_r.
 split.
 (* - . rounded *)
-eexists ; split ; [ reflexivity | idtac ].
+eexists ; repeat split.
 simpl.
 apply f_equal.
 apply sym_eq.
@@ -90,48 +82,12 @@ apply ln_beta_unique.
 rewrite Rabs_right.
 split.
 exact Hbl.
-apply Rle_lt_trans with (2 := Hx2).
-unfold F2R. simpl.
-pattern x at 2 ; replace x with ((x * bpow (- fexp ex)%Z) * bpow (fexp ex))%R.
-generalize (x * bpow (- fexp ex)%Z)%R.
-clear.
-intros x.
-apply Rmult_le_compat_r.
-apply epow_ge_0.
-rewrite minus_Z2R.
-rewrite Z2R_IZR.
-simpl.
-apply Rplus_le_reg_l with (- x + 1)%R.
-ring_simplify.
-rewrite Rplus_comm.
-exact (proj2 (archimed x)).
-rewrite Rmult_assoc.
-rewrite <- epow_add.
-rewrite Zplus_opp_l.
-apply Rmult_1_r.
+now apply Rle_lt_trans with (2 := Hx2).
 apply Rle_ge.
 apply Rle_trans with (2 := Hbl).
 apply epow_ge_0.
 split.
-(* - . smaller *)
-unfold F2R. simpl.
-generalize (fexp ex).
-clear.
-intros e.
-pattern x at 2 ; rewrite <- Rmult_1_r.
-change R1 with (bpow Z0).
-rewrite <- (Zplus_opp_l e).
-rewrite epow_add, <- Rmult_assoc.
-apply Rmult_le_compat_r.
-apply epow_ge_0.
-rewrite minus_Z2R.
-rewrite Z2R_IZR.
-simpl.
-apply Rplus_le_reg_l with (1 - x * bpow (-e)%Z)%R.
-ring_simplify.
-rewrite Rplus_comm.
-rewrite Ropp_mult_distr_l_reverse.
-exact (proj2 (archimed _)).
+exact Hrx.
 (* - . biggest *)
 intros g ((gm, ge), (Hg1, Hg2)) Hgx.
 destruct (Rle_or_lt g R0) as [Hg3|Hg3].
@@ -154,23 +110,19 @@ unfold F2R. simpl.
 apply Rmult_le_compat_r.
 apply epow_ge_0.
 apply Z2R_le.
-cut (gm < up (x * bpow (- fexp ex)%Z))%Z.
-omega.
-apply lt_IZR.
-apply Rle_lt_trans with (2 := proj1 (archimed _)).
+apply Zfloor_lub.
 apply Rmult_le_reg_r with (bpow (fexp ex)).
 apply epow_gt_0.
-rewrite <- Hg2 at 1.
-rewrite <- Z2R_IZR.
 rewrite Rmult_assoc.
 rewrite <- epow_add.
 rewrite Zplus_opp_l.
 rewrite Rmult_1_r.
 unfold F2R in Hg1.
 simpl in Hg1.
+rewrite <- Hg2.
 now rewrite <- Hg1.
 (* - positive too small *)
-cutrewrite (up (x * bpow (- fexp ex)%Z) = 1%Z).
+replace (Zfloor (x * bpow (- fexp ex)%Z)) with Z0.
 (* - . rounded *)
 unfold F2R. simpl.
 rewrite Rmult_0_l.
@@ -218,18 +170,19 @@ unfold F2R in Hg1. simpl in Hg1.
 now rewrite <- Hg1.
 (* - . . *)
 apply sym_eq.
-rewrite <- (Zplus_0_l 1).
-apply up_tech.
-apply Rlt_le.
-apply Rmult_lt_0_compat.
-apply Rlt_le_trans with (2 := Hx1).
+apply Zfloor_imp.
+simpl.
+split.
+apply Rmult_le_pos.
+apply Rle_trans with (2 := Hx1).
+apply epow_ge_0.
+apply epow_ge_0.
+apply Rmult_lt_reg_r with (bpow (fexp ex)).
 apply epow_gt_0.
-apply epow_gt_0.
-change (IZR (0 + 1)) with (bpow Z0).
-rewrite <- (Zplus_opp_r (fexp ex)).
-rewrite epow_add.
-apply Rmult_lt_compat_r.
-apply epow_gt_0.
+rewrite Rmult_assoc.
+rewrite <- epow_add.
+rewrite Zplus_opp_l.
+rewrite Rmult_1_r, Rmult_1_l.
 apply Rlt_le_trans with (1 := Hx2).
 now apply -> epow_le.
 Qed.
@@ -237,8 +190,9 @@ Qed.
 Theorem generic_DN_pt_neg :
   forall x ex,
   (bpow (ex - 1)%Z <= -x < bpow ex)%R ->
-  Rnd_DN_pt generic_format x (F2R (Float beta (up (x * bpow (Zopp (fexp ex))) - 1) (fexp ex))).
+  Rnd_DN_pt generic_format x (F2R (Float beta (Zfloor (x * bpow (Zopp (fexp ex)))) (fexp ex))).
 Proof.
+unfold Zfloor.
 intros x ex (Hx1, Hx2).
 assert (Hx : (x < 0)%R).
 apply Ropp_lt_cancel.

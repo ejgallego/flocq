@@ -87,12 +87,10 @@ unfold F2R. simpl.
 rewrite <- Rmult_plus_distr_r.
 rewrite <- Ropp_mult_distr_l_reverse.
 apply (f_equal (fun v => v * bpow (fexp ex))%R).
-rewrite 2!minus_Z2R.
-simpl.
-ring_simplify.
-rewrite Ropp_mult_distr_l_reverse.
-generalize (x * bpow (- fexp ex)%Z)%R.
-clear. intros x.
+rewrite <- opp_Z2R.
+change R1 with (Z2R 1).
+rewrite <- plus_Z2R.
+apply f_equal.
 admit.
 (* . positive small *)
 rewrite Rnd_UP_pt_unicity with F x xu (bpow (fexp ex)).
