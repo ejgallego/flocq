@@ -721,13 +721,15 @@ Qed.
 
 Lemma Zpower_gt_0 :
   forall b p,
-  (0 < b)%Z -> (0 < p)%Z ->
+  (0 < b)%Z -> (0 <= p)%Z ->
   (0 < Zpower b p)%Z.
 Proof.
 intros b p Hb Hz.
 unfold Zpower.
-destruct p ; try easy.
+destruct p.
+easy.
 now apply Zpower_pos_gt_0.
+now elim Hz.
 Qed.
 
 Lemma Zpower_gt_1 :

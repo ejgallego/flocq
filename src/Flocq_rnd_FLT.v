@@ -61,7 +61,7 @@ simpl.
 split.
 apply Zpower_gt_0.
 now apply Zlt_le_trans with (2 := radix_prop beta).
-exact Hp.
+now apply Zlt_le_weak.
 apply Zle_refl.
 rewrite Hx1.
 eexists ; repeat split.
