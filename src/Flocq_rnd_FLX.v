@@ -8,7 +8,7 @@ Section RND_FIX.
 
 Variable beta : radix.
 
-Notation bpow := (epow beta).
+Notation bpow e := (epow beta e).
 
 Variable prec : Z.
 Variable Hp : Zlt 0 prec.
@@ -53,7 +53,7 @@ simpl in Hx2.
 specialize (Hx4 (Rabs_pos_lt x Hx3)).
 apply lt_Z2R.
 rewrite Z2R_Zpower.
-apply Rmult_lt_reg_r with (bpow (ex - prec)%Z).
+apply Rmult_lt_reg_r with (bpow (ex - prec)).
 apply epow_gt_0.
 rewrite <- epow_add.
 replace (prec + (ex - prec))%Z with ex by ring.

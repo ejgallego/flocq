@@ -9,7 +9,7 @@ Section Flocq_ulp.
 
 Variable beta : radix.
 
-Notation bpow := (epow beta).
+Notation bpow e := (epow beta e).
 
 Variable fexp : Z -> Z.
 
@@ -44,7 +44,7 @@ rewrite <- plus_Z2R.
 apply (f_equal (fun v => (Z2R v * bpow (fexp ex))%R)).
 apply Zceil_floor_neq.
 intros Hx4.
-assert (Hx5 : x = F2R (Float beta (Zfloor (x * bpow (- fexp ex)%Z)) (fexp ex))).
+assert (Hx5 : x = F2R (Float beta (Zfloor (x * bpow (- fexp ex))) (fexp ex))).
 unfold F2R. simpl.
 rewrite Hx4.
 rewrite Rmult_assoc.

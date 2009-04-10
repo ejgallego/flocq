@@ -8,7 +8,7 @@ Section RND_generic.
 
 Variable beta : radix.
 
-Notation bpow := (epow beta).
+Notation bpow e := (epow beta e).
 
 Variable fexp : Z -> Z.
 
@@ -28,8 +28,8 @@ Definition generic_format (x : R) :=
 Theorem generic_DN_pt_large_pos_ge_pow :
   forall x ex,
   (fexp ex < ex)%Z ->
-  (bpow (ex - 1)%Z <= x)%R ->
-  (bpow (ex - 1)%Z <= F2R (Float beta (Zfloor (x * bpow (- fexp ex)%Z)) (fexp ex)))%R.
+  (bpow (ex - 1) <= x)%R ->
+  (bpow (ex - 1) <= F2R (Float beta (Zfloor (x * bpow (- fexp ex))) (fexp ex)))%R.
 Proof.
 intros x ex He1 Hx1.
 unfold F2R. simpl.
@@ -37,7 +37,7 @@ replace (ex - 1)%Z with ((ex - 1 - fexp ex) + fexp ex)%Z by ring.
 rewrite epow_add.
 apply Rmult_le_compat_r.
 apply epow_ge_0.
-assert (Hx2 : bpow (ex - 1 - fexp ex)%Z = Z2R (Zpower (radix_val beta) (ex - 1 - fexp ex))).
+assert (Hx2 : bpow (ex - 1 - fexp ex) = Z2R (Zpower (radix_val beta) (ex - 1 - fexp ex))).
 apply sym_eq.
 apply Z2R_Zpower.
 omega.
@@ -54,18 +54,18 @@ Qed.
 
 Theorem generic_DN_pt_pos :
   forall x ex,
-  (bpow (ex - 1)%Z <= x < bpow ex)%R ->
-  Rnd_DN_pt generic_format x (F2R (Float beta (Zfloor (x * bpow (Zopp (fexp ex)))) (fexp ex))).
+  (bpow (ex - 1) <= x < bpow ex)%R ->
+  Rnd_DN_pt generic_format x (F2R (Float beta (Zfloor (x * bpow (- fexp ex))) (fexp ex))).
 Proof.
 intros x ex (Hx1, Hx2).
 destruct (Z_lt_le_dec (fexp ex) ex) as [He1|He1].
 (* - positive big enough *)
-assert (Hbl : (bpow (ex - 1)%Z <= F2R (Float beta (Zfloor (x * bpow (- fexp ex)%Z)) (fexp ex)))%R).
+assert (Hbl : (bpow (ex - 1) <= F2R (Float beta (Zfloor (x * bpow (- fexp ex))) (fexp ex)))%R).
 now apply generic_DN_pt_large_pos_ge_pow.
 (* - . smaller *)
-assert (Hrx : (F2R (Float beta (Zfloor (x * bpow (- fexp ex)%Z)) (fexp ex)) <= x)%R).
+assert (Hrx : (F2R (Float beta (Zfloor (x * bpow (- fexp ex))) (fexp ex)) <= x)%R).
 unfold F2R. simpl.
-pattern x at 2 ; replace x with ((x * bpow (- fexp ex)%Z) * bpow (fexp ex))%R.
+pattern x at 2 ; replace x with ((x * bpow (- fexp ex)) * bpow (fexp ex))%R.
 apply Rmult_le_compat_r.
 apply epow_ge_0.
 apply Zfloor_lb.
@@ -97,7 +97,7 @@ apply Rle_trans with (1 := Hg3).
 apply epow_ge_0.
 apply Rnot_lt_le.
 intros Hrg.
-assert (bpow (ex - 1)%Z <= g < bpow ex)%R.
+assert (bpow (ex - 1) <= g < bpow ex)%R.
 split.
 apply Rle_trans with (1 := Hbl).
 now apply Rlt_le.
@@ -123,7 +123,7 @@ simpl in Hg1.
 rewrite <- Hg2.
 now rewrite <- Hg1.
 (* - positive too small *)
-replace (Zfloor (x * bpow (- fexp ex)%Z)) with Z0.
+replace (Zfloor (x * bpow (- fexp ex))) with Z0.
 (* - . rounded *)
 unfold F2R. simpl.
 rewrite Rmult_0_l.
@@ -190,8 +190,8 @@ Qed.
 
 Theorem generic_DN_pt_neg :
   forall x ex,
-  (bpow (ex - 1)%Z <= -x < bpow ex)%R ->
-  Rnd_DN_pt generic_format x (F2R (Float beta (Zfloor (x * bpow (Zopp (fexp ex)))) (fexp ex))).
+  (bpow (ex - 1) <= -x < bpow ex)%R ->
+  Rnd_DN_pt generic_format x (F2R (Float beta (Zfloor (x * bpow (- fexp ex))) (fexp ex))).
 Proof.
 intros x ex (Hx1, Hx2).
 assert (Hx : (x < 0)%R).
@@ -199,7 +199,7 @@ apply Ropp_lt_cancel.
 rewrite Ropp_0.
 apply Rlt_le_trans with (2 := Hx1).
 apply epow_gt_0.
-assert (Hbr : (F2R (Float beta (Zfloor (x * bpow (- fexp ex)%Z)) (fexp ex)) <= x)%R).
+assert (Hbr : (F2R (Float beta (Zfloor (x * bpow (- fexp ex))) (fexp ex)) <= x)%R).
 (* - bounded right *)
 unfold F2R. simpl.
 pattern x at 2 ; rewrite <- Rmult_1_r.
@@ -212,7 +212,7 @@ apply epow_ge_0.
 apply Zfloor_lb.
 destruct (Z_lt_le_dec (fexp ex) ex) as [He1|He1].
 (* - negative big enough *)
-assert (Hbl : (- bpow ex <= F2R (Float beta (Zfloor (x * bpow (- fexp ex)%Z)) (fexp ex)))%R).
+assert (Hbl : (- bpow ex <= F2R (Float beta (Zfloor (x * bpow (- fexp ex))) (fexp ex)))%R).
 (* - . bounded left *)
 unfold F2R. simpl.
 pattern ex at 1 ; replace ex with (ex - fexp ex + fexp ex)%Z by ring.
@@ -220,7 +220,7 @@ rewrite epow_add.
 rewrite <- Ropp_mult_distr_l_reverse.
 apply Rmult_le_compat_r.
 apply epow_ge_0.
-assert (Hp : (- bpow (ex - fexp ex)%Z = Z2R (- Zpower (radix_val beta) (ex - fexp ex)))%R).
+assert (Hp : (- bpow (ex - fexp ex) = Z2R (- Zpower (radix_val beta) (ex - fexp ex)))%R).
 rewrite <- Z2R_Zpower.
 now rewrite opp_Z2R.
 omega.
@@ -326,7 +326,7 @@ rewrite <- Hg2.
 unfold F2R in Hg1. simpl in Hg1.
 now rewrite <- Hg1.
 (* - negative too small *)
-replace (Zfloor (x * bpow (- fexp ex)%Z)) with (-1)%Z.
+replace (Zfloor (x * bpow (- fexp ex))) with (-1)%Z.
 unfold F2R. simpl.
 rewrite Ropp_mult_distr_l_reverse.
 rewrite Rmult_1_l.
@@ -402,7 +402,7 @@ rewrite <- opp_F2R.
 rewrite <- Hg1.
 rewrite <- Ropp_0.
 now apply Ropp_lt_contravar.
-apply Rle_trans with (1 * bpow (ge - ge')%Z)%R.
+apply Rle_trans with (1 * bpow (ge - ge'))%R.
 rewrite Rmult_1_l.
 apply -> (epow_le beta 0).
 omega.
@@ -414,7 +414,7 @@ apply sym_eq.
 apply Zfloor_imp.
 simpl.
 split.
-apply Rle_trans with (- bpow ex * bpow (- fexp ex)%Z)%R.
+apply Rle_trans with (- bpow ex * bpow (- fexp ex))%R.
 rewrite Ropp_mult_distr_l_reverse.
 rewrite <- epow_add.
 apply Ropp_le_contravar.
@@ -425,7 +425,7 @@ apply epow_ge_0.
 apply Ropp_le_cancel.
 rewrite Ropp_involutive.
 now apply Rlt_le.
-rewrite <- (Rmult_0_l (bpow (- fexp ex)%Z)).
+rewrite <- (Rmult_0_l (bpow (- fexp ex))).
 apply Rmult_lt_compat_r.
 apply epow_gt_0.
 exact Hx.
@@ -485,7 +485,7 @@ Qed.
 
 Theorem generic_DN_pt_small_pos :
   forall x ex,
-  (bpow (ex - 1)%Z <= x < bpow ex)%R ->
+  (bpow (ex - 1) <= x < bpow ex)%R ->
   (ex <= fexp ex)%Z ->
   Rnd_DN_pt generic_format x R0.
 Proof.
@@ -526,7 +526,7 @@ Qed.
 
 Theorem generic_UP_pt_small_pos :
   forall x ex,
-  (bpow (ex - 1)%Z <= x < bpow ex)%R ->
+  (bpow (ex - 1) <= x < bpow ex)%R ->
   (ex <= fexp ex)%Z ->
   Rnd_UP_pt generic_format x (bpow (fexp ex)).
 Proof.
@@ -596,7 +596,7 @@ Qed.
 
 Theorem generic_UP_pt_large_pos_le_pow :
   forall x xu ex,
-  (bpow (ex - 1)%Z <= x < bpow ex)%R ->
+  (bpow (ex - 1) <= x < bpow ex)%R ->
   (fexp ex < ex)%Z ->
   Rnd_UP_pt generic_format x xu ->
   (xu <= bpow ex)%R.
@@ -628,7 +628,7 @@ Qed.
 
 Theorem generic_UP_pt_pos :
   forall x ex,
-  (bpow (ex - 1)%Z <= x < bpow ex)%R ->
+  (bpow (ex - 1) <= x < bpow ex)%R ->
   Rnd_UP_pt generic_format x (F2R (Float beta (Zceil (x * bpow (Zopp (fexp ex)))) (fexp ex))).
 Proof.
 intros x ex Hx1.
@@ -644,7 +644,7 @@ Qed.
 
 Theorem generic_UP_pt_neg :
   forall x ex,
-  (bpow (ex - 1)%Z <= - x < bpow ex)%R ->
+  (bpow (ex - 1) <= - x < bpow ex)%R ->
   Rnd_UP_pt generic_format x (F2R (Float beta (Zceil (x * bpow (Zopp (fexp ex)))) (fexp ex))).
 Proof.
 intros x ex Hx1.
