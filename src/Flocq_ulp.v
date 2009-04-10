@@ -34,25 +34,14 @@ specialize (Hx2 Hx1).
 destruct (Z_lt_le_dec (fexp ex) ex) as [He1|He1].
 (* positive big *)
 assert (Hd2 := generic_DN_pt_pos _ _ prop_exp _ _ Hx2).
-assert (Hu2 : Rnd_DN_pt F (-x) (-xu)).
-apply Rnd_UP_DN_pt_sym.
-now eapply generic_format_satisfies_any.
-now rewrite 2!Ropp_involutive.
-assert (Hx3 : (bpow (ex - 1)%Z <= --x < bpow ex)%R).
-now rewrite Ropp_involutive.
-assert (Hu3 := generic_DN_pt_neg _ _ prop_exp _ _ Hx3).
+assert (Hu2 := generic_UP_pt_pos _ _ prop_exp _ _ Hx2).
 rewrite (Rnd_DN_pt_unicity _ _ _ _ Hd1 Hd2).
-rewrite <- (Ropp_involutive xu).
-rewrite (Rnd_DN_pt_unicity _ _ _ _ Hu2 Hu3).
+rewrite (Rnd_UP_pt_unicity _ _ _ _ Hu1 Hu2).
 unfold F2R. simpl.
 rewrite <- Rmult_plus_distr_r.
-rewrite <- Ropp_mult_distr_l_reverse.
-apply (f_equal (fun v => v * bpow (fexp ex))%R).
-rewrite <- opp_Z2R.
 change R1 with (Z2R 1).
 rewrite <- plus_Z2R.
-apply f_equal.
-rewrite Ropp_mult_distr_l_reverse.
+apply (f_equal (fun v => (Z2R v * bpow (fexp ex))%R)).
 apply Zceil_floor_neq.
 intros Hx4.
 assert (Hx5 : x = F2R (Float beta (Zfloor (x * bpow (- fexp ex)%Z)) (fexp ex))).
