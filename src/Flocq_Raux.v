@@ -692,6 +692,22 @@ apply Rlt_le_trans with (2 := proj1 Hx1).
 apply epow_gt_0.
 Qed.
 
+Lemma ln_beta_monotone :
+  forall x y,
+  (0 < x)%R -> (x <= y)%R ->
+  (projT1 (ln_beta x) <= projT1 (ln_beta y))%Z.
+Proof.
+intros x y H0x Hxy.
+destruct (ln_beta x) as (ex, Hx).
+destruct (ln_beta y) as (ey, Hy).
+simpl.
+apply epow_lt_epow.
+specialize (Hx H0x).
+specialize (Hy (Rlt_le_trans _ _ _ H0x Hxy)).
+apply Rle_lt_trans with (1 := proj1 Hx).
+now apply Rle_lt_trans with (2 := proj2 Hy).
+Qed.
+
 Lemma Zpower_pos_gt_0 :
   forall b p, (0 < b)%Z ->
   (0 < Zpower_pos b p)%Z.
