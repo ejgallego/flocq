@@ -1,6 +1,7 @@
 Require Import Flocq_Raux.
 Require Import Flocq_defs.
 Require Import Flocq_rnd_ex.
+Require Import Flocq_rnd_prop.
 Require Import Flocq_float_prop.
 
 Section RND_generic.
@@ -623,6 +624,37 @@ apply Rle_refl.
 apply -> epow_lt.
 apply Zlt_succ.
 apply epow_ge_0.
+Qed.
+
+Theorem generic_UP_pt_pos :
+  forall x ex,
+  (bpow (ex - 1)%Z <= x < bpow ex)%R ->
+  Rnd_UP_pt generic_format x (F2R (Float beta (Zceil (x * bpow (Zopp (fexp ex)))) (fexp ex))).
+Proof.
+intros x ex Hx1.
+apply Rnd_DN_UP_pt_sym.
+apply generic_format_satisfies_any.
+unfold Zceil.
+rewrite <- Ropp_mult_distr_l_reverse.
+rewrite opp_F2R.
+rewrite Zopp_involutive.
+apply generic_DN_pt_neg.
+now rewrite Ropp_involutive.
+Qed.
+
+Theorem generic_UP_pt_neg :
+  forall x ex,
+  (bpow (ex - 1)%Z <= - x < bpow ex)%R ->
+  Rnd_UP_pt generic_format x (F2R (Float beta (Zceil (x * bpow (Zopp (fexp ex)))) (fexp ex))).
+Proof.
+intros x ex Hx1.
+apply Rnd_DN_UP_pt_sym.
+apply generic_format_satisfies_any.
+unfold Zceil.
+rewrite <- Ropp_mult_distr_l_reverse.
+rewrite opp_F2R.
+rewrite Zopp_involutive.
+now apply generic_DN_pt_pos.
 Qed.
 
 End RND_generic.
