@@ -3,6 +3,7 @@ Require Import Flocq_defs.
 Require Import Flocq_rnd_ex.
 Require Import Flocq_rnd_generic.
 Require Import Flocq_float_prop.
+Require Import Flocq_rnd_FLX.
 
 Section RND_FLT.
 
@@ -141,6 +142,48 @@ Proof.
 refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FLT_exp _)).
 exact FLT_format_generic.
 exact FLT_exp_correct.
+Qed.
+
+Theorem FLT_format_FLX :
+  forall x : R,
+  (bpow (emin + prec - 1)%Z <= Rabs x)%R ->
+  ( FLT_format x <-> FLX_format beta prec x ).
+Proof.
+intros x Hx1.
+split.
+(* . *)
+intros ((xm, xe), (Hx2, (Hx3, Hx4))).
+rewrite Hx2.
+eexists ; split ; easy.
+(* . *)
+intros Hx2.
+destruct (Req_dec x 0) as [Hx3|Hx3].
+(* . . *)
+rewrite Hx3.
+exists (Float beta 0 emin) ; repeat split.
+unfold F2R. simpl.
+now rewrite Rmult_0_l.
+apply Zpower_gt_0.
+now apply Zlt_le_trans with (2 := radix_prop beta).
+now apply Zlt_le_weak.
+apply Zle_refl.
+(* . . *)
+destruct (proj2 (FLX_format_generic _ _ Hp x) Hx2) as ((xm, xe), (Hx4, Hx5)).
+apply -> FLT_format_generic.
+rewrite Hx4.
+eexists ; repeat split.
+rewrite Hx5. clear Hx5.
+rewrite <- Hx4.
+destruct (ln_beta beta (Rabs x)) as (ex, Hx5).
+unfold FLX_exp, FLT_exp.
+simpl.
+apply sym_eq.
+apply Zmax_left.
+cut (emin + prec <= ex)%Z. omega.
+apply epow_lt_epow with beta.
+apply Rle_lt_trans with (1 := Hx1).
+apply Hx5.
+now apply Rabs_pos_lt.
 Qed.
 
 End RND_FLT.
