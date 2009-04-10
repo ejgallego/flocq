@@ -133,7 +133,7 @@ assert (Hs := generic_format_satisfies_any beta _ prop_exp).
 destruct (satisfies_any_imp_DN F Hs) as (rndd, Hd).
 specialize (Hd x).
 destruct (Rle_lt_or_eq_dec (rndd x) x) as [Hxd|Hxd].
-(* x = rnd x *)
+(* x <> rnd x *)
 apply Hd.
 assert (Fx : ~F x).
 intros Fx.
@@ -164,7 +164,7 @@ apply Rplus_lt_reg_r with (x - ulp x)%R.
 now ring_simplify.
 apply Rle_0_minus.
 apply Hu.
-(* x <> rnd x *)
+(* x = rnd x *)
 rewrite Hxd in Hd.
 rewrite (proj2 (proj2 Hrnd)).
 unfold Rminus.
@@ -173,6 +173,76 @@ rewrite Rabs_R0.
 unfold ulp, F2R. simpl.
 rewrite Rmult_1_l.
 apply epow_gt_0.
+apply Hd.
+Qed.
+
+Theorem ulp_half_error_pt :
+  forall x xr,
+  Rnd_N_pt F x xr ->
+  (Rabs (xr - x) <= /2 * ulp x)%R.
+Proof.
+intros x xr Hxr.
+assert (Hs := generic_format_satisfies_any beta _ prop_exp).
+destruct (satisfies_any_imp_DN F Hs) as (rndd, Hd).
+specialize (Hd x).
+destruct (Rle_lt_or_eq_dec (rndd x) x) as [Hxd|Hxd].
+(* x <> rnd x *)
+apply Hd.
+assert (Fx : ~F x).
+intros Fx.
+apply Rlt_not_le with (1 := Hxd).
+apply Req_le.
+apply sym_eq.
+now apply Rnd_DN_pt_idempotent with (1 := Hd).
+destruct (satisfies_any_imp_UP F Hs) as (rndu, Hu).
+specialize (Hu x).
+rewrite (ulp_pred_succ_pt _ _ _ Fx Hd Hu) in Hu.
+destruct Hxr as (Hr1, Hr2).
+assert (Hdx : (Rabs (rndd x - x) = x - rndd x)%R).
+rewrite <- Ropp_minus_distr.
+rewrite Rabs_Ropp.
+apply Rabs_pos_eq.
+apply Rle_0_minus.
+apply Hd.
+assert (Hux : (Rabs (rndd x + ulp x - x) = rndd x + ulp x - x)%R).
+apply Rabs_pos_eq.
+apply Rle_0_minus.
+apply Hu.
+destruct (Rle_or_lt (x - rndd x) (rndd x + ulp x - x)) as [H|H].
+(* . rnd(x) = rndd(x) *)
+apply Rle_trans with (1 := Hr2 _ (proj1 Hd)).
+rewrite Hdx.
+apply Rmult_le_reg_l with 2%R.
+now apply (Z2R_lt 0 2).
+rewrite Rmult_plus_distr_r.
+rewrite Rmult_1_l.
+apply Rle_trans with (1 := Rplus_le_compat_l (x - rndd x) _ _ H).
+field_simplify.
+apply Rle_refl.
+(* . rnd(x) = rndu(x) *)
+apply Rle_trans with (1 := Hr2 _ (proj1 Hu)).
+rewrite Hux.
+apply Rmult_le_reg_l with 2%R.
+now apply (Z2R_lt 0 2).
+rewrite Rmult_plus_distr_r.
+rewrite Rmult_1_l.
+apply Rlt_le.
+apply Rlt_le_trans with (1 := Rplus_lt_compat_l (rndd x + ulp x - x) _ _ H).
+field_simplify.
+apply Rle_refl.
+(* x = rnd x *)
+rewrite Hxd in Hd.
+rewrite Rnd_N_pt_idempotent with (1 := Hxr).
+unfold Rminus.
+rewrite Rplus_opp_r.
+rewrite Rabs_R0.
+unfold ulp, F2R. simpl.
+rewrite Rmult_1_l.
+apply Rmult_le_pos.
+apply Rlt_le.
+apply Rinv_0_lt_compat.
+now apply (Z2R_lt 0 2).
+apply epow_ge_0.
 apply Hd.
 Qed.
 
