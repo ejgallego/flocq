@@ -252,6 +252,20 @@ ring_simplify.
 exact (proj2 (archimed x)).
 Qed.
 
+Lemma Zfloor_ub :
+  forall x : R,
+  (x < Z2R (Zfloor x) + 1)%R.
+Proof.
+intros x.
+unfold Zfloor.
+rewrite minus_Z2R.
+unfold Rminus.
+rewrite Rplus_assoc.
+rewrite Rplus_opp_l, Rplus_0_r.
+rewrite Z2R_IZR.
+exact (proj1 (archimed x)).
+Qed.
+
 Lemma Zfloor_lub :
   forall n x,
   (Z2R n <= x)%R ->
@@ -259,13 +273,11 @@ Lemma Zfloor_lub :
 Proof.
 intros n x Hnx.
 apply Zlt_succ_le.
-unfold Zfloor.
-change (n < Zsucc (Zpred (up x)))%Z.
-rewrite <- Zsucc_pred.
 apply lt_Z2R.
 apply Rle_lt_trans with (1 := Hnx).
-rewrite Z2R_IZR.
-exact (proj1 (archimed x)).
+unfold Zsucc.
+rewrite plus_Z2R.
+apply Zfloor_ub.
 Qed.
 
 Lemma Zfloor_imp :
@@ -330,7 +342,7 @@ now apply Ropp_lt_contravar.
 Qed.
 
 Lemma Zceil_floor_neq :
-  forall x,
+  forall x : R,
   (Z2R (Zfloor x) <> x)%R ->
   (Zceil x = Zfloor x + 1)%Z.
 Proof.
@@ -344,10 +356,9 @@ apply Hx.
 apply Rle_antisym.
 apply Zfloor_lb.
 exact H.
-apply Rnot_lt_le.
-clear Hx. intros Hx.
-generalize (Zfloor_lub _ _ (Rlt_le _ _ Hx)).
-omega.
+apply Rlt_le.
+rewrite plus_Z2R.
+apply Zfloor_ub.
 Qed.
 
 End Floor_Ceil.
@@ -616,37 +627,30 @@ rewrite exp_0.
 unfold fact.
 rewrite exp_ln.
 apply (Z2R_lt 1).
-generalize (radix_prop r).
-omega.
+now apply Zlt_le_trans with (2 := radix_prop r).
 apply (Z2R_lt 0).
-generalize (radix_prop r).
-omega.
+now apply Zlt_le_trans with (2 := radix_prop r).
 (* . *)
-exists (up (ln x / fact))%Z.
+exists (Zfloor (ln x / fact) + 1)%Z.
 intros Hx.
 rewrite 2!epow_exp.
 fold fact.
-pattern x at 2 3 ; replace x with (exp (ln x / fact * fact)).
+pattern x at 2 3 ; replace x with (exp (ln x * / fact * fact)).
 split.
 rewrite minus_Z2R.
 apply exp_increasing_weak.
 apply Rmult_le_compat_r.
 now apply Rlt_le.
-simpl (Z2R 1).
-pattern (ln x / fact)%R at 2 ; replace (ln x / fact)%R with (1 + (ln x / fact - 1))%R by ring.
-replace (Z2R (up (ln x / fact)) - 1)%R with ((Z2R (up (ln x / fact)) - ln x / fact) + (ln x / fact - 1))%R by ring.
-apply Rplus_le_compat_r.
-rewrite Z2R_IZR.
-eapply for_base_fp.
+unfold Rminus.
+rewrite plus_Z2R.
+rewrite Rplus_assoc.
+rewrite Rplus_opp_r, Rplus_0_r.
+apply Zfloor_lb.
 apply exp_increasing.
 apply Rmult_lt_compat_r.
 exact H.
-rewrite Z2R_IZR.
-apply Rplus_lt_reg_r with (- (ln x / fact))%R.
-rewrite Rplus_opp_l.
-rewrite Rplus_comm.
-eapply for_base_fp.
-unfold Rdiv.
+rewrite plus_Z2R.
+apply Zfloor_ub.
 rewrite Rmult_assoc.
 rewrite Rinv_l.
 rewrite Rmult_1_r.
