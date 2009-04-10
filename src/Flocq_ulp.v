@@ -246,4 +246,21 @@ apply epow_ge_0.
 apply Hd.
 Qed.
 
+Theorem ulp_monotone :
+  ( forall m n, (m <= n)%Z -> (fexp m <= fexp n)%Z ) ->
+  forall x y: R,
+  (0 < x)%R -> (x <= y)%R ->
+  (ulp x <= ulp y)%R.
+Proof.
+intros Hm x y Hx Hxy.
+unfold ulp.
+unfold F2R. simpl.
+rewrite 2!Rmult_1_l.
+apply -> epow_le.
+apply Hm.
+rewrite 2!Rabs_pos_eq ; try apply Rlt_le ; trivial.
+now apply ln_beta_monotone.
+now apply Rlt_le_trans with x.
+Qed.
+
 End Flocq_ulp.
