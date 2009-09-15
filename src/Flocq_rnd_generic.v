@@ -21,9 +21,12 @@ Definition valid_exp :=
 
 Variable prop_exp : valid_exp.
 
+Definition canonic x (f : float beta) :=
+  x = F2R f /\ Fexp f = fexp (projT1 (ln_beta beta (Rabs x))).
+
 Definition generic_format (x : R) :=
   exists f : float beta,
-  x = F2R f /\ Fexp f = fexp (projT1 (ln_beta beta (Rabs x))).
+  canonic x f.
 
 Theorem generic_DN_pt_large_pos_ge_pow :
   forall x ex,
@@ -262,7 +265,7 @@ generalize (proj1 (prop_exp _) He1).
 clear.
 intros He2.
 exists (Float beta (- Zpower (radix_val beta) (ex - fexp (ex + 1))) (fexp (ex + 1))).
-unfold F2R. simpl.
+unfold canonic, F2R. simpl.
 split.
 clear -He2.
 pattern ex at 1 ; replace ex with (ex - fexp (ex + 1) + fexp (ex + 1))%Z by ring.
@@ -334,7 +337,7 @@ rewrite Rmult_1_l.
 split.
 destruct (proj2 (prop_exp _) He1) as (He2, _).
 exists (Float beta (- Zpower (radix_val beta) (fexp ex - fexp (fexp ex + 1))) (fexp (fexp ex + 1))).
-unfold F2R. simpl.
+unfold canonic, F2R. simpl.
 split.
 rewrite opp_Z2R.
 pattern (fexp ex) at 1 ; replace (fexp ex) with (fexp ex - fexp (fexp ex + 1) + fexp (fexp ex + 1))%Z by ring.
@@ -431,6 +434,18 @@ apply epow_gt_0.
 exact Hx.
 Qed.
 
+Theorem generic_format_sym :
+  forall x, generic_format x -> generic_format (-x).
+Proof.
+intros x ((m,e),(H1,H2)).
+exists (Float beta (-m) _) ; repeat split.
+rewrite H1 at 1.
+rewrite Rabs_Ropp.
+rewrite opp_F2R.
+apply (f_equal (fun v => F2R (Float beta (- m) v))).
+exact H2.
+Qed.
+
 Theorem generic_format_satisfies_any :
   satisfies_any generic_format.
 Proof.
@@ -439,13 +454,7 @@ refine ((fun D => Satisfies_any _ _ _ (projT1 D) (projT2 D)) _).
 exists (Float beta 0 _) ; repeat split.
 unfold F2R. simpl.
 now rewrite Rmult_0_l.
-intros x ((m,e),(H1,H2)).
-exists (Float beta (-m) _) ; repeat split.
-rewrite H1 at 1.
-rewrite Rabs_Ropp.
-rewrite opp_F2R.
-apply (f_equal (fun v => F2R (Float beta (- m) v))).
-exact H2.
+exact generic_format_sym.
 (* rounding down *)
 exists (fun x =>
   match total_order_T 0 x with
@@ -604,7 +613,7 @@ Proof.
 intros x xu ex Hx He (((dm, de), (Hu1, Hu2)), (Hu3, Hu4)).
 apply Hu4 with (2 := (Rlt_le _ _ (proj2 Hx))).
 exists (Float beta (Zpower (radix_val beta) (ex - fexp (ex + 1))) (fexp (ex + 1))).
-unfold F2R. simpl.
+unfold canonic, F2R. simpl.
 split.
 (* . *)
 rewrite Z2R_Zpower.

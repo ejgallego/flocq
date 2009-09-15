@@ -374,6 +374,26 @@ apply Rlt_le_trans with (1 := H).
 apply Hu.
 Qed.
 
+Theorem Rnd_N_pt_sym :
+  forall F : R -> Prop,
+  ( forall x, F x -> F (- x) ) ->
+  forall x f : R,
+  Rnd_N_pt F (-x) (-f) -> Rnd_N_pt F x f.
+Proof.
+intros F HF x f (H1,H2).
+rewrite <- (Ropp_involutive f).
+repeat split.
+apply HF.
+apply H1.
+intros g H3.
+rewrite Ropp_involutive.
+replace (f - x)%R with (-(-f - -x))%R by ring.
+replace (g - x)%R with (-(-g - -x))%R by ring.
+rewrite 2!Rabs_Ropp.
+apply H2.
+now apply HF.
+Qed.
+
 Theorem Rnd_N_pt_monotone :
   forall F : R -> Prop,
   forall x y f g : R,

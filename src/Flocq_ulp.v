@@ -252,4 +252,20 @@ now apply ln_beta_monotone.
 now apply Rlt_le_trans with x.
 Qed.
 
+Theorem ulp_epow :
+  forall e, ulp (bpow e) = bpow (fexp (e + 1)).
+intros e.
+unfold ulp.
+rewrite (ln_beta_unique beta (Rabs (bpow e)) (e + 1)).
+unfold F2R.
+now rewrite Rmult_1_l.
+rewrite Rabs_pos_eq.
+split.
+apply -> epow_le.
+omega.
+apply -> epow_lt.
+omega.
+apply epow_ge_0.
+Qed.
+
 End Flocq_ulp.
