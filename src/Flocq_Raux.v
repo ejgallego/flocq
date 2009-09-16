@@ -211,22 +211,35 @@ repeat rewrite Z2R_IZR.
 apply IZR_lt.
 Qed.
 
-Lemma Z2R_lt_le:  forall e1 e2, (Z2R (e1-1) < Z2R e2)%R -> (Z2R e1 <= Z2R e2)%R.
-intros.
-apply Z2R_le.
-assert (e1 -1 < e2)%Z; auto with zarith.
+Lemma Z2R_le_lt :
+  forall m n p, (m <= n < p)%Z -> (Z2R m <= Z2R n < Z2R p)%R.
+Proof.
+intros m n p (H1, H2).
+split.
+now apply Z2R_le.
+now apply Z2R_lt.
+Qed.
+
+Lemma le_lt_Z2R :
+  forall m n p, (Z2R m <= Z2R n < Z2R p)%R -> (m <= n < p)%Z.
+Proof.
+intros m n p (H1, H2).
+split.
+now apply le_Z2R.
 now apply lt_Z2R.
 Qed.
 
 Lemma Z2R_neq :
-forall m n, (m <> n)%Z -> (Z2R m <> Z2R n)%R.
+  forall m n, (m <> n)%Z -> (Z2R m <> Z2R n)%R.
 Proof.
 intros m n.
 repeat rewrite Z2R_IZR.
 apply IZR_neq.
 Qed.
 
-Lemma Rabs_Z2R: forall z, Rabs (Z2R z) = Z2R (Zabs z).
+Lemma Rabs_Z2R :
+  forall z, Rabs (Z2R z) = Z2R (Zabs z).
+Proof.
 intros.
 repeat rewrite Z2R_IZR.
 apply Rabs_Zabs. 
@@ -746,6 +759,38 @@ apply lt_Z2R.
 rewrite Z2R_Zpower.
 now apply -> (epow_lt 0).
 now apply Zlt_le_weak.
+Qed.
+
+Lemma Zln_beta :
+  forall x : Z,
+  {e | (Zpower (radix_val r) (e - 1) <= Zabs x < Zpower (radix_val r) e)%Z}.
+Proof.
+intros x.
+destruct (Z_le_lt_eq_dec 0 _ (Zabs_pos x)) as [Hx|Hx].
+(* . *)
+destruct (ln_beta (Z2R (Zabs x))) as (e, H).
+specialize (H (Z2R_lt _ _ Hx)).
+exists e.
+assert (He: (1 <= e)%Z).
+apply (Zlt_le_succ 0).
+apply <- epow_lt.
+apply Rle_lt_trans with (2 := proj2 H).
+apply (Z2R_le 1).
+now apply (Zlt_le_succ 0).
+(* . . *)
+split.
+apply le_Z2R.
+rewrite Z2R_Zpower.
+apply H.
+now apply Zle_minus_le_0.
+apply lt_Z2R.
+rewrite Z2R_Zpower.
+apply H.
+now apply Zle_succ_le.
+(* . *)
+exists Z0.
+rewrite <- Hx.
+now split.
 Qed.
 
 End pow.
