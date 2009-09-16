@@ -123,10 +123,8 @@ now apply Zge_le.
 (* . *)
 intros ((xm, xe), (Hx1, (Hx2, Hx3))).
 destruct (Req_dec x 0) as [Hx4|Hx4].
-exists (Float beta 0 (FTZ_exp (projT1 (ln_beta beta (Rabs x))))).
-repeat split.
-unfold F2R. simpl.
-now rewrite Hx4, Rmult_0_l.
+rewrite Hx4.
+apply generic_format_0.
 assert (Hx5: xm <> Z0).
 intros H.
 apply Hx4.

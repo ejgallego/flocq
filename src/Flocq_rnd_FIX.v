@@ -40,12 +40,12 @@ split.
 intros ((xm, xe), (Hx1, Hx2)).
 rewrite Hx1.
 eexists ; repeat split.
-now rewrite Hx2.
+exact Hx2.
 (* . *)
 intros ((xm, xe), (Hx1, Hx2)).
 rewrite Hx1.
 eexists ; repeat split.
-now rewrite Hx2.
+exact Hx2.
 Qed.
 
 Theorem FIX_format_satisfies_any :

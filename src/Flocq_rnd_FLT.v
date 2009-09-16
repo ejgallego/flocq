@@ -93,9 +93,7 @@ apply Zle_max_r.
 intros ((xm, xe), (Hx1, (Hx2, Hx3))).
 destruct (Req_dec x 0) as [Hx4|Hx4].
 rewrite Hx4.
-exists (Float beta 0 _) ; repeat split.
-unfold F2R. simpl.
-now rewrite Rmult_0_l.
+apply generic_format_0.
 simpl in Hx2, Hx3.
 unfold generic_format, canonic, FLT_exp.
 destruct (ln_beta beta (Rabs x)) as (ex, Hx5).
@@ -135,13 +133,8 @@ intros Hx2.
 destruct (Req_dec x 0) as [Hx3|Hx3].
 (* . . *)
 rewrite Hx3.
-exists (Float beta 0 emin) ; repeat split.
-unfold F2R. simpl.
-now rewrite Rmult_0_l.
-apply Zpower_gt_0.
-now apply Zlt_le_trans with (2 := radix_prop beta).
-now apply Zlt_le_weak.
-apply Zle_refl.
+apply -> FLT_format_generic.
+apply generic_format_0.
 (* . . *)
 destruct (proj2 (FLX_format_generic _ _ Hp x) Hx2) as ((xm, xe), (Hx4, Hx5)).
 apply -> FLT_format_generic.

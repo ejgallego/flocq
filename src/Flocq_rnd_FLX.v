@@ -68,9 +68,7 @@ now apply Zlt_le_weak.
 intros ((xm, xe), (Hx1, Hx2)).
 destruct (Req_dec x 0) as [Hx3|Hx3].
 rewrite Hx3.
-exists (Float beta 0 _) ; repeat split.
-unfold F2R. simpl.
-now rewrite Rmult_0_l.
+apply generic_format_0.
 simpl in Hx2.
 unfold generic_format, canonic.
 destruct (ln_beta beta (Rabs x)) as (ex, Hx4).
