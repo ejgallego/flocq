@@ -434,16 +434,32 @@ apply epow_gt_0.
 exact Hx.
 Qed.
 
+Theorem generic_format_0 :
+  generic_format 0.
+Proof.
+exists (Float beta 0 _) ; repeat split.
+unfold F2R. simpl.
+now rewrite Rmult_0_l.
+Qed.
+
+Theorem canonic_sym :
+  forall x m e,
+  canonic x (Float beta m e) ->
+  canonic (-x) (Float beta (-m) e).
+Proof.
+intros x m e (H1,H2).
+split.
+rewrite H1.
+apply opp_F2R.
+now rewrite Rabs_Ropp.
+Qed.
+
 Theorem generic_format_sym :
   forall x, generic_format x -> generic_format (-x).
 Proof.
-intros x ((m,e),(H1,H2)).
-exists (Float beta (-m) _) ; repeat split.
-rewrite H1 at 1.
-rewrite Rabs_Ropp.
-rewrite opp_F2R.
-apply (f_equal (fun v => F2R (Float beta (- m) v))).
-exact H2.
+intros x ((m,e),H).
+exists (Float beta (-m) e).
+now apply canonic_sym.
 Qed.
 
 Theorem generic_format_satisfies_any :
@@ -451,9 +467,7 @@ Theorem generic_format_satisfies_any :
 Proof.
 refine ((fun D => Satisfies_any _ _ _ (projT1 D) (projT2 D)) _).
 (* symmetric set *)
-exists (Float beta 0 _) ; repeat split.
-unfold F2R. simpl.
-now rewrite Rmult_0_l.
+exact generic_format_0.
 exact generic_format_sym.
 (* rounding down *)
 exists (fun x =>

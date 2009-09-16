@@ -490,6 +490,50 @@ intros x Hx.
 now apply Rnd_N_pt_idempotent with F.
 Qed.
 
+Theorem Rnd_N_pt_0 :
+  forall F : R -> Prop,
+  F 0 ->
+  Rnd_N_pt F 0 0.
+Proof.
+intros F HF.
+split.
+exact HF.
+intros g _.
+rewrite 2!Rminus_0_r, Rabs_R0.
+apply Rabs_pos.
+Qed.
+
+Theorem Rnd_N_pt_pos :
+  forall F : R -> Prop, F 0 ->
+  forall x f, 0 <= x ->
+  Rnd_N_pt F x f ->
+  0 <= f.
+Proof.
+intros F HF x f [Hx|Hx] Hxf.
+eapply Rnd_N_pt_monotone ; try eassumption.
+now apply Rnd_N_pt_0.
+right.
+apply sym_eq.
+apply Rnd_N_pt_idempotent with F.
+now rewrite Hx.
+exact HF.
+Qed.
+
+Theorem Rnd_N_pt_neg :
+  forall F : R -> Prop, F 0 ->
+  forall x f, x <= 0 ->
+  Rnd_N_pt F x f ->
+  f <= 0.
+Proof.
+intros F HF x f [Hx|Hx] Hxf.
+eapply Rnd_N_pt_monotone ; try eassumption.
+now apply Rnd_N_pt_0.
+right.
+apply Rnd_N_pt_idempotent with F.
+now rewrite <- Hx.
+exact HF.
+Qed.
+
 Theorem Rnd_NA_pt_monotone :
   forall F : R -> Prop,
   F 0 ->
