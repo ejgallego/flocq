@@ -154,4 +154,65 @@ now eexists.
 now rewrite <- Hx1.
 Qed.
 
+Theorem FTZ_format_satisfies_any :
+  satisfies_any FTZ_format.
+Proof.
+refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FTZ_exp _)).
+exact FTZ_format_generic.
+exact FTZ_exp_correct.
+Qed.
+
+Theorem FTZ_format_FLXN :
+  forall x : R,
+  (bpow (emin + prec - 1) <= Rabs x)%R ->
+  ( FTZ_format x <-> FLXN_format beta prec x ).
+Proof.
+intros x Hx.
+split.
+(* . *)
+destruct (Req_dec x 0) as [H4|H4].
+intros _.
+rewrite H4.
+apply -> FLX_format_FLXN.
+apply -> FLX_format_generic.
+apply generic_format_0.
+exact Hp.
+exact Hp.
+intros ((xm,xe),(H1,(H2,H3))).
+specialize (H2 H4).
+rewrite H1.
+eexists. split. split.
+now intros _.
+(* . *)
+intros ((xm,xe),(H1,H2)).
+rewrite H1.
+eexists. split. split. split.
+now rewrite <- H1 at 1.
+rewrite (Zsucc_pred emin).
+apply Zlt_le_succ.
+apply <- (epow_lt beta).
+apply Rmult_lt_reg_l with (Z2R (Zabs xm)).
+apply Rmult_lt_reg_r with (bpow xe).
+apply epow_gt_0.
+rewrite Rmult_0_l.
+rewrite H1, abs_F2R in Hx.
+apply Rlt_le_trans with (2 := Hx).
+apply epow_gt_0.
+rewrite H1, abs_F2R in Hx.
+apply Rlt_le_trans with (2 := Hx).
+replace (emin + prec - 1)%Z with (prec + (emin - 1))%Z by ring.
+rewrite epow_add.
+apply Rmult_lt_compat_r.
+apply epow_gt_0.
+rewrite <- Z2R_Zpower.
+apply Z2R_lt.
+apply H2.
+intros H.
+rewrite <- abs_F2R, <- H1, H, Rabs_right in Hx.
+apply Rle_not_lt with (1 := Hx).
+apply epow_gt_0.
+apply Rle_refl.
+now apply Zlt_le_weak.
+Qed.
+
 End RND_FTZ.
