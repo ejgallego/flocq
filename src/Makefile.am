@@ -6,6 +6,7 @@ FILES = \
 	Flocq_rnd_FIX.v \
 	Flocq_rnd_FLT.v \
 	Flocq_rnd_FLX.v \
+	Flocq_rnd_FTZ.v \
 	Flocq_rnd_generic.v \
 	Flocq_rnd_ne.v \
 	Flocq_rnd_prop.v \
