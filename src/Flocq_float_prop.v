@@ -122,15 +122,12 @@ apply F2R_change_exp.
 cut (e' - 1 < e + p)%Z. omega.
 apply <- epow_lt.
 apply Rle_lt_trans with (1 := Hf).
-unfold F2R.
-rewrite epow_add, Rabs_mult, Rabs_Z2R, Rabs_pos_eq.
-rewrite Rmult_comm.
-apply Rmult_lt_compat_l.
+rewrite abs_F2R, Zplus_comm, epow_add.
+apply Rmult_lt_compat_r.
 apply epow_gt_0.
 rewrite <- Z2R_Zpower.
 now apply Z2R_lt.
 exact Hp.
-apply epow_ge_0.
 Qed.
 
 End Float_prop.
