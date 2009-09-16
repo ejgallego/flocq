@@ -97,9 +97,18 @@ exists (Float beta 0 _) ; repeat split.
 unfold F2R. simpl.
 now rewrite Rmult_0_l.
 simpl in Hx2, Hx3.
+unfold generic_format, canonic, FLT_exp.
 destruct (ln_beta beta (Rabs x)) as (ex, Hx5).
+simpl.
 specialize (Hx5 (Rabs_pos_lt _ Hx4)).
-assert (Hx6 : x = F2R (Float beta (xm * Zpower (radix_val beta) (xe - FLT_exp ex)) (FLT_exp ex))).
+destruct (Zmax_spec (ex - prec) emin) as [(H1,H2)|(H1,H2)] ;
+  rewrite H2 ; clear H2.
+destruct (F2R_prec_normalize beta xm xe (ex - 1) prec Hx2) as (mx, Hx6).
+now rewrite <- Hx1.
+rewrite Hx1, Hx6.
+replace (ex - 1 - (prec - 1))%Z with (ex - prec)%Z by ring.
+now eexists.
+assert (Hx6 : x = F2R (Float beta (xm * Zpower (radix_val beta) (xe - emin)) emin)).
 rewrite Hx1.
 unfold F2R. simpl.
 rewrite mult_Z2R.
@@ -109,31 +118,9 @@ apply f_equal.
 rewrite <- epow_add.
 apply f_equal.
 ring.
-apply Zle_minus_le_0.
-unfold FLT_exp.
-apply Zmax_lub.
-cut (ex - 1 < xe + prec)%Z.
-omega.
-apply <- epow_lt.
-apply Rle_lt_trans with (1 := proj1 Hx5).
-rewrite Hx1.
-rewrite abs_F2R.
-unfold F2R. simpl.
-rewrite Zplus_comm.
-rewrite epow_add.
-apply Rmult_lt_compat_r.
-apply epow_gt_0.
-rewrite <- Z2R_Zpower.
-now apply Z2R_lt.
-now apply Zlt_le_weak.
-exact Hx3.
+now apply Zle_minus_le_0.
 rewrite Hx6.
-eexists ; repeat split.
-simpl.
-apply f_equal.
-apply sym_eq.
-apply ln_beta_unique.
-now rewrite <- Hx6.
+now eexists.
 Qed.
 
 Theorem FLT_format_satisfies_any :
