@@ -76,11 +76,9 @@ unfold generic_format, canonic.
 destruct (ln_beta beta (Rabs x)) as (ex, Hx4).
 simpl.
 specialize (Hx4 (Rabs_pos_lt _ Hx3)).
-destruct (F2R_prec_normalize beta xm xe (ex - 1) prec Hx2) as (mx, Hx5).
-now rewrite <- Hx1.
-rewrite Hx1, Hx5.
-replace (ex - 1 - (prec - 1))%Z with (ex - prec)%Z by ring.
+rewrite Hx1, (F2R_prec_normalize beta xm xe ex prec Hx2).
 now eexists.
+now rewrite <- Hx1.
 Qed.
 
 Theorem FLX_format_satisfies_any :

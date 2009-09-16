@@ -103,24 +103,12 @@ simpl.
 specialize (Hx5 (Rabs_pos_lt _ Hx4)).
 destruct (Zmax_spec (ex - prec) emin) as [(H1,H2)|(H1,H2)] ;
   rewrite H2 ; clear H2.
-destruct (F2R_prec_normalize beta xm xe (ex - 1) prec Hx2) as (mx, Hx6).
+rewrite Hx1, (F2R_prec_normalize beta xm xe ex prec Hx2).
+now eexists.
 now rewrite <- Hx1.
-rewrite Hx1, Hx6.
-replace (ex - 1 - (prec - 1))%Z with (ex - prec)%Z by ring.
+rewrite Hx1, (F2R_change_exp beta emin).
 now eexists.
-assert (Hx6 : x = F2R (Float beta (xm * Zpower (radix_val beta) (xe - emin)) emin)).
-rewrite Hx1.
-unfold F2R. simpl.
-rewrite mult_Z2R.
-rewrite Z2R_Zpower.
-rewrite Rmult_assoc.
-apply f_equal.
-rewrite <- epow_add.
-apply f_equal.
-ring.
-now apply Zle_minus_le_0.
-rewrite Hx6.
-now eexists.
+exact Hx3.
 Qed.
 
 Theorem FLT_format_satisfies_any :
