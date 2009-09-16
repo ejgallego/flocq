@@ -72,21 +72,15 @@ exists (Float beta 0 _) ; repeat split.
 unfold F2R. simpl.
 now rewrite Rmult_0_l.
 simpl in Hx2.
+unfold generic_format, canonic.
 destruct (ln_beta beta (Rabs x)) as (ex, Hx4).
+simpl.
 specialize (Hx4 (Rabs_pos_lt _ Hx3)).
 destruct (F2R_prec_normalize beta xm xe (ex - 1) prec Hx2) as (mx, Hx5).
-rewrite <- Hx1.
-exact (proj1 Hx4).
-rewrite Hx1.
-replace (ex - 1 - (prec - 1))%Z with (ex - prec)%Z in Hx5 by ring.
-rewrite Hx5.
-eexists ; repeat split.
-change (Fexp (Float beta mx (ex - prec))) with (FLX_exp ex).
-apply f_equal.
-apply sym_eq.
-apply ln_beta_unique.
-rewrite <- Hx5.
 now rewrite <- Hx1.
+rewrite Hx1, Hx5.
+replace (ex - 1 - (prec - 1))%Z with (ex - prec)%Z by ring.
+now eexists.
 Qed.
 
 Theorem FLX_format_satisfies_any :
