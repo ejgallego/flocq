@@ -90,7 +90,7 @@ Qed.
 (* unbounded floating-point format with normal mantissas *)
 Definition FLXN_format (x : R) :=
   exists f : float beta,
-  x = F2R f /\ (Fnum f <> 0 ->
+  x = F2R f /\ (x <> R0 ->
   Zpower (radix_val beta) (prec - 1) <= Zabs (Fnum f) < Zpower (radix_val beta) prec)%Z.
 
 Definition FLXN_RoundingModeP (rnd : R -> R):=
@@ -110,7 +110,9 @@ rewrite H1, H3.
 unfold F2R. simpl.
 now rewrite 2!Rmult_0_l.
 intros H.
-now elim H.
+elim H.
+rewrite H1, H3.
+apply Rmult_0_l.
 destruct (ln_beta beta (Z2R (Zabs xm))) as (d,H4).
 assert (H5: (0 < Z2R (Zabs xm))%R).
 rewrite <- Rabs_Z2R.
@@ -125,7 +127,7 @@ apply H4.
 rewrite <- Z2R_Zpower.
 now apply Z2R_lt.
 now apply Zlt_le_weak.
-eexists (Float beta (xm * Zpower (radix_val beta) (prec - d)) (xe + d - prec)).
+exists (Float beta (xm * Zpower (radix_val beta) (prec - d)) (xe + d - prec)).
 split.
 unfold F2R. simpl.
 rewrite mult_Z2R, Z2R_Zpower.
@@ -164,15 +166,10 @@ now apply Zlt_le_weak.
 exact H5.
 (* . *)
 intros ((xm, xe), (H1, H2)).
-destruct (Z_eq_dec xm 0) as [H3|H3].
-exists (Float beta 0 0).
-split.
-rewrite H1, H3.
-unfold F2R.
-now rewrite 2!Rmult_0_l.
-apply Zpower_gt_0.
-generalize (radix_prop beta). omega.
-now apply Zlt_le_weak.
+destruct (Req_dec x 0) as [H3|H3].
+rewrite H3.
+apply -> FLX_format_generic.
+apply generic_format_0.
 specialize (H2 H3). clear H3.
 rewrite H1.
 eexists ; repeat split.
