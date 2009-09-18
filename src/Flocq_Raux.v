@@ -229,6 +229,22 @@ now apply le_Z2R.
 now apply lt_Z2R.
 Qed.
 
+Lemma eq_Z2R :
+  forall m n, (Z2R m = Z2R n)%R -> (m = n)%Z.
+Proof.
+intros m n H.
+apply eq_IZR.
+now rewrite <- 2!Z2R_IZR.
+Qed.
+
+Lemma neq_Z2R :
+  forall m n, (Z2R m <> Z2R n)%R -> (m <> n)%Z.
+Proof.
+intros m n H H'.
+apply H.
+now apply f_equal.
+Qed.
+
 Lemma Z2R_neq :
   forall m n, (m <> n)%Z -> (Z2R m <> Z2R n)%R.
 Proof.
