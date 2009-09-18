@@ -214,7 +214,7 @@ apply Rle_minus.
 now eapply Hd.
 (* *** away *)
 intros f Hf.
-destruct (Rnd_N_pt_DN_or_UP F x (rndd x) (rndu x) f) as [K|K] ; trivial.
+destruct (Rnd_N_pt_DN_or_UP_eq F x (rndd x) (rndu x) f) as [K|K] ; trivial.
 rewrite K.
 destruct (total_order_T (Rabs (rndu x - x)) (Rabs (rndd x - x))) as [[H|H]|H] ;
   try apply Rle_refl.

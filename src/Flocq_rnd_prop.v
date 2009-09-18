@@ -327,51 +327,49 @@ Qed.
 
 Theorem Rnd_N_pt_DN_or_UP :
   forall F : R -> Prop,
+  forall x f : R,
+  Rnd_N_pt F x f ->
+  Rnd_DN_pt F x f \/ Rnd_UP_pt F x f.
+Proof.
+intros F x f (Hf1,Hf2).
+destruct (Rle_or_lt x f) as [Hxf|Hxf].
+(* . *)
+right.
+repeat split ; try assumption.
+intros g Hg Hxg.
+specialize (Hf2 g Hg).
+rewrite 2!Rabs_pos_eq in Hf2.
+now apply Rplus_le_reg_r with (-x)%R.
+now apply Rle_0_minus.
+now apply Rle_0_minus.
+(* . *)
+left.
+repeat split ; try assumption.
+now apply Rlt_le.
+intros g Hg Hxg.
+specialize (Hf2 g Hg).
+rewrite 2!Rabs_left1 in Hf2.
+generalize (Ropp_le_cancel _ _ Hf2).
+intros H.
+now apply Rplus_le_reg_r with (-x)%R.
+now apply Rle_minus.
+apply Rlt_le.
+now apply Rlt_minus.
+Qed.
+
+Theorem Rnd_N_pt_DN_or_UP_eq :
+  forall F : R -> Prop,
   forall x fd fu f : R,
   Rnd_DN_pt F x fd -> Rnd_UP_pt F x fu ->
   Rnd_N_pt F x f ->
   f = fd \/ f = fu.
 Proof.
 intros F x fd fu f Hd Hu Hf.
-eapply Only_DN_or_UP ; try eassumption.
-apply Hf.
-split.
-(* fd <= f *)
-destruct (Rle_or_lt x f).
-apply Rle_trans with (2 := H).
-apply Hd.
-assert (Hd' := proj2 Hf fd).
-apply Ropp_le_cancel.
-apply Rplus_le_reg_l with x.
-replace (x + -f) with (Rabs (f - x)).
-replace (x + -fd) with (Rabs (fd - x)).
-apply Hd'.
-apply Hd.
-rewrite Rabs_left1.
-ring.
-apply Rle_minus.
-apply Hd.
-rewrite Rabs_left.
-ring.
-now apply Rlt_minus.
-(* f <= fu *)
-destruct (Rle_or_lt x f).
-assert (Hu' := proj2 Hf fu).
-apply Rplus_le_reg_l with (-x).
-replace (-x + f) with (Rabs (f - x)).
-replace (-x + fu) with (Rabs (fu - x)).
-apply Hu'.
-apply Hu.
-rewrite Rabs_pos_eq.
-ring.
-apply Rle_0_minus.
-apply Hu.
-rewrite Rabs_pos_eq.
-ring.
-now apply Rle_0_minus.
-apply Rlt_le.
-apply Rlt_le_trans with (1 := H).
-apply Hu.
+destruct (Rnd_N_pt_DN_or_UP F x f Hf) as [H|H].
+left.
+apply Rnd_DN_pt_unicity with (1 := H) (2 := Hd).
+right.
+apply Rnd_UP_pt_unicity with (1 := H) (2 := Hu).
 Qed.
 
 Theorem Rnd_N_pt_sym :
