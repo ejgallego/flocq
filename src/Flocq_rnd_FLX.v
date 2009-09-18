@@ -3,6 +3,7 @@ Require Import Flocq_defs.
 Require Import Flocq_rnd_ex.
 Require Import Flocq_rnd_generic.
 Require Import Flocq_float_prop.
+Require Import Flocq_rnd_FIX.
 
 Section RND_FLX.
 
@@ -186,6 +187,57 @@ now apply -> FLX_format_generic.
 apply <- FLX_format_generic.
 now apply <- FLX_format_FLXN.
 exact FLX_exp_correct.
+Qed.
+
+Theorem FLX_format_FIX :
+  forall x e,
+  (bpow (e - 1) <= Rabs x <= bpow e)%R ->
+  ( FLX_format x <-> FIX_format beta (e - prec) x ).
+Proof.
+intros x e Hx.
+split.
+(* . *)
+intros ((xm, xe), (H1, H2)).
+rewrite H1, (F2R_prec_normalize beta xm xe e prec).
+now eexists.
+exact H2.
+now rewrite <- H1.
+(* . *)
+destruct Hx as (Hx1,[Hx2|Hx2]).
+(* . . *)
+intros ((xm, xe), (H1, H2)).
+rewrite H1.
+eexists ; repeat split.
+apply lt_Z2R.
+apply Rmult_lt_reg_r with (bpow (e - prec)).
+apply epow_gt_0.
+rewrite Z2R_Zpower, <- epow_add.
+ring_simplify (prec + (e - prec))%Z.
+rewrite <- H2.
+simpl.
+change (F2R (Float beta (Zabs xm) xe) < bpow e)%R.
+now rewrite <- abs_F2R, <- H1.
+now apply Zlt_le_weak.
+(* . . *)
+intros ((xm, xe), (H1, H2)).
+assert (Ha: forall x, FLX_format (Rabs x) -> FLX_format x).
+clear.
+intros x Ha.
+unfold Rabs in Ha.
+destruct (Rcase_abs x) as [Hx|Hx].
+apply -> FLX_format_generic.
+rewrite <- (Ropp_involutive x).
+apply generic_format_sym.
+now apply <- FLX_format_generic.
+exact Ha.
+(* . . *)
+apply Ha.
+rewrite Hx2.
+exists (Float beta 1 e).
+split.
+apply sym_eq.
+apply Rmult_1_l.
+now apply Zpower_gt_1.
 Qed.
 
 End RND_FLX.
