@@ -655,7 +655,7 @@ Qed.
 
 Lemma ln_beta :
   forall x : R,
-  {e | (0 < x)%R -> (epow (e - 1)%Z <= x < epow e)%R}.
+  {e | (x <> 0)%R -> (epow (e - 1)%Z <= Rabs x < epow e)%R}.
 Proof.
 intros x.
 set (fact := ln (Z2R (radix_val r))).
@@ -670,8 +670,11 @@ now apply Zlt_le_trans with (2 := radix_prop r).
 apply (Z2R_lt 0).
 now apply Zlt_le_trans with (2 := radix_prop r).
 (* . *)
-exists (Zfloor (ln x / fact) + 1)%Z.
-intros Hx.
+exists (Zfloor (ln (Rabs x) / fact) + 1)%Z.
+intros Hx'.
+generalize (Rabs_pos_lt _ Hx'). clear Hx'.
+generalize (Rabs x). clear x.
+intros x Hx.
 rewrite 2!epow_exp.
 fold fact.
 pattern x at 2 3 ; replace x with (exp (ln x * / fact * fact)).
@@ -723,16 +726,32 @@ Qed.
 
 Lemma ln_beta_unique :
   forall (x : R) (e : Z),
-  (epow (e - 1) <= x < epow e)%R ->
+  (epow (e - 1) <= Rabs x < epow e)%R ->
   projT1 (ln_beta x) = e.
 Proof.
-intros x e1 Hx1.
-destruct (ln_beta x) as (e2, Hx2).
-apply epow_unique with (2 := Hx1).
-simpl.
-apply Hx2.
-apply Rlt_le_trans with (2 := proj1 Hx1).
+intros x e1 He.
+destruct (Req_dec x 0) as [Hx|Hx].
+elim Rle_not_lt with (1 := proj1 He).
+rewrite Hx, Rabs_R0.
 apply epow_gt_0.
+destruct (ln_beta x) as (e2, Hx2).
+simpl.
+apply epow_unique with (2 := He).
+now apply Hx2.
+Qed.
+
+Lemma ln_beta_opp :
+  forall x,
+  projT1 (ln_beta (-x)) = projT1 (ln_beta x).
+Proof.
+intros x.
+destruct (Req_dec x 0) as [Hx|Hx].
+now rewrite Hx, Ropp_0.
+destruct (ln_beta x) as (e, He).
+simpl.
+specialize (He Hx).
+apply ln_beta_unique.
+now rewrite Rabs_Ropp.
 Qed.
 
 Lemma ln_beta_monotone :
@@ -745,10 +764,15 @@ destruct (ln_beta x) as (ex, Hx).
 destruct (ln_beta y) as (ey, Hy).
 simpl.
 apply epow_lt_epow.
-specialize (Hx H0x).
-specialize (Hy (Rlt_le_trans _ _ _ H0x Hxy)).
+specialize (Hx (Rgt_not_eq _ _ H0x)).
+specialize (Hy (Rgt_not_eq _ _ (Rlt_le_trans _ _ _ H0x Hxy))).
 apply Rle_lt_trans with (1 := proj1 Hx).
-now apply Rle_lt_trans with (2 := proj2 Hy).
+apply Rle_lt_trans with (2 := proj2 Hy).
+rewrite 2!Rabs_pos_eq.
+exact Hxy.
+apply Rle_trans with (2 := Hxy).
+now apply Rlt_le.
+now apply Rlt_le.
 Qed.
 
 Lemma Zpower_pos_gt_0 :
@@ -792,31 +816,34 @@ Lemma Zln_beta :
   {e | (Zpower (radix_val r) (e - 1) <= Zabs x < Zpower (radix_val r) e)%Z}.
 Proof.
 intros x.
-destruct (Z_le_lt_eq_dec 0 _ (Zabs_pos x)) as [Hx|Hx].
+destruct (Z_eq_dec x 0) as [Hx|Hx].
 (* . *)
-destruct (ln_beta (Z2R (Zabs x))) as (e, H).
-specialize (H (Z2R_lt _ _ Hx)).
+exists Z0.
+rewrite Hx.
+now split.
+(* . *)
+destruct (ln_beta (Z2R x)) as (e, H).
+specialize (H (Z2R_neq _ _ Hx)).
 exists e.
 assert (He: (1 <= e)%Z).
 apply (Zlt_le_succ 0).
 apply <- epow_lt.
 apply Rle_lt_trans with (2 := proj2 H).
+rewrite Rabs_Z2R.
 apply (Z2R_le 1).
-now apply (Zlt_le_succ 0).
+apply (Zlt_le_succ 0).
+generalize (Zabs_spec x).
+omega.
 (* . . *)
 split.
 apply le_Z2R.
-rewrite Z2R_Zpower.
+rewrite Z2R_Zpower, <- Rabs_Z2R.
 apply H.
 now apply Zle_minus_le_0.
 apply lt_Z2R.
-rewrite Z2R_Zpower.
+rewrite Z2R_Zpower, <- Rabs_Z2R.
 apply H.
 now apply Zle_succ_le.
-(* . *)
-exists Z0.
-rewrite <- Hx.
-now split.
 Qed.
 
 End pow.

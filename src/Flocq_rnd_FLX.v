@@ -100,11 +100,11 @@ now apply Zlt_le_trans with (2 := radix_prop beta).
 now apply Zlt_le_weak.
 apply generic_format_0.
 (* . *)
-destruct (ln_beta beta (Rabs x)) as (ex, Hx2).
+destruct (ln_beta beta x) as (ex, Hx2).
 simpl.
-specialize (Hx2 (Rabs_pos_lt _ Hx1)).
+specialize (Hx2 Hx1).
 apply iff_trans with (generic_format beta (FIX_exp (ex - prec)) x).
-assert (Hf: FLX_exp (projT1 (ln_beta beta (Rabs x))) = FIX_exp (ex - prec) (projT1 (ln_beta beta (Rabs x)))).
+assert (Hf: FLX_exp (projT1 (ln_beta beta x)) = FIX_exp (ex - prec) (projT1 (ln_beta beta x))).
 unfold FIX_exp, FLX_exp.
 now rewrite ln_beta_unique with (1 := Hx2).
 split ; apply generic_format_fun_eq ; now rewrite Hf.
@@ -149,18 +149,15 @@ intros H.
 elim H.
 rewrite H1, H3.
 apply Rmult_0_l.
-destruct (ln_beta beta (Z2R (Zabs xm))) as (d,H4).
-assert (H5: (0 < Z2R (Zabs xm))%R).
-rewrite <- Rabs_Z2R.
-apply Rabs_pos_lt.
-now apply (Z2R_neq _ 0).
-specialize (H4 H5). clear H5.
+destruct (ln_beta beta (Z2R xm)) as (d,H4).
+specialize (H4 (Z2R_neq _ _ H3)).
 assert (H5: (0 <= prec - d)%Z).
 cut (d - 1 < prec)%Z. omega.
 apply <- (epow_lt beta).
-apply Rle_lt_trans with (Z2R (Zabs xm)).
+apply Rle_lt_trans with (Rabs (Z2R xm)).
 apply H4.
 rewrite <- Z2R_Zpower.
+rewrite Rabs_Z2R.
 now apply Z2R_lt.
 now apply Zlt_le_weak.
 exists (Float beta (xm * Zpower (radix_val beta) (prec - d)) (xe + d - prec)).
@@ -183,7 +180,7 @@ rewrite Rabs_pos_eq.
 rewrite Rmult_assoc, <- epow_add.
 ring_simplify (prec - 1 + (d - prec))%Z.
 ring_simplify (prec - d + (d - prec))%Z.
-now rewrite Rmult_1_r.
+now rewrite Rmult_1_r, <- Rabs_Z2R.
 apply epow_ge_0.
 exact H5.
 omega.
@@ -196,7 +193,7 @@ apply epow_gt_0.
 rewrite Rmult_assoc, <- 2!epow_add.
 ring_simplify (prec + (d - prec))%Z.
 ring_simplify (prec - d + (d - prec))%Z.
-now rewrite Rmult_1_r.
+now rewrite Rmult_1_r, <- Rabs_Z2R.
 apply epow_ge_0.
 now apply Zlt_le_weak.
 exact H5.

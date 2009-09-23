@@ -67,9 +67,9 @@ now apply Zlt_le_weak.
 apply Zle_refl.
 rewrite Hx1.
 eexists ; repeat split.
-destruct (ln_beta beta (Rabs x)) as (ex, Hx4).
+destruct (ln_beta beta x) as (ex, Hx4).
 simpl in Hx2.
-specialize (Hx4 (Rabs_pos_lt x Hx3)).
+specialize (Hx4 Hx3).
 apply lt_Z2R.
 rewrite Z2R_Zpower.
 apply Rmult_lt_reg_r with (bpow (ex - prec)).
@@ -97,9 +97,9 @@ rewrite Hx4.
 apply generic_format_0.
 simpl in Hx2, Hx3.
 unfold generic_format, canonic, FLT_exp.
-destruct (ln_beta beta (Rabs x)) as (ex, Hx5).
+destruct (ln_beta beta x) as (ex, Hx5).
 simpl.
-specialize (Hx5 (Rabs_pos_lt _ Hx4)).
+specialize (Hx5 Hx4).
 destruct (Zmax_spec (ex - prec) emin) as [(H1,H2)|(H1,H2)] ;
   rewrite H2 ; clear H2.
 rewrite Hx1, (F2R_prec_normalize beta xm xe ex prec Hx2).
@@ -143,7 +143,7 @@ rewrite Hx4.
 eexists ; repeat split.
 rewrite Hx5. clear Hx5.
 rewrite <- Hx4.
-destruct (ln_beta beta (Rabs x)) as (ex, Hx5).
+destruct (ln_beta beta x) as (ex, Hx5).
 unfold FLX_exp, FLT_exp.
 simpl.
 apply sym_eq.
@@ -151,8 +151,7 @@ apply Zmax_left.
 cut (emin + prec <= ex)%Z. omega.
 apply epow_lt_epow with beta.
 apply Rle_lt_trans with (1 := Hx1).
-apply Hx5.
-now apply Rabs_pos_lt.
+now apply Hx5.
 Qed.
 
 Theorem FLT_format_FIX :

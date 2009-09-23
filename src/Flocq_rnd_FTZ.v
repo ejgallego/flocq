@@ -63,9 +63,9 @@ split.
 intros H.
 now elim H.
 apply Zle_refl.
-destruct (ln_beta beta (Rabs x)) as (ex, Hx4).
+destruct (ln_beta beta x) as (ex, Hx4).
 simpl in Hx2.
-specialize (Hx4 (Rabs_pos_lt x Hx3)).
+specialize (Hx4 Hx3).
 unfold FTZ_exp in Hx2.
 generalize (Zlt_cases (ex - prec) emin) Hx2. clear Hx2.
 case (Zlt_bool (ex - prec) emin) ; intros Hx5 Hx2.
@@ -127,9 +127,9 @@ rewrite Hx4.
 apply generic_format_0.
 specialize (Hx2 Hx4).
 unfold generic_format, canonic, FTZ_exp.
-destruct (ln_beta beta (Rabs x)) as (ex, Hx6).
+destruct (ln_beta beta x) as (ex, Hx6).
 simpl.
-specialize (Hx6 (Rabs_pos_lt _ Hx4)).
+specialize (Hx6 Hx4).
 generalize (Zlt_cases (ex - prec) emin).
 case (Zlt_bool (ex - prec) emin) ; intros H1.
 elim (Rlt_not_ge _ _ (proj2 Hx6)).

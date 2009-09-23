@@ -50,7 +50,7 @@ exists (Float beta (-m) e).
 repeat split.
 now rewrite <- opp_F2R, <- H2, Ropp_involutive.
 simpl in H3 |- *.
-now rewrite H3, Rabs_Ropp.
+now rewrite <- ln_beta_opp.
 simpl in H4 |- *.
 rewrite Zopp_eq_mult_neg_1.
 now apply Zeven_mult_Zeven_l.
@@ -80,13 +80,13 @@ Lemma canonic_imp_Fnum :
   forall x, forall f : float beta,
   x <> R0 ->
   canonic x f ->
-  (Zabs (Fnum f) < Zpower (radix_val beta) (projT1 (ln_beta beta (Rabs x)) - Fexp f))%Z.
+  (Zabs (Fnum f) < Zpower (radix_val beta) (projT1 (ln_beta beta x) - Fexp f))%Z.
 Proof.
 intros x f Hx.
 unfold Flocq_rnd_generic.canonic.
-destruct (ln_beta beta (Rabs x)) as (ex, H).
+destruct (ln_beta beta x) as (ex, H).
 simpl.
-specialize (H (Rabs_pos_lt x Hx)).
+specialize (H Hx).
 intros (H1, H2).
 destruct (Zle_or_lt (Fexp f) ex) as [He|He].
 (* . *)
@@ -380,8 +380,10 @@ Theorem DN_UP_parity_FLX_pos :
   False.
 Proof.
 intros x xd xu cd cu H0x Hfx (Hd1,Hd2) (Hu1,Hu2) Hxd Hxu Hed Heu.
-destruct (ln_beta beta x) as (ex, Hex).
-specialize (Hex H0x).
+destruct (ln_beta beta x) as (ex, Hexa).
+specialize (Hexa (Rgt_not_eq _ _ H0x)).
+generalize Hexa. intros Hex.
+rewrite (Rabs_pos_eq _ (Rlt_le _ _ H0x)) in Hex.
 assert (Hd4: (bpow (ex - 1) <= Rabs xd < bpow ex)%R).
 rewrite Rabs_pos_eq.
 split.
@@ -431,9 +433,9 @@ apply Zle_minus_le_0.
 now apply (Zlt_le_succ 0).
 simpl.
 rewrite <- Hu.
-rewrite Rabs_pos_eq.
 rewrite ln_beta_unique with beta (bpow ex) (ex + 1)%Z.
 unfold FLX_exp. ring.
+rewrite Rabs_pos_eq.
 split.
 replace (ex + 1 - 1)%Z with ex by ring.
 apply Rle_refl.
@@ -453,16 +455,15 @@ rewrite Z2R_Zpower, <- epow_add.
 ring_simplify (prec + (ex - prec))%Z.
 rewrite Hu, Hud.
 unfold ulp.
+rewrite ln_beta_unique with beta x ex.
+unfold FLX_exp, F2R.
+simpl. ring.
 rewrite Rabs_pos_eq.
-rewrite ln_beta_unique with (1 := Hex).
-unfold FLX_exp.
-unfold F2R. simpl. ring.
+exact Hex.
 now apply Rlt_le.
 now apply Zlt_le_weak.
 simpl.
-rewrite ln_beta_unique with beta (Rabs xd) ex.
-apply refl_equal.
-exact Hd4.
+now rewrite ln_beta_unique with (1 := Hd4).
 rewrite Hd3 in Hed. simpl in Hed.
 rewrite Hu3 in Heu. simpl in Heu.
 clear -Hp Hed Heu.
@@ -500,9 +501,9 @@ generalize (ulp_pred_succ_pt beta FLXf (FLX_exp_correct prec Hp) x xd xu Hfx Hxd
 rewrite Hd1, Hu1.
 unfold ulp, F2R.
 rewrite Hd2, Hu2.
-rewrite (ln_beta_unique beta (Rabs xu) ex).
-rewrite (ln_beta_unique beta (Rabs xd) ex).
-rewrite (ln_beta_unique beta (Rabs x) ex).
+rewrite ln_beta_unique with beta xu ex.
+rewrite ln_beta_unique with (1 := Hd4).
+rewrite ln_beta_unique with (1 := Hexa).
 simpl.
 rewrite <- Rmult_plus_distr_r.
 intros H.
@@ -517,10 +518,6 @@ rewrite plus_Z2R.
 exact H.
 apply Rgt_not_eq.
 apply epow_gt_0.
-rewrite Rabs_pos_eq.
-exact Hex.
-now apply Rlt_le.
-exact Hd4.
 rewrite Rabs_pos_eq.
 split.
 apply Rle_trans with (1 := proj1 Hex).
@@ -554,21 +551,20 @@ Variable Hp : Zlt 0 prec.
 Notation FLTf := (FLT_exp emin prec).
 
 Theorem FIX_FLT_exp_subnormal :
-  forall x, (x <> 0)%R ->
+  forall x, x <> R0 ->
   (Rabs x < bpow (emin + prec))%R ->
-  FIX_exp emin (projT1 (ln_beta beta (Rabs x))) = FLTf (projT1 (ln_beta beta (Rabs x))).
+  FIX_exp emin (projT1 (ln_beta beta x)) = FLTf (projT1 (ln_beta beta x)).
 Proof.
 intros x Hx0 Hx.
 unfold FIX_exp, FLT_exp.
 rewrite Zmax_right.
 apply refl_equal.
-destruct (ln_beta beta (Rabs x)) as (ex, Hex).
+destruct (ln_beta beta x) as (ex, Hex).
 simpl.
 cut (ex - 1 < emin + prec)%Z. omega.
 apply <- epow_lt.
 eapply Rle_lt_trans with (2 := Hx).
-apply Hex.
-now apply Rabs_pos_lt.
+now apply Hex.
 Qed.
 
 Theorem DN_UP_parity_FLT_pos :

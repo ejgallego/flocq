@@ -15,7 +15,7 @@ Variable fexp : Z -> Z.
 
 Variable prop_exp : valid_exp fexp.
 
-Definition ulp x := F2R (Float beta 1 (fexp (projT1 (ln_beta beta (Rabs x))))).
+Definition ulp x := F2R (Float beta 1 (fexp (projT1 (ln_beta beta x)))).
 
 Definition F := generic_format beta fexp.
 
@@ -27,10 +27,10 @@ Theorem ulp_pred_succ_pt_pos :
 Proof.
 intros x xd xu Hx1 Fx Hd1 Hu1.
 unfold ulp.
-rewrite Rabs_pos_eq.
 destruct (ln_beta beta x) as (ex, Hx2).
 simpl.
-specialize (Hx2 Hx1).
+specialize (Hx2 (Rgt_not_eq _ _ Hx1)).
+rewrite Rabs_pos_eq in Hx2.
 destruct (Z_lt_le_dec (fexp ex) ex) as [He1|He1].
 (* positive big *)
 assert (Hd2 := generic_DN_pt_pos _ _ prop_exp _ _ Hx2).
@@ -95,7 +95,7 @@ now rewrite 2!Ropp_involutive.
 rewrite <- (Ropp_involutive xd).
 rewrite ulp_pred_succ_pt_pos with (3 := Hu2) (4 := Hd2).
 unfold ulp.
-rewrite Rabs_Ropp.
+rewrite ln_beta_opp.
 ring.
 rewrite <- Ropp_0.
 now apply Ropp_lt_contravar.
@@ -106,7 +106,7 @@ split.
 rewrite <- opp_F2R.
 rewrite <- H1.
 now rewrite Ropp_involutive.
-now rewrite <- Rabs_Ropp.
+now rewrite <- ln_beta_opp.
 (* positive *)
 now apply ulp_pred_succ_pt_pos.
 Qed.
@@ -247,16 +247,14 @@ unfold F2R. simpl.
 rewrite 2!Rmult_1_l.
 apply -> epow_le.
 apply Hm.
-rewrite 2!Rabs_pos_eq ; try apply Rlt_le ; trivial.
 now apply ln_beta_monotone.
-now apply Rlt_le_trans with x.
 Qed.
 
 Theorem ulp_epow :
   forall e, ulp (bpow e) = bpow (fexp (e + 1)).
 intros e.
 unfold ulp.
-rewrite (ln_beta_unique beta (Rabs (bpow e)) (e + 1)).
+rewrite (ln_beta_unique beta (bpow e) (e + 1)).
 unfold F2R.
 now rewrite Rmult_1_l.
 rewrite Rabs_pos_eq.
