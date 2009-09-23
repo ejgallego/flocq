@@ -31,53 +31,88 @@ unfold FLX_exp.
 repeat split ; intros ; omega.
 Qed.
 
+Theorem FLX_format_FIX :
+  forall x e,
+  (bpow (e - 1) <= Rabs x <= bpow e)%R ->
+  ( FLX_format x <-> FIX_format beta (e - prec) x ).
+Proof.
+intros x e Hx.
+split.
+(* . *)
+intros ((xm, xe), (H1, H2)).
+rewrite H1, (F2R_prec_normalize beta xm xe e prec).
+now eexists.
+exact H2.
+now rewrite <- H1.
+(* . *)
+destruct Hx as (Hx1,[Hx2|Hx2]).
+(* . . *)
+intros ((xm, xe), (H1, H2)).
+rewrite H1.
+eexists ; repeat split.
+apply lt_Z2R.
+apply Rmult_lt_reg_r with (bpow (e - prec)).
+apply epow_gt_0.
+rewrite Z2R_Zpower, <- epow_add.
+ring_simplify (prec + (e - prec))%Z.
+rewrite <- H2.
+simpl.
+change (F2R (Float beta (Zabs xm) xe) < bpow e)%R.
+now rewrite <- abs_F2R, <- H1.
+now apply Zlt_le_weak.
+(* . . *)
+intros ((xm, xe), (H1, H2)).
+assert (Ha: forall x, FLX_format (Rabs x) -> FLX_format x).
+clear.
+intros x Ha.
+unfold Rabs in Ha.
+destruct (Rcase_abs x) as [Hx|Hx].
+destruct Ha as ((m,e),(Ha,Hb)).
+exists (Float beta (-m) e).
+split.
+now rewrite <- opp_F2R, <- Ha, Ropp_involutive.
+simpl.
+now rewrite Zabs_Zopp.
+exact Ha.
+(* . . *)
+apply Ha.
+rewrite Hx2.
+exists (Float beta 1 e).
+split.
+apply sym_eq.
+apply Rmult_1_l.
+now apply Zpower_gt_1.
+Qed.
+
 Theorem FLX_format_generic :
   forall x : R, generic_format beta FLX_exp x <-> FLX_format x.
 Proof.
-split.
+intros x.
+destruct (Req_dec x 0) as [Hx|Hx1].
 (* . *)
-intros ((xm, xe), (Hx1, Hx2)).
-destruct (Req_dec x 0) as [Hx3|Hx3].
+split ; intros H ; rewrite Hx.
 exists (Float beta 0 0).
 split.
 unfold F2R. simpl.
 now rewrite Rmult_0_l.
-simpl.
 apply Zpower_gt_0.
 now apply Zlt_le_trans with (2 := radix_prop beta).
 now apply Zlt_le_weak.
-rewrite Hx1.
-eexists ; repeat split.
-simpl.
-destruct (ln_beta beta (Rabs x)) as (ex, Hx4).
-simpl in Hx2.
-specialize (Hx4 (Rabs_pos_lt x Hx3)).
-apply lt_Z2R.
-rewrite Z2R_Zpower.
-apply Rmult_lt_reg_r with (bpow (ex - prec)).
-apply epow_gt_0.
-rewrite <- epow_add.
-replace (prec + (ex - prec))%Z with ex by ring.
-change (ex - prec)%Z with (FLX_exp ex).
-rewrite <- Hx2.
-replace (Z2R (Zabs xm) * bpow xe)%R with (Rabs x).
-exact (proj2 Hx4).
-rewrite Hx1.
-apply abs_F2R.
-now apply Zlt_le_weak.
-(* . *)
-intros ((xm, xe), (Hx1, Hx2)).
-destruct (Req_dec x 0) as [Hx3|Hx3].
-rewrite Hx3.
 apply generic_format_0.
-simpl in Hx2.
-unfold generic_format, canonic.
-destruct (ln_beta beta (Rabs x)) as (ex, Hx4).
+(* . *)
+destruct (ln_beta beta (Rabs x)) as (ex, Hx2).
 simpl.
-specialize (Hx4 (Rabs_pos_lt _ Hx3)).
-rewrite Hx1, (F2R_prec_normalize beta xm xe ex prec Hx2).
-now eexists.
-now rewrite <- Hx1.
+specialize (Hx2 (Rabs_pos_lt _ Hx1)).
+apply iff_trans with (generic_format beta (FIX_exp (ex - prec)) x).
+assert (Hf: FLX_exp (projT1 (ln_beta beta (Rabs x))) = FIX_exp (ex - prec) (projT1 (ln_beta beta (Rabs x)))).
+unfold FIX_exp, FLX_exp.
+now rewrite ln_beta_unique with (1 := Hx2).
+split ; apply generic_format_fun_eq ; now rewrite Hf.
+apply iff_trans with (FIX_format beta (ex - prec) x).
+apply FIX_format_generic.
+apply iff_sym.
+apply FLX_format_FIX.
+exact (conj (proj1 Hx2) (Rlt_le _ _ (proj2 Hx2))).
 Qed.
 
 Theorem FLX_format_satisfies_any :
@@ -187,57 +222,6 @@ now apply -> FLX_format_generic.
 apply <- FLX_format_generic.
 now apply <- FLX_format_FLXN.
 exact FLX_exp_correct.
-Qed.
-
-Theorem FLX_format_FIX :
-  forall x e,
-  (bpow (e - 1) <= Rabs x <= bpow e)%R ->
-  ( FLX_format x <-> FIX_format beta (e - prec) x ).
-Proof.
-intros x e Hx.
-split.
-(* . *)
-intros ((xm, xe), (H1, H2)).
-rewrite H1, (F2R_prec_normalize beta xm xe e prec).
-now eexists.
-exact H2.
-now rewrite <- H1.
-(* . *)
-destruct Hx as (Hx1,[Hx2|Hx2]).
-(* . . *)
-intros ((xm, xe), (H1, H2)).
-rewrite H1.
-eexists ; repeat split.
-apply lt_Z2R.
-apply Rmult_lt_reg_r with (bpow (e - prec)).
-apply epow_gt_0.
-rewrite Z2R_Zpower, <- epow_add.
-ring_simplify (prec + (e - prec))%Z.
-rewrite <- H2.
-simpl.
-change (F2R (Float beta (Zabs xm) xe) < bpow e)%R.
-now rewrite <- abs_F2R, <- H1.
-now apply Zlt_le_weak.
-(* . . *)
-intros ((xm, xe), (H1, H2)).
-assert (Ha: forall x, FLX_format (Rabs x) -> FLX_format x).
-clear.
-intros x Ha.
-unfold Rabs in Ha.
-destruct (Rcase_abs x) as [Hx|Hx].
-apply -> FLX_format_generic.
-rewrite <- (Ropp_involutive x).
-apply generic_format_sym.
-now apply <- FLX_format_generic.
-exact Ha.
-(* . . *)
-apply Ha.
-rewrite Hx2.
-exists (Float beta 1 e).
-split.
-apply sym_eq.
-apply Rmult_1_l.
-now apply Zpower_gt_1.
 Qed.
 
 End RND_FLX.
