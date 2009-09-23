@@ -681,3 +681,15 @@ now apply generic_DN_pt_pos.
 Qed.
 
 End RND_generic.
+
+Theorem generic_format_fun_eq :
+  forall beta : radix, forall f1 f2 : Z -> Z, forall x,
+  f1 (projT1 (ln_beta beta (Rabs x))) = f2 (projT1 (ln_beta beta (Rabs x))) ->
+  generic_format beta f1 x -> generic_format beta f2 x.
+Proof.
+intros beta f1 f2 x Hf (f,(Hx1,Hx2)).
+exists f.
+split.
+exact Hx1.
+now rewrite <- Hf.
+Qed.
