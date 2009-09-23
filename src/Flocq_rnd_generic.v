@@ -442,6 +442,24 @@ unfold F2R. simpl.
 now rewrite Rmult_0_l.
 Qed.
 
+Theorem canonic_unicity :
+  forall x f1 f2,
+  canonic x f1 ->
+  canonic x f2 ->
+  f1 = f2.
+Proof.
+intros x (m1,e1) (m2,e2) (H1a,H1b) (H2a,H2b).
+simpl in H1b, H2b.
+rewrite H1b, <- H2b.
+apply (f_equal (fun m => Float beta m e2)).
+apply eq_Z2R.
+apply Rmult_eq_reg_r with (bpow e1).
+change (F2R (Float beta m1 e1) = F2R (Float beta m2 e1)).
+now rewrite <- H1a, H1b, <- H2b.
+apply Rgt_not_eq.
+apply epow_gt_0.
+Qed.
+
 Theorem canonic_sym :
   forall x m e,
   canonic x (Float beta m e) ->
@@ -682,14 +700,23 @@ Qed.
 
 End RND_generic.
 
+Theorem canonic_fun_eq :
+  forall beta : radix, forall f1 f2 : Z -> Z, forall x f,
+  f1 (projT1 (ln_beta beta (Rabs x))) = f2 (projT1 (ln_beta beta (Rabs x))) ->
+  canonic beta f1 x f -> canonic beta f2 x f.
+Proof.
+intros beta f1 f2 x f Hf (Hx1,Hx2).
+split.
+exact Hx1.
+now rewrite <- Hf.
+Qed.
+
 Theorem generic_format_fun_eq :
   forall beta : radix, forall f1 f2 : Z -> Z, forall x,
   f1 (projT1 (ln_beta beta (Rabs x))) = f2 (projT1 (ln_beta beta (Rabs x))) ->
   generic_format beta f1 x -> generic_format beta f2 x.
 Proof.
-intros beta f1 f2 x Hf (f,(Hx1,Hx2)).
+intros beta f1 f2 x Hf (f,Hx).
 exists f.
-split.
-exact Hx1.
-now rewrite <- Hf.
+now apply canonic_fun_eq with (1 := Hf).
 Qed.
