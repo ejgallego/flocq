@@ -49,9 +49,27 @@ omega.
 Qed.
 
 Theorem FLT_format_generic :
-  forall x : R, generic_format beta FLT_exp x <-> FLT_format x.
+  forall x : R, FLT_format x <-> generic_format beta FLT_exp x.
 Proof.
 split.
+(* . *)
+intros ((xm, xe), (Hx1, (Hx2, Hx3))).
+destruct (Req_dec x 0) as [Hx4|Hx4].
+rewrite Hx4.
+apply generic_format_0.
+simpl in Hx2, Hx3.
+unfold generic_format, canonic, FLT_exp.
+destruct (ln_beta beta x) as (ex, Hx5).
+simpl.
+specialize (Hx5 Hx4).
+destruct (Zmax_spec (ex - prec) emin) as [(H1,H2)|(H1,H2)] ;
+  rewrite H2 ; clear H2.
+rewrite Hx1, (F2R_prec_normalize beta xm xe ex prec Hx2).
+now eexists.
+now rewrite <- Hx1.
+rewrite Hx1, (F2R_change_exp beta emin).
+now eexists.
+exact Hx3.
 (* . *)
 intros ((xm, xe), (Hx1, Hx2)).
 destruct (Req_dec x 0) as [Hx3|Hx3].
@@ -90,31 +108,15 @@ apply abs_F2R.
 now apply Zlt_le_weak.
 rewrite Hx2.
 apply Zle_max_r.
-(* . *)
-intros ((xm, xe), (Hx1, (Hx2, Hx3))).
-destruct (Req_dec x 0) as [Hx4|Hx4].
-rewrite Hx4.
-apply generic_format_0.
-simpl in Hx2, Hx3.
-unfold generic_format, canonic, FLT_exp.
-destruct (ln_beta beta x) as (ex, Hx5).
-simpl.
-specialize (Hx5 Hx4).
-destruct (Zmax_spec (ex - prec) emin) as [(H1,H2)|(H1,H2)] ;
-  rewrite H2 ; clear H2.
-rewrite Hx1, (F2R_prec_normalize beta xm xe ex prec Hx2).
-now eexists.
-now rewrite <- Hx1.
-rewrite Hx1, (F2R_change_exp beta emin).
-now eexists.
-exact Hx3.
 Qed.
 
 Theorem FLT_format_satisfies_any :
   satisfies_any FLT_format.
 Proof.
 refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FLT_exp _)).
-exact FLT_format_generic.
+intros x.
+apply iff_sym.
+apply FLT_format_generic.
 exact FLT_exp_correct.
 Qed.
 
@@ -134,11 +136,11 @@ intros Hx2.
 destruct (Req_dec x 0) as [Hx3|Hx3].
 (* . . *)
 rewrite Hx3.
-apply -> FLT_format_generic.
+apply <- FLT_format_generic.
 apply generic_format_0.
 (* . . *)
-destruct (proj2 (FLX_format_generic _ _ Hp x) Hx2) as ((xm, xe), (Hx4, Hx5)).
-apply -> FLT_format_generic.
+destruct (proj1 (FLX_format_generic _ _ Hp x) Hx2) as ((xm, xe), (Hx4, Hx5)).
+apply <- FLT_format_generic.
 rewrite Hx4.
 eexists ; repeat split.
 rewrite Hx5. clear Hx5.
@@ -190,10 +192,10 @@ clear.
 intros x Ha.
 unfold Rabs in Ha.
 destruct (Rcase_abs x) as [Hx|Hx].
-apply -> FLT_format_generic.
+apply <- FLT_format_generic.
 rewrite <- (Ropp_involutive x).
 apply generic_format_sym.
-now apply <- FLT_format_generic.
+now apply -> FLT_format_generic.
 exact Ha.
 (* . . *)
 intros _.

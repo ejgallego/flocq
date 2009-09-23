@@ -85,12 +85,13 @@ now apply Zpower_gt_1.
 Qed.
 
 Theorem FLX_format_generic :
-  forall x : R, generic_format beta FLX_exp x <-> FLX_format x.
+  forall x : R, FLX_format x <-> generic_format beta FLX_exp x.
 Proof.
 intros x.
 destruct (Req_dec x 0) as [Hx|Hx1].
 (* . *)
 split ; intros H ; rewrite Hx.
+apply generic_format_0.
 exists (Float beta 0 0).
 split.
 unfold F2R. simpl.
@@ -98,28 +99,28 @@ now rewrite Rmult_0_l.
 apply Zpower_gt_0.
 now apply Zlt_le_trans with (2 := radix_prop beta).
 now apply Zlt_le_weak.
-apply generic_format_0.
 (* . *)
 destruct (ln_beta beta x) as (ex, Hx2).
 simpl.
 specialize (Hx2 Hx1).
 apply iff_trans with (generic_format beta (FIX_exp (ex - prec)) x).
+apply iff_trans with (FIX_format beta (ex - prec) x).
+apply FLX_format_FIX.
+exact (conj (proj1 Hx2) (Rlt_le _ _ (proj2 Hx2))).
+apply FIX_format_generic.
 assert (Hf: FLX_exp (projT1 (ln_beta beta x)) = FIX_exp (ex - prec) (projT1 (ln_beta beta x))).
 unfold FIX_exp, FLX_exp.
 now rewrite ln_beta_unique with (1 := Hx2).
 split ; apply generic_format_fun_eq ; now rewrite Hf.
-apply iff_trans with (FIX_format beta (ex - prec) x).
-apply FIX_format_generic.
-apply iff_sym.
-apply FLX_format_FIX.
-exact (conj (proj1 Hx2) (Rlt_le _ _ (proj2 Hx2))).
 Qed.
 
 Theorem FLX_format_satisfies_any :
   satisfies_any FLX_format.
 Proof.
 refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FLX_exp _)).
-exact FLX_format_generic.
+intros x.
+apply iff_sym.
+apply FLX_format_generic.
 exact FLX_exp_correct.
 Qed.
 
@@ -201,7 +202,7 @@ exact H5.
 intros ((xm, xe), (H1, H2)).
 destruct (Req_dec x 0) as [H3|H3].
 rewrite H3.
-apply -> FLX_format_generic.
+apply <- FLX_format_generic.
 apply generic_format_0.
 specialize (H2 H3). clear H3.
 rewrite H1.
@@ -215,8 +216,8 @@ Proof.
 refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FLX_exp _)).
 split ; intros H.
 apply -> FLX_format_FLXN.
-now apply -> FLX_format_generic.
-apply <- FLX_format_generic.
+now apply <- FLX_format_generic.
+apply -> FLX_format_generic.
 now apply <- FLX_format_FLXN.
 exact FLX_exp_correct.
 Qed.

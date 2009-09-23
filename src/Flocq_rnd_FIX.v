@@ -33,7 +33,7 @@ now intros _ _.
 Qed.
 
 Theorem FIX_format_generic :
-  forall x : R, generic_format beta FIX_exp x <-> FIX_format x.
+  forall x : R, FIX_format x <-> generic_format beta FIX_exp x.
 Proof.
 split.
 (* . *)

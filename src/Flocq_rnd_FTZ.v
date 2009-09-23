@@ -49,9 +49,41 @@ split ; intros ; omega.
 Qed.
 
 Theorem FTZ_format_generic :
-  forall x : R, generic_format beta FTZ_exp x <-> FTZ_format x.
+  forall x : R, FTZ_format x <-> generic_format beta FTZ_exp x.
 Proof.
 split.
+(* . *)
+intros ((xm, xe), (Hx1, (Hx2, Hx3))).
+destruct (Req_dec x 0) as [Hx4|Hx4].
+rewrite Hx4.
+apply generic_format_0.
+specialize (Hx2 Hx4).
+unfold generic_format, canonic, FTZ_exp.
+destruct (ln_beta beta x) as (ex, Hx6).
+simpl.
+specialize (Hx6 Hx4).
+generalize (Zlt_cases (ex - prec) emin).
+case (Zlt_bool (ex - prec) emin) ; intros H1.
+elim (Rlt_not_ge _ _ (proj2 Hx6)).
+apply Rle_ge.
+rewrite Hx1.
+apply Rle_trans with (bpow (prec - 1) * bpow emin)%R.
+rewrite <- epow_add.
+apply -> epow_le.
+omega.
+rewrite abs_F2R.
+unfold F2R. simpl.
+apply Rmult_le_compat.
+apply epow_ge_0.
+apply epow_ge_0.
+rewrite <- Z2R_Zpower.
+now apply Z2R_le.
+apply Zle_minus_le_0.
+now apply (Zlt_le_succ 0).
+now apply -> epow_le.
+rewrite Hx1, (F2R_prec_normalize beta xm xe ex prec (proj2 Hx2)).
+now eexists.
+now rewrite <- Hx1.
 (* . *)
 intros ((xm, xe), (Hx1, Hx2)).
 destruct (Req_dec x 0) as [Hx3|Hx3].
@@ -120,45 +152,15 @@ now apply Zlt_le_weak.
 simpl.
 rewrite Hx2.
 now apply Zge_le.
-(* . *)
-intros ((xm, xe), (Hx1, (Hx2, Hx3))).
-destruct (Req_dec x 0) as [Hx4|Hx4].
-rewrite Hx4.
-apply generic_format_0.
-specialize (Hx2 Hx4).
-unfold generic_format, canonic, FTZ_exp.
-destruct (ln_beta beta x) as (ex, Hx6).
-simpl.
-specialize (Hx6 Hx4).
-generalize (Zlt_cases (ex - prec) emin).
-case (Zlt_bool (ex - prec) emin) ; intros H1.
-elim (Rlt_not_ge _ _ (proj2 Hx6)).
-apply Rle_ge.
-rewrite Hx1.
-apply Rle_trans with (bpow (prec - 1) * bpow emin)%R.
-rewrite <- epow_add.
-apply -> epow_le.
-omega.
-rewrite abs_F2R.
-unfold F2R. simpl.
-apply Rmult_le_compat.
-apply epow_ge_0.
-apply epow_ge_0.
-rewrite <- Z2R_Zpower.
-now apply Z2R_le.
-apply Zle_minus_le_0.
-now apply (Zlt_le_succ 0).
-now apply -> epow_le.
-rewrite Hx1, (F2R_prec_normalize beta xm xe ex prec (proj2 Hx2)).
-now eexists.
-now rewrite <- Hx1.
 Qed.
 
 Theorem FTZ_format_satisfies_any :
   satisfies_any FTZ_format.
 Proof.
 refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FTZ_exp _)).
-exact FTZ_format_generic.
+intros x.
+apply iff_sym.
+apply FTZ_format_generic.
 exact FTZ_exp_correct.
 Qed.
 
@@ -174,7 +176,7 @@ destruct (Req_dec x 0) as [H4|H4].
 intros _.
 rewrite H4.
 apply -> FLX_format_FLXN.
-apply -> FLX_format_generic.
+apply <- FLX_format_generic.
 apply generic_format_0.
 exact Hp.
 exact Hp.

@@ -388,7 +388,7 @@ assert (Hd4: (bpow (ex - 1) <= Rabs xd < bpow ex)%R).
 rewrite Rabs_pos_eq.
 split.
 apply Hxd.
-apply <- FLX_format_generic.
+apply -> FLX_format_generic.
 exists (Float beta 1 (ex - 1)).
 split.
 apply sym_eq.
@@ -408,7 +408,7 @@ apply (Rlt_not_le _ _ Hu).
 apply Rnd_UP_pt_monotone with (generic_format beta FLXf) x (bpow ex).
 exact Hxu.
 split.
-apply <- FLX_format_generic.
+apply -> FLX_format_generic.
 exists (Float beta 1 ex).
 split.
 apply sym_eq.
@@ -537,7 +537,7 @@ intros x f Hf.
 apply Rnd_NE_pt_aux.
 apply DN_UP_parity_aux.
 exact DN_UP_parity_FLX_pos.
-now apply <- FLX_format_generic.
+now apply -> FLX_format_generic.
 Qed.
 
 End Flocq_rnd_NE_FLX.
@@ -631,7 +631,7 @@ intros x f Hf.
 apply Rnd_NE_pt_aux.
 apply DN_UP_parity_aux.
 exact DN_UP_parity_FLT_pos.
-now apply <- FLT_format_generic.
+now apply -> FLT_format_generic.
 Qed.
 
 End Flocq_rnd_NE_FLT.
