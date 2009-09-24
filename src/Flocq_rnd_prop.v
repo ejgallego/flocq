@@ -532,6 +532,111 @@ now rewrite <- Hx.
 exact HF.
 Qed.
 
+Theorem Rnd_N1_N2_pt :
+  forall F : R -> Prop,
+  forall (P1 : R -> Prop) (P2 : R -> R -> Prop),
+  ( forall h, F h -> P1 h \/ ~P1 h ) ->
+  ( forall f g, F f -> F g -> (P1 f \/ g = f <-> P2 f g) ) ->
+  forall x f,
+  Rnd_N1_pt F P1 x f <-> Rnd_N2_pt F P2 x f.
+Proof.
+intros F P1 P2 HP1 HP12 x f.
+split ; intros (H, Hf) ; ( split ; [ exact H | .. ] ).
+(* . *)
+intros g Hg.
+apply (proj1 (HP12 _ _ (proj1 H) (proj1 Hg))).
+destruct Hf as [Hf|Hf].
+now left.
+right.
+now apply Hf.
+(* . *)
+destruct (HP1 _ (proj1 H)) as [H1|H1].
+now left.
+right.
+intros f2 H2.
+destruct (proj2 (HP12 _ _ (proj1 H) (proj1 H2))) as [H3|H3].
+now apply Hf.
+now elim H1.
+exact H3.
+Qed.
+
+Definition Rnd_N1_pt_unicity_prop F P :=
+  forall x d u, Rnd_DN_pt F x d -> Rnd_UP_pt F x u -> P d -> P u -> d = u.
+
+Theorem Rnd_N1_pt_unicity :
+  forall (F : R -> Prop) (P : R -> Prop),
+  Rnd_N1_pt_unicity_prop F P ->
+  forall x f1 f2 : R,
+  Rnd_N1_pt F P x f1 -> Rnd_N1_pt F P x f2 ->
+  f1 = f2.
+Proof.
+intros F P HP x f1 f2 (H1a,H1b) (H2a,H2b).
+destruct H1b as [H1b|H1b].
+destruct H2b as [H2b|H2b].
+destruct (Rnd_N_pt_DN_or_UP _ _ _ H1a) as [H1c|H1c] ;
+  destruct (Rnd_N_pt_DN_or_UP _ _ _ H2a) as [H2c|H2c].
+eapply Rnd_DN_pt_unicity ; eassumption.
+now apply (HP x f1 f2).
+apply sym_eq.
+now apply (HP x f2 f1 H2c H1c).
+eapply Rnd_UP_pt_unicity ; eassumption.
+now apply H2b.
+apply sym_eq.
+now apply H1b.
+Qed.
+
+Theorem Rnd_N1_pt_monotone :
+  forall (F : R -> Prop) (P : R -> Prop),
+  Rnd_N1_pt_unicity_prop F P ->
+  forall x y f g : R,
+  Rnd_N1_pt F P x f -> Rnd_N1_pt F P y g ->
+  x <= y -> f <= g.
+Proof.
+intros F P HP x y f g (Hf,Hx) (Hg,Hy) [Hxy|Hxy].
+now apply Rnd_N_pt_monotone with F x y.
+apply Req_le.
+rewrite <- Hxy in Hg, Hy.
+eapply Rnd_N1_pt_unicity ; try split ; eassumption.
+Qed.
+
+Definition Rnd_N2_pt_unicity_prop F P :=
+  forall x d u, Rnd_DN_pt F x d -> Rnd_UP_pt F x u -> P d u -> P u d -> d = u.
+
+Theorem Rnd_N2_pt_unicity :
+  forall (F : R -> Prop) (P : R -> R -> Prop),
+  Rnd_N2_pt_unicity_prop F P ->
+  forall x f1 f2 : R,
+  Rnd_N2_pt F P x f1 -> Rnd_N2_pt F P x f2 ->
+  f1 = f2.
+Proof.
+intros F P HP x f1 f2 (H1a,H1b) (H2a,H2b).
+destruct (Rnd_N_pt_DN_or_UP _ _ _ H1a) as [H1c|H1c] ;
+  destruct (Rnd_N_pt_DN_or_UP _ _ _ H2a) as [H2c|H2c].
+eapply Rnd_DN_pt_unicity ; eassumption.
+apply (HP x f1 f2 H1c H2c).
+now apply H1b.
+now apply H2b.
+apply sym_eq.
+apply (HP x f2 f1 H2c H1c).
+now apply H2b.
+now apply H1b.
+eapply Rnd_UP_pt_unicity ; eassumption.
+Qed.
+
+Theorem Rnd_N2_pt_monotone :
+  forall (F : R -> Prop) (P : R -> R -> Prop),
+  Rnd_N2_pt_unicity_prop F P ->
+  forall x y f g : R,
+  Rnd_N2_pt F P x f -> Rnd_N2_pt F P y g ->
+  x <= y -> f <= g.
+Proof.
+intros F P HP x y f g (Hf,Hx) (Hg,Hy) [Hxy|Hxy].
+now apply Rnd_N_pt_monotone with F x y.
+apply Req_le.
+rewrite <- Hxy in Hg, Hy.
+eapply Rnd_N2_pt_unicity ; try split ; eassumption.
+Qed.
+
 Theorem Rnd_NA_pt_monotone :
   forall F : R -> Prop,
   F 0 ->
@@ -539,48 +644,32 @@ Theorem Rnd_NA_pt_monotone :
   Rnd_NA_pt F x f -> Rnd_NA_pt F y g ->
   x <= y -> f <= g.
 Proof.
-intros F HF x y f g (Hf,Hx) (Hg,Hy) [Hxy|Hxy].
-now apply Rnd_N_pt_monotone with F x y.
-apply Req_le.
-rewrite <- Hxy in Hg, Hy.
-clear y Hxy.
-assert (K: f = g \/ f = -g).
-apply Rabs_eq_Rabs.
-apply Rle_antisym.
-now apply Hy.
-now apply Hx.
-destruct K as [K|K].
+intros F HF x y f g Hxf Hyg Hxy.
+apply Rnd_N2_pt_monotone with F (fun a b => (Rabs b <= Rabs a)%R) x y ; try assumption.
+clear -HF.
+intros x d u Hd Hu Hud Hdu.
+destruct (Rabs_eq_Rabs d u) as [K|K].
+now apply Rle_antisym.
 exact K.
-rewrite K.
-rewrite K in Hf.
-clear f Hx Hy K.
-unfold Rnd_N_pt in Hf, Hg.
-assert (L: g + x = g - x \/  g + x = x - g).
-rewrite <- (Ropp_minus_distr g x).
-apply Rabs_eq_Rabs.
-rewrite <- Rabs_Ropp.
-rewrite Ropp_plus_distr.
-fold (-g - x).
+clear Hud Hdu.
 apply Rle_antisym.
-now apply Hf.
-now apply Hg.
-destruct L as [L|L].
-assert (g = 0).
-apply Rnd_N_pt_idempotent with F.
-replace 0 with x.
-exact Hg.
-apply Rmult_eq_reg_l with 2.
-rewrite Rmult_0_r.
-rewrite <- (Rminus_diag_eq _ _ L).
-ring.
-now apply (Z2R_neq 2 0).
+apply Rle_trans with x.
+apply Hd.
+apply Hu.
+destruct (Rle_or_lt u 0) as [H1|H1].
+apply Rle_trans with (1 := H1).
+rewrite K.
+apply Ropp_0_ge_le_contravar.
+now apply Rle_ge.
+elim Rlt_not_le with (1 := H1).
+destruct (Rle_or_lt x 0) as [H2|H2].
+now apply Hu.
+rewrite <- (Ropp_involutive u), <- K.
+apply Rge_le.
+apply Ropp_0_le_ge_contravar.
+apply Hd.
 exact HF.
-rewrite H.
-apply Ropp_0.
-apply Rplus_eq_reg_l with x.
-fold (x - g).
-rewrite <- L.
-apply Rplus_comm.
+now apply Rlt_le.
 Qed.
 
 Theorem Rnd_NA_monotone :

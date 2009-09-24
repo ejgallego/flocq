@@ -96,6 +96,20 @@ Definition Rnd_N_pt (F : R -> Prop) (x f : R) :=
 Definition Rnd_N (F : R -> Prop) (rnd : R -> R) :=
   forall x : R, Rnd_N_pt F x (rnd x).
 
+Definition Rnd_N1_pt (F : R -> Prop) (P : R -> Prop) (x f : R) :=
+  Rnd_N_pt F x f /\
+  ( P f \/ forall f2 : R, Rnd_N_pt F x f2 -> f2 = f ).
+
+Definition Rnd_N1 (F : R -> Prop) (P : R -> Prop) (rnd : R -> R) :=
+  forall x : R, Rnd_N1_pt F P x (rnd x).
+
+Definition Rnd_N2_pt (F : R -> Prop) (P : R -> R -> Prop) (x f : R) :=
+  Rnd_N_pt F x f /\
+  forall f2 : R, Rnd_N_pt F x f2 -> P f f2.
+
+Definition Rnd_N2 (F : R -> Prop) (P : R -> R -> Prop) (rnd : R -> R) :=
+  forall x : R, Rnd_N2_pt F P x (rnd x).
+
 Definition Rnd_NA_pt (F : R -> Prop) (x f : R) :=
   Rnd_N_pt F x f /\
   forall f2 : R, Rnd_N_pt F x f2 ->
