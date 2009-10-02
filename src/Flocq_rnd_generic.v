@@ -556,7 +556,8 @@ apply Rle_trans with (bpow (fexp ex)).
 now apply -> epow_le.
 rewrite <- Hg2.
 rewrite Hg1 in Hg3.
-apply epow_le_F2R with (1 := Hg3).
+apply epow_le_F2R.
+apply F2R_gt_0_reg with (1 := Hg3).
 apply epow_lt_epow with beta.
 apply Rlt_le_trans with (bpow ex).
 apply Rle_lt_trans with (2 := proj2 Hx).
@@ -619,7 +620,8 @@ apply Rlt_not_le with (1 := Hgp).
 rewrite <- (proj2 (proj2 (prop_exp ex) He) eg).
 rewrite <- Hg2.
 rewrite Hg1.
-apply (epow_le_F2R _ (Float beta gm ge)).
+apply epow_le_F2R.
+apply F2R_gt_0_reg with beta ge.
 rewrite <- Hg1.
 apply Rlt_le_trans with (2 := Hgx).
 apply Rlt_le_trans with (2 := proj1 Hx).
