@@ -1,5 +1,6 @@
 FILES = \
 	Flocq_defs.v \
+	Flocq_float_ops.v \
 	Flocq_float_prop.v \
 	Flocq_Raux.v \
 	Flocq_rnd_ex.v \
