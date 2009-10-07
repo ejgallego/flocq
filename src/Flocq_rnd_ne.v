@@ -24,12 +24,12 @@ Variable prop_exp : valid_exp fexp.
 Notation format := (generic_format beta fexp).
 Notation canonic := (canonic beta fexp).
 
-Definition Rnd_gNE_pt (x f : R) :=
-  Rnd_N_pt format x f /\
-  ( ( exists g : float beta, canonic f g /\ Zeven (Fnum g) /\
-        forall f2 : R, forall g : float beta, Rnd_N_pt format x f2 ->
-        canonic f2 g -> Zeven (Fnum g) -> (Rabs f2 <= Rabs f)%R ) \/
-    ( forall f2 : R, Rnd_N_pt format x f2 -> f = f2 ) ).
+Definition gNE_prop x f :=
+  exists g : float beta, canonic f g /\ Zeven (Fnum g) /\
+    forall f2 : R, forall g2 : float beta, Rnd_N_pt format x f2 ->
+    canonic f2 g2 -> Zeven (Fnum g2) -> (Rabs f2 <= Rabs f)%R.
+
+Definition Rnd_gNE_pt := Rnd_NG_pt format gNE_prop.
 
 Definition Rnd_gNE (rnd : R -> R) :=
   forall x : R, Rnd_gNE_pt x (rnd x).
@@ -38,42 +38,26 @@ Theorem Rnd_gNE_pt_sym :
   forall x f : R,
   Rnd_gNE_pt (-x) (-f) -> Rnd_gNE_pt x f.
 Proof.
-intros x f (H1,H2).
-split.
-apply Rnd_N_pt_sym.
+apply Rnd_NG_pt_sym.
 apply generic_format_sym.
-exact H1.
-(* . *)
-destruct H2 as [((m,e),((H2,H3),H4))|H2].
-left.
+clear. unfold gNE_prop.
+intros x f ((m, e), (Hfg, (Hg, H))).
 exists (Float beta (-m) e).
-repeat split.
-now rewrite <- opp_F2R, <- H2, Ropp_involutive.
-simpl in H3 |- *.
-now rewrite <- ln_beta_opp.
-simpl in H4 |- *.
+split.
+now apply canonic_sym.
+split.
 rewrite Zopp_eq_mult_neg_1.
 now apply Zeven_mult_Zeven_l.
-intros f2 g Hx Hxg Hg.
-rewrite <- (Rabs_Ropp f), <- (Rabs_Ropp f2).
-eapply H4.
+intros f2 g2 Hf2 Hfg2 Hg2.
+rewrite Rabs_Ropp, <- (Rabs_Ropp f2).
+apply H with (Float beta (-Fnum g2) (Fexp g2)).
 apply Rnd_N_pt_sym.
 apply generic_format_sym.
-now rewrite 2!Ropp_involutive.
-eapply canonic_sym.
-eexact Hxg.
-simpl.
+now rewrite Ropp_involutive.
+apply canonic_sym.
+exact Hfg2.
 rewrite Zopp_eq_mult_neg_1.
 now apply Zeven_mult_Zeven_l.
-(* . *)
-right.
-intros f2 H3.
-rewrite <- (Ropp_involutive f), <- (Ropp_involutive f2).
-apply f_equal.
-apply H2.
-apply Rnd_N_pt_sym.
-apply generic_format_sym.
-now rewrite 2!Ropp_involutive.
 Qed.
 
 Lemma canonic_imp_Fnum :
@@ -124,49 +108,54 @@ apply -> epow_le.
 now apply Zlt_le_weak.
 Qed.
 
-Theorem Rnd_gNE_pt_unicity :
-  forall x f1 f2 : R,
-  Rnd_gNE_pt x f1 -> Rnd_gNE_pt x f2 ->
-  f1 = f2.
+Lemma Rnd_gNE_pt_unicity_prop :
+  Rnd_NG_pt_unicity_prop format gNE_prop.
 Proof.
-intros x f1 f2 (H1,[Hf1|Hf1]) (H2,Hf2).
-destruct Hf2 as [Hf2|Hf2].
+intros x d u Hxd1 Hxd2 Hxu1 Hxu2 Hd Hu.
+assert (H: Rabs d = Rabs u).
 (* . *)
-destruct Hf1 as (g1, (Hg1a, (Hg1b, Hg1c))).
-destruct Hf2 as (g2, (Hg2a, (Hg2b, Hg2c))).
-assert (Rabs f1 = Rabs f2).
+destruct Hd as (gd, Hd).
+destruct Hu as (gu, Hu).
 apply Rle_antisym.
-now apply Hg2c with g1.
-now apply Hg1c with g2.
+now apply Hu with gd.
+now apply Hd with gu.
 destruct (Rle_or_lt 0 x) as [Hx|Hx].
-rewrite (Rabs_pos_eq f1) in H.
+(* . *)
+rewrite (Rabs_pos_eq d) in H.
 rewrite H.
 apply Rabs_pos_eq.
 apply Rnd_N_pt_pos with format x.
 apply generic_format_0.
 exact Hx.
-exact H2.
+exact Hxu2.
 apply Rnd_N_pt_pos with format x.
 apply generic_format_0.
 exact Hx.
-exact H1.
-rewrite (Rabs_left1 f1) in H.
-rewrite <- (Ropp_involutive f1), <- (Ropp_involutive f2).
-rewrite H.
+exact Hxd2.
+(* . *)
+rewrite (Rabs_left1 u) in H.
+rewrite <- (Ropp_involutive d), <- (Ropp_involutive u).
+apply sym_eq.
 apply f_equal.
+rewrite <- H.
 apply Rabs_left1.
 apply Rnd_N_pt_neg with format x.
 apply generic_format_0.
 now apply Rlt_le.
-exact H2.
+exact Hxd2.
 apply Rnd_N_pt_neg with format x.
 apply generic_format_0.
 now apply Rlt_le.
-exact H1.
-(* . *)
-apply sym_eq.
-now apply Hf2.
-now apply Hf1.
+exact Hxu2.
+Qed.
+
+Theorem Rnd_gNE_pt_unicity :
+  forall x f1 f2 : R,
+  Rnd_gNE_pt x f1 -> Rnd_gNE_pt x f2 ->
+  f1 = f2.
+Proof.
+apply Rnd_NG_pt_unicity.
+apply Rnd_gNE_pt_unicity_prop.
 Qed.
 
 Theorem Rnd_gNE_pt_monotone :
@@ -174,13 +163,8 @@ Theorem Rnd_gNE_pt_monotone :
   Rnd_gNE_pt x f -> Rnd_gNE_pt y g ->
   (x <= y)%R -> (f <= g)%R.
 Proof.
-intros x y f g (Hx1,Hx2) (Hy1,Hy2) [Hxy|Hxy].
-eapply Rnd_N_pt_monotone ; eassumption.
-apply Req_le.
-apply Rnd_gNE_pt_unicity with x.
-now split.
-rewrite Hxy.
-now split.
+apply Rnd_NG_pt_monotone.
+apply Rnd_gNE_pt_unicity_prop.
 Qed.
 
 Theorem Rnd_gNE_pt_idempotent :
@@ -193,10 +177,11 @@ destruct Hxf as (Hxf1,_).
 now apply Rnd_N_pt_idempotent with format.
 Qed.
 
-Definition Rnd_NE_pt (x f : R) :=
-  Rnd_N_pt format x f /\
-  ( ( exists g : float beta, canonic f g /\ Zeven (Fnum g) ) \/
-    ( forall f2 : R, Rnd_N_pt format x f2 -> f = f2 ) ).
+Definition NE_prop (_ : R) f :=
+  exists g : float beta, canonic f g /\ Zeven (Fnum g).
+
+Definition Rnd_NE_pt :=
+  Rnd_NG_pt format NE_prop.
 
 Definition DN_UP_parity_pos_prop :=
   forall x xd xu cd cu,
@@ -261,10 +246,9 @@ Qed.
 Theorem Rnd_NE_pt_aux :
   DN_UP_parity_prop ->
   forall x f,
-  format f ->
   ( Rnd_gNE_pt x f <-> Rnd_NE_pt x f ).
 Proof.
-intros HP x f Hf.
+intros HP x f.
 split.
 (* . *)
 intros (H1, [H2|H2]).
@@ -349,13 +333,10 @@ Qed.
 
 Theorem Rnd_NE_pt_FIX :
   forall x f,
-  FIX_format beta emin f ->
   ( Rnd_gNE_pt FIXf x f <-> Rnd_NE_pt FIXf x f ).
 Proof.
-intros x f Hf.
 apply Rnd_NE_pt_aux.
 exact DN_UP_parity_FIX.
-now apply -> FIX_format_generic.
 Qed.
 
 End Flocq_rnd_NE_FIX.
@@ -530,14 +511,11 @@ Qed.
 
 Theorem Rnd_NE_pt_FLX :
   forall x f,
-  FLX_format beta prec f ->
   ( Rnd_gNE_pt FLXf x f <-> Rnd_NE_pt FLXf x f ).
 Proof.
-intros x f Hf.
 apply Rnd_NE_pt_aux.
 apply DN_UP_parity_aux.
 exact DN_UP_parity_FLX_pos.
-now apply -> FLX_format_generic.
 Qed.
 
 End Flocq_rnd_NE_FLX.
@@ -592,7 +570,42 @@ now apply Rlt_le.
 apply canonic_fun_eq with (2 := Hd).
 apply sym_eq.
 apply FIX_FLT_exp_subnormal.
-admit.
+intros Hxd0.
+apply Zeven_not_Zodd with (1 := Heu).
+rewrite canonic_unicity with (f2 := Float beta 1 emin) (1 := Hu).
+exact (Zodd_2p_plus_1 0).
+assert (H: xu = bpow emin).
+rewrite (ulp_pred_succ_pt beta FLTf (FLT_exp_correct emin prec Hp) x xd xu Hfx Hxd Hxu).
+rewrite Hxd0, Rplus_0_l.
+unfold ulp, F2R. simpl.
+rewrite Rmult_1_l.
+apply f_equal.
+unfold FLT_exp.
+apply Zmax_right.
+destruct (ln_beta beta x) as (ex, Hex).
+simpl.
+cut (ex - 1 <= emin + prec - 1)%Z. omega.
+apply <- epow_le.
+apply Rle_trans with (2 := Hx).
+rewrite <- (Rabs_pos_eq _ (Rlt_le _ _ Hx0)).
+apply Hex.
+now apply Rgt_not_eq.
+rewrite H.
+split.
+apply sym_eq.
+apply Rmult_1_l.
+unfold FLT_exp.
+rewrite ln_beta_unique with beta (bpow emin) (emin + 1)%Z.
+apply sym_eq.
+apply Zmax_right.
+simpl. omega.
+rewrite Rabs_pos_eq.
+split.
+apply -> epow_le.
+omega.
+apply -> epow_lt.
+apply Zlt_succ.
+apply epow_ge_0.
 rewrite Rabs_pos_eq.
 apply Rle_lt_trans with x.
 apply Hxd.
@@ -611,6 +624,7 @@ apply Hxu.
 rewrite Rabs_pos_eq.
 apply Rle_lt_trans with (bpow (emin + prec - 1)).
 apply Hxu.
+exists (Float beta (Zpower (radix_val beta) (prec - 1)) emin).
 admit.
 exact Hx.
 apply -> epow_lt.
@@ -624,14 +638,11 @@ Qed.
 
 Theorem Rnd_NE_pt_FLT :
   forall x f,
-  FLT_format beta emin prec f ->
   ( Rnd_gNE_pt FLTf x f <-> Rnd_NE_pt FLTf x f ).
 Proof.
-intros x f Hf.
 apply Rnd_NE_pt_aux.
 apply DN_UP_parity_aux.
 exact DN_UP_parity_FLT_pos.
-now apply -> FLT_format_generic.
 Qed.
 
 End Flocq_rnd_NE_FLT.

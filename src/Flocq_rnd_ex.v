@@ -91,11 +91,11 @@ intros Hx'.
 apply Hu.
 Qed.
 
-Theorem satisfies_any_imp_N2 :
+Theorem satisfies_any_imp_NG :
   forall (F : R -> Prop) (P : R -> R -> Prop),
   satisfies_any F ->
-  ( forall x d u, Rnd_DN_pt F x d -> Rnd_UP_pt F x u -> { P u d } + { P d u } ) ->
-  { rnd : R -> R | Rnd_N2 F P rnd }.
+  ( forall x d u, Rnd_DN_pt F x d -> Rnd_UP_pt F x u -> { P x u } + { P x d } ) ->
+  { rnd : R -> R | Rnd_NG F P rnd }.
 Proof.
 intros F P Hany HP.
 destruct (satisfies_any_imp_DN F Hany) as (rndd, Hd).
@@ -216,67 +216,26 @@ now apply Rlt_le.
 apply Rle_minus.
 now eapply Hd.
 (* *** away *)
-intros f Hf.
-assert (HPr: forall x, F x -> P x x).
-clear -HP.
-intros x HF.
-destruct (HP x x x) as [H|H] ;
-  repeat split ; trivial ; apply Rle_refl.
-destruct (Rnd_N_pt_DN_or_UP_eq F x _ _ f (Hd x) (Hu x) Hf) as [K|K] ; rewrite K.
 destruct (total_order_T (Rabs (rndu x - x)) (Rabs (rndd x - x))) as [[H|H]|H].
+right.
+intros f2 Hxf2.
+destruct (Rnd_N_pt_DN_or_UP_eq F x _ _ f2 (Hd x) (Hu x) Hxf2) as [K|K] ; rewrite K.
 elim Rlt_not_le with (1 := H).
 rewrite <- K.
-apply Hf.
+apply Hxf2.
 eapply Hu.
-destruct (HP x _ _ (Hd x) (Hu x)) as [H'|H'].
-exact H'.
-apply HPr.
-eapply Hd.
-apply HPr.
-eapply Hd.
-destruct (total_order_T (Rabs (rndu x - x)) (Rabs (rndd x - x))) as [[H|H]|H].
-apply HPr.
-eapply Hu.
-destruct (HP x _ _ (Hd x) (Hu x)) as [H'|H'].
-apply HPr.
-eapply Hu.
-exact H'.
-elim Rgt_not_le with (1 := H).
+apply refl_equal.
+destruct (HP x (rndd x) (rndu x) (Hd x) (Hu x)) as [H0|H0].
+now left.
+now left.
+right.
+intros f2 Hxf2.
+destruct (Rnd_N_pt_DN_or_UP_eq F x _ _ f2 (Hd x) (Hu x) Hxf2) as [K|K] ; rewrite K.
+apply refl_equal.
+elim Rlt_not_le with (1 := H).
 rewrite <- K.
-apply Hf.
+apply Hxf2.
 eapply Hd.
-Qed.
-
-Theorem satisfies_any_imp_N1 :
-  forall (F : R -> Prop) (P : R -> Prop),
-  satisfies_any F ->
-  ( forall x, F x -> P x \/ ~ P x ) ->
-  ( forall x d u, ~ F x -> Rnd_DN_pt F x d -> Rnd_UP_pt F x u -> { P d } + { P u } ) ->
-  { rnd : R -> R | Rnd_N1 F P rnd }.
-Proof.
-intros F P Hany EM HP.
-destruct (satisfies_any_imp_N2 F (fun f g => P f \/ g = f) Hany) as (rnd, Hr).
-(* . *)
-intros x d u Hxd Hxu.
-destruct (Req_EM_T d u) as [Hdu|Hdu].
-now left ; right.
-destruct (HP x d u) as [H|H] ; trivial.
-intros HF.
-apply Hdu.
-apply trans_eq with x.
-now apply Rnd_DN_pt_idempotent with F.
-apply sym_eq.
-now apply Rnd_UP_pt_idempotent with F.
-now right ; left.
-now left ; left.
-(* . *)
-exists rnd.
-intros x.
-apply <- Rnd_N1_N2_pt.
-apply (Hr x).
-intros f g Hf Hg.
-apply iff_refl.
-exact EM.
 Qed.
 
 Theorem satisfies_any_imp_NA :
@@ -285,12 +244,28 @@ Theorem satisfies_any_imp_NA :
   { rnd : R -> R | Rnd_NA F rnd }.
 Proof.
 intros F Hany.
-apply (satisfies_any_imp_N2 F (fun a b => (Rabs b <= Rabs a)%R) Hany).
+destruct (satisfies_any_imp_NG F (fun a b => (Rabs a <= Rabs b)%R) Hany) as (rnd, Hrnd).
 intros x d u Hxd Hxu.
-destruct (Rle_lt_dec (Rabs d) (Rabs u)) as [H|H].
-now left.
+destruct (Rle_lt_dec 0 x) as [Hx|Hx].
+left.
+rewrite Rabs_pos_eq with (1 := Hx).
+rewrite Rabs_pos_eq.
+apply Hxu.
+apply Rle_trans with (1 := Hx).
+apply Hxu.
 right.
-now apply Rlt_le.
+rewrite Rabs_left with (1 := Hx).
+rewrite Rabs_left1.
+apply Ropp_le_contravar.
+apply Hxd.
+apply Rlt_le.
+apply Rle_lt_trans with (2 := Hx).
+apply Hxd.
+exists rnd.
+intros x.
+apply <- Rnd_NA_NG_pt.
+apply Hrnd.
+apply Hany.
 Qed.
 
 End RND_ex.
