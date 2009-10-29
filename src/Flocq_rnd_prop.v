@@ -57,20 +57,35 @@ now apply Hr with (3 := Rle_refl x).
 now apply Hr with (3 := Rle_refl x).
 Qed.
 
+Theorem Rnd_DN_pt_monotone :
+  forall F : R -> Prop,
+  rounding_pred_monotone (Rnd_DN_pt F).
+Proof.
+intros F x y f g (Hx1,(Hx2,_)) (Hy1,(_,Hy2)) Hxy.
+apply Hy2.
+apply Hx1.
+now apply Rle_trans with (2 := Hxy).
+Qed.
+
+Theorem Rnd_DN_monotone :
+  forall F : R -> Prop,
+  forall rnd : R -> R,
+  Rnd_DN F rnd ->
+  MonotoneP rnd.
+Proof.
+intros F rnd Hr x y Hxy.
+now eapply Rnd_DN_pt_monotone.
+Qed.
+
 Theorem Rnd_DN_pt_unicity :
   forall F : R -> Prop,
   forall x f1 f2 : R,
   Rnd_DN_pt F x f1 -> Rnd_DN_pt F x f2 ->
   f1 = f2.
 Proof.
-intros F x f1 f2 H1 H2.
-apply Rle_antisym.
-eapply H2.
-now eapply H1.
-now eapply H1.
-eapply H1.
-now eapply H2.
-now eapply H2.
+intros F.
+apply rounding_unicity.
+apply Rnd_DN_pt_monotone.
 Qed.
 
 Theorem Rnd_DN_unicity :
@@ -83,20 +98,35 @@ intros F rnd1 rnd2 H1 H2 x.
 now eapply Rnd_DN_pt_unicity.
 Qed.
 
+Theorem Rnd_UP_pt_monotone :
+  forall F : R -> Prop,
+  rounding_pred_monotone (Rnd_UP_pt F).
+Proof.
+intros F x y f g (Hx1,(_,Hx2)) (Hy1,(Hy2,_)) Hxy.
+apply Hx2.
+apply Hy1.
+now apply Rle_trans with (1 := Hxy).
+Qed.
+
+Theorem Rnd_UP_monotone :
+  forall F : R -> Prop,
+  forall rnd : R -> R,
+  Rnd_UP F rnd ->
+  MonotoneP rnd.
+Proof.
+intros F rnd Hr x y Hxy.
+now eapply Rnd_UP_pt_monotone.
+Qed.
+
 Theorem Rnd_UP_pt_unicity :
   forall F : R -> Prop,
   forall x f1 f2 : R,
   Rnd_UP_pt F x f1 -> Rnd_UP_pt F x f2 ->
   f1 = f2.
 Proof.
-intros F x f1 f2 H2 H1.
-apply Rle_antisym.
-eapply H2.
-now eapply H1.
-now eapply H1.
-eapply H1.
-now eapply H2.
-now eapply H2.
+intros F.
+apply rounding_unicity.
+apply Rnd_UP_pt_monotone.
 Qed.
 
 Theorem Rnd_UP_unicity :
@@ -171,28 +201,6 @@ rewrite Ropp_involutive.
 apply H1.
 Qed.
 
-Theorem Rnd_DN_pt_monotone :
-  forall F : R -> Prop,
-  forall x y f g : R,
-  Rnd_DN_pt F x f -> Rnd_DN_pt F y g ->
-  x <= y -> f <= g.
-Proof.
-intros F x y f g (Hx1,(Hx2,_)) (Hy1,(_,Hy2)) Hxy.
-apply Hy2.
-apply Hx1.
-now apply Rle_trans with (2 := Hxy).
-Qed.
-
-Theorem Rnd_DN_monotone :
-  forall F : R -> Prop,
-  forall rnd : R -> R,
-  Rnd_DN F rnd ->
-  MonotoneP rnd.
-Proof.
-intros F rnd Hr x y Hxy.
-now eapply Rnd_DN_pt_monotone.
-Qed.
-
 Theorem Rnd_DN_pt_idempotent :
   forall F : R -> Prop,
   forall x f : R,
@@ -219,28 +227,6 @@ intros.
 eapply Hr.
 intros x Hx.
 now apply Rnd_DN_pt_idempotent with (2 := Hx).
-Qed.
-
-Theorem Rnd_UP_pt_monotone :
-  forall F : R -> Prop,
-  forall x y f g : R,
-  Rnd_UP_pt F x f -> Rnd_UP_pt F y g ->
-  x <= y -> f <= g.
-Proof.
-intros F x y f g (Hx1,(_,Hx2)) (Hy1,(Hy2,_)) Hxy.
-apply Hx2.
-apply Hy1.
-now apply Rle_trans with (1 := Hxy).
-Qed.
-
-Theorem Rnd_UP_monotone :
-  forall F : R -> Prop,
-  forall rnd : R -> R,
-  Rnd_UP F rnd ->
-  MonotoneP rnd.
-Proof.
-intros F rnd Hr x y Hxy.
-now eapply Rnd_UP_pt_monotone.
 Qed.
 
 Theorem Rnd_UP_pt_idempotent :
