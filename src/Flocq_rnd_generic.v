@@ -491,19 +491,18 @@ Qed.
 Theorem generic_format_satisfies_any :
   satisfies_any generic_format.
 Proof.
-refine ((fun D => Satisfies_any _ _ _ (projT1 D) (projT2 D)) _).
+split.
 (* symmetric set *)
 exact generic_format_0.
 exact generic_format_sym.
 (* rounding down *)
-exists (fun x =>
-  match Req_EM_T x 0 with
+intros x.
+exists (match Req_EM_T x 0 with
   | left Hx => R0
   | right Hx =>
     let e := fexp (projT1 (ln_beta beta x)) in
     F2R (Float beta (Zfloor (x * bpow (Zopp e))) e)
   end).
-intros x.
 destruct (Req_EM_T x 0) as [Hx|Hx].
 (* . *)
 split.

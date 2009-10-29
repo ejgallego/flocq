@@ -10,7 +10,7 @@ Open Scope R_scope.
 Inductive satisfies_any (F : R -> Prop) :=
   Satisfies_any :
     F 0 -> ( forall x : R, F x -> F (-x) ) ->
-    forall rnd : R -> R, Rnd_DN F rnd -> satisfies_any F.
+    rounding_pred_total (Rnd_DN_pt F) -> satisfies_any F.
 
 Theorem satisfies_any_eq :
   forall F1 F2 : R -> Prop,
@@ -18,44 +18,51 @@ Theorem satisfies_any_eq :
   satisfies_any F1 ->
   satisfies_any F2.
 Proof.
-intros F1 F2 Heq (Hzero, Hsym, rnd, Hrnd).
-refine (Satisfies_any _ _ _ rnd _).
+intros F1 F2 Heq (Hzero, Hsym, Hrnd).
+split.
 now apply -> Heq.
 intros x Hx.
 apply -> Heq.
 apply Hsym.
 now apply <- Heq.
 intros x.
-destruct (Hrnd x) as (H1, (H2, H3)).
+destruct (Hrnd x) as (f, (H1, (H2, H3))).
+exists f.
 split.
 now apply -> Heq.
 split.
 exact H2.
 intros g Hg Hgx.
-apply H3 ; try assumption.
+apply H3.
 now apply <- Heq.
+exact Hgx.
 Qed.
 
 Theorem satisfies_any_imp_DN :
   forall F : R -> Prop,
   satisfies_any F ->
-  { rnd : R -> R | Rnd_DN F rnd }.
+  rounding_pred (Rnd_DN_pt F).
 Proof.
-intros F (_,_,rnd,Hr).
-now exists rnd.
+intros F (_,_,Hrnd).
+split.
+apply Hrnd.
+apply Rnd_DN_pt_monotone.
 Qed.
 
 Theorem satisfies_any_imp_UP :
   forall F : R -> Prop,
   satisfies_any F ->
-  { rnd : R -> R | Rnd_UP F rnd }.
+  rounding_pred (Rnd_UP_pt F).
 Proof.
-intros F (_,H,rnd,Hr).
-exists (fun x => - rnd (-x)).
+intros F Hsat.
+split.
 intros x.
+destruct (rounding_val_of_pred (Rnd_DN_pt F) (satisfies_any_imp_DN F Hsat) (-x)) as (f, Hf).
+exists (-f).
 apply Rnd_DN_UP_pt_sym.
-apply H.
+apply Hsat.
 now rewrite Ropp_involutive.
+apply Rnd_UP_pt_monotone.
 Qed.
 
 Theorem satisfies_any_imp_ZR :
@@ -64,8 +71,8 @@ Theorem satisfies_any_imp_ZR :
   { rnd : R -> R | Rnd_ZR F rnd }.
 Proof.
 intros F S.
-destruct (satisfies_any_imp_DN F S) as (rndd, Hd).
-destruct (satisfies_any_imp_UP F S) as (rndu, Hu).
+destruct (rounding_fun_of_pred _ (satisfies_any_imp_DN F S)) as (rndd, Hd).
+destruct (rounding_fun_of_pred _ (satisfies_any_imp_UP F S)) as (rndu, Hu).
 exists (fun x =>
   match Rle_dec 0 x with
   | left _  => rndd x
@@ -78,7 +85,7 @@ intros _.
 apply Hd.
 intros Hx'.
 replace x with 0 by now apply Rle_antisym.
-generalize S. intros (S0,_,_,_).
+generalize S. intros (S0,_,_).
 rewrite Rnd_0 with F rndd ; trivial.
 repeat split ; auto with real.
 split.
@@ -98,8 +105,8 @@ Theorem satisfies_any_imp_NG :
   { rnd : R -> R | Rnd_NG F P rnd }.
 Proof.
 intros F P Hany HP.
-destruct (satisfies_any_imp_DN F Hany) as (rndd, Hd).
-destruct (satisfies_any_imp_UP F Hany) as (rndu, Hu).
+destruct (rounding_fun_of_pred _ (satisfies_any_imp_DN F Hany)) as (rndd, Hd).
+destruct (rounding_fun_of_pred _ (satisfies_any_imp_UP F Hany)) as (rndu, Hu).
 exists (fun x =>
   match total_order_T (Rabs (rndu x - x)) (Rabs (rndd x - x)) with
   | inleft (left  _ ) => rndu x

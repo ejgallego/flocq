@@ -119,7 +119,7 @@ Theorem ulp_error :
 Proof.
 intros rnd Hrnd x.
 assert (Hs := generic_format_satisfies_any beta _ prop_exp).
-destruct (satisfies_any_imp_DN F Hs) as (rndd, Hd).
+destruct (rounding_fun_of_pred _ (satisfies_any_imp_DN F Hs)) as (rndd, Hd).
 specialize (Hd x).
 destruct (Rle_lt_or_eq_dec (rndd x) x) as [Hxd|Hxd].
 (* x <> rnd x *)
@@ -130,7 +130,7 @@ apply Rlt_not_le with (1 := Hxd).
 apply Req_le.
 apply sym_eq.
 now apply Rnd_DN_pt_idempotent with (1 := Hd).
-destruct (satisfies_any_imp_UP F Hs) as (rndu, Hu).
+destruct (rounding_fun_of_pred _ (satisfies_any_imp_UP F Hs)) as (rndu, Hu).
 specialize (Hu x).
 assert (Hxu : (x < rndu x)%R).
 apply Rnot_le_lt.
@@ -172,7 +172,7 @@ Theorem ulp_half_error_pt :
 Proof.
 intros x xr Hxr.
 assert (Hs := generic_format_satisfies_any beta _ prop_exp).
-destruct (satisfies_any_imp_DN F Hs) as (rndd, Hd).
+destruct (rounding_fun_of_pred _ (satisfies_any_imp_DN F Hs)) as (rndd, Hd).
 specialize (Hd x).
 destruct (Rle_lt_or_eq_dec (rndd x) x) as [Hxd|Hxd].
 (* x <> rnd x *)
@@ -183,7 +183,7 @@ apply Rlt_not_le with (1 := Hxd).
 apply Req_le.
 apply sym_eq.
 now apply Rnd_DN_pt_idempotent with (1 := Hd).
-destruct (satisfies_any_imp_UP F Hs) as (rndu, Hu).
+destruct (rounding_fun_of_pred _ (satisfies_any_imp_UP F Hs)) as (rndu, Hu).
 specialize (Hu x).
 rewrite (ulp_pred_succ_pt _ _ _ Fx Hd Hu) in Hu.
 destruct Hxr as (Hr1, Hr2).
