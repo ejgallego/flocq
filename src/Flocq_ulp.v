@@ -9,7 +9,7 @@ Section Flocq_ulp.
 
 Variable beta : radix.
 
-Notation bpow e := (epow beta e).
+Notation bpow e := (bpow beta e).
 
 Variable fexp : Z -> Z.
 
@@ -48,7 +48,7 @@ assert (Hx5 : x = F2R (Float beta (Zfloor (x * bpow (- fexp ex))) (fexp ex))).
 unfold F2R. simpl.
 rewrite Hx4.
 rewrite Rmult_assoc.
-rewrite <- epow_add.
+rewrite <- bpow_add.
 rewrite Zplus_opp_l.
 now rewrite Rmult_1_r.
 apply Fx.
@@ -161,7 +161,7 @@ rewrite Rplus_opp_r.
 rewrite Rabs_R0.
 unfold ulp, F2R. simpl.
 rewrite Rmult_1_l.
-apply epow_gt_0.
+apply bpow_gt_0.
 apply Hd.
 Qed.
 
@@ -231,7 +231,7 @@ apply Rmult_le_pos.
 apply Rlt_le.
 apply Rinv_0_lt_compat.
 now apply (Z2R_lt 0 2).
-apply epow_ge_0.
+apply bpow_ge_0.
 apply Hd.
 Qed.
 
@@ -245,12 +245,12 @@ intros Hm x y Hx Hxy.
 unfold ulp.
 unfold F2R. simpl.
 rewrite 2!Rmult_1_l.
-apply -> epow_le.
+apply -> bpow_le.
 apply Hm.
 now apply ln_beta_monotone.
 Qed.
 
-Theorem ulp_epow :
+Theorem ulp_bpow :
   forall e, ulp (bpow e) = bpow (fexp (e + 1)).
 intros e.
 unfold ulp.
@@ -259,11 +259,11 @@ unfold F2R.
 now rewrite Rmult_1_l.
 rewrite Rabs_pos_eq.
 split.
-apply -> epow_le.
+apply -> bpow_le.
 omega.
-apply -> epow_lt.
+apply -> bpow_lt.
 omega.
-apply epow_ge_0.
+apply bpow_ge_0.
 Qed.
 
 End Flocq_ulp.

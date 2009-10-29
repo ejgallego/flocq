@@ -10,7 +10,7 @@ Section RND_FLT.
 
 Variable beta : radix.
 
-Notation bpow e := (epow beta e).
+Notation bpow e := (bpow beta e).
 
 Variable emin prec : Z.
 Variable Hp : Zlt 0 prec.
@@ -91,15 +91,15 @@ specialize (Hx4 Hx3).
 apply lt_Z2R.
 rewrite Z2R_Zpower.
 apply Rmult_lt_reg_r with (bpow (ex - prec)).
-apply epow_gt_0.
-rewrite <- epow_add.
+apply bpow_gt_0.
+rewrite <- bpow_add.
 replace (prec + (ex - prec))%Z with ex by ring.
 apply Rle_lt_trans with (Z2R (Zabs xm) * bpow xe)%R.
 rewrite Hx2.
 apply Rmult_le_compat_l.
 apply (Z2R_le 0).
 apply Zabs_pos.
-apply -> epow_le.
+apply -> bpow_le.
 apply Zle_max_l.
 replace (Z2R (Zabs xm) * bpow xe)%R with (Rabs x).
 exact (proj2 Hx4).
@@ -151,7 +151,7 @@ simpl.
 apply sym_eq.
 apply Zmax_left.
 cut (emin + prec <= ex)%Z. omega.
-apply epow_lt_epow with beta.
+apply bpow_lt_bpow with beta.
 apply Rle_lt_trans with (1 := Hx1).
 now apply Hx5.
 Qed.
@@ -177,11 +177,11 @@ eexists ; repeat split.
 apply lt_Z2R.
 rewrite Z2R_Zpower.
 apply Rmult_lt_reg_r with (bpow xe).
-apply epow_gt_0.
+apply bpow_gt_0.
 rewrite H1, abs_F2R in Hx.
 apply Rlt_le_trans with (1 := Hx).
-rewrite <- epow_add.
-apply -> epow_le.
+rewrite <- bpow_add.
+apply -> bpow_le.
 rewrite Zplus_comm, <- H2.
 apply Zle_refl.
 now apply Zlt_le_weak.

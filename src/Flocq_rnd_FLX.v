@@ -9,7 +9,7 @@ Section RND_FLX.
 
 Variable beta : radix.
 
-Notation bpow e := (epow beta e).
+Notation bpow e := (bpow beta e).
 
 Variable prec : Z.
 Variable Hp : Zlt 0 prec.
@@ -52,8 +52,8 @@ rewrite H1.
 eexists ; repeat split.
 apply lt_Z2R.
 apply Rmult_lt_reg_r with (bpow (e - prec)).
-apply epow_gt_0.
-rewrite Z2R_Zpower, <- epow_add.
+apply bpow_gt_0.
+rewrite Z2R_Zpower, <- bpow_add.
 ring_simplify (prec + (e - prec))%Z.
 rewrite <- H2.
 simpl.
@@ -154,18 +154,17 @@ destruct (ln_beta beta (Z2R xm)) as (d,H4).
 specialize (H4 (Z2R_neq _ _ H3)).
 assert (H5: (0 <= prec - d)%Z).
 cut (d - 1 < prec)%Z. omega.
-apply <- (epow_lt beta).
+apply <- (bpow_lt beta).
 apply Rle_lt_trans with (Rabs (Z2R xm)).
 apply H4.
-rewrite <- Z2R_Zpower.
-rewrite Rabs_Z2R.
+rewrite <- Z2R_Zpower, <- abs_Z2R.
 now apply Z2R_lt.
 now apply Zlt_le_weak.
 exists (Float beta (xm * Zpower (radix_val beta) (prec - d)) (xe + d - prec)).
 split.
 unfold F2R. simpl.
 rewrite mult_Z2R, Z2R_Zpower.
-rewrite Rmult_assoc, <- epow_add.
+rewrite Rmult_assoc, <- bpow_add.
 rewrite H1.
 now ring_simplify (prec - d + (xe + d - prec))%Z.
 exact H5.
@@ -173,29 +172,29 @@ intros _. simpl.
 split.
 apply le_Z2R.
 apply Rmult_le_reg_r with (bpow (d - prec)).
-apply epow_gt_0.
-rewrite <- Rabs_Z2R, mult_Z2R, Rabs_mult, 2!Z2R_Zpower.
-rewrite <- epow_add.
-rewrite Rabs_Z2R.
+apply bpow_gt_0.
+rewrite abs_Z2R, mult_Z2R, Rabs_mult, 2!Z2R_Zpower.
+rewrite <- bpow_add.
+rewrite <- abs_Z2R.
 rewrite Rabs_pos_eq.
-rewrite Rmult_assoc, <- epow_add.
+rewrite Rmult_assoc, <- bpow_add.
 ring_simplify (prec - 1 + (d - prec))%Z.
 ring_simplify (prec - d + (d - prec))%Z.
-now rewrite Rmult_1_r, <- Rabs_Z2R.
-apply epow_ge_0.
+now rewrite Rmult_1_r, abs_Z2R.
+apply bpow_ge_0.
 exact H5.
 omega.
 apply lt_Z2R.
-rewrite <- Rabs_Z2R, mult_Z2R, Rabs_mult.
+rewrite abs_Z2R, mult_Z2R, Rabs_mult.
 rewrite 2!Z2R_Zpower.
-rewrite Rabs_Z2R, Rabs_pos_eq.
+rewrite <- abs_Z2R, Rabs_pos_eq.
 apply Rmult_lt_reg_r with (bpow (d - prec)).
-apply epow_gt_0.
-rewrite Rmult_assoc, <- 2!epow_add.
+apply bpow_gt_0.
+rewrite Rmult_assoc, <- 2!bpow_add.
 ring_simplify (prec + (d - prec))%Z.
 ring_simplify (prec - d + (d - prec))%Z.
-now rewrite Rmult_1_r, <- Rabs_Z2R.
-apply epow_ge_0.
+now rewrite Rmult_1_r, abs_Z2R.
+apply bpow_ge_0.
 now apply Zlt_le_weak.
 exact H5.
 (* . *)

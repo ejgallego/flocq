@@ -5,7 +5,7 @@ Section Float_prop.
 
 Variable beta : radix.
 
-Notation bpow e := (epow beta e).
+Notation bpow e := (bpow beta e).
 
 Theorem F2R_ge_0_reg :
   forall m e : Z,
@@ -15,7 +15,7 @@ Proof.
 intros m e H.
 apply le_Z2R.
 apply Rmult_le_reg_r with (bpow e).
-apply epow_gt_0.
+apply bpow_gt_0.
 now rewrite Rmult_0_l.
 Qed.
 
@@ -28,7 +28,7 @@ intros m e H.
 apply le_Z2R.
 apply Ropp_le_cancel.
 apply Rmult_le_reg_r with (bpow e).
-apply epow_gt_0.
+apply bpow_gt_0.
 simpl (Z2R 0).
 rewrite Ropp_0.
 rewrite Rmult_0_l.
@@ -45,7 +45,7 @@ Proof.
 intros m e H.
 apply lt_Z2R.
 apply Rmult_lt_reg_r with (bpow e).
-apply epow_gt_0.
+apply bpow_gt_0.
 now rewrite Rmult_0_l.
 Qed.
 
@@ -58,7 +58,7 @@ intros f Hm.
 unfold F2R.
 apply Rmult_lt_0_compat.
 now apply (Z2R_lt 0).
-apply epow_gt_0.
+apply bpow_gt_0.
 Qed.
 
 Theorem F2R_le_reg :
@@ -69,7 +69,7 @@ Proof.
 intros e m1 m2 H.
 apply le_Z2R.
 apply Rmult_le_reg_r with (bpow e).
-apply epow_gt_0.
+apply bpow_gt_0.
 exact H.
 Qed.
 
@@ -81,7 +81,7 @@ Proof.
 intros m1 m2 e H.
 unfold F2R. simpl.
 apply Rmult_le_compat_r.
-apply epow_ge_0.
+apply bpow_ge_0.
 now apply Z2R_le.
 Qed.
 
@@ -93,7 +93,7 @@ Proof.
 intros e m1 m2 H.
 apply lt_Z2R.
 apply Rmult_lt_reg_r with (bpow e).
-apply epow_gt_0.
+apply bpow_gt_0.
 exact H.
 Qed.
 
@@ -105,11 +105,11 @@ Proof.
 intros e m1 m2 H.
 unfold F2R. simpl.
 apply Rmult_lt_compat_r.
-apply epow_gt_0.
+apply bpow_gt_0.
 now apply Z2R_lt.
 Qed.
 
-Theorem epow_le_F2R :
+Theorem bpow_le_F2R :
   forall m e : Z,
   (0 < m)%Z ->
   (bpow e <= F2R (Float beta m e))%R.
@@ -118,12 +118,12 @@ intros m e H.
 rewrite <- (Rmult_1_l (bpow e)).
 unfold F2R. simpl.
 apply Rmult_le_compat_r.
-apply epow_ge_0.
+apply bpow_ge_0.
 apply (Z2R_le 1).
 now apply (Zlt_le_succ 0).
 Qed.
 
-Theorem F2R_p1_le_epow :
+Theorem F2R_p1_le_bpow :
   forall m e1 e2 : Z,
   (0 < m)%Z ->
   (F2R (Float beta m e1) < bpow e2)%R ->
@@ -133,29 +133,29 @@ intros m e1 e2 Hm.
 intros H.
 assert (He : (e1 <= e2)%Z).
 (* . *)
-apply <- (epow_le beta).
+apply <- (bpow_le beta).
 apply Rle_trans with (F2R (Float beta m e1)).
 unfold F2R. simpl.
 rewrite <- (Rmult_1_l (bpow e1)) at 1.
 apply Rmult_le_compat_r.
-apply epow_ge_0.
+apply bpow_ge_0.
 apply (Z2R_le 1).
 now apply (Zlt_le_succ 0).
 now apply Rlt_le.
 (* . *)
 revert H.
 replace e2 with (e2 - e1 + e1)%Z by ring.
-rewrite epow_add.
+rewrite bpow_add.
 unfold F2R. simpl.
 rewrite <- (Z2R_Zpower beta (e2 - e1)).
 intros H.
 apply Rmult_le_compat_r.
-apply epow_ge_0.
+apply bpow_ge_0.
 apply Rmult_lt_reg_r in H.
 apply Z2R_le.
 apply Zlt_le_succ.
 now apply lt_Z2R.
-apply epow_gt_0.
+apply bpow_gt_0.
 now apply Zle_minus_le_0.
 Qed.
 
@@ -166,12 +166,12 @@ Proof.
 intros m e.
 unfold F2R.
 rewrite Rabs_mult.
-rewrite Rabs_Z2R.
+rewrite <- abs_Z2R.
 simpl.
 apply f_equal.
 apply Rabs_right.
 apply Rle_ge.
-apply epow_ge_0.
+apply bpow_ge_0.
 Qed.
 
 Theorem opp_F2R :
@@ -194,7 +194,7 @@ unfold F2R. simpl.
 rewrite mult_Z2R, Z2R_Zpower, Rmult_assoc.
 apply f_equal.
 pattern e at 1 ; replace e with (e - e' + e')%Z by ring.
-apply epow_add.
+apply bpow_add.
 now apply Zle_minus_le_0.
 Qed.
 
@@ -212,11 +212,11 @@ now elim (Zle_not_lt _ _ (Zabs_pos m)).
 replace (e - e' + p)%Z with (e - (e' - p))%Z by ring.
 apply F2R_change_exp.
 cut (e' - 1 < e + p)%Z. omega.
-apply <- epow_lt.
+apply <- bpow_lt.
 apply Rle_lt_trans with (1 := Hf).
-rewrite abs_F2R, Zplus_comm, epow_add.
+rewrite abs_F2R, Zplus_comm, bpow_add.
 apply Rmult_lt_compat_r.
-apply epow_gt_0.
+apply bpow_gt_0.
 rewrite <- Z2R_Zpower.
 now apply Z2R_lt.
 exact Hp.
@@ -234,16 +234,16 @@ specialize (Hd (Z2R_neq _ _ H)).
 apply ln_beta_unique.
 rewrite abs_F2R.
 unfold F2R. simpl.
-rewrite Rabs_Z2R in Hd.
+rewrite <- abs_Z2R in Hd.
 split.
 replace (d + e - 1)%Z with (d - 1 + e)%Z by ring.
-rewrite epow_add.
+rewrite bpow_add.
 apply Rmult_le_compat_r.
-apply epow_ge_0.
+apply bpow_ge_0.
 apply Hd.
-rewrite epow_add.
+rewrite bpow_add.
 apply Rmult_lt_compat_r.
-apply epow_gt_0.
+apply bpow_gt_0.
 apply Hd.
 Qed.
 
@@ -287,7 +287,7 @@ apply Rlt_gt.
 unfold F2R. simpl.
 apply Rmult_lt_0_compat.
 now apply (Z2R_lt 0).
-apply epow_gt_0.
+apply bpow_gt_0.
 now apply Zlt_le_weak.
 clear H1.
 rewrite abs_F2R, Zabs_eq.
@@ -296,7 +296,7 @@ apply Rlt_le.
 apply Rle_lt_trans with (2 := H12).
 apply H2.
 apply Rlt_le_trans with (1 := H21).
-now apply F2R_p1_le_epow.
+now apply F2R_p1_le_bpow.
 now apply Zlt_le_weak.
 apply sym_not_eq.
 now apply Zlt_not_eq.

@@ -10,7 +10,7 @@ Implicit Arguments Fexp [[beta]].
 Variable beta : radix.
 
 Definition F2R (f : float beta) :=
-  (Z2R (Fnum f) * epow beta (Fexp f))%R.
+  (Z2R (Fnum f) * bpow beta (Fexp f))%R.
 
 Definition MonotoneP (rnd : R -> R) :=
   forall x y : R,

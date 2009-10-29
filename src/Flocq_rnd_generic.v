@@ -8,7 +8,7 @@ Section RND_generic.
 
 Variable beta : radix.
 
-Notation bpow e := (epow beta e).
+Notation bpow e := (bpow beta e).
 
 Variable fexp : Z -> Z.
 
@@ -37,9 +37,9 @@ Proof.
 intros x ex He1 Hx1.
 unfold F2R. simpl.
 replace (ex - 1)%Z with ((ex - 1 - fexp ex) + fexp ex)%Z by ring.
-rewrite epow_add.
+rewrite bpow_add.
 apply Rmult_le_compat_r.
-apply epow_ge_0.
+apply bpow_ge_0.
 assert (Hx2 : bpow (ex - 1 - fexp ex) = Z2R (Zpower (radix_val beta) (ex - 1 - fexp ex))).
 apply sym_eq.
 apply Z2R_Zpower.
@@ -49,9 +49,9 @@ apply Z2R_le.
 apply Zfloor_lub.
 rewrite <- Hx2.
 unfold Zminus at 1.
-rewrite epow_add.
+rewrite bpow_add.
 apply Rmult_le_compat_r.
-apply epow_ge_0.
+apply bpow_ge_0.
 exact Hx1.
 Qed.
 
@@ -70,10 +70,10 @@ assert (Hrx : (F2R (Float beta (Zfloor (x * bpow (- fexp ex))) (fexp ex)) <= x)%
 unfold F2R. simpl.
 pattern x at 2 ; replace x with ((x * bpow (- fexp ex)) * bpow (fexp ex))%R.
 apply Rmult_le_compat_r.
-apply epow_ge_0.
+apply bpow_ge_0.
 apply Zfloor_lb.
 rewrite Rmult_assoc.
-rewrite <- epow_add.
+rewrite <- bpow_add.
 rewrite Zplus_opp_l.
 apply Rmult_1_r.
 split.
@@ -88,7 +88,7 @@ split.
 exact Hbl.
 now apply Rle_lt_trans with (2 := Hx2).
 apply Rle_trans with (2 := Hbl).
-apply epow_ge_0.
+apply bpow_ge_0.
 split.
 exact Hrx.
 (* - . biggest *)
@@ -96,7 +96,7 @@ intros g ((gm, ge), (Hg1, Hg2)) Hgx.
 destruct (Rle_or_lt g R0) as [Hg3|Hg3].
 apply Rle_trans with (2 := Hbl).
 apply Rle_trans with (1 := Hg3).
-apply epow_ge_0.
+apply bpow_ge_0.
 apply Rnot_lt_le.
 intros Hrg.
 assert (bpow (ex - 1) <= g < bpow ex)%R.
@@ -111,13 +111,13 @@ apply Rlt_not_le with (1 := Hrg).
 rewrite Hg1, Hg2.
 unfold F2R. simpl.
 apply Rmult_le_compat_r.
-apply epow_ge_0.
+apply bpow_ge_0.
 apply Z2R_le.
 apply Zfloor_lub.
 apply Rmult_le_reg_r with (bpow (fexp ex)).
-apply epow_gt_0.
+apply bpow_gt_0.
 rewrite Rmult_assoc.
-rewrite <- epow_add.
+rewrite <- bpow_add.
 rewrite Zplus_opp_l.
 rewrite Rmult_1_r.
 unfold F2R in Hg1.
@@ -135,7 +135,7 @@ unfold F2R. simpl.
 now rewrite Rmult_0_l.
 split.
 apply Rle_trans with (2 := Hx1).
-apply epow_ge_0.
+apply bpow_ge_0.
 (* - . biggest *)
 intros g ((gm, ge), (Hg1, Hg2)) Hgx.
 apply Rnot_lt_le.
@@ -146,14 +146,14 @@ specialize (Hg4 (Rgt_not_eq _ _ Hg3)).
 rewrite Rabs_pos_eq in Hg4.
 apply (Rlt_not_le _ _ (Rle_lt_trans _ _ _ Hgx Hx2)).
 apply Rle_trans with (bpow ge).
-apply -> epow_le.
+apply -> bpow_le.
 simpl in Hg2.
 rewrite Hg2.
 rewrite (proj2 (proj2 (prop_exp ex) He1) ge').
 exact He1.
 apply Zle_trans with (2 := He1).
 cut (ge' - 1 < ex)%Z. omega.
-apply <- epow_lt.
+apply <- bpow_lt.
 apply Rle_lt_trans with (2 := Hx2).
 apply Rle_trans with (2 := Hgx).
 exact (proj1 Hg4).
@@ -161,12 +161,12 @@ rewrite Hg1.
 unfold F2R. simpl.
 pattern (bpow ge) at 1 ; rewrite <- Rmult_1_l.
 apply Rmult_le_compat_r.
-apply epow_ge_0.
+apply bpow_ge_0.
 apply (Z2R_le 1).
 apply (Zlt_le_succ 0).
 apply lt_Z2R.
 apply Rmult_lt_reg_r with (bpow ge).
-apply epow_gt_0.
+apply bpow_gt_0.
 rewrite Rmult_0_l.
 unfold F2R in Hg1. simpl in Hg1.
 now rewrite <- Hg1.
@@ -178,16 +178,16 @@ simpl.
 split.
 apply Rmult_le_pos.
 apply Rle_trans with (2 := Hx1).
-apply epow_ge_0.
-apply epow_ge_0.
+apply bpow_ge_0.
+apply bpow_ge_0.
 apply Rmult_lt_reg_r with (bpow (fexp ex)).
-apply epow_gt_0.
+apply bpow_gt_0.
 rewrite Rmult_assoc.
-rewrite <- epow_add.
+rewrite <- bpow_add.
 rewrite Zplus_opp_l.
 rewrite Rmult_1_r, Rmult_1_l.
 apply Rlt_le_trans with (1 := Hx2).
-now apply -> epow_le.
+now apply -> bpow_le.
 Qed.
 
 Theorem generic_DN_pt_neg :
@@ -200,17 +200,17 @@ assert (Hx : (x < 0)%R).
 apply Ropp_lt_cancel.
 rewrite Ropp_0.
 apply Rlt_le_trans with (2 := Hx1).
-apply epow_gt_0.
+apply bpow_gt_0.
 assert (Hbr : (F2R (Float beta (Zfloor (x * bpow (- fexp ex))) (fexp ex)) <= x)%R).
 (* - bounded right *)
 unfold F2R. simpl.
 pattern x at 2 ; rewrite <- Rmult_1_r.
 change R1 with (bpow Z0).
 rewrite <- (Zplus_opp_l (fexp ex)).
-rewrite epow_add.
+rewrite bpow_add.
 rewrite <- Rmult_assoc.
 apply Rmult_le_compat_r.
-apply epow_ge_0.
+apply bpow_ge_0.
 apply Zfloor_lb.
 destruct (Z_lt_le_dec (fexp ex) ex) as [He1|He1].
 (* - negative big enough *)
@@ -218,10 +218,10 @@ assert (Hbl : (- bpow ex <= F2R (Float beta (Zfloor (x * bpow (- fexp ex))) (fex
 (* - . bounded left *)
 unfold F2R. simpl.
 pattern ex at 1 ; replace ex with (ex - fexp ex + fexp ex)%Z by ring.
-rewrite epow_add.
+rewrite bpow_add.
 rewrite <- Ropp_mult_distr_l_reverse.
 apply Rmult_le_compat_r.
-apply epow_ge_0.
+apply bpow_ge_0.
 assert (Hp : (- bpow (ex - fexp ex) = Z2R (- Zpower (radix_val beta) (ex - fexp ex)))%R).
 rewrite <- Z2R_Zpower.
 now rewrite opp_Z2R.
@@ -231,10 +231,10 @@ apply Z2R_le.
 apply Zfloor_lub.
 rewrite <- Hp.
 unfold Zminus.
-rewrite epow_add.
+rewrite bpow_add.
 rewrite <- Ropp_mult_distr_l_reverse.
 apply Rmult_le_compat_r.
-apply epow_ge_0.
+apply bpow_ge_0.
 apply Ropp_le_cancel.
 rewrite Ropp_involutive.
 now apply Rlt_le.
@@ -268,7 +268,7 @@ unfold canonic, F2R. simpl.
 split.
 clear -He2.
 pattern ex at 1 ; replace ex with (ex - fexp (ex + 1) + fexp (ex + 1))%Z by ring.
-rewrite epow_add.
+rewrite bpow_add.
 rewrite <- Ropp_mult_distr_l_reverse.
 rewrite opp_Z2R.
 apply (f_equal (fun x => (- x * _)%R)).
@@ -281,12 +281,12 @@ apply ln_beta_unique.
 rewrite Rabs_Ropp.
 rewrite Rabs_right.
 split.
-apply -> epow_le.
+apply -> bpow_le.
 omega.
-apply -> epow_lt.
+apply -> bpow_lt.
 apply Zlt_succ.
 apply Rle_ge.
-apply epow_ge_0.
+apply bpow_ge_0.
 split.
 exact Hbr.
 (* - . biggest *)
@@ -303,7 +303,7 @@ rewrite Hg1.
 unfold F2R. simpl.
 rewrite Hg2.
 assert (Hge' : ge' = ex).
-apply epow_unique with (1 := Hge).
+apply bpow_unique with (1 := Hge).
 split.
 apply Rle_trans with (1 := Hx1).
 rewrite Rabs_left with (1 := Hg4).
@@ -314,13 +314,13 @@ rewrite Ropp_involutive.
 now apply Rle_lt_trans with (1 := Hbl).
 rewrite Hge'.
 apply Rmult_le_compat_r.
-apply epow_ge_0.
+apply bpow_ge_0.
 apply Z2R_le.
 apply Zfloor_lub.
 apply Rmult_le_reg_r with (bpow (fexp ex)).
-apply epow_gt_0.
+apply bpow_gt_0.
 rewrite Rmult_assoc.
-rewrite <- epow_add.
+rewrite <- bpow_add.
 rewrite Zplus_opp_l.
 rewrite Rmult_1_r.
 rewrite <- Hge'.
@@ -340,7 +340,7 @@ unfold canonic, F2R. simpl.
 split.
 rewrite opp_Z2R.
 pattern (fexp ex) at 1 ; replace (fexp ex) with (fexp ex - fexp (fexp ex + 1) + fexp (fexp ex + 1))%Z by ring.
-rewrite epow_add.
+rewrite bpow_add.
 rewrite Ropp_mult_distr_l_reverse.
 apply (f_equal (fun x => (- (x * _))%R)).
 apply sym_eq.
@@ -354,16 +354,16 @@ rewrite Rabs_pos_eq.
 split.
 replace (fexp ex + 1 - 1)%Z with (fexp ex) by ring.
 apply Rle_refl.
-apply -> epow_lt.
+apply -> bpow_lt.
 apply Zlt_succ.
-apply epow_ge_0.
+apply bpow_ge_0.
 split.
 (* - . smaller *)
 apply Ropp_le_cancel.
 rewrite Ropp_involutive.
 apply Rlt_le.
 apply Rlt_le_trans with (1 := Hx2).
-now apply -> epow_le.
+now apply -> bpow_le.
 (* - . biggest *)
 intros g ((gm, ge), (Hg1, Hg2)) Hgx.
 apply Rnot_lt_le.
@@ -376,7 +376,7 @@ specialize (Hge (Rlt_not_eq g 0 Hg4)).
 rewrite (Rabs_left _ Hg4) in Hge.
 assert (Hge' : (ge' <= fexp ex)%Z).
 cut (ge' - 1 < fexp ex)%Z. omega.
-apply <- epow_lt.
+apply <- bpow_lt.
 apply Rle_lt_trans with (1 := proj1 Hge).
 apply Ropp_lt_cancel.
 now rewrite Ropp_involutive.
@@ -387,17 +387,17 @@ rewrite Hg1.
 unfold F2R. simpl.
 rewrite <- Ropp_mult_distr_l_reverse.
 replace ge with (ge - ge' + ge')%Z by ring.
-rewrite epow_add.
+rewrite bpow_add.
 rewrite <- Rmult_assoc.
 pattern (bpow ge') at 1 ; rewrite <- Rmult_1_l.
 apply Rmult_le_compat_r.
-apply epow_ge_0.
+apply bpow_ge_0.
 rewrite <- opp_Z2R.
 assert (1 <= -gm)%Z.
 apply (Zlt_le_succ 0).
 apply lt_Z2R.
 apply Rmult_lt_reg_r with (bpow ge).
-apply epow_gt_0.
+apply bpow_gt_0.
 rewrite Rmult_0_l.
 change (0 < F2R (Float beta (-gm) ge))%R.
 rewrite <- opp_F2R.
@@ -406,10 +406,10 @@ rewrite <- Ropp_0.
 now apply Ropp_lt_contravar.
 apply Rle_trans with (1 * bpow (ge - ge'))%R.
 rewrite Rmult_1_l.
-apply -> (epow_le beta 0).
+apply -> (bpow_le beta 0).
 omega.
 apply Rmult_le_compat_r.
-apply epow_ge_0.
+apply bpow_ge_0.
 now apply (Z2R_le 1).
 (* - . . *)
 apply sym_eq.
@@ -418,18 +418,18 @@ simpl.
 split.
 apply Rle_trans with (- bpow ex * bpow (- fexp ex))%R.
 rewrite Ropp_mult_distr_l_reverse.
-rewrite <- epow_add.
+rewrite <- bpow_add.
 apply Ropp_le_contravar.
-apply (proj1 (epow_le beta _ 0)).
+apply (proj1 (bpow_le beta _ 0)).
 omega.
 apply Rmult_le_compat_r.
-apply epow_ge_0.
+apply bpow_ge_0.
 apply Ropp_le_cancel.
 rewrite Ropp_involutive.
 now apply Rlt_le.
 rewrite <- (Rmult_0_l (bpow (- fexp ex))).
 apply Rmult_lt_compat_r.
-apply epow_gt_0.
+apply bpow_gt_0.
 exact Hx.
 Qed.
 
@@ -456,7 +456,7 @@ apply Rmult_eq_reg_r with (bpow e1).
 change (F2R (Float beta m1 e1) = F2R (Float beta m2 e1)).
 now rewrite <- H1a, H1b, <- H2b.
 apply Rgt_not_eq.
-apply epow_gt_0.
+apply bpow_gt_0.
 Qed.
 
 Theorem canonic_sym :
@@ -538,7 +538,7 @@ unfold F2R. simpl.
 now rewrite Rmult_0_l.
 split.
 apply Rle_trans with (2 := proj1 Hx).
-apply epow_ge_0.
+apply bpow_ge_0.
 (* . *)
 intros g ((gm, ge), (Hg1, Hg2)) Hgx.
 apply Rnot_lt_le.
@@ -553,16 +553,16 @@ apply Rlt_le_trans with (1 := proj2 Hx).
 rewrite (proj2 (proj2 (prop_exp _) He) eg) in Hg2.
 rewrite Hg2.
 apply Rle_trans with (bpow (fexp ex)).
-now apply -> epow_le.
+now apply -> bpow_le.
 rewrite <- Hg2.
 rewrite Hg1 in Hg3.
-apply epow_le_F2R.
+apply bpow_le_F2R.
 apply F2R_gt_0_reg with (1 := Hg3).
-apply epow_lt_epow with beta.
+apply bpow_lt_bpow with beta.
 apply Rlt_le_trans with (bpow ex).
 apply Rle_lt_trans with (2 := proj2 Hx).
 now apply Rle_trans with g.
-now apply -> epow_le.
+now apply -> bpow_le.
 apply Rle_ge.
 now apply Rlt_le.
 Qed.
@@ -577,7 +577,7 @@ intros x ex Hx He.
 assert (bpow (fexp ex) = F2R (Float beta (Zpower (radix_val beta) (fexp ex - fexp (fexp ex + 1))) (fexp (fexp ex + 1)))).
 unfold F2R. simpl.
 rewrite Z2R_Zpower.
-rewrite <- epow_add.
+rewrite <- bpow_add.
 apply f_equal.
 ring.
 generalize (proj1 (proj2 (prop_exp ex) He)).
@@ -595,22 +595,22 @@ split.
 replace (fexp ex + 1 - 1)%Z with (fexp ex) by ring.
 apply RRle_abs.
 rewrite Rabs_pos_eq.
-apply -> epow_lt.
+apply -> bpow_lt.
 apply Zle_lt_succ.
 apply Zle_refl.
-apply epow_ge_0.
+apply bpow_ge_0.
 split.
 (* . *)
 apply Rlt_le.
 apply Rlt_le_trans with (1 := proj2 Hx).
-now apply -> epow_le.
+now apply -> bpow_le.
 (* . *)
 intros g ((gm, ge), (Hg1, Hg2)) Hgx.
 assert (g <> R0).
 apply Rgt_not_eq.
 apply Rlt_le_trans with (2 := Hgx).
 apply Rlt_le_trans with (2 := proj1 Hx).
-apply epow_gt_0.
+apply bpow_gt_0.
 destruct (ln_beta beta g) as (eg, Hg3).
 simpl in Hg2.
 specialize (Hg3 H0).
@@ -620,20 +620,20 @@ apply Rlt_not_le with (1 := Hgp).
 rewrite <- (proj2 (proj2 (prop_exp ex) He) eg).
 rewrite <- Hg2.
 rewrite Hg1.
-apply epow_le_F2R.
+apply bpow_le_F2R.
 apply F2R_gt_0_reg with beta ge.
 rewrite <- Hg1.
 apply Rlt_le_trans with (2 := Hgx).
 apply Rlt_le_trans with (2 := proj1 Hx).
-apply epow_gt_0.
-apply epow_lt_epow with beta.
+apply bpow_gt_0.
+apply bpow_lt_bpow with beta.
 apply Rle_lt_trans with g.
 rewrite <- (Rabs_right g).
 apply Hg3.
 apply Rle_ge.
 apply Rle_trans with (2 := Hgx).
 apply Rle_trans with (2 := proj1 Hx).
-apply epow_ge_0.
+apply bpow_ge_0.
 exact Hgp.
 Qed.
 
@@ -651,7 +651,7 @@ unfold canonic, F2R. simpl.
 split.
 (* . *)
 rewrite Z2R_Zpower.
-rewrite <- epow_add.
+rewrite <- bpow_add.
 apply f_equal.
 ring.
 generalize (proj1 (prop_exp _) He).
@@ -664,9 +664,9 @@ rewrite Rabs_pos_eq.
 split.
 ring_simplify (ex + 1 - 1)%Z.
 apply Rle_refl.
-apply -> epow_lt.
+apply -> bpow_lt.
 apply Zlt_succ.
-apply epow_ge_0.
+apply bpow_ge_0.
 Qed.
 
 Theorem generic_UP_pt_pos :

@@ -3,7 +3,7 @@ Require Export ZArith.
 
 Section Rmissing.
 
-Lemma Rle_0_minus :
+Theorem Rle_0_minus :
   forall x y, (x <= y)%R -> (0 <= y - x)%R.
 Proof.
 intros.
@@ -12,7 +12,7 @@ apply Rge_minus.
 now apply Rle_ge.
 Qed.
 
-Lemma Rabs_eq_Rabs :
+Theorem Rabs_eq_Rabs :
   forall x y : R,
   Rabs x = Rabs y -> x = y \/ x = Ropp y.
 Proof.
@@ -30,7 +30,7 @@ rewrite H.
 now destruct (Rcase_abs y) as [_|_] ; [right|left].
 Qed.
 
-Lemma Rplus_le_reg_r :
+Theorem Rplus_le_reg_r :
   forall r r1 r2 : R,
   (r1 + r <= r2 + r)%R -> (r1 <= r2)%R.
 Proof.
@@ -39,7 +39,7 @@ apply Rplus_le_reg_l with r.
 now rewrite 2!(Rplus_comm r).
 Qed.
 
-Lemma Rmult_lt_reg_r :
+Theorem Rmult_lt_reg_r :
   forall r r1 r2 : R, (0 < r)%R ->
   (r1 * r < r2 * r)%R -> (r1 < r2)%R.
 Proof.
@@ -49,7 +49,7 @@ exact H.
 now rewrite 2!(Rmult_comm r).
 Qed.
 
-Lemma Rmult_le_reg_r :
+Theorem Rmult_le_reg_r :
   forall r r1 r2 : R, (0 < r)%R ->
   (r1 * r <= r2 * r)%R -> (r1 <= r2)%R.
 Proof.
@@ -59,7 +59,7 @@ exact H.
 now rewrite 2!(Rmult_comm r).
 Qed.
 
-Lemma Rmult_eq_reg_r :
+Theorem Rmult_eq_reg_r :
   forall r r1 r2 : R, (r1 * r)%R = (r2 * r)%R ->
   r <> 0%R -> r1 = r2.
 Proof.
@@ -69,7 +69,7 @@ now rewrite 2!(Rmult_comm r).
 exact H2.
 Qed.
 
-Lemma exp_increasing_weak :
+Theorem exp_increasing_weak :
   forall x y : R,
   (x <= y)%R -> (exp x <= exp y)%R.
 Proof.
@@ -84,7 +84,7 @@ End Rmissing.
 
 Section Zmissing.
 
-Lemma Zopp_le_cancel :
+Theorem Zopp_le_cancel :
   forall x y : Z,
   (-y <= -x)%Z -> Zle x y.
 Proof.
@@ -113,7 +113,7 @@ Definition Z2R n :=
   | Z0 => R0
   end.
 
-Lemma P2R_INR :
+Theorem P2R_INR :
   forall n, P2R n = INR (nat_of_P n).
 Proof.
 induction n ; simpl ; try (
@@ -135,7 +135,7 @@ case n ; intros ; apply refl_equal.
 apply refl_equal.
 Qed.
 
-Lemma Z2R_IZR :
+Theorem Z2R_IZR :
   forall n, Z2R n = IZR n.
 Proof.
 intro.
@@ -146,7 +146,7 @@ apply Ropp_eq_compat.
 apply P2R_INR.
 Qed.
 
-Lemma opp_Z2R :
+Theorem opp_Z2R :
   forall n, Z2R (-n) = (- Z2R n)%R.
 Proof.
 intros.
@@ -154,7 +154,7 @@ repeat rewrite Z2R_IZR.
 apply Ropp_Ropp_IZR.
 Qed.
 
-Lemma plus_Z2R :
+Theorem plus_Z2R :
   forall m n, (Z2R (m + n) = Z2R m + Z2R n)%R.
 Proof.
 intros.
@@ -162,7 +162,7 @@ repeat rewrite Z2R_IZR.
 apply plus_IZR.
 Qed.
 
-Lemma minus_IZR :
+Theorem minus_IZR :
   forall n m : Z,
   IZR (n - m) = (IZR n - IZR m)%R.
 Proof.
@@ -173,7 +173,7 @@ rewrite Ropp_Ropp_IZR.
 apply refl_equal.
 Qed.
 
-Lemma minus_Z2R :
+Theorem minus_Z2R :
   forall m n, (Z2R (m - n) = Z2R m - Z2R n)%R.
 Proof.
 intros.
@@ -181,7 +181,7 @@ repeat rewrite Z2R_IZR.
 apply minus_IZR.
 Qed.
 
-Lemma mult_Z2R :
+Theorem mult_Z2R :
   forall m n, (Z2R (m * n) = Z2R m * Z2R n)%R.
 Proof.
 intros.
@@ -189,7 +189,7 @@ repeat rewrite Z2R_IZR.
 apply mult_IZR.
 Qed.
 
-Lemma le_Z2R :
+Theorem le_Z2R :
   forall m n, (Z2R m <= Z2R n)%R -> (m <= n)%Z.
 Proof.
 intros m n.
@@ -197,7 +197,7 @@ repeat rewrite Z2R_IZR.
 apply le_IZR.
 Qed.
 
-Lemma Z2R_le :
+Theorem Z2R_le :
   forall m n, (m <= n)%Z -> (Z2R m <= Z2R n)%R.
 Proof.
 intros m n.
@@ -205,7 +205,7 @@ repeat rewrite Z2R_IZR.
 apply IZR_le.
 Qed.
 
-Lemma lt_Z2R :
+Theorem lt_Z2R :
   forall m n, (Z2R m < Z2R n)%R -> (m < n)%Z.
 Proof.
 intros m n.
@@ -213,7 +213,7 @@ repeat rewrite Z2R_IZR.
 apply lt_IZR.
 Qed.
 
-Lemma Z2R_lt :
+Theorem Z2R_lt :
   forall m n, (m < n)%Z -> (Z2R m < Z2R n)%R.
 Proof.
 intros m n.
@@ -221,7 +221,7 @@ repeat rewrite Z2R_IZR.
 apply IZR_lt.
 Qed.
 
-Lemma Z2R_le_lt :
+Theorem Z2R_le_lt :
   forall m n p, (m <= n < p)%Z -> (Z2R m <= Z2R n < Z2R p)%R.
 Proof.
 intros m n p (H1, H2).
@@ -230,7 +230,7 @@ now apply Z2R_le.
 now apply Z2R_lt.
 Qed.
 
-Lemma le_lt_Z2R :
+Theorem le_lt_Z2R :
   forall m n p, (Z2R m <= Z2R n < Z2R p)%R -> (m <= n < p)%Z.
 Proof.
 intros m n p (H1, H2).
@@ -239,7 +239,7 @@ now apply le_Z2R.
 now apply lt_Z2R.
 Qed.
 
-Lemma eq_Z2R :
+Theorem eq_Z2R :
   forall m n, (Z2R m = Z2R n)%R -> (m = n)%Z.
 Proof.
 intros m n H.
@@ -247,7 +247,7 @@ apply eq_IZR.
 now rewrite <- 2!Z2R_IZR.
 Qed.
 
-Lemma neq_Z2R :
+Theorem neq_Z2R :
   forall m n, (Z2R m <> Z2R n)%R -> (m <> n)%Z.
 Proof.
 intros m n H H'.
@@ -255,7 +255,7 @@ apply H.
 now apply f_equal.
 Qed.
 
-Lemma Z2R_neq :
+Theorem Z2R_neq :
   forall m n, (m <> n)%Z -> (Z2R m <> Z2R n)%R.
 Proof.
 intros m n.
@@ -263,12 +263,12 @@ repeat rewrite Z2R_IZR.
 apply IZR_neq.
 Qed.
 
-Lemma Rabs_Z2R :
-  forall z, Rabs (Z2R z) = Z2R (Zabs z).
+Theorem abs_Z2R :
+  forall z, Z2R (Zabs z) = Rabs (Z2R z).
 Proof.
 intros.
 repeat rewrite Z2R_IZR.
-apply Rabs_Zabs. 
+now rewrite Rabs_Zabs.
 Qed.
 
 End Z2R.
@@ -277,7 +277,7 @@ Section Floor_Ceil.
 
 Definition Zfloor (x : R) := (up x - 1)%Z.
 
-Lemma Zfloor_lb :
+Theorem Zfloor_lb :
   forall x : R,
   (Z2R (Zfloor x) <= x)%R.
 Proof.
@@ -291,7 +291,7 @@ ring_simplify.
 exact (proj2 (archimed x)).
 Qed.
 
-Lemma Zfloor_ub :
+Theorem Zfloor_ub :
   forall x : R,
   (x < Z2R (Zfloor x) + 1)%R.
 Proof.
@@ -305,7 +305,7 @@ rewrite Z2R_IZR.
 exact (proj1 (archimed x)).
 Qed.
 
-Lemma Zfloor_lub :
+Theorem Zfloor_lub :
   forall n x,
   (Z2R n <= x)%R ->
   (n <= Zfloor x)%Z.
@@ -319,7 +319,7 @@ rewrite plus_Z2R.
 apply Zfloor_ub.
 Qed.
 
-Lemma Zfloor_imp :
+Theorem Zfloor_imp :
   forall n x,
   (Z2R n <= x < Z2R (n + 1))%R ->
   Zfloor x = n.
@@ -335,7 +335,7 @@ Qed.
 
 Definition Zceil (x : R) := (- Zfloor (- x))%Z.
 
-Lemma Zceil_ub :
+Theorem Zceil_ub :
   forall x : R,
   (x <= Z2R (Zceil x))%R.
 Proof.
@@ -347,7 +347,7 @@ rewrite Ropp_involutive.
 apply Zfloor_lb.
 Qed.
 
-Lemma Zceil_lub :
+Theorem Zceil_lub :
   forall n x,
   (x <= Z2R n)%R ->
   (Zceil x <= n)%Z.
@@ -361,7 +361,7 @@ rewrite opp_Z2R.
 now apply Ropp_le_contravar.
 Qed.
 
-Lemma Zceil_imp :
+Theorem Zceil_imp :
   forall n x,
   (Z2R (n - 1) < x <= Z2R n)%R ->
   Zceil x = n.
@@ -380,7 +380,7 @@ rewrite opp_Z2R.
 now apply Ropp_lt_contravar.
 Qed.
 
-Lemma Zceil_floor_neq :
+Theorem Zceil_floor_neq :
   forall x : R,
   (Z2R (Zfloor x) <> x)%R ->
   (Zceil x = Zfloor x + 1)%Z.
@@ -408,7 +408,7 @@ Record radix :=  { radix_val : Z ; radix_prop :  (2 <= radix_val )%Z }.
 
 Variable r: radix.
 
-Lemma radix_pos: (0 < Z2R (radix_val r))%R.
+Theorem radix_pos: (0 < Z2R (radix_val r))%R.
 Proof.
 destruct r; simpl.
 apply Rle_lt_trans with (Z2R 0).
@@ -416,14 +416,14 @@ right; reflexivity.
 apply Z2R_lt; auto with zarith.
 Qed.
 
-Definition epow e :=
+Definition bpow e :=
   match e with
   | Zpos p => Z2R (Zpower_pos (radix_val r) p)
   | Zneg p => Rinv (Z2R (Zpower_pos (radix_val r) p))
   | Z0 => R1
   end.
 
-Lemma Zpower_pos_powerRZ :
+Theorem Zpower_pos_powerRZ :
   forall n m,
   Z2R (Zpower_pos n m) = powerRZ (Z2R n) (Zpos m).
 Proof.
@@ -439,81 +439,81 @@ apply Rmult_eq_compat_l.
 exact IHn0.
 Qed.
 
-Lemma epow_powerRZ :
+Theorem bpow_powerRZ :
   forall e,
-  epow e = powerRZ (Z2R (radix_val r)) e.
+  bpow e = powerRZ (Z2R (radix_val r)) e.
 Proof.
-destruct e ; unfold epow.
+destruct e ; unfold bpow.
 reflexivity.
 now rewrite Zpower_pos_powerRZ.
 now rewrite Zpower_pos_powerRZ.
 Qed.
 
-Lemma  epow_ge_0 :
-  forall e : Z, (0 <= epow e)%R.
+Theorem  bpow_ge_0 :
+  forall e : Z, (0 <= bpow e)%R.
 Proof.
 intros.
-rewrite epow_powerRZ.
+rewrite bpow_powerRZ.
 apply powerRZ_le.
 change R0 with (Z2R 0).
 apply Z2R_lt.
 destruct r; simpl; auto with zarith.
 Qed.
 
-Lemma epow_gt_0 :
-  forall e : Z, (0 < epow e)%R.
+Theorem bpow_gt_0 :
+  forall e : Z, (0 < bpow e)%R.
 Proof.
 intros.
-rewrite epow_powerRZ.
+rewrite bpow_powerRZ.
 apply powerRZ_lt.
 change R0 with (Z2R 0).
 apply Z2R_lt.
 destruct r; simpl; auto with zarith.
 Qed.
 
-Lemma epow_add :
-  forall e1 e2 : Z, (epow (e1 + e2) = epow e1 * epow e2)%R.
+Theorem bpow_add :
+  forall e1 e2 : Z, (bpow (e1 + e2) = bpow e1 * bpow e2)%R.
 Proof.
 intros.
-repeat rewrite epow_powerRZ.
+repeat rewrite bpow_powerRZ.
 apply powerRZ_add.
 change R0 with (Z2R 0).
 apply Z2R_neq.
 destruct r; simpl; auto with zarith.
 Qed.
 
-Lemma epow_1 :
-  epow 1 = Z2R (radix_val r).
+Theorem bpow_1 :
+  bpow 1 = Z2R (radix_val r).
 Proof.
-unfold epow, Zpower_pos, iter_pos.
+unfold bpow, Zpower_pos, iter_pos.
 now rewrite Zmult_1_r.
 Qed.
 
-Lemma epow_add1 :
-  forall e : Z, (epow (e+1) = Z2R (radix_val r) * epow e)%R.
+Theorem bpow_add1 :
+  forall e : Z, (bpow (e+1) = Z2R (radix_val r) * bpow e)%R.
 Proof.
 intros.
-rewrite <- epow_1.
-rewrite <- epow_add.
+rewrite <- bpow_1.
+rewrite <- bpow_add.
 now rewrite Zplus_comm.
 Qed.
 
-Lemma epow_opp :
-  forall e : Z, (epow (-e) = /epow e)%R.
+Theorem bpow_opp :
+  forall e : Z, (bpow (-e) = /bpow e)%R.
 Proof.
 intros e; destruct e.
 simpl; now rewrite Rinv_1.
 now replace (-Zpos p)%Z with (Zneg p) by reflexivity.
 replace (-Zneg p)%Z with (Zpos p) by reflexivity.
 simpl; rewrite Rinv_involutive; trivial.
-generalize (epow_gt_0 (Zpos p)).
+generalize (bpow_gt_0 (Zpos p)).
 simpl; auto with real.
 Qed.
 
-Lemma Z2R_Zpower :
+Theorem Z2R_Zpower :
   forall e : Z,
   (0 <= e)%Z ->
-  Z2R (Zpower (radix_val r) e) = epow e.
+  Z2R (Zpower (radix_val r) e) = bpow e.
 Proof.
 intros [|e|e] H.
 split.
@@ -521,20 +521,20 @@ split.
 now elim H.
 Qed.
 
-Lemma epow_lt_aux :
+Theorem bpow_lt_aux :
   forall e1 e2 : Z,
-  (e1 < e2)%Z -> (epow e1 < epow e2)%R.
+  (e1 < e2)%Z -> (bpow e1 < bpow e2)%R.
 Proof.
 intros e1 e2 H.
 replace e2 with (e1 + (e2 - e1))%Z by ring.
-rewrite <- (Rmult_1_r (epow e1)).
-rewrite epow_add.
+rewrite <- (Rmult_1_r (bpow e1)).
+rewrite bpow_add.
 apply Rmult_lt_compat_l.
-apply epow_gt_0.
+apply bpow_gt_0.
 assert (0 < e2 - e1)%Z by omega.
 destruct (e2 - e1)%Z ; try discriminate H0.
 clear.
-unfold epow.
+unfold bpow.
 apply (Z2R_lt 1).
 rewrite Zpower_pos_nat.
 case_eq (nat_of_P p).
@@ -558,13 +558,13 @@ now split.
 now split.
 Qed.
 
-Lemma epow_lt :
+Theorem bpow_lt :
   forall e1 e2 : Z,
-  (e1 < e2)%Z <-> (epow e1 < epow e2)%R.
+  (e1 < e2)%Z <-> (bpow e1 < bpow e2)%R.
 Proof.
 intros e1 e2.
 split.
-apply epow_lt_aux.
+apply bpow_lt_aux.
 intros H.
 apply Zgt_lt.
 apply Znot_le_gt.
@@ -572,14 +572,14 @@ intros H'.
 apply Rlt_not_le with (1 := H).
 destruct (Zle_lt_or_eq _ _ H').
 apply Rlt_le.
-now apply epow_lt_aux.
+now apply bpow_lt_aux.
 apply Req_le.
 now apply f_equal.
 Qed.
 
-Lemma epow_le :
+Theorem bpow_le :
   forall e1 e2 : Z,
-  (e1 <= e2)%Z <-> (epow e1 <= epow e2)%R.
+  (e1 <= e2)%Z <-> (bpow e1 <= bpow e2)%R.
 Proof.
 intros e1 e2.
 split.
@@ -588,36 +588,36 @@ apply Rnot_lt_le.
 intros H'.
 apply Zle_not_gt with (1 := H).
 apply Zlt_gt.
-now apply <- epow_lt.
+now apply <- bpow_lt.
 intros H.
 apply Znot_gt_le.
 intros H'.
 apply Rle_not_lt with (1 := H).
-apply -> epow_lt.
+apply -> bpow_lt.
 now apply Zgt_lt.
 Qed.
 
-Lemma epow_eq :
+Theorem bpow_eq :
   forall e1 e2 : Z,
-  e1 = e2 -> epow e1 = epow e2.
+  e1 = e2 -> bpow e1 = bpow e2.
 Proof.
 intros.
 apply Rle_antisym.
-apply -> epow_le.
+apply -> bpow_le.
 now apply Zeq_le.
-apply -> epow_le.
+apply -> bpow_le.
 apply Zeq_le.
 now apply sym_eq.
 Qed.
 
-Lemma epow_exp :
+Theorem bpow_exp :
   forall e : Z,
-  epow e = exp (Z2R e * ln (Z2R (radix_val r))).
+  bpow e = exp (Z2R e * ln (Z2R (radix_val r))).
 Proof.
 (* positive case *)
-assert (forall e, epow (Zpos e) = exp (Z2R (Zpos e) * ln (Z2R (radix_val r)))).
+assert (forall e, bpow (Zpos e) = exp (Z2R (Zpos e) * ln (Z2R (radix_val r)))).
 intros e.
-unfold epow.
+unfold bpow.
 rewrite Zpower_pos_nat.
 unfold Z2R at 2.
 rewrite P2R_INR.
@@ -645,17 +645,17 @@ intros [|e|e].
 rewrite Rmult_0_l.
 now rewrite exp_0.
 apply H.
-unfold epow.
-change (Z2R (Zpower_pos (radix_val r) e)) with (epow (Zpos e)).
+unfold bpow.
+change (Z2R (Zpower_pos (radix_val r) e)) with (bpow (Zpos e)).
 rewrite H.
 rewrite <- exp_Ropp.
 rewrite <- Ropp_mult_distr_l_reverse.
 now rewrite <- opp_Z2R.
 Qed.
 
-Lemma ln_beta :
+Theorem ln_beta :
   forall x : R,
-  {e | (x <> 0)%R -> (epow (e - 1)%Z <= Rabs x < epow e)%R}.
+  {e | (x <> 0)%R -> (bpow (e - 1)%Z <= Rabs x < bpow e)%R}.
 Proof.
 intros x.
 set (fact := ln (Z2R (radix_val r))).
@@ -675,7 +675,7 @@ intros Hx'.
 generalize (Rabs_pos_lt _ Hx'). clear Hx'.
 generalize (Rabs x). clear x.
 intros x Hx.
-rewrite 2!epow_exp.
+rewrite 2!bpow_exp.
 fold fact.
 pattern x at 2 3 ; replace x with (exp (ln x * / fact * fact)).
 split.
@@ -700,47 +700,47 @@ now apply exp_ln.
 now apply Rgt_not_eq.
 Qed.
 
-Lemma epow_lt_epow :
+Theorem bpow_lt_bpow :
   forall e1 e2,
-  (epow (e1 - 1) < epow e2)%R ->
+  (bpow (e1 - 1) < bpow e2)%R ->
   (e1 <= e2)%Z.
 Proof.
 intros e1 e2 He.
 rewrite (Zsucc_pred e1).
 apply Zlt_le_succ.
-now apply <- epow_lt.
+now apply <- bpow_lt.
 Qed.
 
-Lemma epow_unique :
+Theorem bpow_unique :
   forall x e1 e2,
-  (epow (e1 - 1) <= x < epow e1)%R ->
-  (epow (e2 - 1) <= x < epow e2)%R ->
+  (bpow (e1 - 1) <= x < bpow e1)%R ->
+  (bpow (e2 - 1) <= x < bpow e2)%R ->
   e1 = e2.
 Proof.
 intros x e1 e2 (H1a,H1b) (H2a,H2b).
 apply Zle_antisym ;
-  apply epow_lt_epow ;
+  apply bpow_lt_bpow ;
   apply Rle_lt_trans with x ;
   assumption.
 Qed.
 
-Lemma ln_beta_unique :
+Theorem ln_beta_unique :
   forall (x : R) (e : Z),
-  (epow (e - 1) <= Rabs x < epow e)%R ->
+  (bpow (e - 1) <= Rabs x < bpow e)%R ->
   projT1 (ln_beta x) = e.
 Proof.
 intros x e1 He.
 destruct (Req_dec x 0) as [Hx|Hx].
 elim Rle_not_lt with (1 := proj1 He).
 rewrite Hx, Rabs_R0.
-apply epow_gt_0.
+apply bpow_gt_0.
 destruct (ln_beta x) as (e2, Hx2).
 simpl.
-apply epow_unique with (2 := He).
+apply bpow_unique with (2 := He).
 now apply Hx2.
 Qed.
 
-Lemma ln_beta_opp :
+Theorem ln_beta_opp :
   forall x,
   projT1 (ln_beta (-x)) = projT1 (ln_beta x).
 Proof.
@@ -754,7 +754,7 @@ apply ln_beta_unique.
 now rewrite Rabs_Ropp.
 Qed.
 
-Lemma ln_beta_monotone :
+Theorem ln_beta_monotone :
   forall x y,
   (0 < x)%R -> (x <= y)%R ->
   (projT1 (ln_beta x) <= projT1 (ln_beta y))%Z.
@@ -763,7 +763,7 @@ intros x y H0x Hxy.
 destruct (ln_beta x) as (ex, Hx).
 destruct (ln_beta y) as (ey, Hy).
 simpl.
-apply epow_lt_epow.
+apply bpow_lt_bpow.
 specialize (Hx (Rgt_not_eq _ _ H0x)).
 specialize (Hy (Rgt_not_eq _ _ (Rlt_le_trans _ _ _ H0x Hxy))).
 apply Rle_lt_trans with (1 := proj1 Hx).
@@ -775,7 +775,7 @@ now apply Rlt_le.
 now apply Rlt_le.
 Qed.
 
-Lemma Zpower_pos_gt_0 :
+Theorem Zpower_pos_gt_0 :
   forall b p, (0 < b)%Z ->
   (0 < Zpower_pos b p)%Z.
 Proof.
@@ -786,7 +786,7 @@ apply powerRZ_lt.
 now apply (Z2R_lt 0).
 Qed.
 
-Lemma Zpower_gt_0 :
+Theorem Zpower_gt_0 :
   forall b p,
   (0 < b)%Z -> (0 <= p)%Z ->
   (0 < Zpower b p)%Z.
@@ -799,7 +799,7 @@ now apply Zpower_pos_gt_0.
 now elim Hz.
 Qed.
 
-Lemma Zpower_gt_1 :
+Theorem Zpower_gt_1 :
   forall p,
   (0 < p)%Z ->
   (1 < Zpower (radix_val r) p)%Z.
@@ -807,11 +807,11 @@ Proof.
 intros.
 apply lt_Z2R.
 rewrite Z2R_Zpower.
-now apply -> (epow_lt 0).
+now apply -> (bpow_lt 0).
 now apply Zlt_le_weak.
 Qed.
 
-Lemma Zln_beta :
+Theorem Zln_beta :
   forall x : Z,
   {e | (Zpower (radix_val r) (e - 1) <= Zabs x < Zpower (radix_val r) e)%Z}.
 Proof.
@@ -827,9 +827,9 @@ specialize (H (Z2R_neq _ _ Hx)).
 exists e.
 assert (He: (1 <= e)%Z).
 apply (Zlt_le_succ 0).
-apply <- epow_lt.
+apply <- bpow_lt.
 apply Rle_lt_trans with (2 := proj2 H).
-rewrite Rabs_Z2R.
+rewrite <- abs_Z2R.
 apply (Z2R_le 1).
 apply (Zlt_le_succ 0).
 generalize (Zabs_spec x).
@@ -837,11 +837,11 @@ omega.
 (* . . *)
 split.
 apply le_Z2R.
-rewrite Z2R_Zpower, <- Rabs_Z2R.
+rewrite Z2R_Zpower, abs_Z2R.
 apply H.
 now apply Zle_minus_le_0.
 apply lt_Z2R.
-rewrite Z2R_Zpower, <- Rabs_Z2R.
+rewrite Z2R_Zpower, abs_Z2R.
 apply H.
 now apply Zle_succ_le.
 Qed.

@@ -13,7 +13,7 @@ Section Flocq_rnd_NE.
 
 Variable beta : radix.
 
-Notation bpow e := (epow beta e).
+Notation bpow e := (bpow beta e).
 
 Section Flocq_rnd_gNE.
 
@@ -60,7 +60,7 @@ rewrite Zopp_eq_mult_neg_1.
 now apply Zeven_mult_Zeven_l.
 Qed.
 
-Lemma canonic_imp_Fnum :
+Theorem canonic_imp_Fnum :
   forall x, forall f : float beta,
   x <> R0 ->
   canonic x f ->
@@ -76,9 +76,9 @@ destruct (Zle_or_lt (Fexp f) ex) as [He|He].
 (* . *)
 apply lt_Z2R.
 apply Rmult_lt_reg_r with (bpow (Fexp f)).
-apply epow_gt_0.
+apply bpow_gt_0.
 replace (Z2R (Zabs (Fnum f)) * bpow (Fexp f))%R with (Rabs x).
-rewrite Z2R_Zpower, <- epow_add.
+rewrite Z2R_Zpower, <- bpow_add.
 now ring_simplify (ex - Fexp f + Fexp f)%Z.
 omega.
 rewrite H1.
@@ -93,22 +93,22 @@ unfold F2R. simpl.
 rewrite <- (Rmult_1_l (bpow ex)).
 apply Rmult_le_compat.
 now apply (Z2R_le 0 1).
-apply epow_ge_0.
+apply bpow_ge_0.
 apply (Z2R_le 1).
 apply (Zlt_le_succ 0).
 apply lt_Z2R.
 apply Rmult_lt_reg_r with (bpow xe).
-apply epow_gt_0.
+apply bpow_gt_0.
 rewrite Rmult_0_l.
 replace (Z2R (Zabs xm) * bpow xe)%R with (Rabs x).
 now apply Rabs_pos_lt.
 rewrite H1.
 apply abs_F2R.
-apply -> epow_le.
+apply -> bpow_le.
 now apply Zlt_le_weak.
 Qed.
 
-Lemma Rnd_gNE_pt_unicity_prop :
+Theorem Rnd_gNE_pt_unicity_prop :
   Rnd_NG_pt_unicity_prop format gNE_prop.
 Proof.
 intros x d u Hxd1 Hxd2 Hxu1 Hxu2 Hd Hu.
@@ -328,7 +328,7 @@ apply Rmult_eq_reg_r with (bpow emin).
 rewrite plus_Z2R.
 exact H.
 apply Rgt_not_eq.
-apply epow_gt_0.
+apply bpow_gt_0.
 Qed.
 
 Theorem Rnd_NE_pt_FIX :
@@ -406,7 +406,7 @@ assert (Hu3: cu = Float beta (Zpower (radix_val beta) (prec - 1)) (ex - prec + 1
 apply canonic_unicity with (1 := conj Hu1 Hu2).
 split.
 unfold F2R. simpl.
-rewrite Z2R_Zpower, <- epow_add.
+rewrite Z2R_Zpower, <- bpow_add.
 rewrite <- Hu.
 apply f_equal.
 ring.
@@ -420,9 +420,9 @@ rewrite Rabs_pos_eq.
 split.
 replace (ex + 1 - 1)%Z with ex by ring.
 apply Rle_refl.
-apply -> epow_lt.
+apply -> bpow_lt.
 apply Zlt_succ.
-apply epow_ge_0.
+apply bpow_ge_0.
 assert (Hd3: cd = Float beta (Zpower (radix_val beta) prec - 1) (ex - prec)).
 apply canonic_unicity with (1 := conj Hd1 Hd2).
 generalize (ulp_pred_succ_pt beta FLXf (FLX_exp_correct prec Hp) x xd xu Hfx Hxd Hxu).
@@ -432,7 +432,7 @@ unfold F2R. simpl.
 rewrite minus_Z2R.
 unfold Rminus.
 rewrite Rmult_plus_distr_r.
-rewrite Z2R_Zpower, <- epow_add.
+rewrite Z2R_Zpower, <- bpow_add.
 ring_simplify (prec + (ex - prec))%Z.
 rewrite Hu, Hud.
 unfold ulp.
@@ -498,7 +498,7 @@ apply Rmult_eq_reg_r with (bpow (FLXf ex)).
 rewrite plus_Z2R.
 exact H.
 apply Rgt_not_eq.
-apply epow_gt_0.
+apply bpow_gt_0.
 rewrite Rabs_pos_eq.
 split.
 apply Rle_trans with (1 := proj1 Hex).
@@ -540,7 +540,7 @@ apply refl_equal.
 destruct (ln_beta beta x) as (ex, Hex).
 simpl.
 cut (ex - 1 < emin + prec)%Z. omega.
-apply <- epow_lt.
+apply <- bpow_lt.
 eapply Rle_lt_trans with (2 := Hx).
 now apply Hex.
 Qed.
@@ -564,7 +564,7 @@ rewrite H1.
 apply generic_format_0.
 rewrite Rabs_pos_eq.
 apply Rle_lt_trans with (1 := Hx).
-apply -> epow_lt.
+apply -> bpow_lt.
 apply Zlt_pred.
 now apply Rlt_le.
 apply canonic_fun_eq with (2 := Hd).
@@ -585,7 +585,7 @@ apply Zmax_right.
 destruct (ln_beta beta x) as (ex, Hex).
 simpl.
 cut (ex - 1 <= emin + prec - 1)%Z. omega.
-apply <- epow_le.
+apply <- bpow_le.
 apply Rle_trans with (2 := Hx).
 rewrite <- (Rabs_pos_eq _ (Rlt_le _ _ Hx0)).
 apply Hex.
@@ -601,16 +601,16 @@ apply Zmax_right.
 simpl. omega.
 rewrite Rabs_pos_eq.
 split.
-apply -> epow_le.
+apply -> bpow_le.
 omega.
-apply -> epow_lt.
+apply -> bpow_lt.
 apply Zlt_succ.
-apply epow_ge_0.
+apply bpow_ge_0.
 rewrite Rabs_pos_eq.
 apply Rle_lt_trans with x.
 apply Hxd.
 apply Rle_lt_trans with (1 := Hx).
-apply -> epow_lt.
+apply -> bpow_lt.
 apply Zlt_pred.
 apply Hxd.
 apply generic_format_0.
@@ -627,7 +627,7 @@ apply Hxu.
 exists (Float beta (Zpower (radix_val beta) (prec - 1)) emin).
 admit.
 exact Hx.
-apply -> epow_lt.
+apply -> bpow_lt.
 apply Zlt_pred.
 apply Rlt_le.
 apply Rlt_le_trans with (1 := Hx0).

@@ -6,7 +6,7 @@ Section Flocq_float_ops.
 
 Variable beta : radix.
 
-Notation bpow e := (epow beta e).
+Notation bpow e := (bpow beta e).
 
 Definition Falign (f1 f2 : float beta) :=
   let '(Float m1 e1) := f1 in
@@ -60,7 +60,7 @@ Theorem mult_F2R :
 Proof.
 intros (m1, e1) (m2, e2).
 unfold Fmult, F2R. simpl.
-rewrite mult_Z2R, epow_add.
+rewrite mult_Z2R, bpow_add.
 ring.
 Qed.
 

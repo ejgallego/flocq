@@ -277,7 +277,7 @@ apply Hr.
 apply Hu.
 Qed.
 
-Lemma Only_DN_or_UP :
+Theorem Only_DN_or_UP :
   forall F : R -> Prop,
   forall x fd fu f : R,
   Rnd_DN_pt F x fd -> Rnd_UP_pt F x fu ->
@@ -711,7 +711,7 @@ rewrite (H2 _ Hxf2).
 apply Rle_refl.
 Qed.
 
-Lemma Rnd_NA_pt_unicity_prop :
+Theorem Rnd_NA_pt_unicity_prop :
   forall F : R -> Prop,
   F 0 ->
   Rnd_NG_pt_unicity_prop F (fun a b => (Rabs a <= Rabs b)%R).

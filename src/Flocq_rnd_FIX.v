@@ -7,7 +7,7 @@ Section RND_FIX.
 
 Variable beta : radix.
 
-Notation bpow := (epow beta).
+Notation bpow := (bpow beta).
 
 Variable emin : Z.
 
