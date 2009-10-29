@@ -325,6 +325,39 @@ apply Hd.
 apply Hu.
 Qed.
 
+Theorem Rnd_ZR_abs :
+  forall (F : R -> Prop) (rnd: R-> R),
+  Rnd_ZR F rnd ->
+  forall x : R,  (Rabs (rnd x) <= Rabs x)%R.
+Proof.
+intros F rnd H x.
+assert (F 0%R).
+replace 0%R with (rnd 0%R).
+eapply H.
+apply Rle_refl.
+destruct (H 0%R) as (H1, H2).
+apply Rle_antisym.
+apply H1.
+apply Rle_refl.
+apply H2.
+apply Rle_refl.
+(* . *)
+destruct (Rle_or_lt 0 x).
+(* positive *)
+rewrite Rabs_right.
+rewrite Rabs_right; auto with real.
+now apply (proj1 (H x)).
+apply Rle_ge.
+now apply (proj1 (H x)).
+(* negative *)
+rewrite Rabs_left1.
+rewrite Rabs_left1 ; auto with real.
+apply Ropp_le_contravar.
+apply (proj2 (H x)).
+auto with real.
+apply (proj2 (H x)) ; auto with real.
+Qed.
+
 Theorem Rnd_N_pt_DN_or_UP :
   forall F : R -> Prop,
   forall x f : R,
