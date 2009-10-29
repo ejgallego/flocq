@@ -23,6 +23,16 @@ Definition IdempotentP (F : R -> Prop) (rnd : R -> R) :=
 Definition Rounding_for_Format (F : R -> Prop) (rnd : R -> R) :=
    MonotoneP rnd /\ IdempotentP F rnd.
 
+Definition rounding_pred_total (P : R -> R -> Prop) :=
+  forall x, exists f, P x f.
+
+Definition rounding_pred_monotone (P : R -> R -> Prop) :=
+  forall x y f g, P x f -> P y g -> (x <= y)%R -> (f <= g)%R.
+
+Definition rounding_pred (P : R -> R -> Prop) :=
+  rounding_pred_total P /\
+  rounding_pred_monotone P.
+
 End Def.
 
 Implicit Arguments Fnum [[beta]].

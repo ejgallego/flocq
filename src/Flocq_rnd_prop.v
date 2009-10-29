@@ -5,6 +5,58 @@ Section RND_prop.
 
 Open Scope R_scope.
 
+Theorem rounding_val_of_pred :
+  forall rnd : R -> R -> Prop,
+  rounding_pred rnd ->
+  forall x, { f : R | rnd x f }.
+Proof.
+intros rnd (H1,H2) x.
+specialize (H1 x).
+(* . *)
+assert (H3 : bound (rnd x)).
+destruct H1 as (f, H1).
+exists f.
+intros g Hg.
+now apply H2 with (3 := Rle_refl x).
+(* . *)
+exists (projT1 (completeness _ H3 H1)).
+destruct completeness as (f1, (H4, H5)).
+simpl.
+destruct H1 as (f2, H1).
+assert (f1 = f2).
+apply Rle_antisym.
+apply H5.
+intros f3 H.
+now apply H2 with (3 := Rle_refl x).
+now apply H4.
+now rewrite H.
+Qed.
+
+Theorem rounding_fun_of_pred :
+  forall rnd : R -> R -> Prop,
+  rounding_pred rnd ->
+  { f : R -> R | forall x, rnd x (f x) }.
+Proof.
+intros rnd H.
+exists (fun x => projT1 (rounding_val_of_pred rnd H x)).
+intros x.
+now destruct rounding_val_of_pred as (f, H1).
+Qed.
+
+Theorem rounding_unicity :
+  forall rnd : R -> R -> Prop,
+  rounding_pred_monotone rnd ->
+  forall x f1 f2,
+  rnd x f1 ->
+  rnd x f2 ->
+  f1 = f2.
+Proof.
+intros rnd Hr x f1 f2 H1 H2.
+apply Rle_antisym.
+now apply Hr with (3 := Rle_refl x).
+now apply Hr with (3 := Rle_refl x).
+Qed.
+
 Theorem Rnd_DN_pt_unicity :
   forall F : R -> Prop,
   forall x f1 f2 : R,
