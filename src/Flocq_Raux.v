@@ -811,39 +811,4 @@ now apply -> (bpow_lt 0).
 now apply Zlt_le_weak.
 Qed.
 
-Theorem Zln_beta :
-  forall x : Z,
-  {e | (Zpower (radix_val r) (e - 1) <= Zabs x < Zpower (radix_val r) e)%Z}.
-Proof.
-intros x.
-destruct (Z_eq_dec x 0) as [Hx|Hx].
-(* . *)
-exists Z0.
-rewrite Hx.
-now split.
-(* . *)
-destruct (ln_beta (Z2R x)) as (e, H).
-specialize (H (Z2R_neq _ _ Hx)).
-exists e.
-assert (He: (1 <= e)%Z).
-apply (Zlt_le_succ 0).
-apply <- bpow_lt.
-apply Rle_lt_trans with (2 := proj2 H).
-rewrite <- abs_Z2R.
-apply (Z2R_le 1).
-apply (Zlt_le_succ 0).
-generalize (Zabs_spec x).
-omega.
-(* . . *)
-split.
-apply le_Z2R.
-rewrite Z2R_Zpower, abs_Z2R.
-apply H.
-now apply Zle_minus_le_0.
-apply lt_Z2R.
-rewrite Z2R_Zpower, abs_Z2R.
-apply H.
-now apply Zle_succ_le.
-Qed.
-
 End pow.
