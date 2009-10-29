@@ -54,13 +54,13 @@ Theorem satisfies_any_imp_UP :
   satisfies_any F ->
   rounding_pred (Rnd_UP_pt F).
 Proof.
-intros F Hsat.
+intros F Hany.
 split.
 intros x.
-destruct (rounding_val_of_pred (Rnd_DN_pt F) (satisfies_any_imp_DN F Hsat) (-x)) as (f, Hf).
+destruct (proj1 (satisfies_any_imp_DN F Hany) (-x)) as (f, Hf).
 exists (-f).
 apply Rnd_DN_UP_pt_sym.
-apply Hsat.
+apply Hany.
 now rewrite Ropp_involutive.
 apply Rnd_UP_pt_monotone.
 Qed.
@@ -68,34 +68,41 @@ Qed.
 Theorem satisfies_any_imp_ZR :
   forall F : R -> Prop,
   satisfies_any F ->
-  { rnd : R -> R | Rnd_ZR F rnd }.
+  rounding_pred (Rnd_ZR_pt F).
 Proof.
-intros F S.
-destruct (rounding_fun_of_pred _ (satisfies_any_imp_DN F S)) as (rndd, Hd).
-destruct (rounding_fun_of_pred _ (satisfies_any_imp_UP F S)) as (rndu, Hu).
-exists (fun x =>
-  match Rle_dec 0 x with
-  | left _  => rndd x
-  | right _ => rndu x
-  end).
-intros x.
-destruct (Rle_dec 0 x) as [Hx|Hx] ; split.
-(* positive or zero *)
-intros _.
-apply Hd.
-intros Hx'.
-replace x with 0 by now apply Rle_antisym.
-generalize S. intros (S0,_,_).
-rewrite Rnd_0 with F rndd ; trivial.
-repeat split ; auto with real.
+intros F Hany.
 split.
-now apply Rnd_DN_monotone with F.
-now apply Rnd_DN_idempotent.
+intros x.
+destruct (Rle_or_lt 0 x) as [Hx|Hx].
+(* positive *)
+destruct (proj1 (satisfies_any_imp_DN F Hany) x) as (f, Hf).
+exists f.
+split.
+now intros _.
+intros Hx'.
+(* zero *)
+assert (x = 0).
+now apply Rle_antisym.
+rewrite H in Hf |- *.
+clear Hx Hx'.
+rewrite Rnd_DN_pt_idempotent with (1 := Hf).
+split.
+apply Hany.
+split.
+apply Rle_refl.
+now intros.
+apply Hany.
 (* negative *)
+destruct (proj1 (satisfies_any_imp_UP F Hany) x) as (f, Hf).
+exists f.
+split.
 intros Hx'.
-elim (Hx Hx').
-intros Hx'.
-apply Hu.
+elim (Rlt_irrefl 0).
+now apply Rle_lt_trans with x.
+now intros _.
+(* . *)
+apply Rnd_ZR_pt_monotone.
+apply Hany.
 Qed.
 
 Theorem satisfies_any_imp_NG :

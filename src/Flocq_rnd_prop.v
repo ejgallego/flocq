@@ -396,6 +396,32 @@ auto with real.
 apply (proj2 (H x)) ; auto with real.
 Qed.
 
+Theorem Rnd_ZR_pt_monotone :
+  forall F : R -> Prop, F 0 ->
+  rounding_pred_monotone (Rnd_ZR_pt F).
+Proof.
+intros F F0 x y f g (Hx1, Hx2) (Hy1, Hy2) Hxy.
+destruct (Rle_or_lt 0 x) as [Hx|Hx].
+(* . *)
+apply Hy1.
+now apply Rle_trans with x.
+now apply Hx1.
+apply Rle_trans with (2 := Hxy).
+now apply Hx1.
+(* . *)
+apply Rlt_le in Hx.
+destruct (Rle_or_lt 0 y) as [Hy|Hy].
+apply Rle_trans with 0.
+now apply Hx2.
+now apply Hy1.
+apply Rlt_le in Hy.
+apply Hx2.
+exact Hx.
+now apply Hy2.
+apply Rle_trans with (1 := Hxy).
+now apply Hy2.
+Qed.
+
 Theorem Rnd_N_pt_DN_or_UP :
   forall F : R -> Prop,
   forall x f : R,
