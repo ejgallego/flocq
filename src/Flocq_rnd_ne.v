@@ -159,12 +159,22 @@ apply Rnd_gNE_pt_unicity_prop.
 Qed.
 
 Theorem Rnd_gNE_pt_monotone :
-  forall x y f g : R,
-  Rnd_gNE_pt x f -> Rnd_gNE_pt y g ->
-  (x <= y)%R -> (f <= g)%R.
+  rounding_pred_monotone Rnd_gNE_pt.
 Proof.
 apply Rnd_NG_pt_monotone.
 apply Rnd_gNE_pt_unicity_prop.
+Qed.
+
+Theorem Rnd_gNE_pt_refl :
+  forall x : R, format x ->
+  Rnd_gNE_pt x x.
+Proof.
+intros x Hx.
+split.
+now apply Rnd_N_pt_refl.
+right.
+intros f Hf.
+now apply Rnd_N_pt_idempotent with format.
 Qed.
 
 Theorem Rnd_gNE_pt_idempotent :
