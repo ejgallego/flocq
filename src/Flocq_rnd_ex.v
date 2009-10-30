@@ -106,176 +106,160 @@ Theorem satisfies_any_imp_NG :
   forall (F : R -> Prop) (P : R -> R -> Prop),
   satisfies_any F ->
   ( forall x d u, Rnd_DN_pt F x d -> Rnd_UP_pt F x u -> { P x u } + { P x d } ) ->
-  { rnd : R -> R | Rnd_NG F P rnd }.
+  rounding_pred_total (Rnd_NG_pt F P).
 Proof.
-intros F P Hany HP.
-destruct (rounding_fun_of_pred _ (satisfies_any_imp_DN F Hany)) as (rndd, Hd).
-destruct (rounding_fun_of_pred _ (satisfies_any_imp_UP F Hany)) as (rndu, Hu).
-exists (fun x =>
-  match total_order_T (Rabs (rndu x - x)) (Rabs (rndd x - x)) with
-  | inleft (left  _ ) => rndu x
-  | inleft (right _ ) => match HP x _ _ (Hd _) (Hu _) with
-                            left  _ => rndu x
-                          | right _ => rndd x
-                          end
-  | inright _         => rndd x
-  end).
-split.
-(* *** nearest *)
-destruct (total_order_T (Rabs (rndu x - x)) (Rabs (rndd x - x))) as [[H|H]|H].
+intros F P Hany HP x.
+destruct (proj1 (satisfies_any_imp_DN F Hany) x) as (d, Hd).
+destruct (proj1 (satisfies_any_imp_UP F Hany) x) as (u, Hu).
+destruct (total_order_T (Rabs (u - x)) (Rabs (d - x))) as [[H|H]|H].
 (* |up(x) - x| < |dn(x) - x| *)
-destruct (Hu x) as (H3,(H4,H5)).
+exists u.
 split.
-exact H3.
-intros.
-destruct (Rle_or_lt x g).
-rewrite Rabs_pos_eq.
-2 : now apply Rle_0_minus.
-rewrite Rabs_pos_eq.
-2 : now apply Rle_0_minus.
+(* - . *)
+split.
+apply Hu.
+intros g Hg.
+destruct (Rle_or_lt x g) as [Hxg|Hxg].
+rewrite 2!Rabs_pos_eq.
 apply Rplus_le_compat_r.
-now apply H5.
+now apply Hu.
+now apply Rle_0_minus.
+apply Rle_0_minus.
+apply Hu.
+apply Rlt_le in Hxg.
 apply Rlt_le.
 apply Rlt_le_trans with (1 := H).
 do 2 rewrite <- (Rabs_minus_sym x).
-rewrite Rabs_right.
-rewrite Rabs_right.
+rewrite 2!Rabs_pos_eq.
 apply Rplus_le_compat_l.
 apply Ropp_le_contravar.
-now eapply Hd ; try apply Rlt_le.
-apply Rge_minus.
-apply Rle_ge.
-now left.
-apply Rge_minus.
-apply Rle_ge.
-now eapply Hd.
+now apply Hd.
+now apply Rle_0_minus.
+apply Rle_0_minus.
+apply Hd.
+(* - . *)
+right.
+intros f Hf.
+destruct (Rnd_N_pt_DN_or_UP_eq F x _ _ _ Hd Hu Hf) as [K|K] ; rewrite K.
+elim Rlt_not_le with (1 := H).
+rewrite <- K.
+apply Hf.
+apply Hu.
+apply refl_equal.
 (* |up(x) - x| = [dn(x) - x| *)
-destruct (HP x _ _ (Hd x) (Hu x)) as [H'|H'].
+destruct (HP x _ _ Hd Hu) as [H'|H'].
 (* - u >> d *)
+exists u.
 split.
-now eapply Hu.
-intros.
-destruct (Rle_or_lt x g).
-rewrite Rabs_right.
-rewrite Rabs_right.
+split.
+apply Hu.
+intros g Hg.
+destruct (Rle_or_lt x g) as [Hxg|Hxg].
+rewrite 2!Rabs_pos_eq.
 apply Rplus_le_compat_r.
-now eapply Hu.
-apply Rge_minus.
-now apply Rle_ge.
-apply Rge_minus.
-apply Rle_ge.
-now eapply Hu.
+now apply Hu.
+now apply Rle_0_minus.
+apply Rle_0_minus.
+apply Hu.
+apply Rlt_le in Hxg.
 rewrite H.
-do 2 rewrite <- (Rabs_minus_sym x).
-rewrite Rabs_right.
-rewrite Rabs_right.
-apply Rplus_le_compat_l.
+rewrite 2!Rabs_left1.
 apply Ropp_le_contravar.
-now eapply Hd ; auto with real.
-apply Rge_minus.
-apply Rle_ge.
+apply Rplus_le_compat_r.
+now apply Hd.
+now apply Rle_minus.
+apply Rle_minus.
+apply Hd.
 now left.
-apply Rge_minus.
-apply Rle_ge.
-now eapply Hd.
 (* - d >> u *)
+exists d.
 split.
-now eapply Hd.
-intros.
-destruct (Rle_or_lt x g).
+split.
+apply Hd.
+intros g Hg.
+destruct (Rle_or_lt x g) as [Hxg|Hxg].
 rewrite <- H.
-rewrite Rabs_right.
-rewrite Rabs_right.
+rewrite 2!Rabs_pos_eq.
 apply Rplus_le_compat_r.
-now eapply Hu.
-apply Rge_minus.
-now apply Rle_ge.
-apply Rge_minus.
-apply Rle_ge.
-now eapply Hu.
-rewrite Rabs_left1.
-rewrite Rabs_left1.
+now apply Hu.
+now apply Rle_0_minus.
+apply Rle_0_minus.
+apply Hu.
+apply Rlt_le in Hxg.
+rewrite 2!Rabs_left1.
 apply Ropp_le_contravar.
 apply Rplus_le_compat_r.
-now eapply Hd ; try apply Rlt_le.
+now apply Hd.
+now apply Rle_minus.
 apply Rle_minus.
-now apply Rlt_le.
-apply Rle_minus.
-now eapply Hd.
+apply Hd.
+now left.
 (* |up(x) - x| > |dn(x) - x| *)
-destruct (Hd x) as (H3,(H4,H5)).
+exists d.
 split.
-exact H3.
-intros.
-destruct (Rle_or_lt x g).
+split.
+apply Hd.
+intros g Hg.
+destruct (Rle_or_lt x g) as [Hxg|Hxg].
 apply Rlt_le.
 apply Rlt_le_trans with (1 := H).
-repeat rewrite Rabs_right.
+rewrite 2!Rabs_pos_eq.
 apply Rplus_le_compat_r.
-now eapply Hu.
-apply Rge_minus.
-now apply Rle_ge.
-apply Rge_minus.
-apply Rle_ge.
-now eapply Hu.
-repeat rewrite Rabs_left1.
+now apply Hu.
+now apply Rle_0_minus.
+apply Rle_0_minus.
+apply Hu.
+apply Rlt_le in Hxg.
+rewrite 2!Rabs_left1.
 apply Ropp_le_contravar.
 apply Rplus_le_compat_r.
-now eapply Hd ; try apply Rlt_le.
+now apply Hd.
+now apply Rle_minus.
 apply Rle_minus.
-now apply Rlt_le.
-apply Rle_minus.
-now eapply Hd.
-(* *** away *)
-destruct (total_order_T (Rabs (rndu x - x)) (Rabs (rndd x - x))) as [[H|H]|H].
+apply Hd.
 right.
-intros f2 Hxf2.
-destruct (Rnd_N_pt_DN_or_UP_eq F x _ _ f2 (Hd x) (Hu x) Hxf2) as [K|K] ; rewrite K.
-elim Rlt_not_le with (1 := H).
-rewrite <- K.
-apply Hxf2.
-eapply Hu.
-apply refl_equal.
-destruct (HP x (rndd x) (rndu x) (Hd x) (Hu x)) as [H0|H0].
-now left.
-now left.
-right.
-intros f2 Hxf2.
-destruct (Rnd_N_pt_DN_or_UP_eq F x _ _ f2 (Hd x) (Hu x) Hxf2) as [K|K] ; rewrite K.
+intros f Hf.
+destruct (Rnd_N_pt_DN_or_UP_eq F x _ _ _ Hd Hu Hf) as [K|K] ; rewrite K.
 apply refl_equal.
 elim Rlt_not_le with (1 := H).
 rewrite <- K.
-apply Hxf2.
-eapply Hd.
+apply Hf.
+apply Hd.
 Qed.
 
 Theorem satisfies_any_imp_NA :
   forall F : R -> Prop,
   satisfies_any F ->
-  { rnd : R -> R | Rnd_NA F rnd }.
+  rounding_pred (Rnd_NA_pt F).
 Proof.
 intros F Hany.
-destruct (satisfies_any_imp_NG F (fun a b => (Rabs a <= Rabs b)%R) Hany) as (rnd, Hrnd).
-intros x d u Hxd Hxu.
+split.
+assert (H : rounding_pred_total (Rnd_NG_pt F (fun a b => (Rabs a <= Rabs b)%R))).
+apply satisfies_any_imp_NG.
+apply Hany.
+intros x d u Hd Hu.
 destruct (Rle_lt_dec 0 x) as [Hx|Hx].
 left.
 rewrite Rabs_pos_eq with (1 := Hx).
 rewrite Rabs_pos_eq.
-apply Hxu.
+apply Hu.
 apply Rle_trans with (1 := Hx).
-apply Hxu.
+apply Hu.
 right.
 rewrite Rabs_left with (1 := Hx).
 rewrite Rabs_left1.
 apply Ropp_le_contravar.
-apply Hxd.
-apply Rlt_le.
-apply Rle_lt_trans with (2 := Hx).
-apply Hxd.
-exists rnd.
+apply Hd.
+apply Rlt_le in Hx.
+apply Rle_trans with (2 := Hx).
+apply Hd.
 intros x.
+destruct (H x) as (f, Hf).
+exists f.
 apply <- Rnd_NA_NG_pt.
-apply Hrnd.
+apply Hf.
+apply Hany.
+apply Rnd_NA_pt_monotone.
 apply Hany.
 Qed.
 

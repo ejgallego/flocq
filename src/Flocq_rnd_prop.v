@@ -698,9 +698,7 @@ Qed.
 Theorem Rnd_NG_pt_monotone :
   forall (F : R -> Prop) (P : R -> R -> Prop),
   Rnd_NG_pt_unicity_prop F P ->
-  forall x y f g : R,
-  Rnd_NG_pt F P x f -> Rnd_NG_pt F P y g ->
-  x <= y -> f <= g.
+  rounding_pred_monotone (Rnd_NG_pt F P).
 Proof.
 intros F P HP x y f g (Hf,Hx) (Hg,Hy) [Hxy|Hxy].
 now apply Rnd_N_pt_monotone with F x y.
@@ -900,9 +898,7 @@ Qed.
 Theorem Rnd_NA_pt_monotone :
   forall F : R -> Prop,
   F 0 ->
-  forall x y f g : R,
-  Rnd_NA_pt F x f -> Rnd_NA_pt F y g ->
-  x <= y -> f <= g.
+  rounding_pred_monotone (Rnd_NA_pt F).
 Proof.
 intros F HF x y f g Hxf Hyg Hxy.
 apply (Rnd_NG_pt_monotone F _ (Rnd_NA_pt_unicity_prop F HF) x y).
