@@ -84,13 +84,10 @@ intros Hx'.
 assert (x = 0).
 now apply Rle_antisym.
 rewrite H in Hf |- *.
-clear Hx Hx'.
+clear H Hx Hx'.
 rewrite Rnd_DN_pt_idempotent with (1 := Hf).
-split.
+apply Rnd_UP_pt_refl.
 apply Hany.
-split.
-apply Rle_refl.
-now intros.
 apply Hany.
 (* negative *)
 destruct (proj1 (satisfies_any_imp_UP F Hany) x) as (f, Hf).
