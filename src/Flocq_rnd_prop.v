@@ -201,6 +201,18 @@ rewrite Ropp_involutive.
 apply H1.
 Qed.
 
+Theorem Rnd_DN_pt_refl :
+  forall F : R -> Prop,
+  forall x : R, F x ->
+  Rnd_DN_pt F x x.
+Proof.
+intros F x Hx.
+repeat split.
+exact Hx.
+apply Rle_refl.
+now intros.
+Qed.
+
 Theorem Rnd_DN_pt_idempotent :
   forall F : R -> Prop,
   forall x f : R,
@@ -227,6 +239,18 @@ intros.
 eapply Hr.
 intros x Hx.
 now apply Rnd_DN_pt_idempotent with (2 := Hx).
+Qed.
+
+Theorem Rnd_UP_pt_refl :
+  forall F : R -> Prop,
+  forall x : R, F x ->
+  Rnd_UP_pt F x x.
+Proof.
+intros F x Hx.
+repeat split.
+exact Hx.
+apply Rle_refl.
+now intros.
 Qed.
 
 Theorem Rnd_UP_pt_idempotent :
@@ -549,6 +573,20 @@ intros F rnd Hr x y [Hxy|Hxy].
 now apply Rnd_N_pt_monotone with F x y.
 rewrite Hxy.
 apply Rle_refl.
+Qed.
+
+Theorem Rnd_N_pt_refl :
+  forall F : R -> Prop,
+  forall x : R, F x ->
+  Rnd_N_pt F x x.
+Proof.
+intros F x Hx.
+repeat split.
+exact Hx.
+intros g _.
+unfold Rminus at 1.
+rewrite Rplus_opp_r, Rabs_R0.
+apply Rabs_pos.
 Qed.
 
 Theorem Rnd_N_pt_idempotent :
@@ -882,6 +920,20 @@ Theorem Rnd_NA_monotone :
 Proof.
 intros F rnd Hr x y Hxy.
 now apply Rnd_NA_pt_monotone with F.
+Qed.
+
+Theorem Rnd_NA_pt_refl :
+  forall F : R -> Prop,
+  forall x : R, F x ->
+  Rnd_NA_pt F x x.
+Proof.
+intros F x Hx.
+split.
+now apply Rnd_N_pt_refl.
+intros f Hxf.
+apply Req_le.
+apply f_equal.
+now apply Rnd_N_pt_idempotent with (1 := Hxf).
 Qed.
 
 Theorem Rnd_NA_pt_idempotent :
