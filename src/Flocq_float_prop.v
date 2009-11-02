@@ -159,11 +159,8 @@ Theorem bpow_le_F2R :
   (bpow e <= F2R (Float beta m e))%R.
 Proof.
 intros m e H.
-rewrite <- (Rmult_1_l (bpow e)).
-unfold F2R. simpl.
-apply Rmult_le_compat_r.
-apply bpow_ge_0.
-apply (Z2R_le 1).
+rewrite <- F2R_bpow.
+apply F2R_le_compat.
 now apply (Zlt_le_succ 0).
 Qed.
 
@@ -328,10 +325,7 @@ rewrite <- (Zabs_eq m1), <- abs_F2R.
 apply H1.
 apply Rgt_not_eq.
 apply Rlt_gt.
-unfold F2R. simpl.
-apply Rmult_lt_0_compat.
-now apply (Z2R_lt 0).
-apply bpow_gt_0.
+now apply F2R_gt_0_compat.
 now apply Zlt_le_weak.
 clear H1.
 rewrite abs_F2R, Zabs_eq.

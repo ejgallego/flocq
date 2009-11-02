@@ -94,8 +94,7 @@ split ; intros H ; rewrite Hx.
 apply generic_format_0.
 exists (Float beta 0 0).
 split.
-unfold F2R. simpl.
-now rewrite Rmult_0_l.
+now rewrite F2R_0.
 apply Zpower_gt_0.
 now apply Zlt_le_trans with (2 := radix_prop beta).
 now apply Zlt_le_weak.
@@ -144,12 +143,11 @@ destruct (Z_eq_dec xm 0) as [H3|H3].
 exists (Float beta 0 0).
 split.
 rewrite H1, H3.
-unfold F2R. simpl.
-now rewrite 2!Rmult_0_l.
+now rewrite 2!F2R_0.
 intros H.
 elim H.
 rewrite H1, H3.
-apply Rmult_0_l.
+apply F2R_0.
 destruct (ln_beta beta (Z2R xm)) as (d,H4).
 specialize (H4 (Z2R_neq _ _ H3)).
 assert (H5: (0 <= prec - d)%Z).

@@ -28,6 +28,13 @@ Definition generic_format (x : R) :=
   exists f : float beta,
   canonic x f.
 
+Theorem generic_format_0 :
+  generic_format 0.
+Proof.
+exists (Float beta 0 _) ; repeat split.
+now rewrite F2R_0.
+Qed.
+
 Theorem generic_DN_pt_large_pos_ge_pow :
   forall x ex,
   (fexp ex < ex)%Z ->
@@ -109,10 +116,7 @@ rewrite ln_beta_unique with (1 := H) in Hg2.
 simpl in Hg2.
 apply Rlt_not_le with (1 := Hrg).
 rewrite Hg1, Hg2.
-unfold F2R. simpl.
-apply Rmult_le_compat_r.
-apply bpow_ge_0.
-apply Z2R_le.
+apply F2R_le_compat.
 apply Zfloor_lub.
 apply Rmult_le_reg_r with (bpow (fexp ex)).
 apply bpow_gt_0.
@@ -127,12 +131,9 @@ now rewrite <- Hg1.
 (* - positive too small *)
 replace (Zfloor (x * bpow (- fexp ex))) with Z0.
 (* - . rounded *)
-unfold F2R. simpl.
-rewrite Rmult_0_l.
+rewrite F2R_0.
 split.
-exists (Float beta Z0 _) ; repeat split.
-unfold F2R. simpl.
-now rewrite Rmult_0_l.
+exact generic_format_0.
 split.
 apply Rle_trans with (2 := Hx1).
 apply bpow_ge_0.
@@ -158,18 +159,11 @@ apply Rle_lt_trans with (2 := Hx2).
 apply Rle_trans with (2 := Hgx).
 exact (proj1 Hg4).
 rewrite Hg1.
-unfold F2R. simpl.
-pattern (bpow ge) at 1 ; rewrite <- Rmult_1_l.
-apply Rmult_le_compat_r.
-apply bpow_ge_0.
-apply (Z2R_le 1).
+rewrite <- F2R_bpow.
+apply F2R_le_compat.
 apply (Zlt_le_succ 0).
-apply lt_Z2R.
-apply Rmult_lt_reg_r with (bpow ge).
-apply bpow_gt_0.
-rewrite Rmult_0_l.
-unfold F2R in Hg1. simpl in Hg1.
-now rewrite <- Hg1.
+apply F2R_lt_reg with beta ge.
+now rewrite F2R_0, <- Hg1.
 now apply Rlt_le.
 (* - . . *)
 apply sym_eq.
@@ -433,14 +427,6 @@ apply bpow_gt_0.
 exact Hx.
 Qed.
 
-Theorem generic_format_0 :
-  generic_format 0.
-Proof.
-exists (Float beta 0 _) ; repeat split.
-unfold F2R. simpl.
-now rewrite Rmult_0_l.
-Qed.
-
 Theorem canonic_unicity :
   forall x f1 f2,
   canonic x f1 ->
@@ -532,9 +518,7 @@ Theorem generic_DN_pt_small_pos :
 Proof.
 intros x ex Hx He.
 split.
-exists (Float beta 0 _) ; repeat split.
-unfold F2R. simpl.
-now rewrite Rmult_0_l.
+exact generic_format_0.
 split.
 apply Rle_trans with (2 := proj1 Hx).
 apply bpow_ge_0.

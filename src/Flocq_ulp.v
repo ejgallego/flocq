@@ -219,13 +219,11 @@ rewrite Rnd_N_pt_idempotent with (1 := Hxr).
 unfold Rminus.
 rewrite Rplus_opp_r.
 rewrite Rabs_R0.
-unfold ulp, F2R. simpl.
-rewrite Rmult_1_l.
 apply Rmult_le_pos.
 apply Rlt_le.
 apply Rinv_0_lt_compat.
 now apply (Z2R_lt 0 2).
-apply bpow_ge_0.
+now apply F2R_ge_0_compat.
 apply Hd.
 Qed.
 
@@ -237,8 +235,7 @@ Theorem ulp_monotone :
 Proof.
 intros Hm x y Hx Hxy.
 unfold ulp.
-unfold F2R. simpl.
-rewrite 2!Rmult_1_l.
+rewrite 2!F2R_bpow.
 apply -> bpow_le.
 apply Hm.
 now apply ln_beta_monotone.
@@ -249,14 +246,13 @@ Theorem ulp_bpow :
 intros e.
 unfold ulp.
 rewrite (ln_beta_unique beta (bpow e) (e + 1)).
-unfold F2R.
-now rewrite Rmult_1_l.
+apply F2R_bpow.
 rewrite Rabs_pos_eq.
 split.
 apply -> bpow_le.
 omega.
 apply -> bpow_lt.
-omega.
+apply Zlt_succ.
 apply bpow_ge_0.
 Qed.
 
