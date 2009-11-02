@@ -7,60 +7,6 @@ Variable beta : radix.
 
 Notation bpow e := (bpow beta e).
 
-Theorem F2R_ge_0_reg :
-  forall m e : Z,
-  (0 <= F2R (Float beta m e))%R ->
-  (0 <= m)%Z.
-Proof.
-intros m e H.
-apply le_Z2R.
-apply Rmult_le_reg_r with (bpow e).
-apply bpow_gt_0.
-now rewrite Rmult_0_l.
-Qed.
-
-Theorem F2R_le_0_reg :
-  forall m e : Z,
-  (F2R (Float beta m e) <= 0)%R ->
-  (m <= 0)%Z.
-Proof.
-intros m e H.
-apply le_Z2R.
-apply Ropp_le_cancel.
-apply Rmult_le_reg_r with (bpow e).
-apply bpow_gt_0.
-simpl (Z2R 0).
-rewrite Ropp_0.
-rewrite Rmult_0_l.
-rewrite Ropp_mult_distr_l_reverse.
-rewrite <- Ropp_0.
-now apply Ropp_le_contravar.
-Qed.
-
-Theorem F2R_gt_0_reg :
-  forall m e : Z,
-  (0 < F2R (Float beta m e))%R ->
-  (0 < m)%Z.
-Proof.
-intros m e H.
-apply lt_Z2R.
-apply Rmult_lt_reg_r with (bpow e).
-apply bpow_gt_0.
-now rewrite Rmult_0_l.
-Qed.
-
-Theorem F2R_gt_0_compat :
-  forall f : float beta,
-  (0 < Fnum f)%Z ->
-  (0 < F2R f)%R.
-Proof.
-intros f Hm.
-unfold F2R.
-apply Rmult_lt_0_compat.
-now apply (Z2R_lt 0).
-apply bpow_gt_0.
-Qed.
-
 Theorem F2R_le_reg :
   forall e m1 m2 : Z,
   (F2R (Float beta m1 e) <= F2R (Float beta m2 e))%R ->
@@ -107,6 +53,104 @@ unfold F2R. simpl.
 apply Rmult_lt_compat_r.
 apply bpow_gt_0.
 now apply Z2R_lt.
+Qed.
+
+Theorem F2R_0 :
+  forall e : Z,
+  F2R (Float beta 0 e) = R0.
+Proof.
+intros e.
+unfold F2R. simpl.
+apply Rmult_0_l.
+Qed.
+
+Theorem F2R_ge_0_reg :
+  forall m e : Z,
+  (0 <= F2R (Float beta m e))%R ->
+  (0 <= m)%Z.
+Proof.
+intros m e H.
+apply F2R_le_reg with e.
+now rewrite F2R_0.
+Qed.
+
+Theorem F2R_le_0_reg :
+  forall m e : Z,
+  (F2R (Float beta m e) <= 0)%R ->
+  (m <= 0)%Z.
+Proof.
+intros m e H.
+apply F2R_le_reg with e.
+now rewrite F2R_0.
+Qed.
+
+Theorem F2R_gt_0_reg :
+  forall m e : Z,
+  (0 < F2R (Float beta m e))%R ->
+  (0 < m)%Z.
+Proof.
+intros m e H.
+apply F2R_lt_reg with e.
+now rewrite F2R_0.
+Qed.
+
+Theorem F2R_lt_0_reg :
+  forall m e : Z,
+  (F2R (Float beta m e) < 0)%R ->
+  (m < 0)%Z.
+Proof.
+intros m e H.
+apply F2R_lt_reg with e.
+now rewrite F2R_0.
+Qed.
+
+Theorem F2R_ge_0_compat :
+  forall f : float beta,
+  (0 <= Fnum f)%Z ->
+  (0 <= F2R f)%R.
+Proof.
+intros f H.
+rewrite <- F2R_0 with (Fexp f).
+now apply F2R_le_compat.
+Qed.
+
+Theorem F2R_le_0_compat :
+  forall f : float beta,
+  (Fnum f <= 0)%Z ->
+  (F2R f <= 0)%R.
+Proof.
+intros f H.
+rewrite <- F2R_0 with (Fexp f).
+now apply F2R_le_compat.
+Qed.
+
+Theorem F2R_gt_0_compat :
+  forall f : float beta,
+  (0 < Fnum f)%Z ->
+  (0 < F2R f)%R.
+Proof.
+intros f H.
+rewrite <- F2R_0 with (Fexp f).
+now apply F2R_lt_compat.
+Qed.
+
+Theorem F2R_lt_0_compat :
+  forall f : float beta,
+  (Fnum f < 0)%Z ->
+  (F2R f < 0)%R.
+Proof.
+intros f H.
+rewrite <- F2R_0 with (Fexp f).
+now apply F2R_lt_compat.
+Qed.
+
+Theorem F2R_bpow :
+  forall e : Z,
+  F2R (Float beta 1 e) = bpow e.
+Proof.
+intros e.
+unfold F2R. simpl.
+apply Rmult_1_l.
 Qed.
 
 Theorem bpow_le_F2R :
