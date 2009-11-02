@@ -956,6 +956,52 @@ intros x Hx.
 now apply Rnd_NA_pt_idempotent with F.
 Qed.
 
+Theorem rounding_pred_pos_imp_rnd :
+  forall P : R -> R -> Prop,
+  rounding_pred_monotone P ->
+  P 0 0 ->
+  forall x f, P x f -> 0 <= x -> 0 <= f.
+Proof.
+intros P HP HP0 x f Hxf Hx.
+now apply (HP 0 x).
+Qed.
+
+Theorem rounding_pred_rnd_imp_pos :
+  forall P : R -> R -> Prop,
+  rounding_pred_monotone P ->
+  P 0 0 ->
+  forall x f, P x f -> 0 < f -> 0 < x.
+Proof.
+intros P HP HP0 x f Hxf Hf.
+apply Rnot_le_lt.
+intros Hx.
+apply Rlt_not_le with (1 := Hf).
+now apply (HP x 0).
+Qed.
+
+Theorem rounding_pred_neg_imp_rnd :
+  forall P : R -> R -> Prop,
+  rounding_pred_monotone P ->
+  P 0 0 ->
+  forall x f, P x f -> x <= 0 -> f <= 0.
+Proof.
+intros P HP HP0 x f Hxf Hx.
+now apply (HP x 0).
+Qed.
+
+Theorem rounding_pred_rnd_imp_neg :
+  forall P : R -> R -> Prop,
+  rounding_pred_monotone P ->
+  P 0 0 ->
+  forall x f, P x f -> f < 0 -> x < 0.
+Proof.
+intros P HP HP0 x f Hxf Hf.
+apply Rnot_le_lt.
+intros Hx.
+apply Rlt_not_le with (1 := Hf).
+now apply (HP 0 x).
+Qed.
+
 Theorem Rnd_0 :
   forall F : R -> Prop,
   forall rnd : R -> R, 
