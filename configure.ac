@@ -21,7 +21,7 @@ AC_ARG_VAR(COQDEP, [Coq dependency analyzer command [coqdep]])
 AC_CHECK_TOOL(COQDEP, coqdep)
 
 if test "$libdir" = '${exec_prefix}/lib'; then
-  libdir='`$(COQC) -where`/user-contrib/Gappa'
+  libdir='`$(COQC) -where`/user-contrib/Flocq'
 fi
 
 AC_SUBST(COQRFLAG, ['-R . Flocq'])
