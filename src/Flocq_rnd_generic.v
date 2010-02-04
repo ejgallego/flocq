@@ -35,6 +35,23 @@ exists (Float beta 0 _) ; repeat split.
 now rewrite F2R_0.
 Qed.
 
+Theorem generic_format_bpow :
+  forall e, (fexp (e + 1) <= e)%Z ->
+  generic_format (bpow e).
+Proof.
+intros e H.
+exists (Float beta (1 * Zpower (radix_val beta) (e - fexp (e + 1))) (fexp (e + 1))).
+split.
+rewrite <- F2R_change_exp.
+apply sym_eq.
+apply F2R_bpow.
+exact H.
+simpl.
+apply f_equal.
+apply sym_eq.
+apply ln_beta_bpow.
+Qed.
+
 Theorem generic_DN_pt_large_pos_ge_pow :
   forall x ex,
   (fexp ex < ex)%Z ->

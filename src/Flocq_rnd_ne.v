@@ -561,9 +561,89 @@ Proof.
 intros x xd xu cd cu Hx0 Hfx Hd Hu Hxd Hxu Hed Heu.
 destruct (Rlt_or_le (bpow (emin + prec - 1)) x) as [Hx|Hx].
 (* . *)
-admit.
+assert (Hn : generic_format beta FLTf (bpow (emin + prec - 1))).
+apply generic_format_bpow.
+unfold FLT_exp.
+replace (emin + prec - 1 + 1 - prec)%Z with emin by ring.
+rewrite Zmax_idempotent.
+omega.
+apply DN_UP_parity_FLX_pos with prec x xd xu cd cu ; try easy.
+(* .. *)
+intros H.
+apply Hfx.
+apply -> FLT_format_generic. 2: exact Hp.
+apply <- FLT_format_FLX. 3: exact Hp.
+now apply <- FLX_format_generic.
+rewrite Rabs_pos_eq.
+now apply Rlt_le.
+now apply Rlt_le.
+(* .. *)
+apply -> FLT_canonic_FLX.
+eexact Hd.
+rewrite Rabs_pos_eq.
+apply Hxd.
+exact Hn.
+now apply Rlt_le.
+apply Hxd.
+apply generic_format_0.
+now apply Rlt_le.
+(* .. *)
+apply -> FLT_canonic_FLX.
+eexact Hu.
+rewrite Rabs_pos_eq.
+apply Rlt_le.
+apply Rlt_le_trans with (1 := Hx).
+apply Hxu.
+apply Rlt_le.
+apply Rlt_le_trans with (1 := Hx0).
+apply Hxu.
+(* .. *)
+apply Rnd_DN_pt_equiv_format with (a := bpow (emin + prec - 1)) (b := x) (4 := Hxd).
+exact Hn.
+intros a (Ha, _).
+apply iff_trans with (2 := FLX_format_generic beta prec Hp a).
+assert (Ha' : (bpow (emin + prec - 1) <= Rabs a)%R).
+rewrite Rabs_pos_eq.
+exact Ha.
+apply Rle_trans with (2 := Ha).
+apply bpow_ge_0.
+apply iff_trans with (2 := FLT_format_FLX beta emin prec Hp a Ha').
+apply iff_sym.
+now apply FLT_format_generic.
+split.
+now apply Rlt_le.
+apply Rle_refl.
+(* .. *)
+destruct (ln_beta beta x) as (ex, He).
+specialize (He (Rgt_not_eq _ _ Hx0)).
+rewrite Rabs_pos_eq in He.
+2: now apply Rlt_le.
+apply Rnd_UP_pt_equiv_format with (a := x) (b := bpow ex) (4 := Hxu).
+apply generic_format_bpow.
+unfold FLT_exp.
+rewrite Zmax_left.
+omega.
+assert (emin + prec - 1 <= ex)%Z. 2 : omega.
+apply <- (bpow_le beta).
+apply Rlt_le.
+now apply Rlt_trans with (2 := proj2 He).
+intros b (Hb, _).
+apply iff_trans with (2 := FLX_format_generic beta prec Hp b).
+assert (Hb' : (bpow (emin + prec - 1) <= Rabs b)%R).
+rewrite Rabs_pos_eq.
+apply Rle_trans with (2 := Hb).
+now apply Rlt_le.
+apply Rle_trans with (2 := Hb).
+now apply Rlt_le.
+apply iff_trans with (2 := FLT_format_FLX beta emin prec Hp b Hb').
+apply iff_sym.
+now apply FLT_format_generic.
+split.
+apply Rle_refl.
+now apply Rlt_le.
 (* . *)
 apply (DN_UP_parity_FIX emin x xd xu cd cu) ; trivial.
+(* .. *)
 intros H.
 apply Hfx.
 apply generic_format_fun_eq with (2 := H).
@@ -577,6 +657,7 @@ apply Rle_lt_trans with (1 := Hx).
 apply -> bpow_lt.
 apply Zlt_pred.
 now apply Rlt_le.
+(* .. *)
 apply canonic_fun_eq with (2 := Hd).
 apply sym_eq.
 apply FIX_FLT_exp_subnormal.
@@ -625,6 +706,7 @@ apply Zlt_pred.
 apply Hxd.
 apply generic_format_0.
 now apply Rlt_le.
+(* .. *)
 apply canonic_fun_eq with (2 := Hu).
 apply sym_eq.
 apply FIX_FLT_exp_subnormal.
@@ -634,16 +716,57 @@ apply Hxu.
 rewrite Rabs_pos_eq.
 apply Rle_lt_trans with (bpow (emin + prec - 1)).
 apply Hxu.
-exists (Float beta (Zpower (radix_val beta) (prec - 1)) emin).
-admit.
+apply generic_format_bpow.
+unfold FLT_exp.
+replace (emin + prec - 1 + 1 - prec)%Z with emin by ring.
+rewrite Zmax_idempotent.
+omega.
 exact Hx.
 apply -> bpow_lt.
 apply Zlt_pred.
 apply Rlt_le.
 apply Rlt_le_trans with (1 := Hx0).
 apply Hxu.
-admit.
-admit.
+(* .. *)
+apply Rnd_DN_pt_equiv_format with (a := R0) (b := x) (4 := Hxd).
+apply generic_format_0.
+intros a (Ha1, Ha2).
+apply iff_trans with (2 := FIX_format_generic beta emin a).
+assert (Ha' : (Rabs a <= bpow (emin + prec))%R).
+rewrite Rabs_pos_eq.
+apply Rle_trans with (1 := Ha2).
+apply Rle_trans with (1 := Hx).
+apply -> bpow_le.
+apply Zle_pred.
+exact Ha1.
+apply iff_trans with (2 := FLT_format_FIX beta emin prec Hp a Ha').
+apply iff_sym.
+now apply FLT_format_generic.
+split.
+now apply Rlt_le.
+apply Rle_refl.
+(* .. *)
+apply Rnd_UP_pt_equiv_format with (a := x) (b := bpow (emin + prec - 1)) (4 := Hxu).
+apply generic_format_bpow.
+unfold FLT_exp.
+replace (emin + prec - 1 + 1 - prec)%Z with emin by ring.
+rewrite Zmax_idempotent.
+omega.
+intros a (Ha1, Ha2).
+apply iff_trans with (2 := FIX_format_generic beta emin a).
+assert (Ha' : (Rabs a <= bpow (emin + prec))%R).
+rewrite Rabs_pos_eq.
+apply Rle_trans with (1 := Ha2).
+apply -> bpow_le.
+apply Zle_pred.
+apply Rle_trans with (2 := Ha1).
+now apply Rlt_le.
+apply iff_trans with (2 := FLT_format_FIX beta emin prec Hp a Ha').
+apply iff_sym.
+now apply FLT_format_generic.
+split.
+apply Rle_refl.
+exact Hx.
 Qed.
 
 Theorem Rnd_NE_pt_FLT :

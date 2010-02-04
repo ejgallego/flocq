@@ -775,6 +775,21 @@ now apply Rlt_le.
 now apply Rlt_le.
 Qed.
 
+Theorem ln_beta_bpow :
+  forall e, projT1 (ln_beta (bpow e)) = (e + 1)%Z.
+Proof.
+intros e.
+apply ln_beta_unique.
+rewrite Rabs_right.
+replace (e + 1 - 1)%Z with e by ring.
+split.
+apply Rle_refl.
+apply -> bpow_lt.
+apply Zlt_succ.
+apply Rle_ge.
+apply bpow_ge_0.
+Qed.
+
 Theorem Zpower_pos_gt_0 :
   forall b p, (0 < b)%Z ->
   (0 < Zpower_pos b p)%Z.

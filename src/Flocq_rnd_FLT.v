@@ -156,6 +156,32 @@ apply Rle_lt_trans with (1 := Hx1).
 now apply Hx5.
 Qed.
 
+(* TODO: vérifier si ça implique ^^ *)
+Theorem FLT_canonic_FLX :
+  forall x : R,
+  (bpow (emin + prec - 1) <= Rabs x)%R ->
+  forall f : float beta,
+  ( canonic beta FLT_exp x f <-> canonic beta (FLX_exp prec) x f ).
+Proof.
+intros x Hx f.
+unfold canonic.
+replace (FLT_exp (projT1 (ln_beta beta x))) with (FLX_exp prec (projT1 (ln_beta beta x))).
+apply iff_refl.
+unfold FLX_exp, FLT_exp.
+apply sym_eq.
+apply Zmax_left.
+destruct (ln_beta beta x) as (ex, He).
+simpl.
+assert (emin + prec - 1 < ex)%Z. 2: omega.
+apply <- (bpow_lt beta).
+apply Rle_lt_trans with (1 := Hx).
+apply He.
+intros H.
+elim Rlt_not_le with (2 := Hx).
+rewrite H, Rabs_R0.
+apply bpow_gt_0.
+Qed.
+
 Theorem FLT_format_FIX :
   forall x,
   (Rabs x <= bpow (emin + prec))%R ->

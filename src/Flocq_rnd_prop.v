@@ -1037,4 +1037,64 @@ rewrite <- Rnd_0 with (2 := H) ; trivial.
 now apply H.
 Qed.
 
+Theorem Rnd_DN_pt_equiv_format :
+  forall F1 F2 : R -> Prop,
+  forall a b : R,
+  F1 a ->
+  ( forall x, a <= x <= b -> (F1 x <-> F2 x) ) ->
+  forall x f, a <= x <= b -> Rnd_DN_pt F1 x f -> Rnd_DN_pt F2 x f.
+Proof.
+intros F1 F2 a b Ha HF x f Hx (H1, (H2, H3)).
+split.
+apply -> HF.
+exact H1.
+split.
+now apply H3.
+now apply Rle_trans with (1 := H2).
+split.
+exact H2.
+intros k Hk Hl.
+destruct (Rlt_or_le k a) as [H|H].
+apply Rlt_le.
+apply Rlt_le_trans with (1 := H).
+now apply H3.
+apply H3.
+apply <- HF.
+exact Hk.
+split.
+exact H.
+now apply Rle_trans with (1 := Hl).
+exact Hl.
+Qed.
+
+Theorem Rnd_UP_pt_equiv_format :
+  forall F1 F2 : R -> Prop,
+  forall a b : R,
+  F1 b ->
+  ( forall x, a <= x <= b -> (F1 x <-> F2 x) ) ->
+  forall x f, a <= x <= b -> Rnd_UP_pt F1 x f -> Rnd_UP_pt F2 x f.
+Proof.
+intros F1 F2 a b Hb HF x f Hx (H1, (H2, H3)).
+split.
+apply -> HF.
+exact H1.
+split.
+now apply Rle_trans with (2 := H2).
+now apply H3.
+split.
+exact H2.
+intros k Hk Hl.
+destruct (Rle_or_lt k b) as [H|H].
+apply H3.
+apply <- HF.
+exact Hk.
+split.
+now apply Rle_trans with (2 := Hl).
+exact H.
+exact Hl.
+apply Rlt_le.
+apply Rle_lt_trans with (2 := H).
+now apply H3.
+Qed.
+
 End RND_prop.
