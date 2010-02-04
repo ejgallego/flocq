@@ -102,10 +102,13 @@ apply Rnd_ZR_pt_monotone.
 apply Hany.
 Qed.
 
+Definition NG_existence_prop (F : R -> Prop) (P : R -> R -> Prop) :=
+  forall x d u, Rnd_DN_pt F x d -> Rnd_UP_pt F x u -> P x u \/ P x d.
+
 Theorem satisfies_any_imp_NG :
   forall (F : R -> Prop) (P : R -> R -> Prop),
   satisfies_any F ->
-  ( forall x d u, Rnd_DN_pt F x d -> Rnd_UP_pt F x u -> { P x u } + { P x d } ) ->
+  NG_existence_prop F P ->
   rounding_pred_total (Rnd_NG_pt F P).
 Proof.
 intros F P Hany HP x.

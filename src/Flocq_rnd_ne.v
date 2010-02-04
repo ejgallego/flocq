@@ -187,6 +187,17 @@ destruct Hxf as (Hxf1,_).
 now apply Rnd_N_pt_idempotent with format.
 Qed.
 
+(*
+Theorem Rnd_gNE_pt_total :
+  rounding_pred_total Rnd_gNE_pt.
+Proof.
+apply satisfies_any_imp_NG.
+now apply generic_format_satisfies_any.
+unfold NG_existence_prop, gNE_prop.
+intros x d u Hd Hu.
+Abort.
+*)
+
 Definition NE_prop (_ : R) f :=
   exists g : float beta, canonic f g /\ Zeven (Fnum g).
 
