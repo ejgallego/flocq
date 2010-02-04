@@ -549,23 +549,6 @@ Variable Hp : Zlt 0 prec.
 
 Notation FLTf := (FLT_exp emin prec).
 
-Theorem FIX_FLT_exp_subnormal :
-  forall x, x <> R0 ->
-  (Rabs x < bpow (emin + prec))%R ->
-  FIX_exp emin (projT1 (ln_beta beta x)) = FLTf (projT1 (ln_beta beta x)).
-Proof.
-intros x Hx0 Hx.
-unfold FIX_exp, FLT_exp.
-rewrite Zmax_right.
-apply refl_equal.
-destruct (ln_beta beta x) as (ex, Hex).
-simpl.
-cut (ex - 1 < emin + prec)%Z. omega.
-apply <- bpow_lt.
-eapply Rle_lt_trans with (2 := Hx).
-now apply Hex.
-Qed.
-
 Theorem DN_UP_parity_FLT_pos :
   DN_UP_parity_pos_prop FLTf.
 Proof.
@@ -653,11 +636,9 @@ apply (DN_UP_parity_FIX emin x xd xu cd cu) ; trivial.
 intros H.
 apply Hfx.
 apply generic_format_fun_eq with (2 := H).
-apply FIX_FLT_exp_subnormal.
-intros H1.
-apply Hfx.
-rewrite H1.
-apply generic_format_0.
+apply sym_eq.
+apply FLT_exp_FIX.
+now apply Rgt_not_eq.
 rewrite Rabs_pos_eq.
 apply Rle_lt_trans with (1 := Hx).
 apply -> bpow_lt.
@@ -665,8 +646,7 @@ apply Zlt_pred.
 now apply Rlt_le.
 (* .. *)
 apply canonic_fun_eq with (2 := Hd).
-apply sym_eq.
-apply FIX_FLT_exp_subnormal.
+apply FLT_exp_FIX.
 intros Hxd0.
 apply Zeven_not_Zodd with (1 := Heu).
 rewrite canonic_unicity with (f2 := Float beta 1 emin) (1 := Hu).
@@ -714,8 +694,7 @@ apply generic_format_0.
 now apply Rlt_le.
 (* .. *)
 apply canonic_fun_eq with (2 := Hu).
-apply sym_eq.
-apply FIX_FLT_exp_subnormal.
+apply FLT_exp_FIX.
 apply Rgt_not_eq.
 apply Rlt_le_trans with (1 := Hx0).
 apply Hxu.

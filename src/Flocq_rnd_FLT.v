@@ -170,6 +170,34 @@ apply iff_sym.
 now apply FLX_format_generic.
 Qed.
 
+Theorem FLT_exp_FIX :
+  forall x, x <> R0 ->
+  (Rabs x < bpow (emin + prec))%R ->
+  FLT_exp (projT1 (ln_beta beta x)) = FIX_exp emin (projT1 (ln_beta beta x)).
+Proof.
+intros x Hx0 Hx.
+unfold FIX_exp, FLT_exp.
+rewrite Zmax_right.
+apply refl_equal.
+destruct (ln_beta beta x) as (ex, Hex).
+simpl.
+cut (ex - 1 < emin + prec)%Z. omega.
+apply <- (bpow_lt beta).
+apply Rle_lt_trans with (2 := Hx).
+now apply Hex.
+Qed.
+
+Theorem FLT_canonic_FIX :
+  forall x : R, x <> R0 ->
+  (Rabs x < bpow (emin + prec))%R ->
+  forall f : float beta,
+  ( canonic beta FLT_exp x f <-> canonic beta (FIX_exp emin) x f ).
+Proof.
+intros x Hx0 Hx f.
+unfold canonic.
+now rewrite FLT_exp_FIX.
+Qed.
+
 Theorem FLT_format_FIX :
   forall x,
   (Rabs x <= bpow (emin + prec))%R ->
