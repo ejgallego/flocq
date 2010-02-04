@@ -120,43 +120,6 @@ apply FLT_format_generic.
 exact FLT_exp_correct.
 Qed.
 
-Theorem FLT_format_FLX :
-  forall x : R,
-  (bpow (emin + prec - 1) <= Rabs x)%R ->
-  ( FLT_format x <-> FLX_format beta prec x ).
-Proof.
-intros x Hx1.
-split.
-(* . *)
-intros ((xm, xe), (Hx2, (Hx3, Hx4))).
-rewrite Hx2.
-eexists ; split ; easy.
-(* . *)
-intros Hx2.
-destruct (Req_dec x 0) as [Hx3|Hx3].
-(* . . *)
-rewrite Hx3.
-apply <- FLT_format_generic.
-apply generic_format_0.
-(* . . *)
-destruct (proj1 (FLX_format_generic _ _ Hp x) Hx2) as ((xm, xe), (Hx4, Hx5)).
-apply <- FLT_format_generic.
-rewrite Hx4.
-eexists ; repeat split.
-rewrite Hx5. clear Hx5.
-rewrite <- Hx4.
-destruct (ln_beta beta x) as (ex, Hx5).
-unfold FLX_exp, FLT_exp.
-simpl.
-apply sym_eq.
-apply Zmax_left.
-cut (emin + prec <= ex)%Z. omega.
-apply bpow_lt_bpow with beta.
-apply Rle_lt_trans with (1 := Hx1).
-now apply Hx5.
-Qed.
-
-(* TODO: vérifier si ça implique ^^ *)
 Theorem FLT_canonic_FLX :
   forall x : R,
   (bpow (emin + prec - 1) <= Rabs x)%R ->
@@ -180,6 +143,31 @@ intros H.
 elim Rlt_not_le with (2 := Hx).
 rewrite H, Rabs_R0.
 apply bpow_gt_0.
+Qed.
+
+Theorem FLT_generic_format_FLX :
+  forall x : R,
+  (bpow (emin + prec - 1) <= Rabs x)%R ->
+  ( generic_format beta FLT_exp x <-> generic_format beta (FLX_exp prec) x ).
+Proof.
+intros x Hx.
+assert (Hc := FLT_canonic_FLX x Hx).
+split ; intros (f, Hf) ; exists f.
+now apply -> Hc.
+now apply <- Hc.
+Qed.
+
+Theorem FLT_format_FLX :
+  forall x : R,
+  (bpow (emin + prec - 1) <= Rabs x)%R ->
+  ( FLT_format x <-> FLX_format beta prec x ).
+Proof.
+intros x Hx1.
+assert (Hc := FLT_canonic_FLX x Hx1).
+apply iff_trans with (1 := FLT_format_generic x).
+apply iff_trans with (1 := FLT_generic_format_FLX x Hx1).
+apply iff_sym.
+now apply FLX_format_generic.
 Qed.
 
 Theorem FLT_format_FIX :

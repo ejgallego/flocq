@@ -582,9 +582,8 @@ apply DN_UP_parity_FLX_pos with prec x xd xu cd cu ; try easy.
 (* .. *)
 intros H.
 apply Hfx.
-apply -> FLT_format_generic. 2: exact Hp.
-apply <- FLT_format_FLX. 3: exact Hp.
-now apply <- FLX_format_generic.
+apply <- FLT_generic_format_FLX.
+exact H.
 rewrite Rabs_pos_eq.
 now apply Rlt_le.
 now apply Rlt_le.
@@ -612,15 +611,11 @@ apply Hxu.
 apply Rnd_DN_pt_equiv_format with (a := bpow (emin + prec - 1)) (b := x) (4 := Hxd).
 exact Hn.
 intros a (Ha, _).
-apply iff_trans with (2 := FLX_format_generic beta prec Hp a).
-assert (Ha' : (bpow (emin + prec - 1) <= Rabs a)%R).
+apply FLT_generic_format_FLX.
 rewrite Rabs_pos_eq.
 exact Ha.
 apply Rle_trans with (2 := Ha).
 apply bpow_ge_0.
-apply iff_trans with (2 := FLT_format_FLX beta emin prec Hp a Ha').
-apply iff_sym.
-now apply FLT_format_generic.
 split.
 now apply Rlt_le.
 apply Rle_refl.
