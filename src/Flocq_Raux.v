@@ -826,4 +826,42 @@ now apply -> (bpow_lt 0).
 now apply Zlt_le_weak.
 Qed.
 
+Theorem Zpower_Zpower_nat :
+  forall b e, (0 <= e)%Z ->
+  Zpower b e = Zpower_nat b (Zabs_nat e).
+Proof.
+intros b [|e|e] He.
+apply refl_equal.
+apply Zpower_pos_nat.
+elim He.
+apply refl_equal.
+Qed.
+
+Theorem Zodd_Zpower :
+  forall b e, (0 <= e)%Z -> Zodd b ->
+  Zodd (Zpower b e).
+Proof.
+intros b e He Hb.
+rewrite Zpower_Zpower_nat.
+induction (Zabs_nat e).
+exact I.
+unfold Zpower_nat. simpl.
+now apply Zodd_mult_Zodd.
+exact He.
+Qed.
+
+Theorem Zeven_Zpower :
+  forall b e, (0 < e)%Z -> Zeven b ->
+  Zeven (Zpower b e).
+Proof.
+intros b e He Hb.
+replace e with (e - 1 + 1)%Z by ring.
+rewrite Zpower_exp.
+apply Zeven_mult_Zeven_r.
+unfold Zpower, Zpower_pos, iter_pos.
+now rewrite Zmult_1_r.
+omega.
+discriminate.
+Qed.
+
 End pow.

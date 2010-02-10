@@ -212,9 +212,7 @@ Definition DN_UP_parity_pos_prop :=
   canonic xu cu ->
   Rnd_DN_pt format x xd ->
   Rnd_UP_pt format x xu ->
-  Zeven (Fnum cd) ->
-  Zeven (Fnum cu) ->
-  False.
+  Zodd (Fnum cd + Fnum cu).
 
 Definition DN_UP_parity_prop :=
   forall x xd xu cd cu,
@@ -223,19 +221,17 @@ Definition DN_UP_parity_prop :=
   canonic xu cu ->
   Rnd_DN_pt format x xd ->
   Rnd_UP_pt format x xu ->
-  Zeven (Fnum cd) ->
-  Zeven (Fnum cu) ->
-  False.
+  Zodd (Fnum cd + Fnum cu).
 
 Theorem DN_UP_parity_aux :
   DN_UP_parity_pos_prop ->
   DN_UP_parity_prop.
 Proof.
-intros Hpos x xd xu cd cu Hfx Hd Hu Hxd Hxu Hed Heu.
+intros Hpos x xd xu cd cu Hfx Hd Hu Hxd Hxu.
 destruct (total_order_T 0 x) as [[Hx|Hx]|Hx].
 (* . *)
-exact (Hpos x xd xu cd cu Hx Hfx Hd Hu Hxd Hxu Hed Heu).
-apply Hfx.
+exact (Hpos x xd xu cd cu Hx Hfx Hd Hu Hxd Hxu).
+elim Hfx.
 rewrite <- Hx.
 apply generic_format_0.
 (* . *)
@@ -244,7 +240,12 @@ apply Ropp_lt_cancel.
 now rewrite Ropp_involutive, Ropp_0.
 destruct cd as (md, ed).
 destruct cu as (mu, eu).
-apply Hpos with (-x)%R (-xu)%R (-xd)%R (Float beta (-mu) eu) (Float beta (-md) ed).
+replace (Fnum (Float beta md ed) + Fnum (Float beta mu eu))%Z
+  with (-1 * ((Fnum (Float beta (-mu) ed) + Fnum (Float beta (-md) eu))))%Z
+  by (unfold Fnum ; ring).
+apply Zodd_mult_Zodd.
+now apply (Zodd_pred 0).
+apply (Hpos (-x)%R (-xu)%R (-xd)%R (Float beta (-mu) eu) (Float beta (-md) ed)).
 exact Hx'.
 intros H.
 apply Hfx.
@@ -258,10 +259,6 @@ now rewrite 2!Ropp_involutive.
 apply Rnd_DN_UP_pt_sym.
 apply generic_format_sym.
 now rewrite 2!Ropp_involutive.
-rewrite Zopp_eq_mult_neg_1, Zmult_comm.
-now apply Zeven_mult_Zeven_r.
-rewrite Zopp_eq_mult_neg_1, Zmult_comm.
-now apply Zeven_mult_Zeven_r.
 Qed.
 
 Theorem Rnd_NE_pt_aux :
@@ -310,9 +307,13 @@ now apply Rnd_N_pt_idempotent with format.
 destruct (Rnd_N_pt_DN_or_UP _ _ _ H1) as [Hxf1|Hxf1].
 destruct (Rnd_N_pt_DN_or_UP _ _ _ Hf2) as [Hxf2|Hxf2].
 apply Rnd_DN_pt_unicity with (1 := Hxf2) (2 := Hxf1).
-now elim HP with (1 := Hxf) (2 := H2) (3 := Hfg2).
+elim (Zodd_not_Zeven (Fnum g + Fnum g2)).
+now apply (HP x f f2).
+now apply Zeven_plus_Zeven.
 destruct (Rnd_N_pt_DN_or_UP _ _ _ Hf2) as [Hxf2|Hxf2].
-now elim HP with (1 := Hxf) (2 := Hfg2) (3 := H2).
+elim (Zodd_not_Zeven (Fnum g2 + Fnum g)).
+now apply (HP x f2 f).
+now apply Zeven_plus_Zeven.
 apply Rnd_UP_pt_unicity with (1 := Hxf2) (2 := Hxf1).
 (* . . *)
 split.
@@ -322,131 +323,99 @@ Qed.
 
 End Flocq_rnd_gNE.
 
-Section Flocq_rnd_NE_FIX.
+Section Flocq_rnd_NE_generic.
 
-Variable emin : Z.
+Variable fexp : Z -> Z.
 
-Notation FIXf := (FIX_exp emin).
+Hypothesis valid_fexp : valid_exp fexp.
 
-Theorem DN_UP_parity_FIX :
-  DN_UP_parity_prop FIXf.
+Hypothesis strong_fexp : Zodd (radix_val beta) \/ forall e,
+ ((fexp e < e)%Z -> (fexp (e + 1) < e)%Z) /\ ((e <= fexp e)%Z -> fexp (fexp e + 1) = fexp e).
+
+Theorem DN_UP_parity_generic_pos :
+  DN_UP_parity_pos_prop fexp.
 Proof.
-intros x xd xu cd cu Hfx (Hd1,Hd2) (Hu1,Hu2) Hxd Hxu Hed Heu.
-generalize (ulp_pred_succ_pt beta FIXf (FIX_exp_correct emin) x xd xu Hfx Hxd Hxu).
-rewrite Hd1, Hu1.
-unfold ulp, F2R.
-rewrite Hd2, Hu2.
-unfold FIX_exp. simpl.
-rewrite <- Rmult_plus_distr_r.
-intros H.
-absurd (Fnum cu = Fnum cd + 1)%Z.
-intros H'.
-apply (Zeven_not_Zodd _ Heu).
-rewrite H'.
-now apply Zodd_Sn.
-apply eq_Z2R.
-apply Rmult_eq_reg_r with (bpow emin).
-rewrite plus_Z2R.
-exact H.
-apply Rgt_not_eq.
-apply bpow_gt_0.
-Qed.
-
-Theorem Rnd_NE_pt_FIX :
-  forall x f,
-  ( Rnd_gNE_pt FIXf x f <-> Rnd_NE_pt FIXf x f ).
-Proof.
-apply Rnd_NE_pt_aux.
-exact DN_UP_parity_FIX.
-Qed.
-
-End Flocq_rnd_NE_FIX.
-
-Section Flocq_rnd_NE_FLX.
-
-Variable prec : Z.
-Variable Hp : Zlt 0 prec.
-
-Notation FLXf := (FLX_exp prec).
-
-Theorem DN_UP_parity_FLX_pos :
-  forall x xd xu cd cu,
-  (0 < x)%R ->
-  ~ generic_format beta FLXf x ->
-  canonic beta FLXf xd cd ->
-  canonic beta FLXf xu cu ->
-  Rnd_DN_pt (generic_format beta FLXf) x xd ->
-  Rnd_UP_pt (generic_format beta FLXf) x xu ->
-  Zeven (Fnum cd) ->
-  Zeven (Fnum cu) ->
-  False.
-Proof.
-intros x xd xu cd cu H0x Hfx (Hd1,Hd2) (Hu1,Hu2) Hxd Hxu Hed Heu.
+intros x xd xu cd cu H0x Hfx Hd Hu Hxd Hxu.
 destruct (ln_beta beta x) as (ex, Hexa).
 specialize (Hexa (Rgt_not_eq _ _ H0x)).
 generalize Hexa. intros Hex.
 rewrite (Rabs_pos_eq _ (Rlt_le _ _ H0x)) in Hex.
+destruct (Zle_or_lt ex (fexp ex)) as [Hxe|Hxe].
+(* small x *)
+assert (Hd3 : Fnum cd = Z0).
+apply eq_Z2R.
+apply Rmult_eq_reg_r with (bpow (Fexp cd)).
+rewrite Rmult_0_l.
+fold (F2R cd).
+rewrite <- (proj1 Hd).
+apply Rnd_DN_pt_unicity with (1 := Hxd).
+now apply generic_DN_pt_small_pos with (2 := Hex).
+apply Rgt_not_eq.
+apply bpow_gt_0.
+assert (Hu3 : cu = Float beta (1 * Zpower (radix_val beta) (fexp ex - fexp (fexp ex + 1))) (fexp (fexp ex + 1))).
+apply canonic_unicity with (1 := Hu).
+replace xu with (bpow (fexp ex)).
+split.
+rewrite <- F2R_bpow.
+apply F2R_change_exp.
+now eapply valid_fexp.
+simpl.
+now rewrite ln_beta_bpow.
+apply Rnd_UP_pt_unicity with (2 := Hxu).
+now apply generic_UP_pt_small_pos.
+rewrite Hd3, Hu3.
+rewrite Zmult_1_l.
+simpl.
+destruct strong_fexp as [H|H].
+apply Zodd_Zpower with (2 := H).
+apply Zle_minus_le_0.
+now eapply valid_fexp.
+rewrite (proj2 (H ex)).
+now rewrite Zminus_diag.
+exact Hxe.
+(* large x *)
 assert (Hd4: (bpow (ex - 1) <= Rabs xd < bpow ex)%R).
 rewrite Rabs_pos_eq.
 split.
 apply Hxd.
-apply -> FLX_format_generic.
-exists (Float beta 1 (ex - 1)).
-split.
-apply sym_eq.
-apply Rmult_1_l.
-apply Zpower_gt_1.
-exact Hp.
-exact Hp.
+apply generic_format_bpow.
+ring_simplify (ex - 1 + 1)%Z.
+omega.
 apply Hex.
 apply Rle_lt_trans with (2 := proj2 Hex).
 apply Hxd.
 apply Hxd.
 apply generic_format_0.
 now apply Rlt_le.
-destruct (total_order_T (bpow ex) xu) as [[Hu|Hu]|Hu].
-(* . *)
-apply (Rlt_not_le _ _ Hu).
-apply Rnd_UP_pt_monotone with (generic_format beta FLXf) x (bpow ex).
+assert (Hxe2 : (fexp (ex + 1) <= ex)%Z) by now eapply valid_fexp.
+destruct (total_order_T (bpow ex) xu) as [[Hu2|Hu2]|Hu2].
+(* - xu > bpow ex  *)
+elim (Rlt_not_le _ _ Hu2).
+apply Rnd_UP_pt_monotone with (generic_format beta fexp) x (bpow ex).
 exact Hxu.
 split.
-apply -> FLX_format_generic.
-exists (Float beta 1 ex).
-split.
-apply sym_eq.
-apply Rmult_1_l.
-apply Zpower_gt_1.
-exact Hp.
-exact Hp.
+apply generic_format_bpow.
+exact Hxe2.
 split.
 apply Rle_refl.
 easy.
 now apply Rlt_le.
-(* . *)
-assert (Hu3: cu = Float beta (Zpower (radix_val beta) (prec - 1)) (ex - prec + 1)).
-apply canonic_unicity with (1 := conj Hu1 Hu2).
+(* - xu = bpow ex *)
+assert (Hu3: cu = Float beta (1 * Zpower (radix_val beta) (ex - fexp (ex + 1))) (fexp (ex + 1))).
+apply canonic_unicity with (1 := Hu).
+rewrite <- Hu2.
 split.
-unfold F2R. simpl.
-rewrite Z2R_Zpower, <- bpow_add.
-rewrite <- Hu.
-apply f_equal.
-ring.
-apply Zle_minus_le_0.
-now apply (Zlt_le_succ 0).
+rewrite <- F2R_change_exp.
+apply sym_eq.
+apply F2R_bpow.
+exact Hxe2.
 simpl.
-rewrite <- Hu.
-rewrite ln_beta_unique with beta (bpow ex) (ex + 1)%Z.
-unfold FLX_exp. ring.
-rewrite Rabs_pos_eq.
-split.
-replace (ex + 1 - 1)%Z with ex by ring.
-apply Rle_refl.
-apply -> bpow_lt.
-apply Zlt_succ.
-apply bpow_ge_0.
-assert (Hd3: cd = Float beta (Zpower (radix_val beta) prec - 1) (ex - prec)).
-apply canonic_unicity with (1 := conj Hd1 Hd2).
-generalize (ulp_pred_succ_pt beta FLXf (FLX_exp_correct prec Hp) x xd xu Hfx Hxd Hxu).
+apply f_equal.
+apply sym_eq.
+apply ln_beta_bpow.
+assert (Hd3: cd = Float beta (Zpower (radix_val beta) (ex - fexp ex) - 1) (fexp ex)).
+apply canonic_unicity with (1 := Hd).
+generalize (ulp_pred_succ_pt beta _ valid_fexp x xd xu Hfx Hxd Hxu).
 intros Hud.
 split.
 unfold F2R. simpl.
@@ -454,8 +423,8 @@ rewrite minus_Z2R.
 unfold Rminus.
 rewrite Rmult_plus_distr_r.
 rewrite Z2R_Zpower, <- bpow_add.
-ring_simplify (prec + (ex - prec))%Z.
-rewrite Hu, Hud.
+ring_simplify (ex - fexp ex + fexp ex)%Z.
+rewrite Hu2, Hud.
 unfold ulp.
 rewrite ln_beta_unique with beta x ex.
 unfold FLX_exp, F2R.
@@ -463,306 +432,69 @@ simpl. ring.
 rewrite Rabs_pos_eq.
 exact Hex.
 now apply Rlt_le.
+apply Zle_minus_le_0.
 now apply Zlt_le_weak.
 simpl.
 now rewrite ln_beta_unique with (1 := Hd4).
-rewrite Hd3 in Hed. simpl in Hed.
-rewrite Hu3 in Heu. simpl in Heu.
-clear -Hp Hed Heu.
-destruct (Zeven_odd_dec (radix_val beta)) as [Hr|Hr].
-apply Zeven_not_Zodd with (1 := Hed).
+rewrite Hd3, Hu3.
+unfold Fnum.
+ring_simplify (Zpower (radix_val beta) (ex - fexp ex) - 1 + 1 * Zpower (radix_val beta) (ex - fexp (ex + 1)))%Z.
 apply Zodd_pred.
-replace prec with (prec - 1 + 1)%Z by ring.
-rewrite Zpower_exp.
-apply Zeven_mult_Zeven_r.
-unfold Zpower, Zpower_pos.
-simpl.
-now rewrite Zmult_1_r.
+destruct (Zeven_odd_dec (radix_val beta)) as [Hdo|Hdo].
+apply Zeven_plus_Zeven.
+apply Zeven_Zpower with (2 := Hdo).
 omega.
-apply Zle_ge.
-apply Zle_succ.
-apply Zeven_not_Zodd with (1 := Heu).
-clear Hed Heu.
-cut (0 <= prec - 1)%Z.
-destruct (prec - 1)%Z as [|p|p] ; intros H.
-exact I.
-simpl.
-rewrite Zpower_pos_nat.
-induction (nat_of_P p).
-exact I.
-rewrite (Zpower_nat_is_exp 1 n).
-apply Zodd_mult_Zodd.
-unfold Zpower_nat. simpl.
-now rewrite Zmult_1_r.
-exact IHn.
-now elim H.
+apply Zeven_Zpower with (2 := Hdo).
+destruct strong_fexp.
+now elim Zeven_not_Zodd with (1 := Hdo).
+generalize (proj1 (H _) Hxe).
+omega.
+apply Zodd_plus_Zodd.
+apply Zodd_Zpower with (2 := Hdo).
+omega.
+apply Zodd_Zpower with (2 := Hdo).
 apply Zle_minus_le_0.
-now apply (Zlt_le_succ 0).
-(* . *)
-generalize (ulp_pred_succ_pt beta FLXf (FLX_exp_correct prec Hp) x xd xu Hfx Hxd Hxu).
-rewrite Hd1, Hu1.
+exact Hxe2.
+(* - xu < bpow ex *)
+generalize (ulp_pred_succ_pt beta _ valid_fexp x xd xu Hfx Hxd Hxu).
+rewrite (proj1 Hd), (proj1 Hu).
 unfold ulp, F2R.
-rewrite Hd2, Hu2.
+rewrite (proj2 Hd), (proj2 Hu).
 rewrite ln_beta_unique with beta xu ex.
 rewrite ln_beta_unique with (1 := Hd4).
 rewrite ln_beta_unique with (1 := Hexa).
 simpl.
 rewrite <- Rmult_plus_distr_r.
 intros H.
-absurd (Fnum cu = Fnum cd + 1)%Z.
-intros H'.
-apply (Zeven_not_Zodd _ Heu).
-rewrite H'.
-now apply Zodd_Sn.
+replace (Fnum cu) with (Fnum cd + 1)%Z.
+replace (Fnum cd + (Fnum cd + 1))%Z with (2 * Fnum cd + 1)%Z by ring.
+apply Zodd_Sn.
+now apply Zeven_mult_Zeven_l.
+apply sym_eq.
 apply eq_Z2R.
-apply Rmult_eq_reg_r with (bpow (FLXf ex)).
 rewrite plus_Z2R.
-exact H.
+apply Rmult_eq_reg_r with (1 := H).
 apply Rgt_not_eq.
 apply bpow_gt_0.
 rewrite Rabs_pos_eq.
 split.
 apply Rle_trans with (1 := proj1 Hex).
 apply Hxu.
-exact Hu.
+exact Hu2.
 apply Rlt_le.
 apply Rlt_le_trans with (1 := H0x).
 apply Hxu.
 Qed.
 
-Theorem Rnd_NE_pt_FLX :
+Theorem Rnd_NE_pt_generic :
   forall x f,
-  ( Rnd_gNE_pt FLXf x f <-> Rnd_NE_pt FLXf x f ).
+  ( Rnd_gNE_pt fexp x f <-> Rnd_NE_pt fexp x f ).
 Proof.
 apply Rnd_NE_pt_aux.
 apply DN_UP_parity_aux.
-exact DN_UP_parity_FLX_pos.
+exact DN_UP_parity_generic_pos.
 Qed.
 
-End Flocq_rnd_NE_FLX.
-
-Section Flocq_rnd_NE_FLT.
-
-Variable prec : Z.
-Variable emin : Z.
-Variable Hp : Zlt 0 prec.
-
-Notation FLTf := (FLT_exp emin prec).
-
-Theorem DN_UP_parity_FLT_pos :
-  DN_UP_parity_pos_prop FLTf.
-Proof.
-intros x xd xu cd cu Hx0 Hfx Hd Hu Hxd Hxu Hed Heu.
-destruct (Rlt_or_le (bpow (emin + prec - 1)) x) as [Hx|Hx].
-(* . *)
-assert (Hn : generic_format beta FLTf (bpow (emin + prec - 1))).
-apply generic_format_bpow.
-unfold FLT_exp.
-replace (emin + prec - 1 + 1 - prec)%Z with emin by ring.
-rewrite Zmax_idempotent.
-omega.
-apply DN_UP_parity_FLX_pos with prec x xd xu cd cu ; try easy.
-(* .. *)
-intros H.
-apply Hfx.
-apply <- FLT_generic_format_FLX.
-exact H.
-rewrite Rabs_pos_eq.
-now apply Rlt_le.
-now apply Rlt_le.
-(* .. *)
-apply -> FLT_canonic_FLX.
-eexact Hd.
-rewrite Rabs_pos_eq.
-apply Hxd.
-exact Hn.
-now apply Rlt_le.
-apply Hxd.
-apply generic_format_0.
-now apply Rlt_le.
-(* .. *)
-apply -> FLT_canonic_FLX.
-eexact Hu.
-rewrite Rabs_pos_eq.
-apply Rlt_le.
-apply Rlt_le_trans with (1 := Hx).
-apply Hxu.
-apply Rlt_le.
-apply Rlt_le_trans with (1 := Hx0).
-apply Hxu.
-(* .. *)
-apply Rnd_DN_pt_equiv_format with (a := bpow (emin + prec - 1)) (b := x) (4 := Hxd).
-exact Hn.
-intros a (Ha, _).
-apply FLT_generic_format_FLX.
-rewrite Rabs_pos_eq.
-exact Ha.
-apply Rle_trans with (2 := Ha).
-apply bpow_ge_0.
-split.
-now apply Rlt_le.
-apply Rle_refl.
-(* .. *)
-destruct (ln_beta beta x) as (ex, He).
-specialize (He (Rgt_not_eq _ _ Hx0)).
-rewrite Rabs_pos_eq in He.
-2: now apply Rlt_le.
-apply Rnd_UP_pt_equiv_format with (a := x) (b := bpow ex) (4 := Hxu).
-apply generic_format_bpow.
-unfold FLT_exp.
-rewrite Zmax_left.
-omega.
-assert (emin + prec - 1 <= ex)%Z. 2 : omega.
-apply <- (bpow_le beta).
-apply Rlt_le.
-now apply Rlt_trans with (2 := proj2 He).
-intros b (Hb, _).
-apply iff_trans with (2 := FLX_format_generic beta prec Hp b).
-assert (Hb' : (bpow (emin + prec - 1) <= Rabs b)%R).
-rewrite Rabs_pos_eq.
-apply Rle_trans with (2 := Hb).
-now apply Rlt_le.
-apply Rle_trans with (2 := Hb).
-now apply Rlt_le.
-apply iff_trans with (2 := FLT_format_FLX beta emin prec Hp b Hb').
-apply iff_sym.
-now apply FLT_format_generic.
-split.
-apply Rle_refl.
-now apply Rlt_le.
-(* . *)
-apply (DN_UP_parity_FIX emin x xd xu cd cu) ; trivial.
-(* .. *)
-intros H.
-apply Hfx.
-apply generic_format_fun_eq with (2 := H).
-apply sym_eq.
-apply FLT_exp_FIX.
-now apply Rgt_not_eq.
-rewrite Rabs_pos_eq.
-apply Rle_lt_trans with (1 := Hx).
-apply -> bpow_lt.
-apply Zlt_pred.
-now apply Rlt_le.
-(* .. *)
-apply canonic_fun_eq with (2 := Hd).
-apply FLT_exp_FIX.
-intros Hxd0.
-apply Zeven_not_Zodd with (1 := Heu).
-rewrite canonic_unicity with (f2 := Float beta 1 emin) (1 := Hu).
-exact (Zodd_2p_plus_1 0).
-assert (H: xu = bpow emin).
-rewrite (ulp_pred_succ_pt beta FLTf (FLT_exp_correct emin prec Hp) x xd xu Hfx Hxd Hxu).
-rewrite Hxd0, Rplus_0_l.
-unfold ulp, F2R. simpl.
-rewrite Rmult_1_l.
-apply f_equal.
-unfold FLT_exp.
-apply Zmax_right.
-destruct (ln_beta beta x) as (ex, Hex).
-simpl.
-cut (ex - 1 <= emin + prec - 1)%Z. omega.
-apply <- bpow_le.
-apply Rle_trans with (2 := Hx).
-rewrite <- (Rabs_pos_eq _ (Rlt_le _ _ Hx0)).
-apply Hex.
-now apply Rgt_not_eq.
-rewrite H.
-split.
-apply sym_eq.
-apply Rmult_1_l.
-unfold FLT_exp.
-rewrite ln_beta_unique with beta (bpow emin) (emin + 1)%Z.
-apply sym_eq.
-apply Zmax_right.
-simpl. omega.
-rewrite Rabs_pos_eq.
-split.
-apply -> bpow_le.
-omega.
-apply -> bpow_lt.
-apply Zlt_succ.
-apply bpow_ge_0.
-rewrite Rabs_pos_eq.
-apply Rle_lt_trans with x.
-apply Hxd.
-apply Rle_lt_trans with (1 := Hx).
-apply -> bpow_lt.
-apply Zlt_pred.
-apply Hxd.
-apply generic_format_0.
-now apply Rlt_le.
-(* .. *)
-apply canonic_fun_eq with (2 := Hu).
-apply FLT_exp_FIX.
-apply Rgt_not_eq.
-apply Rlt_le_trans with (1 := Hx0).
-apply Hxu.
-rewrite Rabs_pos_eq.
-apply Rle_lt_trans with (bpow (emin + prec - 1)).
-apply Hxu.
-apply generic_format_bpow.
-unfold FLT_exp.
-replace (emin + prec - 1 + 1 - prec)%Z with emin by ring.
-rewrite Zmax_idempotent.
-omega.
-exact Hx.
-apply -> bpow_lt.
-apply Zlt_pred.
-apply Rlt_le.
-apply Rlt_le_trans with (1 := Hx0).
-apply Hxu.
-(* .. *)
-apply Rnd_DN_pt_equiv_format with (a := R0) (b := x) (4 := Hxd).
-apply generic_format_0.
-intros a (Ha1, Ha2).
-apply iff_trans with (2 := FIX_format_generic beta emin a).
-assert (Ha' : (Rabs a <= bpow (emin + prec))%R).
-rewrite Rabs_pos_eq.
-apply Rle_trans with (1 := Ha2).
-apply Rle_trans with (1 := Hx).
-apply -> bpow_le.
-apply Zle_pred.
-exact Ha1.
-apply iff_trans with (2 := FLT_format_FIX beta emin prec Hp a Ha').
-apply iff_sym.
-now apply FLT_format_generic.
-split.
-now apply Rlt_le.
-apply Rle_refl.
-(* .. *)
-apply Rnd_UP_pt_equiv_format with (a := x) (b := bpow (emin + prec - 1)) (4 := Hxu).
-apply generic_format_bpow.
-unfold FLT_exp.
-replace (emin + prec - 1 + 1 - prec)%Z with emin by ring.
-rewrite Zmax_idempotent.
-omega.
-intros a (Ha1, Ha2).
-apply iff_trans with (2 := FIX_format_generic beta emin a).
-assert (Ha' : (Rabs a <= bpow (emin + prec))%R).
-rewrite Rabs_pos_eq.
-apply Rle_trans with (1 := Ha2).
-apply -> bpow_le.
-apply Zle_pred.
-apply Rle_trans with (2 := Ha1).
-now apply Rlt_le.
-apply iff_trans with (2 := FLT_format_FIX beta emin prec Hp a Ha').
-apply iff_sym.
-now apply FLT_format_generic.
-split.
-apply Rle_refl.
-exact Hx.
-Qed.
-
-Theorem Rnd_NE_pt_FLT :
-  forall x f,
-  ( Rnd_gNE_pt FLTf x f <-> Rnd_NE_pt FLTf x f ).
-Proof.
-apply Rnd_NE_pt_aux.
-apply DN_UP_parity_aux.
-exact DN_UP_parity_FLT_pos.
-Qed.
-
-End Flocq_rnd_NE_FLT.
+End Flocq_rnd_NE_generic.
 
 End Flocq_rnd_NE.
