@@ -343,15 +343,11 @@ rewrite (Rabs_pos_eq _ (Rlt_le _ _ H0x)) in Hex.
 destruct (Zle_or_lt ex (fexp ex)) as [Hxe|Hxe].
 (* small x *)
 assert (Hd3 : Fnum cd = Z0).
-apply eq_Z2R.
-apply Rmult_eq_reg_r with (bpow (Fexp cd)).
-rewrite Rmult_0_l.
-fold (F2R cd).
+apply F2R_eq_0_reg with beta (Fexp cd).
+change (F2R cd = R0).
 rewrite <- (proj1 Hd).
 apply Rnd_DN_pt_unicity with (1 := Hxd).
 now apply generic_DN_pt_small_pos with (2 := Hex).
-apply Rgt_not_eq.
-apply bpow_gt_0.
 assert (Hu3 : cu = Float beta (1 * Zpower (radix_val beta) (fexp ex - fexp (fexp ex + 1))) (fexp (fexp ex + 1))).
 apply canonic_unicity with (1 := Hu).
 replace xu with (bpow (fexp ex)).

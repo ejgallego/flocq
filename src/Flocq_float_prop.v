@@ -64,6 +64,18 @@ unfold F2R. simpl.
 apply Rmult_0_l.
 Qed.
 
+Theorem F2R_eq_0_reg :
+  forall m e : Z,
+  F2R (Float beta m e) = R0 ->
+  m = Z0.
+Proof.
+intros m e H.
+apply Zle_antisym ;
+  apply F2R_le_reg with e ;
+  rewrite H, F2R_0 ;
+  apply Rle_refl.
+Qed.
+
 Theorem F2R_ge_0_reg :
   forall m e : Z,
   (0 <= F2R (Float beta m e))%R ->
