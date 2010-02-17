@@ -5,17 +5,12 @@ Require Import Flocq_rnd_prop.
 Require Import Flocq_rnd_generic.
 Require Import Flocq_float_prop.
 Require Import Flocq_ulp.
-Require Import Flocq_rnd_FIX.
-Require Import Flocq_rnd_FLX.
-Require Import Flocq_rnd_FLT.
 
 Section Flocq_rnd_NE.
 
 Variable beta : radix.
 
 Notation bpow e := (bpow beta e).
-
-Section Flocq_rnd_NE_generic.
 
 Variable fexp : Z -> Z.
 
@@ -183,7 +178,7 @@ ring_simplify (ex - fexp ex + fexp ex)%Z.
 rewrite Hu2, Hud.
 unfold ulp.
 rewrite ln_beta_unique with beta x ex.
-unfold FLX_exp, F2R.
+unfold F2R.
 simpl. ring.
 rewrite Rabs_pos_eq.
 exact Hex.
@@ -285,72 +280,11 @@ apply sym_eq.
 now apply Rnd_DN_pt_idempotent with (1 := Hd).
 Qed.
 
-End Flocq_rnd_NE_generic.
-
-Section Flocq_rnd_NE_FIX.
-
-Variable emin : Z.
-
-Theorem DN_UP_parity_FIX_pos :
-  DN_UP_parity_pos_prop (FIX_exp emin).
-Proof.
-apply DN_UP_parity_generic_pos.
-apply FIX_exp_correct.
-right.
-split ; easy.
+Theorem Rnd_NE_pt_rounding :
+  rounding_pred Rnd_NE_pt.
+split.
+apply Rnd_NE_pt_total.
+apply Rnd_NE_pt_monotone.
 Qed.
-
-End Flocq_rnd_NE_FIX.
-
-Section Flocq_rnd_NE_FLX.
-
-Variable prec : Z.
-Hypothesis Hp : (0 < prec)%Z.
-
-Theorem DN_UP_parity_FLX_pos :
-  Zodd (radix_val beta) \/ (1 < prec)%Z ->
-  DN_UP_parity_pos_prop (FLX_exp prec).
-Proof.
-intros H.
-apply DN_UP_parity_generic_pos.
-now apply FLX_exp_correct.
-destruct H.
-now left.
-right.
-unfold FLX_exp ; split ; omega.
-Qed.
-
-End Flocq_rnd_NE_FLX.
-
-Section Flocq_rnd_NE_FLT.
-
-Variable emin : Z.
-Variable prec : Z.
-Hypothesis Hp : (0 < prec)%Z.
-
-Theorem DN_UP_parity_FLT_pos :
-  Zodd (radix_val beta) \/ (1 < prec)%Z ->
-  DN_UP_parity_pos_prop (FLT_exp emin prec).
-Proof.
-intros H.
-apply DN_UP_parity_generic_pos.
-now apply FLT_exp_correct.
-destruct H.
-now left.
-right.
-intros e.
-unfold FLT_exp.
-destruct (Zmax_spec (e - prec) emin) as [(H1,H2)|(H1,H2)].
-rewrite H2.
-generalize (Zmax_spec (e + 1 - prec) emin).
-generalize (Zmax_spec (e - prec + 1 - prec) emin).
-omega.
-rewrite H2.
-generalize (Zmax_spec (e + 1 - prec) emin).
-generalize (Zmax_spec (emin + 1 - prec) emin).
-omega.
-Qed.
-
-End Flocq_rnd_NE_FLT.
 
 End Flocq_rnd_NE.

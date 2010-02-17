@@ -2,6 +2,7 @@ Require Import Flocq_Raux.
 Require Import Flocq_defs.
 Require Import Flocq_rnd_ex.
 Require Import Flocq_rnd_generic.
+Require Import Flocq_rnd_ne.
 
 Section RND_FIX.
 
@@ -54,6 +55,15 @@ Proof.
 refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FIX_exp _)).
 exact FIX_format_generic.
 exact FIX_exp_correct.
+Qed.
+
+Theorem Rnd_NE_pt_FIX :
+  rounding_pred (Rnd_NE_pt beta FIX_exp).
+Proof.
+apply Rnd_NE_pt_rounding.
+apply FIX_exp_correct.
+right.
+split ; easy.
 Qed.
 
 End RND_FIX.

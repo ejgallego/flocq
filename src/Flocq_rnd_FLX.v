@@ -4,6 +4,7 @@ Require Import Flocq_rnd_ex.
 Require Import Flocq_rnd_generic.
 Require Import Flocq_float_prop.
 Require Import Flocq_rnd_FIX.
+Require Import Flocq_rnd_ne.
 
 Section RND_FLX.
 
@@ -217,6 +218,19 @@ now apply <- FLX_format_generic.
 apply -> FLX_format_generic.
 now apply <- FLX_format_FLXN.
 exact FLX_exp_correct.
+Qed.
+
+Theorem Rnd_NE_pt_FLX :
+  Zodd (radix_val beta) \/ (1 < prec)%Z ->
+  rounding_pred (Rnd_NE_pt beta FLX_exp).
+Proof.
+intros H.
+apply Rnd_NE_pt_rounding.
+apply FLX_exp_correct.
+destruct H.
+now left.
+right.
+unfold FLX_exp ; split ; omega.
 Qed.
 
 End RND_FLX.
