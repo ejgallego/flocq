@@ -103,7 +103,7 @@ apply Hany.
 Qed.
 
 Definition NG_existence_prop (F : R -> Prop) (P : R -> R -> Prop) :=
-  forall x d u, Rnd_DN_pt F x d -> Rnd_UP_pt F x u -> P x u \/ P x d.
+  forall x d u, ~F x -> Rnd_DN_pt F x d -> Rnd_UP_pt F x u -> P x u \/ P x d.
 
 Theorem satisfies_any_imp_NG :
   forall (F : R -> Prop) (P : R -> R -> Prop),
@@ -149,8 +149,25 @@ rewrite <- K.
 apply Hf.
 apply Hu.
 apply refl_equal.
-(* |up(x) - x| = [dn(x) - x| *)
-destruct (HP x _ _ Hd Hu) as [H'|H'].
+(* |up(x) - x| = |dn(x) - x| *)
+destruct (Req_dec x d) as [He|Hne].
+(* - x = d = u *)
+exists x.
+split.
+apply Rnd_N_pt_refl.
+rewrite He.
+apply Hd.
+right.
+intros.
+apply Rnd_N_pt_idempotent with (1 := H0).
+rewrite He.
+apply Hd.
+assert (Hf : ~F x).
+intros Hf.
+apply Hne.
+apply sym_eq.
+now apply Rnd_DN_pt_idempotent with (1 := Hd).
+destruct (HP x _ _ Hf Hd Hu) as [H'|H'].
 (* - u >> d *)
 exists u.
 split.
@@ -240,7 +257,7 @@ split.
 assert (H : rounding_pred_total (Rnd_NG_pt F (fun a b => (Rabs a <= Rabs b)%R))).
 apply satisfies_any_imp_NG.
 apply Hany.
-intros x d u Hd Hu.
+intros x d u Hf Hd Hu.
 destruct (Rle_lt_dec 0 x) as [Hx|Hx].
 left.
 rewrite Rabs_pos_eq with (1 := Hx).
