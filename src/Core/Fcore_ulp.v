@@ -257,7 +257,7 @@ intros x d Hd Hxd.
 unfold ulp.
 apply (f_equal (fun e => bpow (fexp e))).
 apply ln_beta_unique.
-rewrite (Rabs_pos_eq d).
+rewrite (Rabs_pos_eq d). 2: now apply Rlt_le.
 destruct (ln_beta beta x) as (ex, He).
 simpl.
 assert (Hx: (0 < x)%R).
@@ -266,19 +266,9 @@ apply Hxd.
 specialize (He (Rgt_not_eq _ _ Hx)).
 rewrite Rabs_pos_eq in He. 2: now apply Rlt_le.
 split.
-assert (Rnd_DN_pt F (bpow (ex - 1)) (bpow (ex - 1))).
-apply Rnd_DN_pt_refl.
-apply generic_format_bpow.
-destruct (Zle_or_lt ex (fexp ex)).
-elim Rgt_not_eq with (1 := Hd).
-apply Rnd_DN_pt_unicity with (1 := Hxd).
-now apply generic_DN_pt_small_pos with (2 := He).
-ring_simplify (ex - 1 + 1)%Z.
-omega.
-apply (Rnd_DN_pt_monotone _ _ _ _ _ H Hxd (proj1 He)).
+now apply generic_DN_pt_large_pos_ge_pow with (3 := Hxd).
 apply Rle_lt_trans with (2 := proj2 He).
 apply Hxd.
-now apply Rlt_le.
 Qed.
 
 End Fcore_ulp.

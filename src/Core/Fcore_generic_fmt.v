@@ -51,7 +51,7 @@ apply sym_eq.
 apply ln_beta_bpow.
 Qed.
 
-Theorem generic_DN_pt_large_pos_ge_pow :
+Theorem generic_DN_pt_large_pos_ge_pow_aux :
   forall x ex,
   (fexp ex < ex)%Z ->
   (bpow (ex - 1) <= x)%R ->
@@ -87,7 +87,7 @@ intros x ex (Hx1, Hx2).
 destruct (Z_lt_le_dec (fexp ex) ex) as [He1|He1].
 (* - positive big enough *)
 assert (Hbl : (bpow (ex - 1) <= F2R (Float beta (Zfloor (x * bpow (- fexp ex))) (fexp ex)))%R).
-now apply generic_DN_pt_large_pos_ge_pow.
+now apply generic_DN_pt_large_pos_ge_pow_aux.
 (* - . smaller *)
 assert (Hrx : (F2R (Float beta (Zfloor (x * bpow (- fexp ex))) (fexp ex)) <= x)%R).
 unfold F2R. simpl.
@@ -760,6 +760,35 @@ now apply Rnd_DN_pt_idempotent with (1 := Hd).
 left.
 rewrite <- Hxd.
 apply Hd.
+Qed.
+
+Theorem generic_DN_pt_large_pos_ge_pow :
+  forall x d e,
+  (0 < d)%R ->
+  Rnd_DN_pt generic_format x d ->
+  (bpow e <= x)%R ->
+  (bpow e <= d)%R.
+Proof.
+intros x d e Hd Hxd Hex.
+destruct (ln_beta beta x) as (ex, He).
+assert (Hx: (0 < x)%R).
+apply Rlt_le_trans with (1 := Hd).
+apply Hxd.
+specialize (He (Rgt_not_eq _ _ Hx)).
+rewrite Rabs_pos_eq in He. 2: now apply Rlt_le.
+apply Rle_trans with (bpow (ex - 1)).
+apply -> bpow_le.
+cut (e < ex)%Z. omega.
+apply <- bpow_lt.
+now apply Rle_lt_trans with (2 := proj2 He).
+apply Hxd with (2 := proj1 He).
+apply generic_format_bpow.
+destruct (Zle_or_lt ex (fexp ex)).
+elim Rgt_not_eq with (1 := Hd).
+apply Rnd_DN_pt_unicity with (1 := Hxd).
+now apply generic_DN_pt_small_pos with (1 := He).
+ring_simplify (ex - 1 + 1)%Z.
+omega.
 Qed.
 
 End RND_generic.
