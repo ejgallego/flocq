@@ -214,7 +214,6 @@ rewrite ln_beta_unique with beta xu ex.
 rewrite ln_beta_unique with (1 := Hd4).
 rewrite ln_beta_unique with (1 := Hexa).
 simpl.
-rewrite <- Rmult_plus_distr_r.
 intros H.
 replace (Fnum cu) with (Fnum cd + 1)%Z.
 replace (Fnum cd + (Fnum cd + 1))%Z with (2 * Fnum cd + 1)%Z by ring.
@@ -223,7 +222,9 @@ now apply Zeven_mult_Zeven_l.
 apply sym_eq.
 apply eq_Z2R.
 rewrite plus_Z2R.
-apply Rmult_eq_reg_r with (1 := H).
+apply Rmult_eq_reg_r with (bpow (fexp ex)).
+rewrite H.
+simpl. ring.
 apply Rgt_not_eq.
 apply bpow_gt_0.
 rewrite Rabs_pos_eq.

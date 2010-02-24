@@ -10,7 +10,9 @@ FILES = \
 	Core/Fcore_generic_fmt.v \
 	Core/Fcore_rnd_ne.v \
 	Core/Fcore_ulp.v \
-	Calc/Fcalc_ops.v
+	Core/Fcore.v \
+	Calc/Fcalc_ops.v \
+	Prop/Fprop_nearest.v
 
 data_DATA = $(FILES:=o)
 EXTRA_DIST = $(FILES)

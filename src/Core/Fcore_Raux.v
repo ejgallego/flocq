@@ -333,6 +333,18 @@ apply Zfloor_lb.
 now apply Zfloor_lub.
 Qed.
 
+Theorem Zfloor_Z :
+  forall n,
+  Zfloor (Z2R n) = n.
+Proof.
+intros n.
+apply Zfloor_imp.
+split.
+apply Rle_refl.
+apply Z2R_lt.
+apply Zlt_succ.
+Qed.
+
 Definition Zceil (x : R) := (- Zfloor (- x))%Z.
 
 Theorem Zceil_ub :
@@ -378,6 +390,16 @@ rewrite <- (Zopp_involutive 1).
 rewrite <- Zopp_plus_distr.
 rewrite opp_Z2R.
 now apply Ropp_lt_contravar.
+Qed.
+
+Theorem Zceil_Z :
+  forall n,
+  Zceil (Z2R n) = n.
+Proof.
+intros n.
+unfold Zceil.
+rewrite <- opp_Z2R, Zfloor_Z.
+apply Zopp_involutive.
 Qed.
 
 Theorem Zceil_floor_neq :
@@ -599,15 +621,14 @@ Qed.
 
 Theorem bpow_eq :
   forall e1 e2 : Z,
-  e1 = e2 -> bpow e1 = bpow e2.
+  bpow e1 = bpow e2 -> e1 = e2.
 Proof.
 intros.
-apply Rle_antisym.
-apply -> bpow_le.
-now apply Zeq_le.
-apply -> bpow_le.
-apply Zeq_le.
-now apply sym_eq.
+apply Zle_antisym.
+apply <- bpow_le.
+now apply Req_le.
+apply <- bpow_le.
+now apply Req_le.
 Qed.
 
 Theorem bpow_exp :

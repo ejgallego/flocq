@@ -699,6 +699,69 @@ rewrite Zopp_involutive.
 now apply generic_DN_pt_pos.
 Qed.
 
+Theorem generic_DN_pt :
+  forall x,
+  Rnd_DN_pt generic_format x (F2R (Float beta (Zfloor (x * bpow (Zopp (fexp (projT1 (ln_beta beta x)))))) (fexp (projT1 (ln_beta beta x))))).
+Proof.
+intros x.
+destruct (Req_dec x 0) as [Hx|Hx].
+(* x = 0 *)
+rewrite Hx, Rmult_0_l.
+fold (Z2R 0).
+rewrite Zfloor_Z, F2R_0.
+apply Rnd_DN_pt_refl.
+apply generic_format_0.
+(* x <> 0 *)
+destruct (ln_beta beta x) as (ex, Hex).
+simpl.
+specialize (Hex Hx).
+unfold Rabs in Hex.
+destruct (Rcase_abs x) as [Hx'|Hx'].
+now apply generic_DN_pt_neg.
+now apply generic_DN_pt_pos.
+Qed.
+
+Theorem generic_UP_pt :
+  forall x,
+  Rnd_UP_pt generic_format x (F2R (Float beta (Zceil (x * bpow (Zopp (fexp (projT1 (ln_beta beta x)))))) (fexp (projT1 (ln_beta beta x))))).
+Proof.
+intros x.
+destruct (Req_dec x 0) as [Hx|Hx].
+(* x = 0 *)
+rewrite Hx, Rmult_0_l.
+fold (Z2R 0).
+rewrite Zceil_Z, F2R_0.
+apply Rnd_UP_pt_refl.
+apply generic_format_0.
+(* x <> 0 *)
+destruct (ln_beta beta x) as (ex, Hex).
+simpl.
+specialize (Hex Hx).
+unfold Rabs in Hex.
+destruct (Rcase_abs x) as [Hx'|Hx'].
+now apply generic_UP_pt_neg.
+now apply generic_UP_pt_pos.
+Qed.
+
+Theorem generic_format_EM :
+  forall x,
+  generic_format x \/ ~generic_format x.
+Proof.
+intros x.
+destruct (proj1 (satisfies_any_imp_DN _ generic_format_satisfies_any) x) as (d, Hd).
+destruct (Rle_lt_or_eq_dec d x) as [Hxd|Hxd].
+apply Hd.
+right.
+intros Fx.
+apply Rlt_not_le with (1 := Hxd).
+apply Req_le.
+apply sym_eq.
+now apply Rnd_DN_pt_idempotent with (1 := Hd).
+left.
+rewrite <- Hxd.
+apply Hd.
+Qed.
+
 End RND_generic.
 
 Theorem canonic_fun_eq :
