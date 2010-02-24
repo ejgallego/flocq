@@ -1,8 +1,8 @@
-Require Import Flocq_Raux.
-Require Import Flocq_defs.
-Require Import Flocq_rnd_ex.
-Require Import Flocq_rnd_generic.
-Require Import Flocq_rnd_ne.
+Require Import Fcore_Raux.
+Require Import Fcore_defs.
+Require Import Fcore_rnd.
+Require Import Fcore_generic_fmt.
+Require Import Fcore_rnd_ne.
 
 Section RND_FIX.
 

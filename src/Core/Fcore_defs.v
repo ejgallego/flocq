@@ -1,4 +1,4 @@
-Require Import Flocq_Raux.
+Require Import Fcore_Raux.
 
 Section Def.
 

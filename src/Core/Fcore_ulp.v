@@ -1,11 +1,10 @@
-Require Import Flocq_Raux.
-Require Import Flocq_defs.
-Require Import Flocq_rnd_ex.
-Require Import Flocq_rnd_prop.
-Require Import Flocq_rnd_generic.
-Require Import Flocq_float_prop.
+Require Import Fcore_Raux.
+Require Import Fcore_defs.
+Require Import Fcore_rnd.
+Require Import Fcore_generic_fmt.
+Require Import Fcore_float_prop.
 
-Section Flocq_ulp.
+Section Fcore_ulp.
 
 Variable beta : radix.
 
@@ -256,4 +255,4 @@ apply Zlt_succ.
 apply bpow_ge_0.
 Qed.
 
-End Flocq_ulp.
+End Fcore_ulp.

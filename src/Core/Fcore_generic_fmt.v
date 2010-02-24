@@ -1,8 +1,7 @@
-Require Import Flocq_Raux.
-Require Import Flocq_defs.
-Require Import Flocq_rnd_ex.
-Require Import Flocq_rnd_prop.
-Require Import Flocq_float_prop.
+Require Import Fcore_Raux.
+Require Import Fcore_defs.
+Require Import Fcore_rnd.
+Require Import Fcore_float_prop.
 
 Section RND_generic.
 

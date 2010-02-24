@@ -1,5 +1,5 @@
-Require Import Flocq_Raux.
-Require Import Flocq_defs.
+Require Import Fcore_Raux.
+Require Import Fcore_defs.
 
 Section Float_prop.
 

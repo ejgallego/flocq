@@ -1,17 +1,16 @@
 FILES = \
-	Flocq_defs.v \
-	Flocq_float_ops.v \
-	Flocq_float_prop.v \
-	Flocq_Raux.v \
-	Flocq_rnd_ex.v \
-	Flocq_rnd_FIX.v \
-	Flocq_rnd_FLT.v \
-	Flocq_rnd_FLX.v \
-	Flocq_rnd_FTZ.v \
-	Flocq_rnd_generic.v \
-	Flocq_rnd_ne.v \
-	Flocq_rnd_prop.v \
-	Flocq_ulp.v
+	Core/Fcore_defs.v \
+	Core/Fcore_float_prop.v \
+	Core/Fcore_Raux.v \
+	Core/Fcore_rnd.v \
+	Core/Fcore_FIX.v \
+	Core/Fcore_FLT.v \
+	Core/Fcore_FLX.v \
+	Core/Fcore_FTZ.v \
+	Core/Fcore_generic_fmt.v \
+	Core/Fcore_rnd_ne.v \
+	Core/Fcore_ulp.v \
+	Calc/Fcalc_ops.v
 
 data_DATA = $(FILES:=o)
 EXTRA_DIST = $(FILES)
@@ -25,7 +24,7 @@ datadir = $(libdir)
 
 .v.vd:
 	@echo COQDEP $<
-	@$(COQDEP) -I . $< > $@
+	@$(COQDEP) -I Core -I Calc $< > $@
 
 SUFFIXES = .v .vo .vd
 

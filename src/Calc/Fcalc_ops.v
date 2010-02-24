@@ -1,8 +1,8 @@
-Require Import Flocq_Raux.
-Require Import Flocq_defs.
-Require Import Flocq_float_prop.
+Require Import Fcore_Raux.
+Require Import Fcore_defs.
+Require Import Fcore_float_prop.
 
-Section Flocq_float_ops.
+Section Float_ops.
 
 Variable beta : radix.
 
@@ -64,4 +64,4 @@ rewrite mult_Z2R, bpow_add.
 ring.
 Qed.
 
-End Flocq_float_ops.
+End Float_ops.
