@@ -201,6 +201,23 @@ rewrite Ropp_involutive.
 apply H1.
 Qed.
 
+Theorem Rnd_DN_UP_pt_split :
+  forall F : R -> Prop,
+  forall x d u,
+  Rnd_DN_pt F x d ->
+  Rnd_UP_pt F x u ->
+  forall f, F f ->
+  (f <= d) \/ (u <= f).
+Proof.
+intros F x d u Hd Hu f Hf.
+destruct (Rle_or_lt f x).
+left.
+now apply Hd.
+right.
+assert (H' := Rlt_le _ _ H).
+now apply Hu.
+Qed.
+
 Theorem Rnd_DN_pt_refl :
   forall F : R -> Prop,
   forall x : R, F x ->
