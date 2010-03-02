@@ -613,6 +613,38 @@ omega.
 apply Hk.
 Qed.
 
+Definition new_location :=
+  match nb_steps with
+  | Zpos (xO _) => new_location_even
+  | Zpos (xI _) => new_location_odd
+  | _ => fun _ l => l
+  end.
+
+Theorem new_location_correct :
+  forall x k l, (0 <= k < nb_steps)%Z ->
+  inbetween (start + Z2R k * step) (start + Z2R (k + 1) * step) x l ->
+  inbetween start (start + Z2R nb_steps * step) x (new_location k l).
+Proof.
+intros x k l Hk Hx.
+unfold new_location.
+generalize (refl_equal nb_steps) (Zle_lt_trans _ _ _ (proj1 Hk) (proj2 Hk)).
+pattern nb_steps at 2 3 5 ; case nb_steps.
+now intros _.
+(* . *)
+intros [p|p|] Hp _.
+apply new_location_odd_correct with (2 := Hk) (3 := Hx).
+rewrite Hp.
+change (Zpos (xI p)) with (1 + 2 * Zpos p)%Z.
+rewrite Zplus_comm.
+apply Zodd_2p_plus_1.
+apply new_location_even_correct with (2 := Hk) (3 := Hx).
+rewrite Hp.
+exact (Zeven_2p (Zpos p)).
+now rewrite Hp in Hnb_steps.
+(* . *)
+now intros p _.
+Qed.
+
 End Fcalc_bracket_step.
 
 Section Fcalc_bracket_NE.
@@ -704,10 +736,47 @@ End Fcalc_bracket_NE.
 Section Fcalc_bracket_generic.
 
 Variable beta : radix.
-Notation bpow := (bpow radix).
+Notation bpow := (bpow beta).
 
 Variable fexp : Z -> Z.
 Hypothesis prop_exp : valid_exp fexp.
 Notation format := (generic_format beta fexp).
+
+Definition inbetween_float m e x l :=
+  inbetween (F2R (Float beta m e)) (F2R (Float beta (m + 1) e)) x l.
+
+Theorem inbetween_float_new_location :
+  forall x m e l,
+  inbetween_float m e x l ->
+  inbetween_float (Zdiv m (radix_val beta)) (e + 1) x (new_location (radix_val beta) (Zmod m (radix_val beta)) l).
+Proof.
+intros x m e l Hx.
+unfold inbetween_float in *.
+assert (Hr: forall m, F2R (Float beta m (e + 1)) = F2R (Float beta (m * radix_val beta) e)).
+clear. intros m.
+rewrite (F2R_change_exp beta e). 2: apply Zle_succ.
+apply (f_equal (fun r => F2R (Float beta (m * r) e))).
+replace (e + 1 - e)%Z with 1%Z by ring.
+apply Zmult_1_r.
+(* . *)
+rewrite 2!Hr.
+rewrite Zmult_plus_distr_l, Zmult_1_l.
+unfold F2R at 2. simpl.
+rewrite plus_Z2R, Rmult_plus_distr_r.
+apply new_location_correct.
+apply bpow_gt_0.
+apply Zgt_lt.
+apply Zlt_succ_gt.
+apply beta.
+apply Z_mod_lt.
+apply Zlt_gt.
+now apply Zlt_le_trans with (2 := radix_prop beta).
+rewrite <- 2!Rmult_plus_distr_r, <- 2!plus_Z2R.
+rewrite Zmult_comm, Zplus_assoc.
+rewrite <- Z_div_mod_eq.
+exact Hx.
+apply Zlt_gt.
+now apply Zlt_le_trans with (2 := radix_prop beta).
+Qed.
 
 End Fcalc_bracket_generic.
