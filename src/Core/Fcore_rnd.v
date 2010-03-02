@@ -724,6 +724,18 @@ rewrite <- Hxy in Hg, Hy.
 eapply Rnd_NG_pt_unicity ; try split ; eassumption.
 Qed.
 
+Theorem Rnd_NG_pt_refl :
+  forall (F : R -> Prop) (P : R -> R -> Prop),
+  forall x, F x -> Rnd_NG_pt F P x x.
+Proof.
+intros F P x Hx.
+split.
+now apply Rnd_N_pt_refl.
+right.
+intros f2 Hf2.
+now apply Rnd_N_pt_idempotent with F.
+Qed.
+
 Theorem Rnd_NG_pt_sym :
   forall (F : R -> Prop) (P : R -> R -> Prop),
   ( forall x, F x -> F (-x) ) ->
