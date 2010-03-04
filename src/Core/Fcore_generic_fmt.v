@@ -144,19 +144,30 @@ apply (f_equal (fun m => Float beta m e2)).
 apply F2R_eq_reg with (1 := H).
 Qed.
 
+Theorem generic_format_mantissa :
+  forall x,
+  generic_format x ->
+  Z2R (Ztrunc (x * bpow (- canonic_exponent x))) = (x * bpow (- canonic_exponent x))%R.
+Proof.
+intros x Hx.
+pattern x at 1 3 ; rewrite Hx.
+unfold F2R. simpl.
+rewrite Rmult_assoc, <- bpow_add, Zplus_opp_r, Rmult_1_r.
+now rewrite Ztrunc_Z2R.
+Qed.
+
 Theorem generic_format_opp :
   forall x, generic_format x -> generic_format (-x).
 Proof.
 intros x Hx.
 unfold generic_format.
 rewrite canonic_exponent_opp.
-pattern x at 2 ; rewrite Hx.
 unfold F2R. simpl.
-rewrite <- Ropp_mult_distr_l_reverse, <- opp_Z2R.
-rewrite Rmult_assoc, <- bpow_add, Zplus_opp_r, Rmult_1_r.
-rewrite Ztrunc_Z2R.
-rewrite opp_Z2R, Ropp_mult_distr_l_reverse.
-now apply f_equal.
+rewrite Ropp_mult_distr_l_reverse.
+rewrite Ztrunc_opp, opp_Z2R.
+rewrite (generic_format_mantissa _ Hx).
+rewrite <- Ropp_mult_distr_l_reverse.
+now rewrite Rmult_assoc, <- bpow_add, Zplus_opp_l, Rmult_1_r.
 Qed.
 
 Theorem canonic_exponent_fexp_pos :
@@ -692,6 +703,73 @@ apply Rnd_DN_pt_unicity with (1 := Hxd).
 now apply generic_DN_pt_small_pos with (1 := He).
 ring_simplify (ex - 1 + 1)%Z.
 omega.
+Qed.
+
+Theorem canonic_exponent_DN_pt :
+  forall x d : R,
+  (0 < d)%R ->
+  Rnd_DN_pt generic_format x d ->
+  canonic_exponent d = canonic_exponent x.
+Proof.
+intros x d Hd Hxd.
+unfold canonic_exponent.
+apply f_equal.
+apply ln_beta_unique.
+rewrite (Rabs_pos_eq d). 2: now apply Rlt_le.
+destruct (ln_beta beta x) as (ex, He).
+simpl.
+assert (Hx: (0 < x)%R).
+apply Rlt_le_trans with (1 := Hd).
+apply Hxd.
+specialize (He (Rgt_not_eq _ _ Hx)).
+rewrite Rabs_pos_eq in He. 2: now apply Rlt_le.
+split.
+now apply generic_DN_pt_large_pos_ge_pow with (2 := Hxd).
+apply Rle_lt_trans with (2 := proj2 He).
+apply Hxd.
+Qed.
+
+Theorem generic_format_discrete :
+  forall m e, (0 < m)%Z ->
+  canonic (Float beta m e) ->
+  forall x, (F2R (Float beta m e) < x < F2R (Float beta (m + 1) e))%R ->
+  ~ generic_format x.
+Proof.
+intros m e Hp Hc x (Hx,Hx2) Hf.
+assert (He: canonic_exponent x = e).
+unfold canonic in Hc.
+simpl in Hc.
+rewrite Hc.
+apply (f_equal fexp).
+destruct (ln_beta beta (F2R (Float beta m e))) as (ex, He).
+simpl.
+apply ln_beta_unique.
+assert (Hp1: (0 < F2R (Float beta m e))%R).
+now apply F2R_gt_0_compat.
+specialize (He (Rgt_not_eq _ _ Hp1)).
+rewrite Rabs_pos_eq in He. 2: now apply Rlt_le.
+destruct He as (He1, He2).
+assert (Hx1: (0 < x)%R).
+now apply Rlt_trans with (2 := Hx).
+rewrite Rabs_pos_eq. 2: now apply Rlt_le.
+split.
+apply Rle_trans with (1 := He1).
+now apply Rlt_le.
+apply Rlt_le_trans with (1 := Hx2).
+now apply F2R_p1_le_bpow.
+(* . *)
+apply Rlt_not_le with (1 := Hx2). clear Hx2.
+rewrite Hf.
+rewrite He.
+apply F2R_le_compat.
+apply Zlt_le_succ.
+apply lt_Z2R.
+rewrite <- He.
+rewrite generic_format_mantissa with (1 := Hf).
+rewrite He.
+apply Rmult_lt_reg_r with (bpow e).
+apply bpow_gt_0.
+now rewrite Rmult_assoc, <- bpow_add, Zplus_opp_l, Rmult_1_r.
 Qed.
 
 End RND_generic.
