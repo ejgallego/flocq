@@ -422,6 +422,99 @@ rewrite plus_Z2R.
 apply Zfloor_ub.
 Qed.
 
+Definition Ztrunc x := if Rlt_le_dec x 0 then Zceil x else Zfloor x.
+
+Theorem Ztrunc_Z2R :
+  forall n,
+  Ztrunc (Z2R n) = n.
+Proof.
+intros n.
+unfold Ztrunc.
+destruct Rlt_le_dec as [H|H].
+apply Zceil_Z.
+apply Zfloor_Z.
+Qed.
+
+Theorem Ztrunc_floor :
+  forall x,
+  (0 <= x)%R ->
+  Ztrunc x = Zfloor x.
+Proof.
+intros x Hx.
+unfold Ztrunc.
+destruct Rlt_le_dec as [H|_].
+elim Rlt_irrefl with (1 := Rle_lt_trans _ _ _ Hx H).
+easy.
+Qed.
+
+Theorem Ztrunc_ceil :
+  forall x,
+  (x <= 0)%R ->
+  Ztrunc x = Zceil x.
+Proof.
+intros x Hx.
+unfold Ztrunc.
+destruct Rlt_le_dec as [_|H].
+easy.
+rewrite (Rle_antisym _ _ Hx H).
+fold (Z2R 0).
+rewrite Zceil_Z.
+apply Zfloor_Z.
+Qed.
+
+Theorem Ztrunc_opp :
+  forall x,
+  Ztrunc (- x) = Zopp (Ztrunc x).
+Proof.
+intros x.
+destruct (Rlt_le_dec x 0) as [H|H].
+rewrite Ztrunc_floor.
+rewrite Ztrunc_ceil.
+apply sym_eq.
+apply Zopp_involutive.
+now apply Rlt_le.
+rewrite <- Ropp_0.
+apply Ropp_le_contravar.
+now apply Rlt_le.
+rewrite Ztrunc_ceil.
+unfold Zceil.
+rewrite Ropp_involutive.
+now rewrite Ztrunc_floor.
+rewrite <- Ropp_0.
+now apply Ropp_le_contravar.
+Qed.
+
+Theorem Ztrunc_abs :
+  forall x,
+  Ztrunc (Rabs x) = Zabs (Ztrunc x).
+Proof.
+intros x.
+rewrite Ztrunc_floor. 2: apply Rabs_pos.
+unfold Ztrunc.
+destruct Rlt_le_dec as [H|H].
+rewrite Rabs_left with (1 := H).
+rewrite Zabs_non_eq.
+apply sym_eq.
+apply Zopp_involutive.
+apply Zceil_lub.
+now apply Rlt_le.
+rewrite Rabs_pos_eq with (1 := H).
+apply sym_eq.
+apply Zabs_eq.
+now apply Zfloor_lub.
+Qed.
+
+Theorem Ztrunc_lub :
+  forall n x,
+  (Z2R n <= Rabs x)%R ->
+  (n <= Zabs (Ztrunc x))%Z.
+Proof.
+intros n x H.
+rewrite <- Ztrunc_abs.
+rewrite Ztrunc_floor. 2: apply Rabs_pos.
+now apply Zfloor_lub.
+Qed.
+
 End Floor_Ceil.
 
 Section pow.
