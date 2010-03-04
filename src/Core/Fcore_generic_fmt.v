@@ -35,7 +35,7 @@ Theorem canonic_mantissa_0 :
 Proof.
 unfold canonic_mantissa.
 rewrite Rmult_0_l.
-exact (Zfloor_Z 0).
+exact (Zfloor_Z2R 0).
 Qed.
 *)
 
@@ -75,7 +75,7 @@ rewrite Ropp_mult_distr_l_reverse.
 rewrite Rmult_assoc, <- bpow_add, Zplus_opp_r.
 rewrite Rmult_1_r.
 rewrite <- opp_Z2R.
-now rewrite 2!Zfloor_Z.
+now rewrite 2!Zfloor_Z2R.
 Qed.
 *)
 
@@ -598,7 +598,7 @@ destruct (total_order_T 0 x) as [[Hx|Hx]|Hx].
 now apply generic_DN_pt_pos.
 rewrite <- Hx, Rmult_0_l.
 fold (Z2R 0).
-rewrite Zfloor_Z, F2R_0.
+rewrite Zfloor_Z2R, F2R_0.
 apply Rnd_DN_pt_refl.
 apply generic_format_0.
 now apply generic_DN_pt_neg.

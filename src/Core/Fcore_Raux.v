@@ -333,7 +333,7 @@ apply Zfloor_lb.
 now apply Zfloor_lub.
 Qed.
 
-Theorem Zfloor_Z :
+Theorem Zfloor_Z2R :
   forall n,
   Zfloor (Z2R n) = n.
 Proof.
@@ -392,13 +392,13 @@ rewrite opp_Z2R.
 now apply Ropp_lt_contravar.
 Qed.
 
-Theorem Zceil_Z :
+Theorem Zceil_Z2R :
   forall n,
   Zceil (Z2R n) = n.
 Proof.
 intros n.
 unfold Zceil.
-rewrite <- opp_Z2R, Zfloor_Z.
+rewrite <- opp_Z2R, Zfloor_Z2R.
 apply Zopp_involutive.
 Qed.
 
@@ -431,8 +431,8 @@ Proof.
 intros n.
 unfold Ztrunc.
 destruct Rlt_le_dec as [H|H].
-apply Zceil_Z.
-apply Zfloor_Z.
+apply Zceil_Z2R.
+apply Zfloor_Z2R.
 Qed.
 
 Theorem Ztrunc_floor :
@@ -458,8 +458,8 @@ destruct Rlt_le_dec as [_|H].
 easy.
 rewrite (Rle_antisym _ _ Hx H).
 fold (Z2R 0).
-rewrite Zceil_Z.
-apply Zfloor_Z.
+rewrite Zceil_Z2R.
+apply Zfloor_Z2R.
 Qed.
 
 Theorem Ztrunc_opp :
