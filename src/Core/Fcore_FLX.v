@@ -111,7 +111,9 @@ apply FIX_format_generic.
 assert (Hf: FLX_exp (projT1 (ln_beta beta x)) = FIX_exp (ex - prec) (projT1 (ln_beta beta x))).
 unfold FIX_exp, FLX_exp.
 now rewrite ln_beta_unique with (1 := Hx2).
-split ; apply generic_format_fun_eq ; now rewrite Hf.
+split ;
+  unfold generic_format, canonic_exponent ;
+  now rewrite Hf.
 Qed.
 
 Theorem FLX_format_satisfies_any :

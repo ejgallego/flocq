@@ -14,54 +14,9 @@ Variable fexp : Z -> Z.
 
 Variable prop_exp : valid_exp fexp.
 
-Definition ulp x := bpow (fexp (projT1 (ln_beta beta x))).
+Definition ulp x := bpow (canonic_exponent beta fexp x).
 
 Definition F := generic_format beta fexp.
-
-Theorem ulp_pred_succ_pt_pos :
-  forall x xd xu,
-  Rlt 0 x -> ~ F x ->
-  Rnd_DN_pt F x xd -> Rnd_UP_pt F x xu ->
-  (xu = xd + ulp x)%R.
-Proof.
-intros x xd xu Hx1 Fx Hd1 Hu1.
-unfold ulp.
-destruct (ln_beta beta x) as (ex, Hx2).
-simpl.
-specialize (Hx2 (Rgt_not_eq _ _ Hx1)).
-rewrite Rabs_pos_eq in Hx2.
-destruct (Z_lt_le_dec (fexp ex) ex) as [He1|He1].
-(* positive big *)
-assert (Hd2 := generic_DN_pt_pos _ _ prop_exp _ _ Hx2).
-assert (Hu2 := generic_UP_pt_pos _ _ prop_exp _ _ Hx2).
-rewrite (Rnd_DN_pt_unicity _ _ _ _ Hd1 Hd2).
-rewrite (Rnd_UP_pt_unicity _ _ _ _ Hu1 Hu2).
-unfold F2R. simpl.
-rewrite Zceil_floor_neq.
-rewrite plus_Z2R, Rmult_plus_distr_r.
-now rewrite Rmult_1_l.
-intros Hx4.
-assert (Hx5 : x = F2R (Float beta (Zfloor (x * bpow (- fexp ex))) (fexp ex))).
-unfold F2R. simpl.
-rewrite Hx4.
-rewrite Rmult_assoc.
-rewrite <- bpow_add.
-rewrite Zplus_opp_l.
-now rewrite Rmult_1_r.
-apply Fx.
-rewrite Hx5.
-apply Hd2.
-(* positive small *)
-rewrite Rnd_UP_pt_unicity with F x xu (bpow (fexp ex)).
-rewrite Rnd_DN_pt_unicity with F x xd R0.
-now rewrite Rplus_0_l.
-exact Hd1.
-now apply generic_DN_pt_small_pos with ex.
-exact Hu1.
-now apply generic_UP_pt_small_pos.
-(* . *)
-now apply Rlt_le.
-Qed.
 
 Theorem ulp_pred_succ_pt :
   forall x xd xu,
@@ -70,38 +25,23 @@ Theorem ulp_pred_succ_pt :
   (xu = xd + ulp x)%R.
 Proof.
 intros x xd xu Fx Hd1 Hu1.
-destruct (Rdichotomy x 0) as [Hx2|Hx2].
-(* zero *)
-intros Hx.
-elim Fx.
-rewrite Hx.
-apply generic_format_0.
-(* negative *)
-assert (Hu2 : Rnd_DN_pt F (-x) (-xu)).
-apply Rnd_UP_DN_pt_sym.
-now eapply generic_format_satisfies_any.
-now rewrite 2!Ropp_involutive.
-assert (Hd2 : Rnd_UP_pt F (-x) (-xd)).
-apply Rnd_DN_UP_pt_sym.
-now eapply generic_format_satisfies_any.
-now rewrite 2!Ropp_involutive.
-rewrite <- (Ropp_involutive xd).
-rewrite ulp_pred_succ_pt_pos with (3 := Hu2) (4 := Hd2).
+assert (Hd2 := generic_DN_pt beta _ prop_exp x).
+assert (Hu2 := generic_UP_pt beta _ prop_exp x).
+rewrite (Rnd_DN_pt_unicity _ _ _ _ Hd1 Hd2).
+rewrite (Rnd_UP_pt_unicity _ _ _ _ Hu1 Hu2).
 unfold ulp.
-rewrite ln_beta_opp.
+unfold F2R. simpl.
+rewrite Zceil_floor_neq.
+rewrite plus_Z2R. simpl.
 ring.
-rewrite <- Ropp_0.
-now apply Ropp_lt_contravar.
-intros ((xm, xe), (H1, H2)).
+intros H.
 apply Fx.
-exists (Float beta (-xm) xe).
-split.
-rewrite <- opp_F2R.
-rewrite <- H1.
-now rewrite Ropp_involutive.
-now rewrite <- ln_beta_opp.
-(* positive *)
-now apply ulp_pred_succ_pt_pos.
+unfold F, generic_format.
+unfold F2R. simpl.
+rewrite <- H.
+rewrite Ztrunc_Z2R.
+rewrite H.
+now rewrite Rmult_assoc, <- bpow_add, Zplus_opp_l, Rmult_1_r.
 Qed.
 
 Theorem ulp_error :
@@ -236,12 +176,12 @@ Theorem ulp_bpow :
   forall e, ulp (bpow e) = bpow (fexp (e + 1)).
 intros e.
 unfold ulp.
-rewrite (ln_beta_unique beta (bpow e) (e + 1)).
-easy.
+apply f_equal.
+apply canonic_exponent_fexp.
 rewrite Rabs_pos_eq.
 split.
-apply -> bpow_le.
-omega.
+ring_simplify (e + 1 - 1)%Z.
+apply Rle_refl.
 apply -> bpow_lt.
 apply Zlt_succ.
 apply bpow_ge_0.

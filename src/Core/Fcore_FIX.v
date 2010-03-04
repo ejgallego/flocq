@@ -40,20 +40,20 @@ split.
 (* . *)
 intros ((xm, xe), (Hx1, Hx2)).
 rewrite Hx1.
-eexists ; repeat split.
-exact Hx2.
+now apply generic_format_canonic.
 (* . *)
-intros ((xm, xe), (Hx1, Hx2)).
-rewrite Hx1.
+intros H.
+rewrite H.
 eexists ; repeat split.
-exact Hx2.
 Qed.
 
 Theorem FIX_format_satisfies_any :
   satisfies_any FIX_format.
 Proof.
 refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FIX_exp _)).
-exact FIX_format_generic.
+intros x.
+apply iff_sym.
+apply FIX_format_generic.
 exact FIX_exp_correct.
 Qed.
 

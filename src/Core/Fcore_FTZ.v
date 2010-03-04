@@ -58,20 +58,21 @@ destruct (Req_dec x 0) as [Hx4|Hx4].
 rewrite Hx4.
 apply generic_format_0.
 specialize (Hx2 Hx4).
-unfold generic_format, canonic, FTZ_exp.
+rewrite Hx1.
+apply generic_format_canonic_exponent.
+unfold canonic_exponent, FTZ_exp.
+rewrite <- Hx1.
 destruct (ln_beta beta x) as (ex, Hx6).
 simpl.
 specialize (Hx6 Hx4).
 generalize (Zlt_cases (ex - prec) emin).
 case (Zlt_bool (ex - prec) emin) ; intros H1.
-elim (Rlt_not_ge _ _ (proj2 Hx6)).
-apply Rle_ge.
-rewrite Hx1.
+elim (Rlt_not_le _ _ (proj2 Hx6)).
 apply Rle_trans with (bpow (prec - 1) * bpow emin)%R.
 rewrite <- bpow_add.
 apply -> bpow_le.
 omega.
-rewrite abs_F2R.
+rewrite Hx1, abs_F2R.
 unfold F2R. simpl.
 apply Rmult_le_compat.
 apply bpow_ge_0.
@@ -81,11 +82,16 @@ now apply Z2R_le.
 apply Zle_minus_le_0.
 now apply (Zlt_le_succ 0).
 now apply -> bpow_le.
-rewrite Hx1, (F2R_prec_normalize beta xm xe ex prec (proj2 Hx2)).
-now eexists.
-now rewrite <- Hx1.
+cut (ex - 1 < prec + xe)%Z. omega.
+apply <- (bpow_lt beta).
+apply Rle_lt_trans with (1 := proj1 Hx6).
+rewrite Hx1.
+apply F2R_lt_bpow.
+simpl.
+ring_simplify (prec + xe - xe)%Z.
+apply Hx2.
 (* . *)
-intros ((xm, xe), (Hx1, Hx2)).
+intros Hx.
 destruct (Req_dec x 0) as [Hx3|Hx3].
 exists (Float beta 0 emin).
 split.
@@ -95,15 +101,15 @@ split.
 intros H.
 now elim H.
 apply Zle_refl.
+unfold generic_format, canonic_exponent, FTZ_exp in Hx.
 destruct (ln_beta beta x) as (ex, Hx4).
-simpl in Hx2.
+simpl in Hx.
 specialize (Hx4 Hx3).
-unfold FTZ_exp in Hx2.
-generalize (Zlt_cases (ex - prec) emin) Hx2. clear Hx2.
+generalize (Zlt_cases (ex - prec) emin) Hx. clear Hx.
 case (Zlt_bool (ex - prec) emin) ; intros Hx5 Hx2.
 elim Rlt_not_ge with (1 := proj2 Hx4).
 apply Rle_ge.
-rewrite Hx1, abs_F2R.
+rewrite Hx2, abs_F2R.
 rewrite <- (Rmult_1_l (bpow ex)).
 unfold F2R. simpl.
 apply Rmult_le_compat.
@@ -112,29 +118,24 @@ apply bpow_ge_0.
 apply (Z2R_le 1).
 apply (Zlt_le_succ 0).
 apply lt_Z2R.
-apply Rmult_lt_reg_r with (bpow xe).
+apply Rmult_lt_reg_r with (bpow (emin + prec - 1)).
 apply bpow_gt_0.
 rewrite Rmult_0_l.
-change (0 < F2R (Float beta (Zabs xm) xe))%R.
-rewrite <- abs_F2R, <- Hx1.
+change (0 < F2R (Float beta (Zabs (Ztrunc (x * bpow (- (emin + prec - 1))))) (emin + prec - 1)))%R.
+rewrite <- abs_F2R, <- Hx2.
 now apply Rabs_pos_lt.
 apply -> bpow_le.
 omega.
-exists (Float beta xm xe).
-split.
-exact Hx1.
-split.
-intros _.
-split.
+rewrite Hx2.
+eexists ; repeat split ; simpl.
 apply le_Z2R.
 rewrite Z2R_Zpower.
 apply Rmult_le_reg_r with (bpow (ex - prec)).
 apply bpow_gt_0.
 rewrite <- bpow_add.
 replace (prec - 1 + (ex - prec))%Z with (ex - 1)%Z by ring.
-rewrite <- Hx2.
-change (bpow (ex - 1) <= F2R (Float beta (Zabs xm) xe))%R.
-rewrite <- abs_F2R, <- Hx1.
+change (bpow (ex - 1) <= F2R (Float beta (Zabs (Ztrunc (x * bpow (- (ex - prec))))) (ex - prec)))%R.
+rewrite <- abs_F2R, <- Hx2.
 apply Hx4.
 apply Zle_minus_le_0.
 now apply (Zlt_le_succ 0).
@@ -144,13 +145,10 @@ apply Rmult_lt_reg_r with (bpow (ex - prec)).
 apply bpow_gt_0.
 rewrite <- bpow_add.
 replace (prec + (ex - prec))%Z with ex by ring.
-rewrite <- Hx2.
-change (F2R (Float beta (Zabs xm) xe) < bpow ex)%R.
-rewrite <- abs_F2R, <- Hx1.
+change (F2R (Float beta (Zabs (Ztrunc (x * bpow (- (ex - prec))))) (ex - prec)) < bpow ex)%R.
+rewrite <- abs_F2R, <- Hx2.
 apply Hx4.
 now apply Zlt_le_weak.
-simpl.
-rewrite Hx2.
 now apply Zge_le.
 Qed.
 
