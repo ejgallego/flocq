@@ -18,18 +18,21 @@ Definition ulp x := bpow (canonic_exponent beta fexp x).
 
 Definition F := generic_format beta fexp.
 
-Theorem ulp_pred_succ_pt :
-  forall x xd xu,
+Theorem ulp_DN_UP_pt :
+  forall x xd,
   ~ F x ->
-  Rnd_DN_pt F x xd -> Rnd_UP_pt F x xu ->
-  (xu = xd + ulp x)%R.
+  Rnd_DN_pt F x xd ->
+  Rnd_UP_pt F x (xd + ulp x)%R.
 Proof.
-intros x xd xu Fx Hd1 Hu1.
+intros x xd Fx Hd1.
+set (ex := canonic_exponent beta fexp x).
 assert (Hd2 := generic_DN_pt beta _ prop_exp x).
-assert (Hu2 := generic_UP_pt beta _ prop_exp x).
+generalize (generic_UP_pt beta _ prop_exp x).
+fold ex in Hd2 |- *.
+replace (F2R (Float beta (Zceil (x * bpow (- ex))) ex)) with (xd + ulp x)%R.
+easy.
 rewrite (Rnd_DN_pt_unicity _ _ _ _ Hd1 Hd2).
-rewrite (Rnd_UP_pt_unicity _ _ _ _ Hu1 Hu2).
-unfold ulp.
+unfold ulp. fold ex.
 unfold F2R. simpl.
 rewrite Zceil_floor_neq.
 rewrite plus_Z2R. simpl.
@@ -38,6 +41,7 @@ intros H.
 apply Fx.
 unfold F, generic_format.
 unfold F2R. simpl.
+fold ex.
 rewrite <- H.
 rewrite Ztrunc_Z2R.
 rewrite H.
@@ -62,7 +66,8 @@ apply Rlt_not_le with (1 := Hxd).
 apply Req_le.
 apply sym_eq.
 now apply Rnd_DN_pt_idempotent with (1 := Hd).
-destruct (proj1 (satisfies_any_imp_UP F Hs) x) as (u, Hu).
+assert (Hu := ulp_DN_UP_pt _ _ Fx Hd).
+set (u := (d + ulp x)%R).
 assert (Hxu : (x < u)%R).
 destruct (Rle_lt_or_eq_dec x u) as [Hxu|Hxu].
 apply Hu.
@@ -70,7 +75,6 @@ exact Hxu.
 elim Fx.
 rewrite Hxu.
 apply Hu.
-rewrite (ulp_pred_succ_pt _ _ _ Fx Hd Hu) in Hxu, Hu.
 destruct (Rnd_DN_or_UP_pt _ _ Hrnd _ _ _ Hd Hu) as [Hr|Hr] ;
   rewrite Hr ; clear Hr.
 rewrite <- Ropp_minus_distr.
@@ -111,8 +115,7 @@ apply Rlt_not_le with (1 := Hxd).
 apply Req_le.
 apply sym_eq.
 now apply Rnd_DN_pt_idempotent with (1 := Hd).
-destruct (proj1 (satisfies_any_imp_UP F Hs) x) as (u, Hu).
-rewrite (ulp_pred_succ_pt _ _ _ Fx Hd Hu) in Hu.
+assert (Hu := ulp_DN_UP_pt _ _ Fx Hd).
 destruct Hxr as (Hr1, Hr2).
 assert (Hdx : (Rabs (d - x) = x - d)%R).
 rewrite <- Ropp_minus_distr.

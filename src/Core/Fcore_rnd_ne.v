@@ -140,6 +140,9 @@ apply Hxd.
 apply generic_format_0.
 now apply Rlt_le.
 assert (Hxe2 : (fexp (ex + 1) <= ex)%Z) by now eapply valid_fexp.
+assert (Hud: (F2R xu = F2R xd + ulp beta fexp x)%R).
+apply Rnd_UP_pt_unicity with (1 := Hxu).
+now apply ulp_DN_UP_pt.
 destruct (total_order_T (bpow ex) (F2R xu)) as [[Hu2|Hu2]|Hu2].
 (* - xu > bpow ex  *)
 elim (Rlt_not_le _ _ Hu2).
@@ -166,8 +169,6 @@ apply F2R_bpow.
 exact Hxe2.
 assert (Hd3: xd = Float beta (Zpower (radix_val beta) (ex - fexp ex) - 1) (fexp ex)).
 assert (H: F2R xd = F2R (Float beta (Zpower (radix_val beta) (ex - fexp ex) - 1) (fexp ex))).
-generalize (ulp_pred_succ_pt beta _ valid_fexp x (F2R xd) (F2R xu) Hfx Hxd Hxu).
-intros Hud.
 unfold F2R. simpl.
 rewrite minus_Z2R.
 unfold Rminus.
@@ -209,7 +210,7 @@ apply Zodd_Zpower with (2 := Hdo).
 apply Zle_minus_le_0.
 exact Hxe2.
 (* - xu < bpow ex *)
-generalize (ulp_pred_succ_pt beta _ valid_fexp x (F2R xd) (F2R xu) Hfx Hxd Hxu).
+revert Hud.
 unfold ulp, F2R.
 rewrite Hd, Hu.
 unfold canonic_exponent.
