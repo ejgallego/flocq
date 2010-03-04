@@ -736,7 +736,7 @@ End Fcalc_bracket_NE.
 Section Fcalc_bracket_generic.
 
 Variable beta : radix.
-Notation bpow := (bpow beta).
+Notation bpow e := (bpow beta e).
 
 Variable fexp : Z -> Z.
 Hypothesis prop_exp : valid_exp fexp.
@@ -777,6 +777,133 @@ rewrite <- Z_div_mod_eq.
 exact Hx.
 apply Zlt_gt.
 now apply Zlt_le_trans with (2 := radix_prop beta).
+Qed.
+
+Theorem inbetween_float_DN :
+  forall x m e l, (0 < m)%Z ->
+  inbetween_float m e x l ->
+  canonic beta fexp (Float beta m e) ->
+  Rnd_DN_pt format x (F2R (Float beta m e)).
+Proof.
+intros x m e l Hm Hl Hc.
+assert (Hb: (F2R (Float beta m e) <= x < F2R (Float beta (m + 1) e))%R).
+apply inbetween_bounds_strict with (2 := Hl).
+apply F2R_lt_compat.
+apply Zlt_succ.
+assert (Hf := generic_format_canonic _ _ _ Hc).
+split.
+exact Hf.
+split.
+exact (proj1 Hb).
+intros g Hg Hgx.
+apply Rnot_lt_le.
+intros Hg1.
+apply Rle_not_lt with (1 := Hgx). clear Hgx.
+apply Rlt_le_trans with (1 := proj2 Hb).
+apply Rnot_lt_le.
+intros Hg2.
+exact (generic_format_discrete _ _ _ _ Hm Hc _ (conj Hg1 Hg2) Hg).
+Qed.
+
+Definition cond_incr (b : bool) m := if b then (m + 1)%Z else m.
+
+Definition round_UP l :=
+  match l with
+  | loc_Eq => false
+  | _ => true
+  end.
+
+Theorem inbetween_float_UP :
+  forall x m e l, (0 < m)%Z ->
+  inbetween_float m e x l ->
+  canonic beta fexp (Float beta m e) ->
+  Rnd_UP_pt format x (F2R (Float beta (cond_incr (round_UP l) m) e)).
+Proof.
+intros x m e l Hm Hl Hc.
+assert (Hl': l = loc_Eq \/ l <> loc_Eq).
+case l ; try (now left) ; now right.
+destruct Hl' as [Hl'|Hl'].
+(* loc_Eq *)
+rewrite Hl' in Hl.
+inversion_clear Hl.
+rewrite H, Hl'.
+apply Rnd_UP_pt_refl.
+now apply generic_format_canonic.
+(* not loc_Eq *)
+replace (round_UP l) with true.
+assert (Hb: (F2R (Float beta m e) < x < F2R (Float beta (m + 1) e))%R).
+apply inbetween_bounds_strict_not_Eq with (2 := Hl).
+apply F2R_lt_compat.
+apply Zlt_succ.
+exact Hl'.
+assert (Hd := inbetween_float_DN _ _ _ _ Hm Hl Hc).
+simpl.
+replace (F2R (Float beta (m + 1) e)) with (F2R (Float beta m e) + ulp beta fexp x)%R.
+apply ulp_DN_UP_pt ; try easy.
+intros Fx.
+apply Rlt_not_le with (1 := proj1 Hb).
+apply Req_le.
+apply Rnd_DN_pt_unicity with (2 := Hd).
+now apply Rnd_DN_pt_refl.
+rewrite <- ulp_DN_pt_eq with (3 := Hd).
+unfold ulp.
+rewrite <- Hc.
+unfold F2R. simpl.
+rewrite plus_Z2R.
+simpl. ring.
+exact prop_exp.
+now apply F2R_gt_0_compat.
+clear -Hl'.
+destruct l ; try easy.
+now elim Hl'.
+Qed.
+
+Definition round_NE (p : bool) l :=
+  match l with
+  | loc_Eq => false
+  | loc_Lo => false
+  | loc_Mi => if p then false else true
+  | loc_Hi => true
+  end.
+
+Theorem inbetween_float_NE :
+  forall x m e l, (0 < m)%Z ->
+  inbetween_float m e x l ->
+  canonic beta fexp (Float beta m e) ->
+  Rnd_NE_pt beta fexp x (F2R (Float beta (cond_incr (round_NE (projT1 (Zeven_odd_bool m)) l) m) e)).
+Proof.
+intros x m e l Hm Hl Hc.
+assert (Hd := inbetween_float_DN _ _ _ _ Hm Hl Hc).
+unfold round_NE.
+generalize (inbetween_float_UP _ _ _ _ Hm Hl Hc).
+destruct l ; simpl ; intros Hu.
+(* loc_Eq *)
+inversion_clear Hl.
+rewrite H.
+apply Rnd_NG_pt_refl.
+apply Hd.
+(* loc_Lo *)
+split.
+now apply (Rnd_N_pt_bracket_not_Hi _ _ _ _ _ Hd Hu Hl).
+right.
+admit.
+(* loc_Mi *)
+destruct (Zeven_odd_bool m) as ([|], Heo) ; simpl.
+split.
+now apply (Rnd_N_pt_bracket_not_Hi _ _ _ _ _ Hd Hu Hl).
+left.
+now eexists ; repeat split.
+split.
+apply (Rnd_N_pt_bracket_Mi_Hi _ _ _ _ _ Hd Hu Hl).
+now left.
+left.
+admit.
+(* loc_Hi *)
+split.
+apply (Rnd_N_pt_bracket_Mi_Hi _ _ _ _ _ Hd Hu Hl).
+now right.
+right.
+admit.
 Qed.
 
 End Fcalc_bracket_generic.
