@@ -55,6 +55,18 @@ apply bpow_gt_0.
 now apply Z2R_lt.
 Qed.
 
+Theorem F2R_eq_reg :
+  forall e m1 m2 : Z,
+  F2R (Float beta m1 e) = F2R (Float beta m2 e) ->
+  m1 = m2.
+Proof.
+intros e m1 m2 H.
+apply Zle_antisym ;
+  apply F2R_le_reg with e ;
+  rewrite H ;
+  apply Rle_refl.
+Qed.
+
 Theorem F2R_0 :
   forall e : Z,
   F2R (Float beta 0 e) = R0.
@@ -70,10 +82,8 @@ Theorem F2R_eq_0_reg :
   m = Z0.
 Proof.
 intros m e H.
-apply Zle_antisym ;
-  apply F2R_le_reg with e ;
-  rewrite H, F2R_0 ;
-  apply Rle_refl.
+apply F2R_eq_reg with e.
+now rewrite F2R_0.
 Qed.
 
 Theorem F2R_ge_0_reg :
