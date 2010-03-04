@@ -247,6 +247,29 @@ rewrite <- Ropp_mult_distr_l_reverse.
 now rewrite opp_Z2R.
 Qed.
 
+Theorem F2R_lt_bpow :
+  forall f : float beta, forall e',
+  (Zabs (Fnum f) < Zpower (radix_val beta) (e' - Fexp f))%Z ->
+  (Rabs (F2R f) < bpow e')%R.
+Proof.
+intros (m, e) e' Hm.
+rewrite abs_F2R.
+destruct (Zle_or_lt e e') as [He|He].
+unfold F2R. simpl.
+apply Rmult_lt_reg_r with (bpow (-e)).
+apply bpow_gt_0.
+rewrite Rmult_assoc, <- 2!bpow_add, Zplus_opp_r, Rmult_1_r.
+rewrite <-Z2R_Zpower. 2: now apply Zle_left.
+now apply Z2R_lt.
+elim Zlt_not_le with (1 := Hm).
+simpl.
+cut (e' - e < 0)%Z. 2: omega.
+clear.
+case (e' - e)%Z ; try easy.
+intros p _.
+apply Zabs_pos.
+Qed.
+
 Theorem F2R_change_exp :
   forall e' m e : Z,
   (e' <= e)%Z ->
