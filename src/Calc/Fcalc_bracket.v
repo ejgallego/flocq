@@ -40,6 +40,43 @@ Qed.
 
 Section Fcalc_bracket.
 
+Lemma Rhalf_lt_compat :
+  forall x y, (x < y)%R -> (x / 2 < y / 2)%R.
+Proof.
+intros x y.
+apply Rmult_lt_compat_r.
+apply Rinv_0_lt_compat.
+now apply (Z2R_lt 0 2).
+Qed.
+
+Lemma Rhalf_le_compat :
+  forall x y, (x <= y)%R -> (x / 2 <= y / 2)%R.
+Proof.
+intros x y.
+apply Rmult_le_compat_r.
+apply Rlt_le.
+apply Rinv_0_lt_compat.
+now apply (Z2R_lt 0 2).
+Qed.
+
+Lemma Rhalf_lt_reg :
+  forall x y, (x / 2 < y / 2)%R -> (x < y)%R.
+Proof.
+intros x y.
+apply Rmult_lt_reg_r.
+apply Rinv_0_lt_compat.
+now apply (Z2R_lt 0 2).
+Qed.
+
+Lemma Rhalf_le_reg :
+  forall x y, (x / 2 <= y / 2)%R -> (x <= y)%R.
+Proof.
+intros x y.
+apply Rmult_le_reg_r.
+apply Rinv_0_lt_compat.
+now apply (Z2R_lt 0 2).
+Qed.
+
 Variable d u : R.
 
 Lemma ordered_middle :
@@ -84,6 +121,36 @@ now apply Rplus_lt_compat_r.
 now apply (Z2R_neq 2 0).
 Qed.
 
+Lemma ordered_low_imp_ordered :
+  (d < (d + u)/2)%R -> (d < u)%R.
+Proof.
+intros Hdu.
+apply Rhalf_lt_reg.
+apply Rplus_lt_reg_r with (d / 2)%R.
+unfold Rdiv.
+rewrite <- 2!Rmult_plus_distr_r.
+pattern d at 1 2 ; rewrite <- Rmult_1_r.
+rewrite <- Rmult_plus_distr_l.
+rewrite Rmult_assoc, Rinv_r.
+now rewrite Rmult_1_r.
+now apply (Z2R_neq 2 0).
+Qed.
+
+Lemma ordered_high_imp_ordered :
+  ((d + u)/2 < u)%R -> (d < u)%R.
+Proof.
+intros Hdu.
+apply Rhalf_lt_reg.
+apply Rplus_lt_reg_r with (u / 2)%R.
+unfold Rdiv.
+rewrite <- 2!Rmult_plus_distr_r.
+pattern u at 2 3 ; rewrite <- Rmult_1_r.
+rewrite <- Rmult_plus_distr_l.
+rewrite Rmult_assoc, Rinv_r.
+now rewrite Rplus_comm, Rmult_1_r.
+now apply (Z2R_neq 2 0).
+Qed.
+
 Inductive location := loc_Eq | loc_Lo | loc_Mi | loc_Hi.
 
 Variable x : R.
@@ -93,6 +160,8 @@ Inductive inbetween : location -> Prop :=
   | inbetween_Lo : (d < x)%R -> (x < (d + u)/2)%R -> inbetween loc_Lo
   | inbetween_Mi : x = ((d + u)/2)%R -> inbetween loc_Mi
   | inbetween_Hi : ((d + u)/2 < x)%R -> (x < u)%R -> inbetween loc_Hi.
+
+Section Fcalc_bracket_any.
 
 Variable l : location.
 
@@ -187,6 +256,71 @@ exact (proj1 (ordered_middle_strict Hdu)).
 apply Rle_lt_trans with (2 := Hx1).
 refine (proj1 (ordered_middle _)).
 now apply Rlt_le.
+Qed.
+
+End Fcalc_bracket_any.
+
+Theorem inbetween_distance_Lo :
+  inbetween loc_Lo ->
+  (Rabs (d - x) < Rabs (u - x))%R.
+Proof.
+intros Hl.
+inversion Hl.
+rewrite Rabs_left. 2: now apply Rlt_minus.
+rewrite Rabs_pos_eq.
+rewrite Ropp_minus_distr.
+apply Rplus_lt_reg_r with (x + d)%R.
+ring_simplify.
+apply Rhalf_lt_reg.
+unfold Rdiv at 1.
+rewrite Rmult_comm, <- Rmult_assoc, Rinv_l, Rmult_1_l.
+exact H0.
+now apply (Z2R_neq 2 0).
+apply Rle_0_minus.
+apply Rlt_le.
+apply Rlt_trans with (1 := H0).
+apply ordered_middle_strict.
+apply ordered_low_imp_ordered.
+now apply Rlt_trans with x.
+Qed.
+
+Theorem inbetween_distance_Mi :
+  inbetween loc_Mi ->
+  (x - d = u - x)%R.
+Proof.
+intros Hl.
+inversion Hl.
+apply Rplus_eq_reg_l with (x + d)%R.
+ring_simplify.
+apply Rmult_eq_reg_r with (/2)%R.
+rewrite Rmult_comm, <- Rmult_assoc, Rinv_l, Rmult_1_l.
+exact H.
+now apply (Z2R_neq 2 0).
+apply Rinv_neq_0_compat.
+now apply (Z2R_neq 2 0).
+Qed.
+
+Theorem inbetween_distance_Hi :
+  inbetween loc_Hi ->
+  (Rabs (u - x) < Rabs (d - x))%R.
+Proof.
+intros Hl.
+inversion Hl.
+rewrite Rabs_pos_eq. 2: apply Rle_0_minus ; now apply Rlt_le.
+rewrite Rabs_left.
+rewrite Ropp_minus_distr.
+apply Rplus_lt_reg_r with (x + d)%R.
+ring_simplify.
+apply Rhalf_lt_reg.
+unfold Rdiv at 2.
+rewrite Rmult_comm, <- Rmult_assoc, Rinv_l, Rmult_1_l.
+exact H.
+now apply (Z2R_neq 2 0).
+apply Rlt_minus.
+apply Rlt_trans with (2 := H).
+apply ordered_middle_strict.
+apply ordered_high_imp_ordered.
+now apply Rlt_trans with x.
 Qed.
 
 End Fcalc_bracket.
@@ -647,16 +781,19 @@ Qed.
 
 End Fcalc_bracket_step.
 
-Section Fcalc_bracket_NE.
+Section Fcalc_bracket_N.
+
+Variable F : R -> Prop.
+Variable d u x : R.
+Hypothesis Hd : Rnd_DN_pt F x d.
+Hypothesis Hu : Rnd_UP_pt F x u.
 
 Theorem Rnd_N_pt_bracket_not_Hi :
-  forall F d u x l,
-  Rnd_DN_pt F x d ->
-  Rnd_UP_pt F x u ->
+  forall l, l <> loc_Hi ->
   inbetween d u x l ->
-  l <> loc_Hi -> Rnd_N_pt F x d.
+  Rnd_N_pt F x d.
 Proof.
-intros F d u x l Hd Hu Hx Hl.
+intros l Hl Hx.
 split.
 apply Hd.
 intros g Hg.
@@ -691,14 +828,11 @@ apply Hu.
 Qed.
 
 Theorem Rnd_N_pt_bracket_Mi_Hi :
-  forall F d u x l,
-  Rnd_DN_pt F x d ->
-  Rnd_UP_pt F x u ->
+  forall l, l = loc_Mi \/ l = loc_Hi ->
   inbetween d u x l ->
-  l = loc_Mi \/ l = loc_Hi ->
   Rnd_N_pt F x u.
 Proof.
-intros F d u x l Hd Hu Hx Hl.
+intros l Hl Hx.
 split.
 apply Hu.
 intros g Hg.
@@ -731,7 +865,27 @@ apply Rle_trans with (2 := H).
 apply Hu.
 Qed.
 
-End Fcalc_bracket_NE.
+Theorem Rnd_not_N_pt_bracket_Hi :
+  inbetween d u x loc_Hi ->
+  ~ Rnd_N_pt F x d.
+Proof.
+intros Hx (_, Hn).
+specialize (Hn u (proj1 Hu)).
+apply Rle_not_lt with (1 := Hn).
+now apply inbetween_distance_Hi.
+Qed.
+
+Theorem Rnd_not_N_pt_bracket_Lo :
+  inbetween d u x loc_Lo ->
+  ~ Rnd_N_pt F x u.
+Proof.
+intros Hx (_, Hn).
+specialize (Hn d (proj1 Hd)).
+apply Rle_not_lt with (1 := Hn).
+now apply inbetween_distance_Lo.
+Qed.
+
+End Fcalc_bracket_N.
 
 Section Fcalc_bracket_generic.
 
@@ -866,16 +1020,18 @@ Definition round_NE (p : bool) l :=
   | loc_Hi => true
   end.
 
+Hypothesis strong_fexp : NE_ex_prop beta fexp.
+
 Theorem inbetween_float_NE :
   forall x m e l, (0 < m)%Z ->
   inbetween_float m e x l ->
   canonic beta fexp (Float beta m e) ->
   Rnd_NE_pt beta fexp x (F2R (Float beta (cond_incr (round_NE (projT1 (Zeven_odd_bool m)) l) m) e)).
 Proof.
-intros x m e l Hm Hl Hc.
-assert (Hd := inbetween_float_DN _ _ _ _ Hm Hl Hc).
+intros x m e l Hm Hl Hcd.
+assert (Hd := inbetween_float_DN _ _ _ _ Hm Hl Hcd).
 unfold round_NE.
-generalize (inbetween_float_UP _ _ _ _ Hm Hl Hc).
+generalize (inbetween_float_UP _ _ _ _ Hm Hl Hcd).
 destruct l ; simpl ; intros Hu.
 (* loc_Eq *)
 inversion_clear Hl.
@@ -884,26 +1040,61 @@ apply Rnd_NG_pt_refl.
 apply Hd.
 (* loc_Lo *)
 split.
-now apply (Rnd_N_pt_bracket_not_Hi _ _ _ _ _ Hd Hu Hl).
+now apply (Rnd_N_pt_bracket_not_Hi _ _ _ _ Hd Hu loc_Lo).
 right.
-admit.
+intros g Hg.
+destruct (Rnd_N_pt_DN_or_UP _ _ _ Hg) as [H|H].
+now apply Rnd_DN_pt_unicity with (1 := H).
+rewrite (Rnd_UP_pt_unicity _ _ _ _ H Hu) in Hg.
+now elim (Rnd_not_N_pt_bracket_Lo _ _ _ _ Hd Hl).
 (* loc_Mi *)
 destruct (Zeven_odd_bool m) as ([|], Heo) ; simpl.
 split.
-now apply (Rnd_N_pt_bracket_not_Hi _ _ _ _ _ Hd Hu Hl).
+now apply (Rnd_N_pt_bracket_not_Hi _ _ _ _ Hd Hu loc_Mi).
 left.
 now eexists ; repeat split.
 split.
-apply (Rnd_N_pt_bracket_Mi_Hi _ _ _ _ _ Hd Hu Hl).
+apply (Rnd_N_pt_bracket_Mi_Hi _ _ _ _ Hd Hu loc_Mi).
 now left.
+exact Hl.
 left.
-admit.
+generalize (proj1 Hu).
+unfold generic_format.
+set (cu := Float beta (Ztrunc (F2R (Float beta (m + 1) e) * bpow (- canonic_exponent beta fexp (F2R (Float beta (m + 1) e)))))
+  (canonic_exponent beta fexp (F2R (Float beta (m + 1) e)))).
+intros Hu'.
+assert (Hcu : canonic beta fexp cu).
+unfold canonic, cu.
+fold cu.
+now rewrite <- Hu'.
+rewrite Hu'.
+eexists ; repeat split.
+exact Hcu.
+replace (Fnum cu) with (Fnum (Float beta m e) + Fnum cu + -Fnum (Float beta m e))%Z by ring.
+apply Zodd_plus_Zodd.
+rewrite Hu' in Hu.
+apply (DN_UP_parity_generic_pos beta fexp prop_exp strong_fexp x) ; try easy.
+apply Rlt_le_trans with (F2R (Float beta m e)).
+now apply F2R_gt_0_compat.
+apply Hd.
+apply (generic_format_discrete beta fexp m e Hm Hcd).
+apply inbetween_bounds_strict_not_Eq with (2 := Hl).
+apply F2R_lt_compat.
+apply Zlt_succ.
+easy.
+rewrite Zopp_eq_mult_neg_1.
+now apply Zodd_mult_Zodd.
 (* loc_Hi *)
 split.
-apply (Rnd_N_pt_bracket_Mi_Hi _ _ _ _ _ Hd Hu Hl).
+apply (Rnd_N_pt_bracket_Mi_Hi _ _ _ _ Hd Hu loc_Hi).
 now right.
+exact Hl.
 right.
-admit.
+intros g Hg.
+destruct (Rnd_N_pt_DN_or_UP _ _ _ Hg) as [H|H].
+rewrite (Rnd_DN_pt_unicity _ _ _ _ H Hd) in Hg.
+now elim (Rnd_not_N_pt_bracket_Hi _ _ _ _ Hu Hl).
+now apply Rnd_UP_pt_unicity with (1 := H).
 Qed.
 
 End Fcalc_bracket_generic.

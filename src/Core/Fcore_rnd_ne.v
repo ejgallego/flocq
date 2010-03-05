@@ -85,8 +85,10 @@ Qed.
 
 Hypothesis valid_fexp : valid_exp fexp.
 
-Hypothesis strong_fexp : Zodd (radix_val beta) \/ forall e,
- ((fexp e < e)%Z -> (fexp (e + 1) < e)%Z) /\ ((e <= fexp e)%Z -> fexp (fexp e + 1) = fexp e).
+Definition NE_ex_prop := Zodd (radix_val beta) \/ forall e,
+  ((fexp e < e)%Z -> (fexp (e + 1) < e)%Z) /\ ((e <= fexp e)%Z -> fexp (fexp e + 1) = fexp e).
+
+Hypothesis strong_fexp : NE_ex_prop.
 
 Theorem DN_UP_parity_generic_pos :
   DN_UP_parity_pos_prop.
