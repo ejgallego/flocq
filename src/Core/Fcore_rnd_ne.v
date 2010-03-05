@@ -242,6 +242,13 @@ apply Rlt_le_trans with (1 := H0x).
 apply Hxu.
 Qed.
 
+Theorem DN_UP_parity_generic :
+  DN_UP_parity_prop.
+Proof.
+apply DN_UP_parity_aux.
+apply DN_UP_parity_generic_pos.
+Qed.
+
 Theorem Rnd_NE_pt_total :
   rounding_pred_total Rnd_NE_pt.
 Proof.
@@ -272,7 +279,7 @@ now rewrite <- Hu1.
 simpl.
 replace mu with (md + mu + (-1) * md)%Z by ring.
 apply Zodd_plus_Zodd.
-apply (DN_UP_parity_aux DN_UP_parity_generic_pos x (Float beta md ed) (Float beta mu eu)).
+apply (DN_UP_parity_generic x (Float beta md ed) (Float beta mu eu)).
 exact Hf.
 unfold Fcore_generic_fmt.canonic.
 now rewrite <- Hd1.

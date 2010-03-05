@@ -730,43 +730,20 @@ apply Hxd.
 Qed.
 
 Theorem generic_format_discrete :
-  forall m e, (0 < m)%Z ->
-  canonic (Float beta m e) ->
-  forall x, (F2R (Float beta m e) < x < F2R (Float beta (m + 1) e))%R ->
+  forall x m,
+  let e := canonic_exponent x in
+  (F2R (Float beta m e) < x < F2R (Float beta (m + 1) e))%R ->
   ~ generic_format x.
 Proof.
-intros m e Hp Hc x (Hx,Hx2) Hf.
-assert (He: canonic_exponent x = e).
-unfold canonic in Hc.
-simpl in Hc.
-rewrite Hc.
-apply (f_equal fexp).
-destruct (ln_beta beta (F2R (Float beta m e))) as (ex, He).
-simpl.
-apply ln_beta_unique.
-assert (Hp1: (0 < F2R (Float beta m e))%R).
-now apply F2R_gt_0_compat.
-specialize (He (Rgt_not_eq _ _ Hp1)).
-rewrite Rabs_pos_eq in He. 2: now apply Rlt_le.
-destruct He as (He1, He2).
-assert (Hx1: (0 < x)%R).
-now apply Rlt_trans with (2 := Hx).
-rewrite Rabs_pos_eq. 2: now apply Rlt_le.
-split.
-apply Rle_trans with (1 := He1).
-now apply Rlt_le.
-apply Rlt_le_trans with (1 := Hx2).
-now apply F2R_p1_le_bpow.
-(* . *)
+intros x m e (Hx,Hx2) Hf.
 apply Rlt_not_le with (1 := Hx2). clear Hx2.
 rewrite Hf.
-rewrite He.
+fold e.
 apply F2R_le_compat.
 apply Zlt_le_succ.
 apply lt_Z2R.
-rewrite <- He.
+unfold e.
 rewrite generic_format_mantissa with (1 := Hf).
-rewrite He.
 apply Rmult_lt_reg_r with (bpow e).
 apply bpow_gt_0.
 now rewrite Rmult_assoc, <- bpow_add, Zplus_opp_l, Rmult_1_r.

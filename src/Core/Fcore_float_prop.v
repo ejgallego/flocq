@@ -222,6 +222,29 @@ apply bpow_gt_0.
 now apply Zle_minus_le_0.
 Qed.
 
+Theorem ln_beta_F2R_bounds :
+  forall x m e, (0 < m)%Z ->
+  (F2R (Float beta m e) <= x < F2R (Float beta (m + 1) e))%R ->
+  projT1 (ln_beta beta x) = projT1 (ln_beta beta (F2R (Float beta m e))).
+Proof.
+intros x m e Hp (Hx,Hx2).
+destruct (ln_beta beta (F2R (Float beta m e))) as (ex, He).
+simpl.
+apply ln_beta_unique.
+assert (Hp1: (0 < F2R (Float beta m e))%R).
+now apply F2R_gt_0_compat.
+specialize (He (Rgt_not_eq _ _ Hp1)).
+rewrite Rabs_pos_eq in He. 2: now apply Rlt_le.
+destruct He as (He1, He2).
+assert (Hx1: (0 < x)%R).
+now apply Rlt_le_trans with (2 := Hx).
+rewrite Rabs_pos_eq. 2: now apply Rlt_le.
+split.
+now apply Rle_trans with (1 := He1).
+apply Rlt_le_trans with (1 := Hx2).
+now apply F2R_p1_le_bpow.
+Qed.
+
 Theorem abs_F2R :
   forall m e : Z,
   Rabs (F2R (Float beta m e)) = F2R (Float beta (Zabs m) e).
