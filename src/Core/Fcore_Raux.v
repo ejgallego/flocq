@@ -345,6 +345,16 @@ apply Z2R_lt.
 apply Zlt_succ.
 Qed.
 
+Theorem Zfloor_le :
+  forall x y, (x <= y)%R ->
+  (Zfloor x <= Zfloor y)%Z.
+Proof.
+intros x y Hxy.
+apply Zfloor_lub.
+apply Rle_trans with (2 := Hxy).
+apply Zfloor_lb.
+Qed.
+
 Definition Zceil (x : R) := (- Zfloor (- x))%Z.
 
 Theorem Zceil_ub :
@@ -359,7 +369,7 @@ rewrite Ropp_involutive.
 apply Zfloor_lb.
 Qed.
 
-Theorem Zceil_lub :
+Theorem Zceil_glb :
   forall n x,
   (x <= Z2R n)%R ->
   (Zceil x <= n)%Z.
@@ -400,6 +410,16 @@ intros n.
 unfold Zceil.
 rewrite <- opp_Z2R, Zfloor_Z2R.
 apply Zopp_involutive.
+Qed.
+
+Theorem Zceil_le :
+  forall x y, (x <= y)%R ->
+  (Zceil x <= Zceil y)%Z.
+Proof.
+intros x y Hxy.
+apply Zceil_glb.
+apply Rle_trans with (1 := Hxy).
+apply Zceil_ub.
 Qed.
 
 Theorem Zceil_floor_neq :
@@ -496,7 +516,7 @@ rewrite Rabs_left with (1 := H).
 rewrite Zabs_non_eq.
 apply sym_eq.
 apply Zopp_involutive.
-apply Zceil_lub.
+apply Zceil_glb.
 now apply Rlt_le.
 rewrite Rabs_pos_eq with (1 := H).
 apply sym_eq.

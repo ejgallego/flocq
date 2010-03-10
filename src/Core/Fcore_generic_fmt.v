@@ -335,9 +335,16 @@ Qed.
 
 Section Fcore_generic_rounding_pos.
 
-Variable Zrnd : R -> Z.
-Hypothesis Zrnd_monotone : forall x y, (x <= y)%R -> (Zrnd x <= Zrnd y)%Z.
-Hypothesis Zrnd_Z2R : forall n, Zrnd (Z2R n) = n.
+Record Zrounding := mkZrounding {
+  Zrnd : R -> Z ;
+  Zrnd_monotone : forall x y, (x <= y)%R -> (Zrnd x <= Zrnd y)%Z ;
+  Zrnd_Z2R : forall n, Zrnd (Z2R n) = n
+}.
+
+Variable rnd : Zrounding.
+Let Zrnd := Zrnd rnd.
+Let Zrnd_monotone := Zrnd_monotone rnd.
+Let Zrnd_Z2R := Zrnd_Z2R rnd.
 
 Definition rounding x :=
   F2R (Float beta (Zrnd (scaled_mantissa x)) (canonic_exponent x)).
@@ -445,16 +452,15 @@ Qed.
 
 End Fcore_generic_rounding_pos.
 
+Definition ZrndDN := mkZrounding Zfloor Zfloor_le Zfloor_Z2R.
+Definition ZrndUP := mkZrounding Zceil Zceil_le Zceil_Z2R.
+
 Section Fcore_generic_rounding.
 
-Variable Zrnd : R -> Z.
-Hypothesis Zrnd_monotone : forall x y, (x <= y)%R -> (Zrnd x <= Zrnd y)%Z.
-Hypothesis Zrnd_Z2R : forall n, Zrnd (Z2R n) = n.
-
 Theorem rounding_monotone :
-  forall x y, (x <= y)%R -> (rounding Zrnd x <= rounding Zrnd y)%R.
+  forall rnd x y, (x <= y)%R -> (rounding rnd x <= rounding rnd y)%R.
 Proof.
-intros x y Hxy.
+intros rnd x y Hxy.
 destruct (total_order_T x 0) as [[Hx|Hx]|Hx].
 3: now apply rounding_monotone_pos.
 (* x < 0 *)
@@ -466,24 +472,25 @@ rewrite (scaled_mantissa_opp (-x)), (scaled_mantissa_opp (-y)).
 rewrite (canonic_exponent_opp (-x)), (canonic_exponent_opp (-y)).
 apply Ropp_le_cancel.
 rewrite 2!opp_F2R.
-apply (rounding_monotone_pos (fun m => (- Zrnd (- m))%Z)).
-clear - Zrnd_monotone.
-intros.
+assert (Hrnd_monotone : forall x y, (x <= y)%R -> (- Zrnd rnd (-x) <= - Zrnd rnd (-y))%Z).
+clear.
+intros x y Hxy.
 apply Zopp_le_cancel.
 rewrite 2!Zopp_involutive.
 apply Zrnd_monotone.
 now apply Ropp_le_contravar.
-clear - Zrnd_Z2R.
+assert (Hrnd_Z2R : forall n, (- Zrnd rnd (- Z2R n))%Z = n).
 intros n.
 rewrite <- opp_Z2R, Zrnd_Z2R.
 apply Zopp_involutive.
+apply (rounding_monotone_pos (mkZrounding (fun m => (- Zrnd rnd (- m))%Z) Hrnd_monotone Hrnd_Z2R)).
 rewrite <- Ropp_0.
 now apply Ropp_lt_contravar.
 now apply Ropp_le_contravar.
 (* . 0 <= y *)
 apply Rle_trans with R0.
 apply F2R_le_0_compat. simpl.
-rewrite <- (Zrnd_Z2R 0).
+rewrite <- (Zrnd_Z2R rnd 0).
 apply Zrnd_monotone.
 simpl.
 rewrite <- (Rmult_0_l (bpow (- fexp (projT1 (ln_beta beta x))))).
@@ -491,17 +498,17 @@ apply Rmult_le_compat_r.
 apply bpow_ge_0.
 now apply Rlt_le.
 apply F2R_ge_0_compat. simpl.
-rewrite <- (Zrnd_Z2R Z0).
+rewrite <- (Zrnd_Z2R rnd 0).
 apply Zrnd_monotone.
 apply Rmult_le_pos.
 exact Hy.
 apply bpow_ge_0.
 (* x = 0 *)
 rewrite Hx.
-rewrite rounding_0. 2: exact Zrnd_Z2R.
+rewrite rounding_0.
 apply F2R_ge_0_compat.
 simpl.
-rewrite <- (Zrnd_Z2R 0).
+rewrite <- (Zrnd_Z2R rnd 0).
 apply Zrnd_monotone.
 apply Rmult_le_pos.
 now rewrite <- Hx.
