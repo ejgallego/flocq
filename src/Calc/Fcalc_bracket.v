@@ -1074,7 +1074,7 @@ left.
 generalize (proj1 Hu).
 unfold generic_format.
 fold e.
-set (cu := Float beta (Ztrunc (F2R (Float beta (m + 1) e) * bpow (- canonic_exponent beta fexp (F2R (Float beta (m + 1) e)))))
+set (cu := Float beta (Ztrunc (scaled_mantissa beta fexp (F2R (Float beta (m + 1) e))))
   (canonic_exponent beta fexp (F2R (Float beta (m + 1) e)))).
 intros Hu'.
 assert (Hcu : canonic beta fexp cu).

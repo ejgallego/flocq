@@ -112,7 +112,7 @@ assert (Hf: FLX_exp (projT1 (ln_beta beta x)) = FIX_exp (ex - prec) (projT1 (ln_
 unfold FIX_exp, FLX_exp.
 now rewrite ln_beta_unique with (1 := Hx2).
 split ;
-  unfold generic_format, canonic_exponent ;
+  unfold generic_format, scaled_mantissa, canonic_exponent ;
   now rewrite Hf.
 Qed.
 

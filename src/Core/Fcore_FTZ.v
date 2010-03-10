@@ -101,7 +101,7 @@ split.
 intros H.
 now elim H.
 apply Zle_refl.
-unfold generic_format, canonic_exponent, FTZ_exp in Hx.
+unfold generic_format, scaled_mantissa, canonic_exponent, FTZ_exp in Hx.
 destruct (ln_beta beta x) as (ex, Hx4).
 simpl in Hx.
 specialize (Hx4 Hx3).

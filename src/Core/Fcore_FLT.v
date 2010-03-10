@@ -76,7 +76,7 @@ now ring_simplify (prec + xe - xe)%Z.
 (* . *)
 unfold generic_format.
 set (ex := canonic_exponent beta FLT_exp x).
-set (mx := Ztrunc (x * bpow (- ex))).
+set (mx := Ztrunc (scaled_mantissa beta FLT_exp x)).
 intros Hx.
 rewrite Hx.
 eexists ; repeat split ; simpl.
@@ -139,7 +139,7 @@ intros x Hx.
 destruct (Req_dec x 0) as [Hx0|Hx0].
 rewrite Hx0.
 split ; intros _ ;  apply generic_format_0.
-unfold generic_format.
+unfold generic_format, scaled_mantissa.
 now rewrite (FLT_canonic_FLX x Hx0 Hx).
 Qed.
 
@@ -182,7 +182,7 @@ destruct (Req_dec x 0) as [Hx0|Hx0].
 rewrite Hx0.
 split ; intros _ ;  apply generic_format_0.
 destruct Hx as [Hx|Hx].
-unfold generic_format.
+unfold generic_format, scaled_mantissa.
 now rewrite (FLT_canonic_FIX x Hx0 Hx).
 (* extra case *)
 rewrite <- (Rabs_pos_eq (bpow (emin + prec))) in Hx. 2: apply bpow_ge_0.

@@ -41,6 +41,7 @@ intros H.
 apply Fx.
 unfold F, generic_format.
 unfold F2R. simpl.
+unfold scaled_mantissa.
 fold ex.
 rewrite <- H.
 rewrite Ztrunc_Z2R.

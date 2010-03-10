@@ -258,7 +258,7 @@ intros x d u Hf Hd Hu.
 generalize (proj1 Hd).
 unfold generic_format.
 set (ed := canonic_exponent beta fexp d).
-set (md := Ztrunc (d * Fcore_Raux.bpow beta (-ed))).
+set (md := Ztrunc (scaled_mantissa beta fexp d)).
 intros Hd1.
 destruct (Zeven_odd_dec md) as [He|Ho].
 right.
@@ -270,7 +270,7 @@ left.
 generalize (proj1 Hu).
 unfold generic_format.
 set (eu := canonic_exponent beta fexp u).
-set (mu := Ztrunc (u * Fcore_Raux.bpow beta (-eu))).
+set (mu := Ztrunc (scaled_mantissa beta fexp u)).
 intros Hu1.
 rewrite Hu1.
 eexists ; repeat split.
