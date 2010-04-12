@@ -447,4 +447,69 @@ Qed.
 
 Definition ZrndNE := mkZrounding ZnearestE ZnearestE_monotone ZnearestE_Z2R.
 
+Theorem ZnearestE_N_strict :
+  forall x,
+  (x - Z2R (Zfloor x) <> /2)%R ->
+  (Rabs (x - Z2R (ZnearestE x)) < /2)%R.
+Proof.
+intros x Hx.
+unfold ZnearestE.
+destruct (total_order_T (x - Z2R (Zfloor x)) (/ 2)) as [[H|H]|H].
+rewrite Rabs_pos_eq.
+exact H.
+apply Rle_0_minus.
+apply Zfloor_lb.
+now elim Hx.
+rewrite Rabs_left1.
+rewrite Ropp_minus_distr.
+rewrite Zceil_floor_neq.
+rewrite plus_Z2R.
+simpl.
+apply Ropp_lt_cancel.
+apply Rplus_lt_reg_r with R1.
+replace (1 + -/2)%R with (/2)%R by field.
+now replace (1 + - (Z2R (Zfloor x) + 1 - x))%R with (x - Z2R (Zfloor x))%R by ring.
+apply Rlt_not_eq.
+apply Rplus_lt_reg_r with (- Z2R (Zfloor x))%R.
+apply Rlt_trans with (/2)%R.
+rewrite Rplus_opp_l.
+apply Rinv_0_lt_compat.
+now apply (Z2R_lt 0 2).
+now rewrite <- (Rplus_comm x).
+apply Rle_minus.
+apply Zceil_ub.
+Qed.
+
+Theorem ZnearestE_N :
+  forall x,
+  (Rabs (x - Z2R (ZnearestE x)) <= /2)%R.
+Proof.
+intros x.
+destruct (Req_dec (x - Z2R (Zfloor x)) (/2)) as [Hx|Hx].
+assert (K: (Rabs (/2) <= /2)%R).
+apply Req_le.
+apply Rabs_pos_eq.
+apply Rlt_le.
+apply Rinv_0_lt_compat.
+now apply (Z2R_lt 0 2).
+destruct (ZnearestE_DN_or_UP x) as [H|H] ; rewrite H ; clear H.
+now rewrite Hx.
+rewrite Zceil_floor_neq.
+rewrite plus_Z2R.
+simpl.
+replace (x - (Z2R (Zfloor x) + 1))%R with (x - Z2R (Zfloor x) - 1)%R by ring.
+rewrite Hx.
+rewrite Rabs_minus_sym.
+now replace (1 - /2)%R with (/2)%R by field.
+apply Rlt_not_eq.
+apply Rplus_lt_reg_r with (- Z2R (Zfloor x))%R.
+rewrite Rplus_opp_l, Rplus_comm.
+fold (x - Z2R (Zfloor x))%R.
+rewrite Hx.
+apply Rinv_0_lt_compat.
+now apply (Z2R_lt 0 2).
+apply Rlt_le.
+now apply ZnearestE_N_strict.
+Qed.
+
 End Fcore_rnd_NE.
