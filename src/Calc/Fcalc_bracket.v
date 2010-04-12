@@ -334,12 +334,7 @@ Variable Hstep : (0 < step)%R.
 Lemma double_div2 :
   ((start + start)/2 = start)%R.
 Proof.
-rewrite <- (Rmult_1_r start).
-unfold Rdiv.
-rewrite <- Rmult_plus_distr_l, Rmult_assoc.
-apply f_equal.
-apply Rinv_r.
-now apply (Z2R_neq 2 0).
+field.
 Qed.
 
 Lemma ordered_steps :
@@ -479,19 +474,9 @@ Lemma middle_odd :
   (((start + Z2R k * step) + (start + Z2R (k + 1) * step))/2 = start + Z2R nb_steps * step * /2)%R.
 Proof.
 intros k Hk.
-apply Rminus_diag_uniq.
-rewrite plus_Z2R.
-simpl (Z2R 1).
-unfold Rdiv.
-match goal with
-| |- ?v = R0 => replace v with (start * (2 * /2 + -1) + step * /2 * ((2 * Z2R k + 1) - Z2R nb_steps))%R by ring
-end.
-rewrite Rinv_r, Rplus_opp_r, Rmult_0_r, Rplus_0_l.
-apply Rmult_eq_0_compat_l.
-change (Z2R 2 * Z2R k + Z2R 1 - Z2R nb_steps = 0)%R.
-rewrite <- mult_Z2R, <- plus_Z2R, <- minus_Z2R.
-now rewrite Hk, Zminus_diag.
-now apply (Z2R_neq 2 0).
+rewrite <- Hk.
+rewrite 2!plus_Z2R, mult_Z2R.
+simpl. field.
 Qed.
 
 Theorem inbetween_step_Lo_Mi_odd :
@@ -937,7 +922,7 @@ Theorem inbetween_float_DN :
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float m e x l ->
-  Rnd_DN_pt format x (F2R (Float beta m e)).
+  F2R (Float beta m e) = rounding beta fexp ZrndDN x.
 Proof.
 intros x m l e Hl.
 assert (Hb: (F2R (Float beta m e) <= x < F2R (Float beta (m + 1) e))%R).
@@ -945,7 +930,7 @@ apply inbetween_bounds_strict with (2 := Hl).
 apply F2R_lt_compat.
 apply Zlt_succ.
 replace m with (Zfloor (x * bpow (- e))).
-now apply generic_DN_pt.
+apply refl_equal.
 apply Zfloor_imp.
 split.
 apply Rmult_le_reg_r with (bpow e).
@@ -970,7 +955,7 @@ Theorem inbetween_float_UP :
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float m e x l ->
-  Rnd_UP_pt format x (F2R (Float beta (cond_incr (round_UP l) m) e)).
+  F2R (Float beta (cond_incr (round_UP l) m) e) = rounding beta fexp ZrndUP x.
 Proof.
 intros x m l e Hl.
 assert (Hl': l = loc_Eq \/ l <> loc_Eq).
@@ -981,7 +966,8 @@ rewrite Hl' in Hl.
 inversion_clear Hl.
 rewrite H, Hl'.
 simpl.
-apply Rnd_UP_pt_refl.
+rewrite rounding_generic.
+apply refl_equal.
 apply generic_format_canonic.
 unfold canonic.
 now rewrite <- H.
@@ -994,7 +980,7 @@ apply F2R_lt_compat.
 apply Zlt_succ.
 exact Hl'.
 replace (m + 1)%Z with (Zceil (x * bpow (- e))).
-now apply generic_UP_pt.
+apply refl_equal.
 apply Zceil_imp.
 ring_simplify (m + 1 - 1)%Z.
 split.
@@ -1033,59 +1019,75 @@ assert (Hd := inbetween_float_DN _ _ _ Hl).
 unfold round_NE.
 generalize (inbetween_float_UP _ _ _ Hl).
 fold e in Hd |- *.
+assert (Hd': Rnd_DN_pt format x (F2R (Float beta m e))).
+rewrite Hd.
+now apply generic_DN_pt.
+assert (Hu': Rnd_UP_pt format x (rounding beta fexp ZrndUP x)).
+now apply generic_UP_pt.
 destruct l ; simpl ; intros Hu.
 (* loc_Eq *)
 inversion_clear Hl.
 rewrite H.
 apply Rnd_NG_pt_refl.
-apply Hd.
+rewrite Hd.
+now apply generic_format_rounding.
 (* loc_Lo *)
 split.
-now apply (Rnd_N_pt_bracket_not_Hi _ _ _ _ Hd Hu loc_Lo).
+rewrite <- Hu in Hu'.
+now apply (Rnd_N_pt_bracket_not_Hi _ _ _ _ Hd' Hu' loc_Lo).
 right.
 intros g Hg.
-destruct (Rnd_N_pt_DN_or_UP _ _ _ Hg) as [H|H].
-now apply Rnd_DN_pt_unicity with (1 := H).
-rewrite (Rnd_UP_pt_unicity _ _ _ _ H Hu) in Hg.
-now elim (Rnd_not_N_pt_bracket_Lo _ _ _ _ Hd Hl).
+destruct (generic_N_pt_DN_or_UP _ _ prop_exp _ _ Hg) as [H|H].
+now rewrite Hd.
+rewrite H in Hg.
+elim (Rnd_not_N_pt_bracket_Lo _ _ _ _ Hd' Hl).
+now rewrite Hu.
 (* loc_Mi *)
 assert (Hm: (0 <= m)%Z).
 apply Zlt_succ_le.
 apply F2R_gt_0_reg with beta e.
 apply Rlt_le_trans with (1 := Hx).
-apply Hu.
+unfold Zsucc.
+rewrite Hu.
+apply (generic_UP_pt beta fexp prop_exp x).
 destruct (Z_le_lt_eq_dec _ _ Hm) as [Hm'|Hm'].
 (* - 0 < m *)
 assert (Hcd : canonic beta fexp (Float beta m e)).
 unfold canonic.
 apply sym_eq.
-apply canonic_exponent_DN_pt ; try easy.
+rewrite Hd.
+apply canonic_exponent_DN ; try easy.
+rewrite <- Hd.
 now apply F2R_gt_0_compat.
 destruct (Zeven_odd_bool m) as ([|], Heo) ; simpl.
 split.
-now apply (Rnd_N_pt_bracket_not_Hi _ _ _ _ Hd Hu loc_Mi).
+apply (Rnd_N_pt_bracket_not_Hi _ _ _ _ Hd' Hu' loc_Mi).
+easy.
+now rewrite <- Hu.
 left.
 now eexists ; repeat split.
 split.
-apply (Rnd_N_pt_bracket_Mi_Hi _ _ _ _ Hd Hu loc_Mi).
+rewrite <- Hu in Hu'.
+apply (Rnd_N_pt_bracket_Mi_Hi _ _ _ _ Hd' Hu' loc_Mi).
 now left.
 exact Hl.
 left.
-generalize (proj1 Hu).
+generalize (proj1 Hu').
+rewrite <- Hu.
 unfold generic_format.
 fold e.
 set (cu := Float beta (Ztrunc (scaled_mantissa beta fexp (F2R (Float beta (m + 1) e))))
   (canonic_exponent beta fexp (F2R (Float beta (m + 1) e)))).
-intros Hu'.
+intros Hu''.
 assert (Hcu : canonic beta fexp cu).
 unfold canonic.
-now rewrite <- Hu'.
-rewrite Hu'.
+now rewrite <- Hu''.
+rewrite Hu''.
 eexists ; repeat split.
 exact Hcu.
 replace (Fnum cu) with (Fnum (Float beta m e) + Fnum cu + -Fnum (Float beta m e))%Z by ring.
 apply Zodd_plus_Zodd.
-rewrite Hu' in Hu.
+rewrite Hu'' in Hu.
 apply (DN_UP_parity_generic beta fexp prop_exp strong_fexp x (Float beta m e) cu) ; try easy.
 apply (generic_format_discrete beta fexp x m).
 apply inbetween_bounds_strict_not_Eq with (2 := Hl).
@@ -1097,7 +1099,9 @@ now apply Zodd_mult_Zodd.
 (* - m = 0 *)
 destruct (Zeven_odd_bool m) as ([|], Heo) ; simpl.
 split.
-now apply (Rnd_N_pt_bracket_not_Hi _ _ _ _ Hd Hu loc_Mi).
+apply (Rnd_N_pt_bracket_not_Hi _ _ _ _ Hd' Hu' loc_Mi).
+easy.
+now rewrite <- Hu.
 left.
 rewrite <- Hm', F2R_0.
 exists (Float beta 0 (canonic_exponent beta fexp 0)).
@@ -1108,15 +1112,18 @@ rewrite <- Hm' in Heo.
 elim Heo.
 (* loc_Hi *)
 split.
-apply (Rnd_N_pt_bracket_Mi_Hi _ _ _ _ Hd Hu loc_Hi).
+rewrite <- Hu in Hu'.
+apply (Rnd_N_pt_bracket_Mi_Hi _ _ _ _ Hd' Hu' loc_Hi).
 now right.
 exact Hl.
 right.
 intros g Hg.
-destruct (Rnd_N_pt_DN_or_UP _ _ _ Hg) as [H|H].
-rewrite (Rnd_DN_pt_unicity _ _ _ _ H Hd) in Hg.
-now elim (Rnd_not_N_pt_bracket_Hi _ _ _ _ Hu Hl).
-now apply Rnd_UP_pt_unicity with (1 := H).
+destruct (generic_N_pt_DN_or_UP _ _ prop_exp _ _ Hg) as [H|H].
+rewrite H in Hg.
+rewrite <- Hu in Hu'.
+elim (Rnd_not_N_pt_bracket_Hi _ _ _ _ Hu' Hl).
+now rewrite Hd.
+now rewrite H.
 Qed.
 
 End Fcalc_bracket_generic.

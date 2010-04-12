@@ -346,6 +346,29 @@ Let Zrnd := Zrnd rnd.
 Let Zrnd_monotone := Zrnd_monotone rnd.
 Let Zrnd_Z2R := Zrnd_Z2R rnd.
 
+Theorem Zrnd_DN_or_UP :
+  forall x, Zrnd x = Zfloor x \/ Zrnd x = Zceil x.
+Proof.
+intros x.
+destruct (Zle_or_lt (Zrnd x) (Zfloor x)) as [Hx|Hx].
+left.
+apply Zle_antisym with (1 := Hx).
+rewrite <- (Zrnd_Z2R (Zfloor x)).
+apply Zrnd_monotone.
+apply Zfloor_lb.
+right.
+apply Zle_antisym.
+rewrite <- (Zrnd_Z2R (Zceil x)).
+apply Zrnd_monotone.
+apply Zceil_ub.
+rewrite Zceil_floor_neq.
+omega.
+intros H.
+rewrite <- H in Hx.
+rewrite Zfloor_Z2R, Zrnd_Z2R in Hx.
+apply Zlt_irrefl with (1 := Hx).
+Qed.
+
 Definition rounding x :=
   F2R (Float beta (Zrnd (scaled_mantissa x)) (canonic_exponent x)).
 
@@ -455,6 +478,18 @@ End Fcore_generic_rounding_pos.
 Definition ZrndDN := mkZrounding Zfloor Zfloor_le Zfloor_Z2R.
 Definition ZrndUP := mkZrounding Zceil Zceil_le Zceil_Z2R.
 
+Theorem rounding_DN_or_UP :
+  forall rnd x,
+  rounding rnd x = rounding ZrndDN x \/ rounding rnd x = rounding ZrndUP x.
+Proof.
+intros rnd x.
+unfold rounding.
+unfold Zrnd at 2 4. simpl.
+destruct (Zrnd_DN_or_UP rnd (scaled_mantissa x)) as [Hx|Hx].
+left. now rewrite Hx.
+right. now rewrite Hx.
+Qed.
+
 Section Fcore_generic_rounding.
 
 Theorem rounding_monotone :
@@ -519,10 +554,10 @@ End Fcore_generic_rounding.
 
 Theorem generic_DN_pt_pos :
   forall x, (0 < x)%R ->
-  Rnd_DN_pt generic_format x (F2R (Float beta (Zfloor (scaled_mantissa x)) (canonic_exponent x))).
+  Rnd_DN_pt generic_format x (rounding ZrndDN x).
 Proof.
 intros x H0x.
-unfold scaled_mantissa, canonic_exponent.
+unfold rounding, scaled_mantissa, canonic_exponent.
 destruct (ln_beta beta x) as (ex, He).
 simpl.
 specialize (He (Rgt_not_eq _ _ H0x)).
@@ -621,10 +656,10 @@ Qed.
 
 Theorem generic_DN_pt_neg :
   forall x, (x < 0)%R ->
-  Rnd_DN_pt generic_format x (F2R (Float beta (Zfloor (scaled_mantissa x)) (canonic_exponent x))).
+  Rnd_DN_pt generic_format x (rounding ZrndDN x).
 Proof.
 intros x Hx0.
-unfold scaled_mantissa, canonic_exponent.
+unfold rounding, scaled_mantissa, canonic_exponent.
 destruct (ln_beta beta x) as (ex, He).
 simpl.
 specialize (He (Rlt_not_eq _ _ Hx0)).
@@ -815,11 +850,12 @@ Qed.
 
 Theorem generic_DN_pt :
   forall x,
-  Rnd_DN_pt generic_format x (F2R (Float beta (Zfloor (x * bpow (- canonic_exponent x))) (canonic_exponent x))).
+  Rnd_DN_pt generic_format x (rounding ZrndDN x).
 Proof.
 intros x.
 destruct (total_order_T 0 x) as [[Hx|Hx]|Hx].
 now apply generic_DN_pt_pos.
+unfold rounding, scaled_mantissa.
 rewrite <- Hx, Rmult_0_l.
 fold (Z2R 0).
 rewrite Zfloor_Z2R, F2R_0.
@@ -828,57 +864,93 @@ apply generic_format_0.
 now apply generic_DN_pt_neg.
 Qed.
 
+Theorem generic_DN_opp :
+  forall x,
+  rounding ZrndDN (-x) = (- rounding ZrndUP x)%R.
+Proof.
+intros x.
+unfold rounding.
+rewrite scaled_mantissa_opp.
+rewrite opp_F2R.
+unfold Zrnd. simpl.
+unfold Zceil.
+rewrite Zopp_involutive.
+now rewrite canonic_exponent_opp.
+Qed.
+
+Theorem generic_UP_opp :
+  forall x,
+  rounding ZrndUP (-x) = (- rounding ZrndDN x)%R.
+Proof.
+intros x.
+unfold rounding.
+rewrite scaled_mantissa_opp.
+rewrite opp_F2R.
+unfold Zrnd. simpl.
+unfold Zceil.
+rewrite Ropp_involutive.
+now rewrite canonic_exponent_opp.
+Qed.
+
 Theorem generic_UP_pt :
   forall x,
-  Rnd_UP_pt generic_format x (F2R (Float beta (Zceil (x * bpow (- canonic_exponent x))) (canonic_exponent x))).
+  Rnd_UP_pt generic_format x (rounding ZrndUP x).
 Proof.
 intros x.
 apply Rnd_DN_UP_pt_sym.
 apply generic_format_satisfies_any.
-unfold Zceil.
-rewrite <- Ropp_mult_distr_l_reverse.
-rewrite opp_F2R, Zopp_involutive.
-rewrite <- canonic_exponent_opp.
+pattern x at 2 ; rewrite <- Ropp_involutive.
+rewrite generic_UP_opp.
+rewrite Ropp_involutive.
 apply generic_DN_pt.
 Qed.
 
-Theorem generic_DN_pt_small_pos :
+Theorem generic_format_rounding :
+  forall rnd x,
+  generic_format (rounding rnd x).
+Proof.
+intros rnd x.
+destruct (rounding_DN_or_UP rnd x) as [H|H] ; rewrite H.
+apply (generic_DN_pt x).
+apply (generic_UP_pt x).
+Qed.
+
+Theorem generic_DN_small_pos :
   forall x ex,
   (bpow (ex - 1) <= x < bpow ex)%R ->
   (ex <= fexp ex)%Z ->
-  Rnd_DN_pt generic_format x R0.
+  rounding ZrndDN x = R0.
 Proof.
 intros x ex Hx He.
 rewrite <- (F2R_0 beta (canonic_exponent x)).
 rewrite <- mantissa_DN_small_pos with (1 := Hx) (2 := He).
-rewrite <- canonic_exponent_fexp_pos with (1 := Hx).
-apply generic_DN_pt.
+now rewrite <- canonic_exponent_fexp_pos with (1 := Hx).
 Qed.
 
-Theorem generic_UP_pt_small_pos :
+Theorem generic_UP_small_pos :
   forall x ex,
   (bpow (ex - 1) <= x < bpow ex)%R ->
   (ex <= fexp ex)%Z ->
-  Rnd_UP_pt generic_format x (bpow (fexp ex)).
+  rounding ZrndUP x = (bpow (fexp ex)).
 Proof.
 intros x ex Hx He.
 rewrite <- F2R_bpow.
 rewrite <- mantissa_UP_small_pos with (1 := Hx) (2 := He).
-rewrite <- canonic_exponent_fexp_pos with (1 := Hx).
-apply generic_UP_pt.
+now rewrite <- canonic_exponent_fexp_pos with (1 := Hx).
 Qed.
 
-Theorem generic_UP_pt_large_pos_le_pow :
-  forall x xu ex,
+Theorem generic_UP_large_pos_le_pow :
+  forall x ex,
   (bpow (ex - 1) <= x < bpow ex)%R ->
   (fexp ex < ex)%Z ->
-  Rnd_UP_pt generic_format x xu ->
-  (xu <= bpow ex)%R.
+  (rounding ZrndUP x <= bpow ex)%R.
 Proof.
-intros x xu ex Hx He (_, (_, Hu4)).
-apply Hu4 with (2 := Rlt_le _ _ (proj2 Hx)).
+intros x ex Hx He.
+apply (generic_UP_pt x).
 apply generic_format_bpow.
 exact (proj1 (prop_exp _) He).
+apply Rlt_le.
+apply Hx.
 Qed.
 
 Theorem generic_format_EM :
@@ -900,18 +972,17 @@ rewrite <- Hxd.
 apply Hd.
 Qed.
 
-Theorem generic_DN_pt_large_pos_ge_pow :
-  forall x d e,
-  (0 < d)%R ->
-  Rnd_DN_pt generic_format x d ->
+Theorem generic_DN_large_pos_ge_pow :
+  forall x e,
+  (0 < rounding ZrndDN x)%R ->
   (bpow e <= x)%R ->
-  (bpow e <= d)%R.
+  (bpow e <= rounding ZrndDN x)%R.
 Proof.
-intros x d e Hd Hxd Hex.
+intros x e Hd Hex.
 destruct (ln_beta beta x) as (ex, He).
 assert (Hx: (0 < x)%R).
 apply Rlt_le_trans with (1 := Hd).
-apply Hxd.
+apply (generic_DN_pt x).
 specialize (He (Rgt_not_eq _ _ Hx)).
 rewrite Rabs_pos_eq in He. 2: now apply Rlt_le.
 apply Rle_trans with (bpow (ex - 1)).
@@ -919,38 +990,52 @@ apply -> bpow_le.
 cut (e < ex)%Z. omega.
 apply <- bpow_lt.
 now apply Rle_lt_trans with (2 := proj2 He).
-apply Hxd with (2 := proj1 He).
+apply (generic_DN_pt x) with (2 := proj1 He).
 apply generic_format_bpow.
 destruct (Zle_or_lt ex (fexp ex)).
 elim Rgt_not_eq with (1 := Hd).
-apply Rnd_DN_pt_unicity with (1 := Hxd).
-now apply generic_DN_pt_small_pos with (1 := He).
+now apply generic_DN_small_pos with (1 := He).
 ring_simplify (ex - 1 + 1)%Z.
 omega.
 Qed.
 
-Theorem canonic_exponent_DN_pt :
-  forall x d : R,
-  (0 < d)%R ->
-  Rnd_DN_pt generic_format x d ->
-  canonic_exponent d = canonic_exponent x.
+Theorem canonic_exponent_DN :
+  forall x,
+  (0 < rounding ZrndDN x)%R ->
+  canonic_exponent (rounding ZrndDN x) = canonic_exponent x.
 Proof.
-intros x d Hd Hxd.
+intros x Hd.
 unfold canonic_exponent.
 apply f_equal.
 apply ln_beta_unique.
-rewrite (Rabs_pos_eq d). 2: now apply Rlt_le.
+rewrite (Rabs_pos_eq (rounding ZrndDN x)). 2: now apply Rlt_le.
 destruct (ln_beta beta x) as (ex, He).
 simpl.
 assert (Hx: (0 < x)%R).
 apply Rlt_le_trans with (1 := Hd).
-apply Hxd.
+apply (generic_DN_pt x).
 specialize (He (Rgt_not_eq _ _ Hx)).
 rewrite Rabs_pos_eq in He. 2: now apply Rlt_le.
 split.
-now apply generic_DN_pt_large_pos_ge_pow with (2 := Hxd).
+apply generic_DN_large_pos_ge_pow with (1 := Hd).
+apply He.
 apply Rle_lt_trans with (2 := proj2 He).
-apply Hxd.
+apply (generic_DN_pt x).
+Qed.
+
+Theorem generic_N_pt_DN_or_UP :
+  forall x f,
+  Rnd_N_pt generic_format x f ->
+  f = rounding ZrndDN x \/ f = rounding ZrndUP x.
+Proof.
+intros x f Hxf.
+destruct (Rnd_N_pt_DN_or_UP _ _ _ Hxf).
+left.
+apply Rnd_DN_pt_unicity with (1 := H).
+apply generic_DN_pt.
+right.
+apply Rnd_UP_pt_unicity with (1 := H).
+apply generic_UP_pt.
 Qed.
 
 End RND_generic.

@@ -30,8 +30,8 @@ Definition DN_UP_parity_pos_prop :=
   ~ format x ->
   canonic xd ->
   canonic xu ->
-  Rnd_DN_pt format x (F2R xd) ->
-  Rnd_UP_pt format x (F2R xu) ->
+  F2R xd = rounding beta fexp ZrndDN x ->
+  F2R xu = rounding beta fexp ZrndUP x ->
   Zodd (Fnum xd + Fnum xu).
 
 Definition DN_UP_parity_prop :=
@@ -39,8 +39,8 @@ Definition DN_UP_parity_prop :=
   ~ format x ->
   canonic xd ->
   canonic xu ->
-  Rnd_DN_pt format x (F2R xd) ->
-  Rnd_UP_pt format x (F2R xu) ->
+  F2R xd = rounding beta fexp ZrndDN x ->
+  F2R xu = rounding beta fexp ZrndUP x ->
   Zodd (Fnum xd + Fnum xu).
 
 Theorem DN_UP_parity_aux :
@@ -73,17 +73,11 @@ rewrite <- Ropp_involutive.
 now apply generic_format_opp.
 now apply canonic_opp.
 now apply canonic_opp.
-apply Rnd_UP_DN_pt_sym.
-apply generic_format_opp.
-rewrite <- opp_F2R.
-now rewrite 2!Ropp_involutive.
-apply Rnd_DN_UP_pt_sym.
-apply generic_format_opp.
-rewrite <- opp_F2R.
-now rewrite 2!Ropp_involutive.
+rewrite generic_DN_opp, <- opp_F2R.
+now apply f_equal.
+rewrite generic_UP_opp, <- opp_F2R.
+now apply f_equal.
 Qed.
-
-Hypothesis valid_fexp : valid_exp fexp.
 
 Definition NE_ex_prop := Zodd (radix_val beta) \/ forall e,
   ((fexp e < e)%Z -> (fexp (e + 1) < e)%Z) /\ ((e <= fexp e)%Z -> fexp (fexp e + 1) = fexp e).
@@ -103,67 +97,63 @@ destruct (Zle_or_lt ex (fexp ex)) as [Hxe|Hxe].
 assert (Hd3 : Fnum xd = Z0).
 apply F2R_eq_0_reg with beta (Fexp xd).
 change (F2R xd = R0).
-apply Rnd_DN_pt_unicity with (1 := Hxd).
-now apply generic_DN_pt_small_pos with (2 := Hex).
+rewrite Hxd.
+apply generic_DN_small_pos with (1 := Hex) (2 := Hxe).
 assert (Hu3 : xu = Float beta (1 * Zpower (radix_val beta) (fexp ex - fexp (fexp ex + 1))) (fexp (fexp ex + 1))).
 apply canonic_unicity with (1 := Hu).
 apply (f_equal fexp).
 rewrite <- F2R_change_exp.
 now rewrite F2R_bpow, ln_beta_bpow.
-now eapply valid_fexp.
+now eapply prop_exp.
 rewrite <- F2R_change_exp.
 rewrite F2R_bpow.
 apply sym_eq.
-apply Rnd_UP_pt_unicity with (2 := Hxu).
-now apply generic_UP_pt_small_pos.
-now eapply valid_fexp.
+rewrite Hxu.
+apply sym_eq.
+apply generic_UP_small_pos with (1 := Hex) (2 := Hxe).
+now eapply prop_exp.
 rewrite Hd3, Hu3.
 rewrite Zmult_1_l.
 simpl.
 destruct strong_fexp as [H|H].
 apply Zodd_Zpower with (2 := H).
 apply Zle_minus_le_0.
-now eapply valid_fexp.
+now eapply prop_exp.
 rewrite (proj2 (H ex)).
 now rewrite Zminus_diag.
 exact Hxe.
 (* large x *)
 assert (Hd4: (bpow (ex - 1) <= Rabs (F2R xd) < bpow ex)%R).
 rewrite Rabs_pos_eq.
+rewrite Hxd.
 split.
-apply Hxd.
+apply (generic_DN_pt beta fexp prop_exp x).
 apply generic_format_bpow.
 ring_simplify (ex - 1 + 1)%Z.
 omega.
 apply Hex.
 apply Rle_lt_trans with (2 := proj2 Hex).
-apply Hxd.
-apply Hxd.
+apply (generic_DN_pt beta fexp prop_exp x).
+rewrite Hxd.
+apply (generic_DN_pt beta fexp prop_exp x).
 apply generic_format_0.
 now apply Rlt_le.
-assert (Hxe2 : (fexp (ex + 1) <= ex)%Z) by now eapply valid_fexp.
+assert (Hxe2 : (fexp (ex + 1) <= ex)%Z) by now eapply prop_exp.
 assert (Hud: (F2R xu = F2R xd + ulp beta fexp x)%R).
-apply Rnd_UP_pt_unicity with (1 := Hxu).
-now apply ulp_DN_UP_pt.
+rewrite Hxu, Hxd.
+now apply ulp_DN_UP.
 destruct (total_order_T (bpow ex) (F2R xu)) as [[Hu2|Hu2]|Hu2].
 (* - xu > bpow ex  *)
 elim (Rlt_not_le _ _ Hu2).
-apply Rnd_UP_pt_monotone with (generic_format beta fexp) x (bpow ex).
-exact Hxu.
-split.
-apply generic_format_bpow.
-exact Hxe2.
-split.
-apply Rle_refl.
-easy.
-now apply Rlt_le.
+rewrite Hxu.
+now apply generic_UP_large_pos_le_pow.
 (* - xu = bpow ex *)
 assert (Hu3: xu = Float beta (1 * Zpower (radix_val beta) (ex - fexp (ex + 1))) (fexp (ex + 1))).
 apply canonic_unicity with (1 := Hu).
 apply (f_equal fexp).
 rewrite <- F2R_change_exp.
 now rewrite F2R_bpow, ln_beta_bpow.
-now eapply valid_fexp.
+now eapply prop_exp.
 rewrite <- Hu2.
 apply sym_eq.
 rewrite <- F2R_change_exp.
@@ -235,11 +225,13 @@ apply bpow_gt_0.
 rewrite Rabs_pos_eq.
 split.
 apply Rle_trans with (1 := proj1 Hex).
-apply Hxu.
+rewrite Hxu.
+apply (generic_UP_pt beta fexp prop_exp x).
 exact Hu2.
 apply Rlt_le.
 apply Rlt_le_trans with (1 := H0x).
-apply Hxu.
+rewrite Hxu.
+apply (generic_UP_pt beta fexp prop_exp x).
 Qed.
 
 Theorem DN_UP_parity_generic :
@@ -285,8 +277,12 @@ unfold Fcore_generic_fmt.canonic.
 now rewrite <- Hd1.
 unfold Fcore_generic_fmt.canonic.
 now rewrite <- Hu1.
-now rewrite <- Hd1.
-now rewrite <- Hu1.
+rewrite <- Hd1.
+apply Rnd_DN_pt_unicity with (1 := Hd).
+now apply generic_DN_pt.
+rewrite <- Hu1.
+apply Rnd_UP_pt_unicity with (1 := Hu).
+now apply generic_UP_pt.
 now apply Zodd_mult_Zodd.
 Qed.
 
@@ -309,8 +305,12 @@ intros Hf.
 apply Hx.
 apply sym_eq.
 now apply Rnd_DN_pt_idempotent with (1 := Hd).
-now rewrite <- Hd1.
-now rewrite <- Hu1.
+rewrite <- Hd1.
+apply Rnd_DN_pt_unicity with (1 := Hd).
+now apply generic_DN_pt.
+rewrite <- Hu1.
+apply Rnd_UP_pt_unicity with (1 := Hu).
+now apply generic_UP_pt.
 Qed.
 
 Theorem Rnd_NE_pt_rounding :
