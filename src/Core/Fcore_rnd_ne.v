@@ -510,6 +510,145 @@ apply Rlt_le.
 now apply Znearest_N_strict.
 Qed.
 
+Theorem Rcompare_floor_ceil_mid :
+  forall x,
+  Z2R (Zfloor x) <> x ->
+  Rcompare (x - Z2R (Zfloor x)) (/ 2) = Rcompare (x - Z2R (Zfloor x)) (Z2R (Zceil x) - x).
+Proof.
+intros x Hx.
+rewrite Zceil_floor_neq with (1 := Hx).
+rewrite plus_Z2R. simpl.
+destruct (Rcompare_spec (x - Z2R (Zfloor x)) (/ 2)) as [H1|H1|H1] ; apply sym_eq.
+(* . *)
+apply Rcompare_Lt.
+apply Rplus_lt_reg_r with (x - Z2R (Zfloor x))%R.
+replace (x - Z2R (Zfloor x) + (x - Z2R (Zfloor x)))%R with ((x - Z2R (Zfloor x)) * 2)%R by ring.
+replace (x - Z2R (Zfloor x) + (Z2R (Zfloor x) + 1 - x))%R with (/2 * 2)%R by field.
+apply Rmult_lt_compat_r with (2 := H1).
+now apply (Z2R_lt 0 2).
+(* . *)
+apply Rcompare_Eq.
+replace (Z2R (Zfloor x) + 1 - x)%R with (1 - (x - Z2R (Zfloor x)))%R by ring.
+rewrite H1.
+field.
+(* . *)
+apply Rcompare_Gt.
+apply Rplus_lt_reg_r with (x - Z2R (Zfloor x))%R.
+replace (x - Z2R (Zfloor x) + (x - Z2R (Zfloor x)))%R with ((x - Z2R (Zfloor x)) * 2)%R by ring.
+replace (x - Z2R (Zfloor x) + (Z2R (Zfloor x) + 1 - x))%R with (/2 * 2)%R by field.
+apply Rmult_lt_compat_r with (2 := H1).
+now apply (Z2R_lt 0 2).
+Qed.
+
+Theorem Rmin_compare :
+  forall x y,
+  Rmin x y = match Rcompare x y with Lt => x | Eq => x | Gt => y end.
+Proof.
+intros x y.
+unfold Rmin.
+destruct (Rle_dec x y) as [[Hx|Hx]|Hx].
+now rewrite Rcompare_Lt.
+now rewrite Rcompare_Eq.
+rewrite Rcompare_Gt.
+easy.
+now apply Rnot_le_lt.
+Qed.
+
+Theorem generic_N_pt :
+  forall x,
+  Rnd_N_pt format x (rounding beta fexp ZrndN x).
+Proof.
+intros x.
+set (d := rounding beta fexp ZrndDN x).
+set (u := rounding beta fexp ZrndUP x).
+set (mx := scaled_mantissa beta fexp x).
+set (bx := bpow (canonic_exponent beta fexp x)).
+(* . *)
+assert (H: (Rabs (rounding beta fexp ZrndN x - x) <= Rmin (x - d) (u - x))%R).
+pattern x at -1 ; rewrite <- (scaled_mantissa_bpow beta fexp).
+unfold d, u, rounding, ZrndN, ZrndDN, ZrndUP, F2R. simpl.
+fold mx bx.
+rewrite <- 3!Rmult_minus_distr_r.
+rewrite Rabs_mult, (Rabs_pos_eq bx). 2: apply bpow_ge_0.
+rewrite <- Rmult_min_distr_r. 2: apply bpow_ge_0.
+apply Rmult_le_compat_r.
+apply bpow_ge_0.
+unfold Znearest.
+destruct (Req_dec (Z2R (Zfloor mx)) mx) as [Hm|Hm].
+(* .. *)
+rewrite Hm.
+unfold Rminus at 2.
+rewrite Rplus_opp_r.
+rewrite Rcompare_Lt.
+rewrite Hm.
+unfold Rminus at -3.
+rewrite Rplus_opp_r.
+rewrite Rabs_R0.
+unfold Rmin.
+destruct (Rle_dec 0 (Z2R (Zceil mx) - mx)) as [H|H].
+apply Rle_refl.
+apply Rle_0_minus.
+apply Zceil_ub.
+apply Rinv_0_lt_compat.
+now apply (Z2R_lt 0 2).
+(* .. *)
+rewrite Rcompare_floor_ceil_mid with (1 := Hm).
+rewrite Rmin_compare.
+assert (H: (Rabs (mx - Z2R (Zfloor mx)) <= mx - Z2R (Zfloor mx))%R).
+rewrite Rabs_pos_eq.
+apply Rle_refl.
+apply Rle_0_minus.
+apply Zfloor_lb.
+case Rcompare_spec ; intros Hm'.
+now rewrite Rabs_minus_sym.
+case (choice mx).
+rewrite <- Hm'.
+exact H.
+now rewrite Rabs_minus_sym.
+rewrite Rabs_pos_eq.
+apply Rle_refl.
+apply Rle_0_minus.
+apply Zceil_ub.
+(* . *)
+apply Rnd_DN_UP_pt_N with d u.
+now apply generic_format_rounding.
+now apply generic_DN_pt.
+now apply generic_UP_pt.
+apply Rle_trans with (1 := H).
+apply Rmin_l.
+apply Rle_trans with (1 := H).
+apply Rmin_r.
+Qed.
+
 End Znearest.
+
+Definition ZrndNE := ZrndN (fun x => if Zeven_dec (Zfloor x) then false else true).
+
+(*
+Theorem generic_NE_pt :
+  forall x,
+  Rnd_NE_pt x (rounding beta fexp ZrndNE x).
+Proof.
+intros x.
+split.
+apply generic_N_pt.
+unfold NE_prop.
+set (mx := scaled_mantissa beta fexp x).
+set (xr := rounding beta fexp ZrndNE x).
+destruct (Req_dec (mx - Z2R (Zfloor mx)) (/2)) as [Hm|Hm].
+left.
+exists (Float beta (Ztrunc (scaled_mantissa beta fexp xr)) (canonic_exponent beta fexp xr)).
+split.
+apply (generic_N_pt _ x).
+split.
+unfold Fcore_generic_fmt.canonic. simpl.
+apply f_equal.
+apply (generic_N_pt _ x).
+simpl.
+admit.
+right.
+intros f Hf.
+Admitted.
+*)
 
 End Fcore_rnd_NE.
