@@ -320,22 +320,23 @@ apply Rnd_NE_pt_total.
 apply Rnd_NE_pt_monotone.
 Qed.
 
-Definition ZnearestE x :=
+Section Znearest.
+
+Variable choice : R -> bool.
+
+Definition Znearest x :=
   match total_order_T (x - Z2R (Zfloor x)) (/2) with
   | inleft (left _) => Zfloor x
   | inleft (right _) =>
-    match Zeven_dec (Zfloor x) with
-    | left _ => Zfloor x
-    | right _ => Zceil x
-    end
+    if choice x then Zceil x else Zfloor x
   | inright _ => Zceil x
   end.
 
-Theorem ZnearestE_Z2R :
-  forall n, ZnearestE (Z2R n) = n.
+Theorem Znearest_Z2R :
+  forall n, Znearest (Z2R n) = n.
 Proof.
 intros n.
-unfold ZnearestE.
+unfold Znearest.
 rewrite Zfloor_Z2R.
 unfold Rminus.
 rewrite Rplus_opp_r.
@@ -351,26 +352,26 @@ apply Rinv_0_lt_compat.
 now apply (Z2R_lt 0 2).
 Qed.
 
-Theorem ZnearestE_DN_or_UP :
+Theorem Znearest_DN_or_UP :
   forall x,
-  ZnearestE x = Zfloor x \/ ZnearestE x = Zceil x.
+  Znearest x = Zfloor x \/ Znearest x = Zceil x.
 Proof.
 intros x.
-unfold ZnearestE.
+unfold Znearest.
 destruct (total_order_T (x - Z2R (Zfloor x)) (/ 2)) as [[H|H]|H].
 now left.
 2: now right.
-destruct (Zeven_dec (Zfloor x)) as [K|K].
-now left.
+case (choice x).
 now right.
+now left.
 Qed.
 
-Theorem ZnearestE_ge_floor :
+Theorem Znearest_ge_floor :
   forall x,
-  (Zfloor x <= ZnearestE x)%Z.
+  (Zfloor x <= Znearest x)%Z.
 Proof.
 intros x.
-destruct (ZnearestE_DN_or_UP x) as [Hx|Hx] ; rewrite Hx.
+destruct (Znearest_DN_or_UP x) as [Hx|Hx] ; rewrite Hx.
 apply Zle_refl.
 apply le_Z2R.
 apply Rle_trans with x.
@@ -378,12 +379,12 @@ apply Zfloor_lb.
 apply Zceil_ub.
 Qed.
 
-Theorem ZnearestE_le_ceil :
+Theorem Znearest_le_ceil :
   forall x,
-  (ZnearestE x <= Zceil x)%Z.
+  (Znearest x <= Zceil x)%Z.
 Proof.
 intros x.
-destruct (ZnearestE_DN_or_UP x) as [Hx|Hx] ; rewrite Hx.
+destruct (Znearest_DN_or_UP x) as [Hx|Hx] ; rewrite Hx.
 apply le_Z2R.
 apply Rle_trans with x.
 apply Zfloor_lb.
@@ -391,14 +392,14 @@ apply Zceil_ub.
 apply Zle_refl.
 Qed.
 
-Theorem ZnearestE_monotone :
+Theorem Znearest_monotone :
   forall x y, (x <= y)%R ->
-  (ZnearestE x <= ZnearestE y)%Z.
+  (Znearest x <= Znearest y)%Z.
 Proof.
 intros x y Hxy.
 destruct (Rle_or_lt (Z2R (Zceil x)) y) as [H|H].
-apply Zle_trans with (1 := ZnearestE_le_ceil x).
-apply Zle_trans with (2 := ZnearestE_ge_floor y).
+apply Zle_trans with (1 := Znearest_le_ceil x).
+apply Zle_trans with (2 := Znearest_ge_floor y).
 now apply Zfloor_lub.
 (* . *)
 assert (Hf: Zfloor y = Zfloor x).
@@ -414,24 +415,34 @@ apply Rlt_le.
 rewrite plus_Z2R.
 apply Zfloor_ub.
 (* . *)
-unfold ZnearestE at 1.
+unfold Znearest at 1.
 destruct (total_order_T (x - Z2R (Zfloor x)) (/ 2)) as [[Hx|Hx]|Hx].
+(* .. *)
 rewrite <- Hf.
-apply ZnearestE_ge_floor.
-destruct (Zeven_dec (Zfloor x)) as [_|Hex].
-rewrite <- Hf.
-apply ZnearestE_ge_floor.
-unfold ZnearestE.
+apply Znearest_ge_floor.
+(* .. *)
+unfold Znearest.
 rewrite Hf.
 destruct (total_order_T (y - Z2R (Zfloor x)) (/ 2)) as [[Hy|Hy]|Hy].
 elim Rlt_not_le with (1 := Hy).
 rewrite <- Hx.
 now apply Rplus_le_compat_r.
-destruct (Zeven_dec (Zfloor x)) as [Hey|_].
-now elim Hex.
+replace y with x.
+apply Zle_refl.
+apply Rplus_eq_reg_l with (- Z2R (Zfloor x))%R.
+rewrite 2!(Rplus_comm (- (Z2R (Zfloor x)))).
+change (x - Z2R (Zfloor x) = y - Z2R (Zfloor x))%R.
+now rewrite Hy.
+apply Zle_trans with (Zceil x).
+case (choice x).
+apply Zle_refl.
+apply le_Z2R.
+apply Rle_trans with x.
+apply Zfloor_lb.
+apply Zceil_ub.
 now apply Zceil_le.
-now apply Zceil_le.
-unfold ZnearestE.
+(* .. *)
+unfold Znearest.
 rewrite Hf.
 destruct (total_order_T (y - Z2R (Zfloor x)) (/ 2)) as [[Hy|Hy]|Hy].
 elim Rle_not_lt with (1 := Hxy).
@@ -445,15 +456,15 @@ now rewrite <- Hy in Hx.
 now apply Zceil_le.
 Qed.
 
-Definition ZrndNE := mkZrounding ZnearestE ZnearestE_monotone ZnearestE_Z2R.
+Definition ZrndN := mkZrounding Znearest Znearest_monotone Znearest_Z2R.
 
-Theorem ZnearestE_N_strict :
+Theorem Znearest_N_strict :
   forall x,
   (x - Z2R (Zfloor x) <> /2)%R ->
-  (Rabs (x - Z2R (ZnearestE x)) < /2)%R.
+  (Rabs (x - Z2R (Znearest x)) < /2)%R.
 Proof.
 intros x Hx.
-unfold ZnearestE.
+unfold Znearest.
 destruct (total_order_T (x - Z2R (Zfloor x)) (/ 2)) as [[H|H]|H].
 rewrite Rabs_pos_eq.
 exact H.
@@ -480,9 +491,9 @@ apply Rle_minus.
 apply Zceil_ub.
 Qed.
 
-Theorem ZnearestE_N :
+Theorem Znearest_N :
   forall x,
-  (Rabs (x - Z2R (ZnearestE x)) <= /2)%R.
+  (Rabs (x - Z2R (Znearest x)) <= /2)%R.
 Proof.
 intros x.
 destruct (Req_dec (x - Z2R (Zfloor x)) (/2)) as [Hx|Hx].
@@ -492,7 +503,7 @@ apply Rabs_pos_eq.
 apply Rlt_le.
 apply Rinv_0_lt_compat.
 now apply (Z2R_lt 0 2).
-destruct (ZnearestE_DN_or_UP x) as [H|H] ; rewrite H ; clear H.
+destruct (Znearest_DN_or_UP x) as [H|H] ; rewrite H ; clear H.
 now rewrite Hx.
 rewrite Zceil_floor_neq.
 rewrite plus_Z2R.
@@ -509,7 +520,9 @@ rewrite Hx.
 apply Rinv_0_lt_compat.
 now apply (Z2R_lt 0 2).
 apply Rlt_le.
-now apply ZnearestE_N_strict.
+now apply Znearest_N_strict.
 Qed.
+
+End Znearest.
 
 End Fcore_rnd_NE.
