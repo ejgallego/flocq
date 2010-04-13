@@ -1,43 +1,5 @@
 Require Import Fcore.
 
-Inductive Zeq_bool_prop (x y : Z) : bool -> Prop :=
-  | Zeq_bool_true : x = y -> Zeq_bool_prop x y true
-  | Zeq_bool_false : x <> y -> Zeq_bool_prop x y false.
-
-Lemma Zeq_bool_spec :
-  forall x y, Zeq_bool_prop x y (Zeq_bool x y).
-Proof.
-intros x y.
-generalize (Zeq_is_eq_bool x y).
-case (Zeq_bool x y) ; intros (H1, H2) ; constructor.
-now apply H2.
-intros H.
-specialize (H1 H).
-discriminate H1.
-Qed.
-
-Inductive Zcompare_prop (x y : Z) : comparison -> Prop :=
-  | Zcompare_Lt : (x < y)%Z -> Zcompare_prop x y Lt
-  | Zcompare_Eq : x = y -> Zcompare_prop x y Eq
-  | Zcompare_Gt : (y < x)%Z -> Zcompare_prop x y Gt.
-
-Lemma Zcompare_spec :
-  forall x y, Zcompare_prop x y (Zcompare x y).
-Proof.
-intros x y.
-destruct (Z_dec x y) as [[H|H]|H].
-generalize (Zlt_compare _ _ H).
-case (Zcompare x y) ; try easy.
-now constructor.
-generalize (Zgt_compare _ _ H).
-case (Zcompare x y) ; try easy.
-constructor.
-now apply Zgt_lt.
-generalize (proj2 (Zcompare_Eq_iff_eq _ _) H).
-case (Zcompare x y) ; try easy.
-now constructor.
-Qed.
-
 Section Fcalc_bracket.
 
 Lemma Rhalf_lt_compat :

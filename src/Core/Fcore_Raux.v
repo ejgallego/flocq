@@ -273,6 +273,145 @@ Qed.
 
 End Z2R.
 
+Section Zcompare.
+
+Inductive Zeq_bool_prop (x y : Z) : bool -> Prop :=
+  | Zeq_bool_true : x = y -> Zeq_bool_prop x y true
+  | Zeq_bool_false : x <> y -> Zeq_bool_prop x y false.
+
+Theorem Zeq_bool_spec :
+  forall x y, Zeq_bool_prop x y (Zeq_bool x y).
+Proof.
+intros x y.
+generalize (Zeq_is_eq_bool x y).
+case (Zeq_bool x y) ; intros (H1, H2) ; constructor.
+now apply H2.
+intros H.
+specialize (H1 H).
+discriminate H1.
+Qed.
+
+Inductive Zcompare_prop (x y : Z) : comparison -> Prop :=
+  | Zcompare_Lt_ : (x < y)%Z -> Zcompare_prop x y Lt
+  | Zcompare_Eq_ : x = y -> Zcompare_prop x y Eq
+  | Zcompare_Gt_ : (y < x)%Z -> Zcompare_prop x y Gt.
+
+Theorem Zcompare_spec :
+  forall x y, Zcompare_prop x y (Zcompare x y).
+Proof.
+intros x y.
+destruct (Z_dec x y) as [[H|H]|H].
+generalize (Zlt_compare _ _ H).
+case (Zcompare x y) ; try easy.
+now constructor.
+generalize (Zgt_compare _ _ H).
+case (Zcompare x y) ; try easy.
+constructor.
+now apply Zgt_lt.
+generalize (proj2 (Zcompare_Eq_iff_eq _ _) H).
+case (Zcompare x y) ; try easy.
+now constructor.
+Qed.
+
+Theorem Zcompare_Lt :
+  forall x y,
+  (x < y)%Z -> Zcompare x y = Lt.
+Proof.
+easy.
+Qed.
+
+Theorem Zcompare_Eq :
+  forall x y,
+  (x = y)%Z -> Zcompare x y = Eq.
+Proof.
+intros x y.
+apply <- Zcompare_Eq_iff_eq.
+Qed.
+
+Theorem Zcompare_Gt :
+  forall x y,
+  (y < x)%Z -> Zcompare x y = Gt.
+Proof.
+intros x y.
+apply Zlt_gt.
+Qed.
+
+End Zcompare.
+
+Section Rcompare.
+
+Definition Rcompare x y :=
+  match total_order_T x y with
+  | inleft (left _) => Lt
+  | inleft (right _) => Eq
+  | inright _ => Gt
+  end.
+
+Inductive Rcompare_prop (x y : R) : comparison -> Prop :=
+  | Rcompare_Lt_ : (x < y)%R -> Rcompare_prop x y Lt
+  | Rcompare_Eq_ : x = y -> Rcompare_prop x y Eq
+  | Rcompare_Gt_ : (y < x)%R -> Rcompare_prop x y Gt.
+
+Theorem Rcompare_spec :
+  forall x y, Rcompare_prop x y (Rcompare x y).
+Proof.
+intros x y.
+unfold Rcompare.
+now destruct (total_order_T x y) as [[H|H]|H] ; constructor.
+Qed.
+
+Opaque Zcompare.
+
+Theorem Rcompare_Lt :
+  forall x y,
+  (x < y)%R -> Rcompare x y = Lt.
+Proof.
+intros x y H.
+case Rcompare_spec ; intro H'.
+easy.
+rewrite H' in H.
+elim (Rlt_irrefl _ H).
+elim (Rlt_irrefl x).
+now apply Rlt_trans with y.
+Qed.
+
+Theorem Rcompare_Eq :
+  forall x y,
+  x = y -> Rcompare x y = Eq.
+Proof.
+intros x y H.
+rewrite H.
+now case Rcompare_spec ; intro H' ; try elim (Rlt_irrefl _ H').
+Qed.
+
+Theorem Rcompare_Gt :
+  forall x y,
+  (y < x)%R -> Rcompare x y = Gt.
+Proof.
+intros x y H.
+case Rcompare_spec ; intro H'.
+elim (Rlt_irrefl x).
+now apply Rlt_trans with y.
+rewrite H' in H.
+elim (Rlt_irrefl _ H).
+easy.
+Qed.
+
+Theorem Rcompare_Z2R :
+  forall x y, Rcompare (Z2R x) (Z2R y) = Zcompare x y.
+Proof.
+intros x y.
+case Rcompare_spec ; intros H ; apply sym_eq.
+apply Zcompare_Lt.
+now apply lt_Z2R.
+apply Zcompare_Eq.
+now apply eq_Z2R.
+apply Zcompare_Gt.
+now apply lt_Z2R.
+Qed.
+
+End Rcompare.
+
 Section Floor_Ceil.
 
 Definition Zfloor (x : R) := (up x - 1)%Z.
