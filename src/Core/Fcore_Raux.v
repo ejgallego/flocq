@@ -69,6 +69,15 @@ now rewrite 2!(Rmult_comm r).
 exact H2.
 Qed.
 
+Theorem Rmult_minus_distr_r :
+  forall r r1 r2 : R,
+  ((r1 - r2) * r = r1 * r - r2 * r)%R.
+Proof.
+intros r r1 r2.
+rewrite <- 3!(Rmult_comm r).
+apply Rmult_minus_distr_l.
+Qed.
+
 Theorem exp_increasing_weak :
   forall x y : R,
   (x <= y)%R -> (exp x <= exp y)%R.
