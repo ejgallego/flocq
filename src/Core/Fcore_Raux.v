@@ -78,6 +78,47 @@ rewrite <- 3!(Rmult_comm r).
 apply Rmult_minus_distr_l.
 Qed.
 
+Theorem Rmult_min_distr_r :
+  forall r r1 r2 : R,
+  (0 <= r)%R ->
+  (Rmin r1 r2 * r)%R = Rmin (r1 * r) (r2 * r).
+Proof.
+intros r r1 r2 [Hr|Hr].
+unfold Rmin.
+destruct (Rle_dec r1 r2) as [H1|H1] ;
+  destruct (Rle_dec (r1 * r) (r2 * r)) as [H2|H2] ;
+  try easy.
+apply (f_equal (fun x => Rmult x r)).
+apply Rle_antisym.
+exact H1.
+apply Rmult_le_reg_r with (1 := Hr).
+apply Rlt_le.
+now apply Rnot_le_lt.
+apply Rle_antisym.
+apply Rmult_le_compat_r.
+now apply Rlt_le.
+apply Rlt_le.
+now apply Rnot_le_lt.
+exact H2.
+rewrite <- Hr.
+rewrite 3!Rmult_0_r.
+unfold Rmin.
+destruct (Rle_dec 0 0) as [H0|H0].
+easy.
+elim H0.
+apply Rle_refl.
+Qed.
+
+Theorem Rmult_min_distr_l :
+  forall r r1 r2 : R,
+  (0 <= r)%R ->
+  (r * Rmin r1 r2)%R = Rmin (r * r1) (r * r2).
+Proof.
+intros r r1 r2 Hr.
+rewrite 3!(Rmult_comm r).
+now apply Rmult_min_distr_r.
+Qed.
+
 Theorem exp_increasing_weak :
   forall x y : R,
   (x <= y)%R -> (exp x <= exp y)%R.
