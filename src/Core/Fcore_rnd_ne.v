@@ -325,11 +325,10 @@ Section Znearest.
 Variable choice : R -> bool.
 
 Definition Znearest x :=
-  match total_order_T (x - Z2R (Zfloor x)) (/2) with
-  | inleft (left _) => Zfloor x
-  | inleft (right _) =>
-    if choice x then Zceil x else Zfloor x
-  | inright _ => Zceil x
+  match Rcompare (x - Z2R (Zfloor x)) (/2) with
+  | Lt => Zfloor x
+  | Eq => if choice x then Zceil x else Zfloor x
+  | Gt => Zceil x
   end.
 
 Theorem Znearest_Z2R :
@@ -338,16 +337,10 @@ Proof.
 intros n.
 unfold Znearest.
 rewrite Zfloor_Z2R.
+rewrite Rcompare_Lt.
+easy.
 unfold Rminus.
 rewrite Rplus_opp_r.
-destruct (total_order_T 0 (/ 2)) as [[H|H]|H].
-easy.
-contradict H.
-apply sym_not_eq.
-apply Rinv_neq_0_compat.
-now apply (Z2R_neq 2 0).
-elim (Rlt_not_le _ _ H).
-apply Rlt_le.
 apply Rinv_0_lt_compat.
 now apply (Z2R_lt 0 2).
 Qed.
@@ -358,12 +351,12 @@ Theorem Znearest_DN_or_UP :
 Proof.
 intros x.
 unfold Znearest.
-destruct (total_order_T (x - Z2R (Zfloor x)) (/ 2)) as [[H|H]|H].
+case Rcompare_spec ; intros _.
 now left.
-2: now right.
 case (choice x).
 now right.
 now left.
+now right.
 Qed.
 
 Theorem Znearest_ge_floor :
@@ -416,14 +409,14 @@ rewrite plus_Z2R.
 apply Zfloor_ub.
 (* . *)
 unfold Znearest at 1.
-destruct (total_order_T (x - Z2R (Zfloor x)) (/ 2)) as [[Hx|Hx]|Hx].
+case Rcompare_spec ; intro Hx.
 (* .. *)
 rewrite <- Hf.
 apply Znearest_ge_floor.
 (* .. *)
 unfold Znearest.
 rewrite Hf.
-destruct (total_order_T (y - Z2R (Zfloor x)) (/ 2)) as [[Hy|Hy]|Hy].
+case Rcompare_spec ; intro Hy.
 elim Rlt_not_le with (1 := Hy).
 rewrite <- Hx.
 now apply Rplus_le_compat_r.
@@ -444,16 +437,10 @@ now apply Zceil_le.
 (* .. *)
 unfold Znearest.
 rewrite Hf.
-destruct (total_order_T (y - Z2R (Zfloor x)) (/ 2)) as [[Hy|Hy]|Hy].
-elim Rle_not_lt with (1 := Hxy).
-apply Rplus_lt_reg_r with (- Z2R (Zfloor x))%R.
-rewrite 2!(Rplus_comm (- (Z2R (Zfloor x)))).
-now apply Rlt_trans with (/ 2)%R.
-elim Rle_not_lt with (1 := Hxy).
-apply Rplus_lt_reg_r with (- Z2R (Zfloor x))%R.
-rewrite 2!(Rplus_comm (- (Z2R (Zfloor x)))).
-now rewrite <- Hy in Hx.
+rewrite Rcompare_Gt.
 now apply Zceil_le.
+apply Rlt_le_trans with (1 := Hx).
+now apply Rplus_le_compat_r.
 Qed.
 
 Definition ZrndN := mkZrounding Znearest Znearest_monotone Znearest_Z2R.
@@ -465,7 +452,7 @@ Theorem Znearest_N_strict :
 Proof.
 intros x Hx.
 unfold Znearest.
-destruct (total_order_T (x - Z2R (Zfloor x)) (/ 2)) as [[H|H]|H].
+case Rcompare_spec ; intros H.
 rewrite Rabs_pos_eq.
 exact H.
 apply Rle_0_minus.
