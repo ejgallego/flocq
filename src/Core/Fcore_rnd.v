@@ -684,6 +684,39 @@ now rewrite <- Hx.
 exact HF.
 Qed.
 
+Theorem Rnd_DN_UP_pt_N :
+  forall F : R -> Prop,
+  forall x d u f : R,
+  F f ->
+  Rnd_DN_pt F x d ->
+  Rnd_UP_pt F x u ->
+  (Rabs (f - x) <= x - d)%R ->
+  (Rabs (f - x) <= u - x)%R ->
+  Rnd_N_pt F x f.
+Proof.
+intros F x d u f Hf Hxd Hxu Hd Hu.
+split.
+exact Hf.
+intros g Hg.
+destruct (Rnd_DN_UP_pt_split F x d u Hxd Hxu g Hg) as [Hgd|Hgu].
+(* g <= d *)
+apply Rle_trans with (1 := Hd).
+rewrite Rabs_left1.
+rewrite Ropp_minus_distr.
+apply Rplus_le_compat_l.
+now apply Ropp_le_contravar.
+apply Rle_minus.
+apply Rle_trans with (1 := Hgd).
+apply Hxd.
+(* u <= g *)
+apply Rle_trans with (1 := Hu).
+rewrite Rabs_pos_eq.
+now apply Rplus_le_compat_r.
+apply Rle_0_minus.
+apply Rle_trans with (2 := Hgu).
+apply Hxu.
+Qed.
+
 Definition Rnd_NG_pt_unicity_prop F P :=
   forall x d u,
   Rnd_DN_pt F x d -> Rnd_N_pt F x d ->
