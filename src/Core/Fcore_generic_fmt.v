@@ -191,34 +191,6 @@ rewrite <- opp_F2R.
 now apply f_equal.
 Qed.
 
-Theorem canonic_exponent_fexp_pos :
-  forall x ex,
-  (bpow (ex - 1) <= x < bpow ex)%R ->
-  canonic_exponent x = fexp ex.
-Proof.
-intros x ex Hx.
-unfold canonic_exponent.
-rewrite <- (Rabs_pos_eq x) in Hx.
-now rewrite ln_beta_unique with (1 := Hx).
-apply Rle_trans with (2 := proj1 Hx).
-apply bpow_ge_0.
-Qed.
-
-Theorem canonic_exponent_fexp_neg :
-  forall x ex,
-  (bpow (ex - 1) <= -x < bpow ex)%R ->
-  canonic_exponent x = fexp ex.
-Proof.
-intros x ex Hx.
-unfold canonic_exponent.
-rewrite <- (Rabs_left1 x) in Hx.
-now rewrite ln_beta_unique with (1 := Hx).
-apply Ropp_le_cancel.
-rewrite Ropp_0.
-apply Rle_trans with (2 := proj1 Hx).
-apply bpow_ge_0.
-Qed.
-
 Theorem canonic_exponent_fexp :
   forall x ex,
   (bpow (ex - 1) <= Rabs x < bpow ex)%R ->
@@ -227,6 +199,19 @@ Proof.
 intros x ex Hx.
 unfold canonic_exponent.
 now rewrite ln_beta_unique with (1 := Hx).
+Qed.
+
+Theorem canonic_exponent_fexp_pos :
+  forall x ex,
+  (bpow (ex - 1) <= x < bpow ex)%R ->
+  canonic_exponent x = fexp ex.
+Proof.
+intros x ex Hx.
+apply canonic_exponent_fexp.
+rewrite Rabs_pos_eq.
+exact Hx.
+apply Rle_trans with (2 := proj1 Hx).
+apply bpow_ge_0.
 Qed.
 
 Theorem mantissa_small_pos :
@@ -290,33 +275,6 @@ rewrite <- scaled_mantissa_generic with (1 := Hf).
 apply Rmult_lt_reg_r with (bpow e).
 apply bpow_gt_0.
 now rewrite scaled_mantissa_bpow.
-Qed.
-
-Theorem generic_DN_pt_large_pos_ge_pow_aux :
-  forall x ex,
-  (fexp ex < ex)%Z ->
-  (bpow (ex - 1) <= x)%R ->
-  (bpow (ex - 1) <= F2R (Float beta (Zfloor (x * bpow (- fexp ex))) (fexp ex)))%R.
-Proof.
-intros x ex He1 Hx1.
-unfold F2R. simpl.
-replace (ex - 1)%Z with ((ex - 1 - fexp ex) + fexp ex)%Z by ring.
-rewrite bpow_add.
-apply Rmult_le_compat_r.
-apply bpow_ge_0.
-assert (Hx2 : bpow (ex - 1 - fexp ex) = Z2R (Zpower (radix_val beta) (ex - 1 - fexp ex))).
-apply sym_eq.
-apply Z2R_Zpower.
-omega.
-rewrite Hx2.
-apply Z2R_le.
-apply Zfloor_lub.
-rewrite <- Hx2.
-unfold Zminus at 1.
-rewrite bpow_add.
-apply Rmult_le_compat_r.
-apply bpow_ge_0.
-exact Hx1.
 Qed.
 
 Theorem generic_format_canonic :
