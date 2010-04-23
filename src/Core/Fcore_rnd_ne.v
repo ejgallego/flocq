@@ -624,18 +624,19 @@ End Znearest.
 
 Definition ZrndNE := ZrndN (fun x => if Zeven_dec (Zfloor x) then false else true).
 
-(*
-Theorem generic_NE_pt :
+Theorem generic_NE_pt_pos :
   forall x,
+  (0 < x)%R ->
   Rnd_NE_pt x (rounding beta fexp ZrndNE x).
 Proof.
-intros x.
+intros x Hx.
 split.
 apply generic_N_pt.
 unfold NE_prop.
 set (mx := scaled_mantissa beta fexp x).
 set (xr := rounding beta fexp ZrndNE x).
 destruct (Req_dec (mx - Z2R (Zfloor mx)) (/2)) as [Hm|Hm].
+(* midpoint *)
 left.
 exists (Float beta (Ztrunc (scaled_mantissa beta fexp xr)) (canonic_exponent beta fexp xr)).
 split.
@@ -645,10 +646,98 @@ unfold Fcore_generic_fmt.canonic. simpl.
 apply f_equal.
 apply (generic_N_pt _ x).
 simpl.
-admit.
+unfold xr, rounding, Zrnd. simpl.
+unfold Znearest.
+fold mx.
+rewrite Hm.
+rewrite Rcompare_Eq. 2: apply refl_equal.
+destruct (Zeven_dec (Zfloor mx)) as [Hmx|Hmx].
+(* . even floor *)
+change (Zeven (Ztrunc (scaled_mantissa beta fexp (rounding beta fexp ZrndDN x)))).
+destruct (Rle_or_lt (rounding beta fexp ZrndDN x) 0) as [Hr|Hr].
+rewrite (Rle_antisym _ _ Hr).
+unfold scaled_mantissa.
+rewrite Rmult_0_l.
+change R0 with (Z2R 0).
+now rewrite (Ztrunc_Z2R 0).
+erewrite <- rounding_0.
+apply rounding_monotone ; try easy.
+now apply Rlt_le.
+rewrite scaled_mantissa_DN ; try easy.
+now rewrite Ztrunc_Z2R.
+(* . odd floor *)
+change (Zeven (Ztrunc (scaled_mantissa beta fexp (rounding beta fexp ZrndUP x)))).
+destruct (ln_beta beta x) as (ex, Hex).
+specialize (Hex (Rgt_not_eq _ _ Hx)).
+rewrite (Rabs_pos_eq _ (Rlt_le _ _ Hx)) in Hex.
+destruct (Z_lt_le_dec (fexp ex) ex) as [He|He].
+(* .. large pos *)
+assert (Hu := rounding_bounded_large_pos _ _ ZrndUP _ _ He Hex).
+assert (Hfc: Zceil mx = (Zfloor mx + 1)%Z).
+apply Zceil_floor_neq.
+intros H.
+rewrite H in Hm.
+unfold Rminus in Hm.
+rewrite Rplus_opp_r in Hm.
+elim (Rlt_irrefl 0).
+rewrite Hm at 2.
+apply Rinv_0_lt_compat.
+now apply (Z2R_lt 0 2).
+destruct (proj2 Hu) as [Hu'|Hu'].
+(* ... u <> bpow *)
+unfold scaled_mantissa.
+rewrite canonic_exponent_fexp_pos with (1 := conj (proj1 Hu) Hu').
+unfold rounding, F2R. simpl.
+rewrite canonic_exponent_fexp_pos with (1 := Hex).
+rewrite Rmult_assoc, <- bpow_add, Zplus_opp_r, Rmult_1_r.
+rewrite Ztrunc_Z2R.
+fold mx.
+rewrite Hfc.
+apply Zeven_Sn.
+destruct (Zeven_odd_dec (Zfloor mx)) as [H|H].
+now elim Hmx.
+exact H.
+(* ... u = bpow *)
+rewrite Hu'.
+unfold scaled_mantissa, canonic_exponent.
+rewrite ln_beta_bpow.
+rewrite <- bpow_add, <- Z2R_Zpower.
+rewrite Ztrunc_Z2R.
+destruct (Zeven_odd_dec (radix_val beta)) as [Hr|Hr].
+destruct strong_fexp as [Hs|Hs].
+now elim (Zeven_not_Zodd _ Hr).
+destruct (Hs ex) as (H,_).
+apply Zeven_Zpower.
+omega.
+exact Hr.
+elim Hmx.
+replace (Zfloor mx) with (Zceil mx - 1)%Z by omega.
+apply Zeven_pred.
+unfold mx.
+replace (Zceil (scaled_mantissa beta fexp x)) with (Zpower (radix_val beta) (ex - fexp ex)).
+apply Zodd_Zpower.
+omega.
+exact Hr.
+apply eq_Z2R.
+rewrite Z2R_Zpower. 2: omega.
+apply Rmult_eq_reg_r with (bpow (fexp ex)).
+unfold Zminus.
+rewrite bpow_add.
+rewrite Rmult_assoc, <- bpow_add, Zplus_opp_l, Rmult_1_r.
+pattern (fexp ex) ; rewrite <- canonic_exponent_fexp_pos with (1 := Hex).
+now apply sym_eq.
+apply Rgt_not_eq.
+apply bpow_gt_0.
+generalize (proj1 (prop_exp ex) He).
+omega.
+(* .. small pos *)
+elim Hmx.
+unfold mx, scaled_mantissa.
+rewrite canonic_exponent_fexp_pos with (1 := Hex).
+now rewrite mantissa_DN_small_pos.
+(* not midpoint *)
 right.
-intros f Hf.
+intros g Hg.
 Admitted.
-*)
 
 End Fcore_rnd_NE.

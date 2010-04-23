@@ -808,6 +808,18 @@ apply Rle_lt_trans with (2 := proj2 He).
 apply (generic_DN_pt x).
 Qed.
 
+Theorem scaled_mantissa_DN :
+  forall x,
+  (0 < rounding ZrndDN x)%R ->
+  scaled_mantissa (rounding ZrndDN x) = Z2R (Zfloor (scaled_mantissa x)).
+Proof.
+intros x Hd.
+unfold scaled_mantissa.
+rewrite canonic_exponent_DN with (1 := Hd).
+unfold rounding, F2R. simpl.
+now rewrite Rmult_assoc, <- bpow_add, Zplus_opp_r, Rmult_1_r.
+Qed.
+
 Theorem generic_N_pt_DN_or_UP :
   forall x f,
   Rnd_N_pt generic_format x f ->
