@@ -73,9 +73,9 @@ rewrite <- Ropp_involutive.
 now apply generic_format_opp.
 now apply canonic_opp.
 now apply canonic_opp.
-rewrite generic_DN_opp, <- opp_F2R.
+rewrite rounding_DN_opp, <- opp_F2R.
 now apply f_equal.
-rewrite generic_UP_opp, <- opp_F2R.
+rewrite rounding_UP_opp, <- opp_F2R.
 now apply f_equal.
 Qed.
 
@@ -98,7 +98,7 @@ assert (Hd3 : Fnum xd = Z0).
 apply F2R_eq_0_reg with beta (Fexp xd).
 change (F2R xd = R0).
 rewrite Hxd.
-apply generic_DN_small_pos with (1 := Hex) (2 := Hxe).
+apply rounding_DN_small_pos with (1 := Hex) (2 := Hxe).
 assert (Hu3 : xu = Float beta (1 * Zpower (radix_val beta) (fexp ex - fexp (fexp ex + 1))) (fexp (fexp ex + 1))).
 apply canonic_unicity with (1 := Hu).
 apply (f_equal fexp).
@@ -110,7 +110,7 @@ rewrite F2R_bpow.
 apply sym_eq.
 rewrite Hxu.
 apply sym_eq.
-apply generic_UP_small_pos with (1 := Hex) (2 := Hxe).
+apply rounding_UP_small_pos with (1 := Hex) (2 := Hxe).
 now eapply prop_exp.
 rewrite Hd3, Hu3.
 rewrite Zmult_1_l.
@@ -146,7 +146,7 @@ destruct (total_order_T (bpow ex) (F2R xu)) as [[Hu2|Hu2]|Hu2].
 (* - xu > bpow ex  *)
 elim (Rlt_not_le _ _ Hu2).
 rewrite Hxu.
-now apply generic_UP_large_pos_le_pow.
+now apply (rounding_bounded_large_pos beta fexp ZrndUP x ex).
 (* - xu = bpow ex *)
 assert (Hu3: xu = Float beta (1 * Zpower (radix_val beta) (ex - fexp (ex + 1))) (fexp (ex + 1))).
 apply canonic_unicity with (1 := Hu).
