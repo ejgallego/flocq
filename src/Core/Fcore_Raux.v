@@ -410,7 +410,7 @@ unfold Rcompare.
 now destruct (total_order_T x y) as [[H|H]|H] ; constructor.
 Qed.
 
-Opaque Zcompare.
+Opaque Rcompare.
 
 Theorem Rcompare_Lt :
   forall x y,
@@ -432,6 +432,14 @@ Proof.
 intros x y H.
 rewrite H.
 now case Rcompare_spec ; intro H' ; try elim (Rlt_irrefl _ H').
+Qed.
+
+Theorem Rcompare_Eq_inv :
+  forall x y,
+  Rcompare x y = Eq -> x = y.
+Proof.
+intros x y.
+now case Rcompare_spec.
 Qed.
 
 Theorem Rcompare_Gt :
