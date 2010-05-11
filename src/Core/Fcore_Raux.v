@@ -468,6 +468,17 @@ apply Zcompare_Gt.
 now apply lt_Z2R.
 Qed.
 
+Theorem Rcompare_sym :
+  forall x y,
+  Rcompare x y = CompOpp (Rcompare y x).
+Proof.
+intros x y.
+destruct (Rcompare_spec y x) as [H|H|H].
+now apply Rcompare_Gt.
+now apply Rcompare_Eq.
+now apply Rcompare_Lt.
+Qed.
+
 End Rcompare.
 
 Section Floor_Ceil.
