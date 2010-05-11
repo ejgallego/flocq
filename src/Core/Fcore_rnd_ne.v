@@ -738,6 +738,37 @@ now rewrite mantissa_DN_small_pos.
 (* not midpoint *)
 right.
 intros g Hg.
-Admitted.
+destruct (Req_dec x g) as [Hxg|Hxg].
+rewrite <- Hxg.
+apply sym_eq.
+apply rounding_generic.
+rewrite Hxg.
+apply Hg.
+set (d := rounding beta fexp ZrndDN x).
+set (u := rounding beta fexp ZrndUP x).
+apply Rnd_N_pt_unicity with (d := d) (u := u) (4 := Hg).
+now apply generic_DN_pt.
+now apply generic_UP_pt.
+2: apply generic_N_pt.
+rewrite <- (scaled_mantissa_bpow beta fexp x).
+unfold d, u, rounding, F2R. simpl. fold mx.
+rewrite <- 2!Rmult_minus_distr_r.
+intros H.
+apply Rmult_eq_reg_r in H.
+apply Hm.
+apply Rcompare_Eq_inv.
+rewrite Rcompare_floor_ceil_mid.
+now apply Rcompare_Eq.
+contradict Hxg.
+apply sym_eq.
+apply Rnd_N_pt_idempotent with (1 := Hg).
+rewrite <- (scaled_mantissa_bpow beta fexp x).
+fold mx.
+rewrite <- Hxg.
+change (Z2R (Zfloor mx) * bpow (canonic_exponent beta fexp x))%R with d.
+now eapply generic_DN_pt.
+apply Rgt_not_eq.
+apply bpow_gt_0.
+Qed.
 
 End Fcore_rnd_NE.
