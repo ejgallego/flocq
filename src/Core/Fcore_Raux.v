@@ -410,7 +410,7 @@ unfold Rcompare.
 now destruct (total_order_T x y) as [[H|H]|H] ; constructor.
 Qed.
 
-Opaque Rcompare.
+Global Opaque Rcompare.
 
 Theorem Rcompare_Lt :
   forall x y,
