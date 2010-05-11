@@ -216,7 +216,7 @@ now apply FIX_format_generic.
 Qed.
 
 Theorem Rnd_NE_pt_FLT :
-  Zodd (radix_val beta) \/ (1 < prec)%Z ->
+  Zeven (radix_val beta) = false \/ (1 < prec)%Z ->
   rounding_pred (Rnd_NE_pt beta FLT_exp).
 Proof.
 intros H.

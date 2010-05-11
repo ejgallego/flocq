@@ -223,7 +223,7 @@ exact FLX_exp_correct.
 Qed.
 
 Theorem Rnd_NE_pt_FLX :
-  Zodd (radix_val beta) \/ (1 < prec)%Z ->
+  Zeven (radix_val beta) = false \/ (1 < prec)%Z ->
   rounding_pred (Rnd_NE_pt beta FLX_exp).
 Proof.
 intros H.

@@ -596,7 +596,7 @@ Definition new_location_even k l :=
     end.
 
 Theorem new_location_even_correct :
-  Zeven nb_steps ->
+  Zeven nb_steps = true ->
   forall x k l, (0 <= k < nb_steps)%Z ->
   inbetween (start + Z2R k * step) (start + Z2R (k + 1) * step) x l ->
   inbetween start (start + Z2R nb_steps * step) x (new_location_even k l).
@@ -624,7 +624,8 @@ easy.
 intros H.
 rewrite <- H in Hk0.
 now elim Hk0.
-destruct (Zeven_ex _ He).
+destruct (Zeven_ex nb_steps).
+rewrite He in H.
 omega.
 (* . 2 * k = nb_steps *)
 set (l' := match l with loc_Eq => loc_Mi | _ => loc_Hi end).
@@ -651,7 +652,7 @@ Definition new_location_odd k l :=
     end.
 
 Theorem new_location_odd_correct :
-  Zodd nb_steps ->
+  Zeven nb_steps = false ->
   forall x k l, (0 <= k < nb_steps)%Z ->
   inbetween (start + Z2R k * step) (start + Z2R (k + 1) * step) x l ->
   inbetween start (start + Z2R nb_steps * step) x (new_location_odd k l).
@@ -689,17 +690,14 @@ apply inbetween_step_Mi_Mi_odd with (1 := Hx) (2 := Hk1).
 apply inbetween_step_Hi_Mi_odd with (1 := Hx) (2 := Hk1).
 (* . 2 * k + 1 > nb_steps *)
 apply inbetween_step_Hi with (1 := Hx).
-destruct (Zodd_ex _ Ho).
+destruct (Zeven_ex nb_steps).
+rewrite Ho in H.
 omega.
 apply Hk.
 Qed.
 
 Definition new_location :=
-  match nb_steps with
-  | Zpos (xO _) => new_location_even
-  | Zpos (xI _) => new_location_odd
-  | _ => fun _ l => l
-  end.
+  if Zeven nb_steps then new_location_even else new_location_odd.
 
 Theorem new_location_correct :
   forall x k l, (0 <= k < nb_steps)%Z ->
@@ -714,13 +712,9 @@ now intros _.
 (* . *)
 intros [p|p|] Hp _.
 apply new_location_odd_correct with (2 := Hk) (3 := Hx).
-rewrite Hp.
-change (Zpos (xI p)) with (1 + 2 * Zpos p)%Z.
-rewrite Zplus_comm.
-apply Zodd_2p_plus_1.
+now rewrite Hp.
 apply new_location_even_correct with (2 := Hk) (3 := Hx).
-rewrite Hp.
-exact (Zeven_2p (Zpos p)).
+now rewrite Hp.
 now rewrite Hp in Hnb_steps.
 (* . *)
 now intros p _.
@@ -974,7 +968,7 @@ Theorem inbetween_float_NE :
   forall x m l, (0 < x)%R ->
   let e := canonic_exponent beta fexp x in
   inbetween_float m e x l ->
-  Rnd_NE_pt beta fexp x (F2R (Float beta (cond_incr (round_NE (projT1 (Zeven_odd_bool m)) l) m) e)).
+  Rnd_NE_pt beta fexp x (F2R (Float beta (cond_incr (round_NE (Zeven m) l) m) e)).
 Proof.
 intros x m l Hx e Hl.
 assert (Hd := inbetween_float_DN _ _ _ Hl).
@@ -1021,7 +1015,7 @@ rewrite Hd.
 apply canonic_exponent_DN ; try easy.
 rewrite <- Hd.
 now apply F2R_gt_0_compat.
-destruct (Zeven_odd_bool m) as ([|], Heo) ; simpl.
+case_eq (Zeven m) ; intros Heo.
 split.
 apply (Rnd_N_pt_bracket_not_Hi _ _ _ _ Hd' Hu' loc_Mi).
 easy.
@@ -1044,11 +1038,15 @@ intros Hu''.
 assert (Hcu : canonic beta fexp cu).
 unfold canonic.
 now rewrite <- Hu''.
+simpl.
 rewrite Hu''.
 eexists ; repeat split.
 exact Hcu.
 replace (Fnum cu) with (Fnum (Float beta m e) + Fnum cu + -Fnum (Float beta m e))%Z by ring.
-apply Zodd_plus_Zodd.
+rewrite Zeven_plus.
+rewrite Zeven_opp.
+unfold Fnum at 3. rewrite Heo.
+apply eqb_true.
 rewrite Hu'' in Hu.
 apply (DN_UP_parity_generic beta fexp prop_exp strong_fexp x (Float beta m e) cu) ; try easy.
 apply (generic_format_discrete beta fexp x m).
@@ -1056,10 +1054,8 @@ apply inbetween_bounds_strict_not_Eq with (2 := Hl).
 apply F2R_lt_compat.
 apply Zlt_succ.
 easy.
-rewrite Zopp_eq_mult_neg_1.
-now apply Zodd_mult_Zodd.
 (* - m = 0 *)
-destruct (Zeven_odd_bool m) as ([|], Heo) ; simpl.
+case_eq (Zeven m) ; intros Heo.
 split.
 apply (Rnd_N_pt_bracket_not_Hi _ _ _ _ Hd' Hu' loc_Mi).
 easy.
@@ -1070,8 +1066,7 @@ exists (Float beta 0 (canonic_exponent beta fexp 0)).
 unfold canonic.
 rewrite F2R_0.
 repeat split.
-rewrite <- Hm' in Heo.
-elim Heo.
+now rewrite <- Hm' in Heo.
 (* loc_Hi *)
 split.
 rewrite <- Hu in Hu'.

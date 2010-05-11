@@ -19,7 +19,7 @@ Notation format := (generic_format beta fexp).
 Notation canonic := (canonic beta fexp).
 
 Definition NE_prop (_ : R) f :=
-  exists g : float beta, f = F2R g /\ canonic g /\ Zeven (Fnum g).
+  exists g : float beta, f = F2R g /\ canonic g /\ Zeven (Fnum g) = true.
 
 Definition Rnd_NE_pt :=
   Rnd_NG_pt format NE_prop.
@@ -32,7 +32,7 @@ Definition DN_UP_parity_pos_prop :=
   canonic xu ->
   F2R xd = rounding beta fexp ZrndDN x ->
   F2R xu = rounding beta fexp ZrndUP x ->
-  Zodd (Fnum xd + Fnum xu).
+  Zeven (Fnum xd + Fnum xu) = false.
 
 Definition DN_UP_parity_prop :=
   forall x xd xu,
@@ -41,7 +41,7 @@ Definition DN_UP_parity_prop :=
   canonic xu ->
   F2R xd = rounding beta fexp ZrndDN x ->
   F2R xu = rounding beta fexp ZrndUP x ->
-  Zodd (Fnum xd + Fnum xu).
+  Zeven (Fnum xd + Fnum xu) = false.
 
 Theorem DN_UP_parity_aux :
   DN_UP_parity_pos_prop ->
@@ -62,10 +62,9 @@ destruct xd as (md, ed).
 destruct xu as (mu, eu).
 simpl.
 replace (md + mu)%Z
-  with (-1 * ((Fnum (Float beta (-mu) eu)) + Fnum (Float beta (-md) ed)))%Z
+  with (- ((Fnum (Float beta (-mu) eu)) + Fnum (Float beta (-md) ed)))%Z
   by (unfold Fnum ; ring).
-apply Zodd_mult_Zodd.
-now apply (Zodd_pred 0).
+rewrite Zeven_opp.
 apply (Hpos (-x)%R _ _ Hx').
 intros H.
 apply Hfx.
@@ -79,7 +78,7 @@ rewrite rounding_UP_opp, <- opp_F2R.
 now apply f_equal.
 Qed.
 
-Definition NE_ex_prop := Zodd (radix_val beta) \/ forall e,
+Definition NE_ex_prop := Zeven (radix_val beta) = false \/ forall e,
   ((fexp e < e)%Z -> (fexp (e + 1) < e)%Z) /\ ((e <= fexp e)%Z -> fexp (fexp e + 1) = fexp e).
 
 Hypothesis strong_fexp : NE_ex_prop.
@@ -185,22 +184,18 @@ now apply ln_beta_unique.
 rewrite Hd3, Hu3.
 unfold Fnum.
 ring_simplify (Zpower (radix_val beta) (ex - fexp ex) - 1 + 1 * Zpower (radix_val beta) (ex - fexp (ex + 1)))%Z.
-apply Zodd_pred.
-destruct (Zeven_odd_dec (radix_val beta)) as [Hdo|Hdo].
-apply Zeven_plus_Zeven.
-apply Zeven_Zpower with (2 := Hdo).
-omega.
-apply Zeven_Zpower with (2 := Hdo).
+unfold Zminus at 1.
+rewrite 2!Zeven_plus.
+rewrite Zeven_Zpower. 2: omega.
 destruct strong_fexp.
-now elim Zeven_not_Zodd with (1 := Hdo).
-generalize (proj1 (H _) Hxe).
+rewrite H.
+rewrite Zodd_Zpower with (2 := H).
+easy.
+now apply Zle_minus_le_0.
+rewrite Zeven_Zpower.
+now rewrite Bool.eqb_reflx.
+specialize (H ex).
 omega.
-apply Zodd_plus_Zodd.
-apply Zodd_Zpower with (2 := Hdo).
-omega.
-apply Zodd_Zpower with (2 := Hdo).
-apply Zle_minus_le_0.
-exact Hxe2.
 (* - xu < bpow ex *)
 revert Hud.
 unfold ulp, F2R.
@@ -212,8 +207,7 @@ rewrite ln_beta_unique with (1 := Hexa).
 intros H.
 replace (Fnum xu) with (Fnum xd + 1)%Z.
 replace (Fnum xd + (Fnum xd + 1))%Z with (2 * Fnum xd + 1)%Z by ring.
-apply Zodd_Sn.
-now apply Zeven_mult_Zeven_l.
+apply Zeven_2xp1.
 apply sym_eq.
 apply eq_Z2R.
 rewrite plus_Z2R.
@@ -252,7 +246,7 @@ unfold generic_format.
 set (ed := canonic_exponent beta fexp d).
 set (md := Ztrunc (scaled_mantissa beta fexp d)).
 intros Hd1.
-destruct (Zeven_odd_dec md) as [He|Ho].
+case_eq (Zeven md) ; [ intros He | intros Ho ].
 right.
 exists (Float beta md ed).
 unfold Fcore_generic_fmt.canonic.
@@ -269,8 +263,10 @@ eexists ; repeat split.
 unfold Fcore_generic_fmt.canonic.
 now rewrite <- Hu1.
 simpl.
-replace mu with (md + mu + (-1) * md)%Z by ring.
-apply Zodd_plus_Zodd.
+replace mu with (md + mu + -md)%Z by ring.
+rewrite Zeven_plus.
+rewrite Zeven_opp, Ho.
+apply eqb_true.
 apply (DN_UP_parity_generic x (Float beta md ed) (Float beta mu eu)).
 exact Hf.
 unfold Fcore_generic_fmt.canonic.
@@ -283,7 +279,6 @@ now apply generic_DN_pt.
 rewrite <- Hu1.
 apply Rnd_UP_pt_unicity with (1 := Hu).
 now apply generic_UP_pt.
-now apply Zodd_mult_Zodd.
 Qed.
 
 Theorem Rnd_NE_pt_monotone :
@@ -297,9 +292,9 @@ apply sym_eq.
 apply Rnd_UP_pt_idempotent with (1 := Hu).
 rewrite Hx.
 apply Hd.
-absurd (Zodd (Fnum cd + Fnum cu)).
-apply Zeven_not_Zodd.
-now apply Zeven_plus_Zeven.
+absurd (Zeven (Fnum cd + Fnum cu) = false).
+rewrite Zeven_plus.
+now rewrite (proj2 Hd2), (proj2 Hu2).
 apply (DN_UP_parity_aux DN_UP_parity_generic_pos x cd cu) ; try easy.
 intros Hf.
 apply Hx.
@@ -696,7 +691,7 @@ Qed.
 
 End Znearest.
 
-Definition ZrndNE := ZrndN (fun x => if Zeven_dec (Zfloor x) then false else true).
+Definition ZrndNE := ZrndN (fun x => negb (Zeven (Zfloor x))).
 
 Theorem generic_NE_pt_pos :
   forall x,
@@ -725,9 +720,9 @@ unfold Znearest.
 fold mx.
 rewrite Hm.
 rewrite Rcompare_Eq. 2: apply refl_equal.
-destruct (Zeven_dec (Zfloor mx)) as [Hmx|Hmx].
+case_eq (Zeven (Zfloor mx)) ; intros Hmx.
 (* . even floor *)
-change (Zeven (Ztrunc (scaled_mantissa beta fexp (rounding beta fexp ZrndDN x)))).
+change (Zeven (Ztrunc (scaled_mantissa beta fexp (rounding beta fexp ZrndDN x))) = true).
 destruct (Rle_or_lt (rounding beta fexp ZrndDN x) 0) as [Hr|Hr].
 rewrite (Rle_antisym _ _ Hr).
 unfold scaled_mantissa.
@@ -740,7 +735,7 @@ now apply Rlt_le.
 rewrite scaled_mantissa_DN ; try easy.
 now rewrite Ztrunc_Z2R.
 (* . odd floor *)
-change (Zeven (Ztrunc (scaled_mantissa beta fexp (rounding beta fexp ZrndUP x)))).
+change (Zeven (Ztrunc (scaled_mantissa beta fexp (rounding beta fexp ZrndUP x))) = true).
 destruct (ln_beta beta x) as (ex, Hex).
 specialize (Hex (Rgt_not_eq _ _ Hx)).
 rewrite (Rabs_pos_eq _ (Rlt_le _ _ Hx)) in Hex.
@@ -767,31 +762,29 @@ rewrite Rmult_assoc, <- bpow_add, Zplus_opp_r, Rmult_1_r.
 rewrite Ztrunc_Z2R.
 fold mx.
 rewrite Hfc.
-apply Zeven_Sn.
-destruct (Zeven_odd_dec (Zfloor mx)) as [H|H].
-now elim Hmx.
-exact H.
+now rewrite Zeven_plus, Hmx.
 (* ... u = bpow *)
 rewrite Hu'.
 unfold scaled_mantissa, canonic_exponent.
 rewrite ln_beta_bpow.
 rewrite <- bpow_add, <- Z2R_Zpower.
 rewrite Ztrunc_Z2R.
-destruct (Zeven_odd_dec (radix_val beta)) as [Hr|Hr].
+case_eq (Zeven (radix_val beta)) ; intros Hr.
 destruct strong_fexp as [Hs|Hs].
-now elim (Zeven_not_Zodd _ Hr).
+now rewrite Hs in Hr.
 destruct (Hs ex) as (H,_).
-apply Zeven_Zpower.
-omega.
+rewrite Zeven_Zpower.
 exact Hr.
-elim Hmx.
-replace (Zfloor mx) with (Zceil mx - 1)%Z by omega.
-apply Zeven_pred.
+omega.
+assert (Zeven (Zfloor mx) = true). 2: now rewrite H in Hmx.
+replace (Zfloor mx) with (Zceil mx + -1)%Z by omega.
+rewrite Zeven_plus.
+apply eqb_true.
 unfold mx.
 replace (Zceil (scaled_mantissa beta fexp x)) with (Zpower (radix_val beta) (ex - fexp ex)).
-apply Zodd_Zpower.
+rewrite Zodd_Zpower with (2 := Hr).
+easy.
 omega.
-exact Hr.
 apply eq_Z2R.
 rewrite Z2R_Zpower. 2: omega.
 apply Rmult_eq_reg_r with (bpow (fexp ex)).
@@ -805,7 +798,7 @@ apply bpow_gt_0.
 generalize (proj1 (prop_exp ex) He).
 omega.
 (* .. small pos *)
-elim Hmx.
+assert (Zeven (Zfloor mx) = true). 2: now rewrite H in Hmx.
 unfold mx, scaled_mantissa.
 rewrite canonic_exponent_fexp_pos with (1 := Hex).
 now rewrite mantissa_DN_small_pos.
@@ -858,28 +851,13 @@ rewrite H.
 unfold Rminus. rewrite Rplus_opp_r.
 apply Rinv_0_lt_compat.
 now apply (Z2R_lt 0 2).
-destruct (Zeven_dec (Zfloor x)) as [H1|H1] ;
-  destruct (Zeven_dec (Zfloor (-x))) as [H2|H2] ; simpl ; trivial.
-elim Zeven_not_Zodd with (1 := H2).
-rewrite <- Zopp_involutive.
+rewrite Bool.negb_involutive.
+rewrite <- (Zopp_involutive (Zfloor (- x))).
 fold (Zceil x).
+rewrite Zeven_opp.
 rewrite Zceil_floor_neq with (1 := H).
-rewrite Zopp_plus_distr.
-apply Zeven_plus_Zodd.
-replace (- Zfloor x)%Z with (-1 * Zfloor x)%Z by ring.
-now apply Zeven_mult_Zeven_r.
-easy.
-elim H2.
-rewrite <- Zopp_involutive.
-fold (Zceil x).
-rewrite Zceil_floor_neq with (1 := H).
-rewrite Zopp_plus_distr.
-apply Zodd_plus_Zodd.
-replace (- Zfloor x)%Z with (-1 * Zfloor x)%Z by ring.
-apply Zodd_mult_Zodd.
-easy.
-now destruct (Zeven_odd_dec (Zfloor x)).
-easy.
+rewrite Zeven_plus.
+now case (Zeven (Zfloor x)).
 Qed.
 
 Theorem generic_NE_pt :
@@ -898,8 +876,7 @@ rewrite H1.
 apply opp_F2R.
 now apply canonic_opp.
 simpl.
-replace (- mg)%Z with ((-1) * mg)%Z by ring.
-now apply Zeven_mult_Zeven_r.
+now rewrite Zeven_opp.
 rewrite <- rounding_NE_opp.
 apply generic_NE_pt_pos.
 now apply Ropp_0_gt_lt_contravar.

@@ -745,6 +745,76 @@ Qed.
 
 End Floor_Ceil.
 
+Section Even_Odd.
+
+Definition Zeven (n : Z) :=
+  match n with
+  | Zpos (xO _) => true
+  | Zneg (xO _) => true
+  | Z0 => true
+  | _ => false
+  end.
+
+Theorem Zeven_mult :
+  forall x y, Zeven (x * y) = orb (Zeven x) (Zeven y).
+Proof.
+now intros [|[xp|xp|]|[xp|xp|]] [|[yp|yp|]|[yp|yp|]].
+Qed.
+
+Theorem Zeven_opp :
+  forall x, Zeven (- x) = Zeven x.
+Proof.
+now intros [|[n|n|]|[n|n|]].
+Qed.
+
+Theorem Zeven_ex :
+  forall x, exists p, x = (2 * p + if Zeven x then 0 else 1)%Z.
+Proof.
+intros [|[n|n|]|[n|n|]].
+now exists Z0.
+now exists (Zpos n).
+now exists (Zpos n).
+now exists Z0.
+exists (Zneg n - 1)%Z.
+change (2 * Zneg n - 1 = 2 * (Zneg n - 1) + 1)%Z.
+ring.
+now exists (Zneg n).
+now exists (-1)%Z.
+Qed.
+
+Theorem Zeven_2xp1 :
+  forall n, Zeven (2 * n + 1) = false.
+Proof.
+intros n.
+destruct (Zeven_ex (2 * n + 1)) as (p, Hp).
+revert Hp.
+case (Zeven (2 * n + 1)) ; try easy.
+intros H.
+apply False_ind.
+omega.
+Qed.
+
+Theorem Zeven_plus :
+  forall x y, Zeven (x + y) = Bool.eqb (Zeven x) (Zeven y).
+Proof.
+intros x y.
+destruct (Zeven_ex x) as (px, Hx).
+rewrite Hx at 1.
+destruct (Zeven_ex y) as (py, Hy).
+rewrite Hy at 1.
+replace (2 * px + (if Zeven x then 0 else 1) + (2 * py + (if Zeven y then 0 else 1)))%Z
+  with (2 * (px + py) + ((if Zeven x then 0 else 1) + (if Zeven y then 0 else 1)))%Z by ring.
+case (Zeven x) ; case (Zeven y).
+rewrite Zplus_0_r.
+now rewrite Zeven_mult.
+apply Zeven_2xp1.
+apply Zeven_2xp1.
+replace (2 * (px + py) + (1 + 1))%Z with (2 * (px + py + 1))%Z by ring.
+now rewrite Zeven_mult.
+Qed.
+
+End Even_Odd.
+
 Section pow.
 
 Record radix :=  { radix_val : Z ; radix_prop :  (2 <= radix_val )%Z }.
@@ -1179,31 +1249,63 @@ elim He.
 apply refl_equal.
 Qed.
 
-Theorem Zodd_Zpower :
-  forall b e, (0 <= e)%Z -> Zodd b ->
-  Zodd (Zpower b e).
-Proof.
-intros b e He Hb.
-rewrite Zpower_Zpower_nat.
-induction (Zabs_nat e).
-exact I.
-unfold Zpower_nat. simpl.
-now apply Zodd_mult_Zodd.
-exact He.
-Qed.
-
 Theorem Zeven_Zpower :
-  forall b e, (0 < e)%Z -> Zeven b ->
-  Zeven (Zpower b e).
+  forall b e, (0 < e)%Z ->
+  Zeven (Zpower b e) = Zeven b.
 Proof.
-intros b e He Hb.
+intros b e He.
+case_eq (Zeven b) ; intros Hb.
+(* b even *)
 replace e with (e - 1 + 1)%Z by ring.
 rewrite Zpower_exp.
-apply Zeven_mult_Zeven_r.
+rewrite Zeven_mult.
+replace (Zeven (b ^ 1)) with true.
+apply Bool.orb_true_r.
 unfold Zpower, Zpower_pos, iter_pos.
 now rewrite Zmult_1_r.
 omega.
 discriminate.
+(* b odd *)
+rewrite Zpower_Zpower_nat.
+induction (Zabs_nat e).
+easy.
+unfold Zpower_nat. simpl.
+rewrite Zeven_mult.
+now rewrite Hb.
+now apply Zlt_le_weak.
+Qed.
+
+Theorem Zodd_Zpower :
+  forall b e, (0 <= e)%Z -> Zeven b = false ->
+  Zeven (Zpower b e) = false.
+Proof.
+intros b e He Hb.
+destruct (Z_le_lt_eq_dec _ _ He) as [He'|He'].
+rewrite <- Hb.
+now apply Zeven_Zpower.
+now rewrite <- He'.
 Qed.
 
 End pow.
+
+Section Bool.
+
+Theorem eqb_sym :
+  forall x y, Bool.eqb x y = Bool.eqb y x.
+Proof.
+now intros [|] [|].
+Qed.
+
+Theorem eqb_false :
+  forall x y, x = negb y -> Bool.eqb x y = false.
+Proof.
+now intros [|] [|].
+Qed.
+
+Theorem eqb_true :
+  forall x y, x = y -> Bool.eqb x y = true.
+Proof.
+now intros [|] [|].
+Qed.
+
+End Bool.
