@@ -592,6 +592,46 @@ rewrite Hxy.
 apply Rle_refl.
 Qed.
 
+Theorem Rnd_N_pt_unicity :
+  forall F : R -> Prop,
+  forall x d u f1 f2 : R,
+  Rnd_DN_pt F x d ->
+  Rnd_UP_pt F x u ->
+  x - d <> u - x ->
+  Rnd_N_pt F x f1 ->
+  Rnd_N_pt F x f2 ->
+  f1 = f2.
+Proof.
+intros F x d u f1 f2 Hd Hu Hdu.
+assert (forall f1 f2, Rnd_N_pt F x f1 -> Rnd_N_pt F x f2 -> f1 < f2 -> False).
+clear f1 f2. intros f1 f2 Hf1 Hf2 H12.
+destruct (Rnd_N_pt_DN_or_UP F x f1 Hf1) as [Hd1|Hu1] ;
+  destruct (Rnd_N_pt_DN_or_UP F x f2 Hf2) as [Hd2|Hu2].
+apply Rlt_not_eq with (1 := H12).
+now apply Rnd_DN_pt_unicity with (1 := Hd1).
+apply Hdu.
+rewrite Rnd_DN_pt_unicity with (1 := Hd) (2 := Hd1).
+rewrite Rnd_UP_pt_unicity with (1 := Hu) (2 := Hu2).
+rewrite <- (Rabs_pos_eq (x - f1)).
+rewrite <- (Rabs_pos_eq (f2 - x)).
+rewrite Rabs_minus_sym.
+apply Rle_antisym.
+apply Hf1. apply Hf2.
+apply Hf2. apply Hf1.
+apply Rle_0_minus.
+apply Hu2.
+apply Rle_0_minus.
+apply Hd1.
+apply Rlt_not_le with (1 := H12).
+apply Rle_trans with x.
+apply Hd2.
+apply Hu1.
+apply Rgt_not_eq with (1 := H12).
+now apply Rnd_UP_pt_unicity with (1 := Hu2).
+intros Hf1 Hf2.
+now apply Rle_antisym ; apply Rnot_lt_le ; refine (H _ _ _ _).
+Qed.
+
 Theorem Rnd_N_pt_refl :
   forall F : R -> Prop,
   forall x : R, F x ->
