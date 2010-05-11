@@ -32,7 +32,7 @@ Definition DN_UP_parity_pos_prop :=
   canonic xu ->
   F2R xd = rounding beta fexp ZrndDN x ->
   F2R xu = rounding beta fexp ZrndUP x ->
-  Zeven (Fnum xd + Fnum xu) = false.
+  Zeven (Fnum xu) = negb (Zeven (Fnum xd)).
 
 Definition DN_UP_parity_prop :=
   forall x xd xu,
@@ -41,7 +41,7 @@ Definition DN_UP_parity_prop :=
   canonic xu ->
   F2R xd = rounding beta fexp ZrndDN x ->
   F2R xu = rounding beta fexp ZrndUP x ->
-  Zeven (Fnum xd + Fnum xu) = false.
+  Zeven (Fnum xu) = negb (Zeven (Fnum xd)).
 
 Theorem DN_UP_parity_aux :
   DN_UP_parity_pos_prop ->
@@ -61,10 +61,11 @@ now rewrite Ropp_involutive, Ropp_0.
 destruct xd as (md, ed).
 destruct xu as (mu, eu).
 simpl.
-replace (md + mu)%Z
-  with (- ((Fnum (Float beta (-mu) eu)) + Fnum (Float beta (-md) ed)))%Z
-  by (unfold Fnum ; ring).
-rewrite Zeven_opp.
+rewrite <- (Bool.negb_involutive (Zeven mu)).
+apply f_equal.
+apply sym_eq.
+rewrite <- (Zeven_opp mu), <- (Zeven_opp md).
+change (Zeven (Fnum (Float beta (-md) ed)) = negb (Zeven (Fnum (Float beta (-mu) eu)))).
 apply (Hpos (-x)%R _ _ Hx').
 intros H.
 apply Hfx.
@@ -183,17 +184,18 @@ apply sym_eq.
 now apply ln_beta_unique.
 rewrite Hd3, Hu3.
 unfold Fnum.
-ring_simplify (Zpower (radix_val beta) (ex - fexp ex) - 1 + 1 * Zpower (radix_val beta) (ex - fexp (ex + 1)))%Z.
-unfold Zminus at 1.
-rewrite 2!Zeven_plus.
-rewrite Zeven_Zpower. 2: omega.
+rewrite Zeven_mult. simpl.
+unfold Zminus at 2.
+rewrite Zeven_plus.
+rewrite eqb_sym. simpl.
+fold (negb (Zeven (radix_val beta ^ (ex - fexp ex)))).
+rewrite Bool.negb_involutive.
+rewrite (Zeven_Zpower (radix_val beta) (ex - fexp ex)). 2: omega.
 destruct strong_fexp.
 rewrite H.
-rewrite Zodd_Zpower with (2 := H).
-easy.
+apply Zodd_Zpower with (2 := H).
 now apply Zle_minus_le_0.
-rewrite Zeven_Zpower.
-now rewrite Bool.eqb_reflx.
+apply Zeven_Zpower.
 specialize (H ex).
 omega.
 (* - xu < bpow ex *)
@@ -206,8 +208,8 @@ rewrite ln_beta_unique with (1 := Hd4).
 rewrite ln_beta_unique with (1 := Hexa).
 intros H.
 replace (Fnum xu) with (Fnum xd + 1)%Z.
-replace (Fnum xd + (Fnum xd + 1))%Z with (2 * Fnum xd + 1)%Z by ring.
-apply Zeven_2xp1.
+rewrite Zeven_plus.
+now apply eqb_sym.
 apply sym_eq.
 apply eq_Z2R.
 rewrite plus_Z2R.
@@ -262,12 +264,9 @@ rewrite Hu1.
 eexists ; repeat split.
 unfold Fcore_generic_fmt.canonic.
 now rewrite <- Hu1.
+rewrite (DN_UP_parity_generic x (Float beta md ed) (Float beta mu eu)).
 simpl.
-replace mu with (md + mu + -md)%Z by ring.
-rewrite Zeven_plus.
-rewrite Zeven_opp, Ho.
-apply eqb_true.
-apply (DN_UP_parity_generic x (Float beta md ed) (Float beta mu eu)).
+now rewrite Ho.
 exact Hf.
 unfold Fcore_generic_fmt.canonic.
 now rewrite <- Hd1.
@@ -292,10 +291,8 @@ apply sym_eq.
 apply Rnd_UP_pt_idempotent with (1 := Hu).
 rewrite Hx.
 apply Hd.
-absurd (Zeven (Fnum cd + Fnum cu) = false).
-rewrite Zeven_plus.
-now rewrite (proj2 Hd2), (proj2 Hu2).
-apply (DN_UP_parity_aux DN_UP_parity_generic_pos x cd cu) ; try easy.
+rewrite (DN_UP_parity_aux DN_UP_parity_generic_pos x cd cu) in Hu2 ; try easy.
+now rewrite (proj2 Hd2) in Hu2.
 intros Hf.
 apply Hx.
 apply sym_eq.

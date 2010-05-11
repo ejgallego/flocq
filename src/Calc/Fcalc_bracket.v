@@ -1042,18 +1042,15 @@ simpl.
 rewrite Hu''.
 eexists ; repeat split.
 exact Hcu.
-replace (Fnum cu) with (Fnum (Float beta m e) + Fnum cu + -Fnum (Float beta m e))%Z by ring.
-rewrite Zeven_plus.
-rewrite Zeven_opp.
-unfold Fnum at 3. rewrite Heo.
-apply eqb_true.
-rewrite Hu'' in Hu.
-apply (DN_UP_parity_generic beta fexp prop_exp strong_fexp x (Float beta m e) cu) ; try easy.
+rewrite (DN_UP_parity_generic beta fexp prop_exp strong_fexp x (Float beta m e) cu) ; try easy.
+simpl.
+now rewrite Heo.
 apply (generic_format_discrete beta fexp x m).
 apply inbetween_bounds_strict_not_Eq with (2 := Hl).
 apply F2R_lt_compat.
 apply Zlt_succ.
 easy.
+now rewrite <- Hu''.
 (* - m = 0 *)
 case_eq (Zeven m) ; intros Heo.
 split.
