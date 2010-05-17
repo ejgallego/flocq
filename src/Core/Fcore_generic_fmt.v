@@ -711,9 +711,10 @@ Theorem generic_UP_pt :
   Rnd_UP_pt generic_format x (rounding ZrndUP x).
 Proof.
 intros x.
+rewrite <- (Ropp_involutive x).
+rewrite rounding_UP_opp.
 apply Rnd_DN_UP_pt_sym.
 apply generic_format_satisfies_any.
-rewrite <- rounding_DN_opp.
 apply generic_DN_pt.
 Qed.
 

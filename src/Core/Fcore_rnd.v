@@ -143,44 +143,42 @@ Theorem Rnd_DN_UP_pt_sym :
   forall F : R -> Prop,
   ( forall x, F x -> F (- x) ) ->
   forall x f : R,
-  Rnd_DN_pt F (-x) (-f) -> Rnd_UP_pt F x f.
+  Rnd_DN_pt F x f -> Rnd_UP_pt F (-x) (-f).
 Proof.
 intros F HF x f H.
-rewrite <- (Ropp_involutive f).
 repeat split.
 apply HF.
 apply H.
-apply Ropp_le_cancel.
-rewrite Ropp_involutive.
+apply Ropp_le_contravar.
 apply H.
-intros.
-apply Ropp_le_cancel.
-rewrite Ropp_involutive.
+intros g Hg.
+rewrite <- (Ropp_involutive g).
+intros Hxg.
+apply Ropp_le_contravar.
 apply H.
 now apply HF.
-now apply Ropp_le_contravar.
+now apply Ropp_le_cancel.
 Qed.
 
 Theorem Rnd_UP_DN_pt_sym :
   forall F : R -> Prop,
   ( forall x, F x -> F (- x) ) ->
   forall x f : R,
-  Rnd_UP_pt F (-x) (-f) -> Rnd_DN_pt F x f.
+  Rnd_UP_pt F x f -> Rnd_DN_pt F (-x) (-f).
 Proof.
 intros F HF x f H.
-rewrite <- (Ropp_involutive f).
 repeat split.
 apply HF.
 apply H.
-apply Ropp_le_cancel.
-rewrite Ropp_involutive.
+apply Ropp_le_contravar.
 apply H.
-intros.
-apply Ropp_le_cancel.
-rewrite Ropp_involutive.
+intros g Hg.
+rewrite <- (Ropp_involutive g).
+intros Hxg.
+apply Ropp_le_contravar.
 apply H.
 now apply HF.
-now apply Ropp_le_contravar.
+now apply Ropp_le_cancel.
 Qed.
 
 Theorem Rnd_DN_UP_sym :
@@ -195,9 +193,9 @@ rewrite <- (Ropp_involutive (rnd1 (-x))).
 apply f_equal.
 apply (Rnd_UP_unicity F (fun x => - rnd1 (-x))) ; trivial.
 intros y.
+pattern y at 1 ; rewrite <- Ropp_involutive.
 apply Rnd_DN_UP_pt_sym.
 apply HF.
-rewrite Ropp_involutive.
 apply H1.
 Qed.
 
@@ -1293,9 +1291,10 @@ split.
 intros x.
 destruct (proj1 (satisfies_any_imp_DN F Hany) (-x)) as (f, Hf).
 exists (-f).
+rewrite <- (Ropp_involutive x).
 apply Rnd_DN_UP_pt_sym.
 apply Hany.
-now rewrite Ropp_involutive.
+exact Hf.
 apply Rnd_UP_pt_monotone.
 Qed.
 
