@@ -757,6 +757,47 @@ apply Rle_trans with (2 := Hgu).
 apply Hxu.
 Qed.
 
+Theorem Rnd_DN_pt_N :
+  forall F : R -> Prop,
+  forall x d u : R,
+  Rnd_DN_pt F x d ->
+  Rnd_UP_pt F x u ->
+  (x - d <= u - x)%R ->
+  Rnd_N_pt F x d.
+Proof.
+intros F x d u Hd Hu Hx.
+assert (Hdx: (Rabs (d - x) = x - d)%R).
+rewrite Rabs_minus_sym.
+apply Rabs_pos_eq.
+apply Rle_0_minus.
+apply Hd.
+apply Rnd_DN_UP_pt_N with (2 := Hd) (3 := Hu).
+apply Hd.
+rewrite Hdx.
+apply Rle_refl.
+now rewrite Hdx.
+Qed.
+
+Theorem Rnd_UP_pt_N :
+  forall F : R -> Prop,
+  forall x d u : R,
+  Rnd_DN_pt F x d ->
+  Rnd_UP_pt F x u ->
+  (u - x <= x - d)%R ->
+  Rnd_N_pt F x u.
+Proof.
+intros F x d u Hd Hu Hx.
+assert (Hux: (Rabs (u - x) = u - x)%R).
+apply Rabs_pos_eq.
+apply Rle_0_minus.
+apply Hu.
+apply Rnd_DN_UP_pt_N with (2 := Hd) (3 := Hu).
+apply Hu.
+now rewrite Hux.
+rewrite Hux.
+apply Rle_refl.
+Qed.
+
 Definition Rnd_NG_pt_unicity_prop F P :=
   forall x d u,
   Rnd_DN_pt F x d -> Rnd_N_pt F x d ->
