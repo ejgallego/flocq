@@ -618,6 +618,21 @@ now apply (Z2R_neq 2 0).
 now apply (Z2R_lt 0 2).
 Qed.
 
+Theorem Rcompare_sqr :
+  forall x y,
+  (0 <= x)%R -> (0 <= y)%R ->
+  Rcompare (x * x) (y * y) = Rcompare x y.
+Proof.
+intros x y Hx Hy.
+destruct (Rcompare_spec x y) as [H|H|H].
+apply Rcompare_Lt.
+now apply Rsqr_incrst_1.
+rewrite H.
+now apply Rcompare_Eq.
+apply Rcompare_Gt.
+now apply Rsqr_incrst_1.
+Qed.
+
 End Rcompare.
 
 Section Floor_Ceil.
