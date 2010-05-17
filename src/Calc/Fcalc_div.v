@@ -97,7 +97,7 @@ apply Zmult_lt_reg_r with m2.
 exact Hm2'.
 assert (m2 < m')%Z.
 apply digits_lt with beta.
-exact Hs2.
+now apply Zlt_le_weak.
 unfold d2 in Hs3.
 omega.
 cut (q * m2 = m' - r)%Z. omega.
@@ -105,11 +105,12 @@ rewrite Hq.
 ring.
 apply Zle_trans with (digits beta (m2 + q + m2 * q)).
 apply digits_le.
-now rewrite <- Hq.
+rewrite <- Hq.
+now apply Zlt_le_weak.
 omega.
 apply digits_mult_strong.
 omega.
-exact Hq'.
+now apply Zlt_le_weak.
 (* . the location is correctly computed *)
 unfold inbetween_float, F2R. simpl.
 rewrite bpow_add, plus_Z2R.

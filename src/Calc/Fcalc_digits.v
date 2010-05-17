@@ -166,6 +166,29 @@ apply Zle_0_nat.
 apply Zmult_1_r.
 Qed.
 
+Theorem digits_ge_0 :
+  forall n, (0 <= digits n)%Z.
+Proof.
+intros n.
+destruct (Z_eq_dec n 0) as [H|H].
+now rewrite H.
+rewrite digits_ln_beta with (1 := H).
+destruct ln_beta as (e, He). simpl.
+apply <- bpow_le.
+apply Rlt_le.
+apply Rle_lt_trans with (Rabs (Z2R n)).
+simpl.
+rewrite <- abs_Z2R.
+apply (Z2R_le 1).
+apply (Zlt_le_succ 0).
+revert H.
+case n ; try easy.
+intros H.
+now elim H.
+apply He.
+now apply (Z2R_neq _ 0).
+Qed.
+
 Theorem digits_shift :
   forall m e,
   m <> Z0 -> (0 <= e)%Z ->
@@ -189,10 +212,12 @@ Qed.
 
 Theorem digits_le :
   forall x y,
-  (0 < x)%Z -> (x <= y)%Z ->
+  (0 <= x)%Z -> (x <= y)%Z ->
   (digits x <= digits y)%Z.
 Proof.
 intros x y Hx Hxy.
+case (Z_lt_le_dec 0 x).
+clear Hx. intros Hx.
 assert (Hy: (y <> 0)%Z).
 apply sym_not_eq.
 apply Zlt_not_eq.
@@ -215,11 +240,14 @@ apply Hey.
 exact Hy.
 apply sym_not_eq.
 now apply Zlt_not_eq.
+intros Hx'.
+rewrite (Zle_antisym _ _ Hx' Hx).
+apply digits_ge_0.
 Qed.
 
 Theorem digits_lt :
   forall x y,
-  (0 < y)%Z ->
+  (0 <= y)%Z ->
   (digits x < digits y)%Z ->
   (x < y)%Z.
 Proof.
@@ -230,10 +258,15 @@ Qed.
 
 Theorem digits_mult_strong :
   forall x y,
-  (0 < x)%Z -> (0 < y)%Z ->
+  (0 <= x)%Z -> (0 <= y)%Z ->
   (digits (x + y + x * y) <= digits x + digits y)%Z.
 Proof.
 intros x y Hx Hy.
+case (Z_lt_le_dec 0 x).
+clear Hx. intros Hx.
+case (Z_lt_le_dec 0 y).
+clear Hy. intros Hy.
+(* . *)
 assert (Hxy: (0 < Z2R (x + y + x * y))%R).
 apply (Z2R_lt 0).
 change Z0 with (0 + 0 + 0)%Z.
@@ -276,6 +309,15 @@ apply RRle_abs.
 apply Hey.
 apply neq_Z2R.
 now apply Rgt_not_eq.
+(* . *)
+intros Hy'.
+rewrite (Zle_antisym _ _ Hy' Hy).
+rewrite Zmult_0_r, 3!Zplus_0_r.
+apply Zle_refl.
+intros Hx'.
+rewrite (Zle_antisym _ _ Hx' Hx).
+rewrite Zmult_0_l, Zplus_0_r, 2!Zplus_0_l.
+apply Zle_refl.
 Qed.
 
 End Fcalc_digits.
