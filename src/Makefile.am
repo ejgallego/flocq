@@ -12,6 +12,7 @@ FILES = \
 	Core/Fcore_ulp.v \
 	Core/Fcore.v \
 	Calc/Fcalc_bracket.v \
+	Calc/Fcalc_digits.v \
 	Calc/Fcalc_ops.v \
 	Prop/Fprop_nearest.v
 
