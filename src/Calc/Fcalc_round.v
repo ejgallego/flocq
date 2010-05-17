@@ -11,54 +11,7 @@ Variable fexp : Z -> Z.
 Hypothesis prop_exp : valid_exp fexp.
 Notation format := (generic_format beta fexp).
 
-Theorem round_DN_correct :
-  forall x m e l,
-  inbetween_float beta m e x l /\
-  (e = canonic_exponent beta fexp x \/ (l = loc_Exact /\ format x)) ->
-  rounding beta fexp ZrndDN x = F2R (Float beta m e).
-Proof.
-intros x m e l (Hin,[He|(Hl,Hf)]).
-rewrite He in Hin |- *.
-apply inbetween_float_DN with (1 := Hin).
-rewrite Hl in Hin.
-inversion_clear Hin.
-rewrite <- H.
-now apply rounding_generic.
-Qed.
-
-Theorem round_UP_correct :
-  forall x m e l,
-  inbetween_float beta m e x l /\
-  (e = canonic_exponent beta fexp x \/ (l = loc_Exact /\ format x)) ->
-  rounding beta fexp ZrndUP x = F2R (Float beta (cond_incr (round_UP l) m) e).
-Proof.
-intros x m e l (Hin,[He|(Hl,Hf)]).
-rewrite He in Hin |- *.
-apply inbetween_float_UP with (1 := Hin).
-rewrite Hl in Hin.
-inversion_clear Hin.
-rewrite Hl. simpl.
-rewrite <- H.
-now apply rounding_generic.
-Qed.
-
-Theorem round_NE_correct :
-  forall x m e l,
-  inbetween_float beta m e x l /\
-  (e = canonic_exponent beta fexp x \/ (l = loc_Exact /\ format x)) ->
-  rounding beta fexp ZrndNE x = F2R (Float beta (cond_incr (round_NE (Zeven m) l) m) e).
-Proof.
-intros x m e l (Hin,[He|(Hl,Hf)]).
-rewrite He in Hin |- *.
-apply inbetween_float_NE with (1 := Hin).
-rewrite Hl in Hin.
-inversion_clear Hin.
-rewrite Hl. simpl.
-rewrite <- H.
-now apply rounding_generic.
-Qed.
-
-Definition round t :=
+Definition truncate t :=
   let '(m, e, l) := t in
   let k := (fexp (digits beta m + e) - e)%Z in
   if Zlt_bool 0 k then
@@ -66,17 +19,17 @@ Definition round t :=
     (Zdiv m p, (e + k)%Z, new_location p (Zmod m p) l)
   else t.
 
-Theorem round_correct :
+Theorem truncate_correct :
   forall x m e l,
   (0 <= x)%R ->
   inbetween_float beta m e x l ->
   (e <= fexp (digits beta m + e))%Z \/ l = loc_Exact ->
-  let '(m', e', l') := round (m, e, l) in
+  let '(m', e', l') := truncate (m, e, l) in
   inbetween_float beta m' e' x l' /\
   (e' = canonic_exponent beta fexp x \/ (l' = loc_Exact /\ format x)).
 Proof.
 intros x m e l Hx H1 H2.
-unfold round.
+unfold truncate.
 set (k := (fexp (digits beta m + e) - e)%Z).
 set (p := Zpower (radix_val beta) k).
 (* *)
@@ -194,5 +147,73 @@ elim Rlt_not_le with (1 := proj1 H1).
 rewrite <- Hx.
 now apply F2R_ge_0_compat.
 Qed.
+
+Section round_dir.
+
+Variable rnd: Zrounding.
+Variable choice : Z -> location -> Z.
+Hypothesis choice_valid : forall m, choice m loc_Exact = m.
+Hypothesis inbetween_float_valid :
+  forall x m l,
+  let e := canonic_exponent beta fexp x in
+  inbetween_float beta m e x l ->
+  rounding beta fexp rnd x = F2R (Float beta (choice m l) e).
+
+Theorem round_any_correct :
+  forall x m e l,
+  inbetween_float beta m e x l ->
+  (e = canonic_exponent beta fexp x \/ (l = loc_Exact /\ format x)) ->
+  rounding beta fexp rnd x = F2R (Float beta (choice m l) e).
+Proof.
+intros x m e l Hin [He|(Hl,Hf)].
+rewrite He in Hin |- *.
+apply inbetween_float_valid with (1 := Hin).
+rewrite Hl in Hin.
+inversion_clear Hin.
+rewrite Hl, choice_valid.
+rewrite <- H.
+now apply rounding_generic.
+Qed.
+
+Theorem round_trunc_any_correct :
+  forall x m e l,
+  (0 <= x)%R ->
+  inbetween_float beta m e x l ->
+  (e <= fexp (digits beta m + e))%Z \/ l = loc_Exact ->
+  let '(m', e', l') := truncate (m, e, l) in
+  rounding beta fexp rnd x = F2R (Float beta (choice m' l') e').
+Proof.
+intros x m e l Hx Hl He.
+generalize (truncate_correct x m e l Hx Hl He).
+destruct (truncate (m, e, l)) as ((m', e'), l').
+intros (H1, H2).
+now apply round_any_correct.
+Qed.
+
+End round_dir.
+
+Definition round_DN_correct :=
+  round_any_correct _ (fun m _ => m)
+    (fun _ => refl_equal _) (inbetween_float_DN beta fexp).
+
+Definition round_trunc_DN_correct :=
+  round_trunc_any_correct _ (fun m _ => m)
+    (fun _ => refl_equal _) (inbetween_float_DN beta fexp).
+
+Definition round_UP_correct :=
+  round_any_correct _ (fun m l => cond_incr (round_UP l) m)
+    (fun _ => refl_equal _) (inbetween_float_UP beta fexp).
+
+Definition round_trunc_UP_correct :=
+  round_trunc_any_correct _ (fun m l => cond_incr (round_UP l) m)
+    (fun _ => refl_equal _) (inbetween_float_UP beta fexp).
+
+Definition round_NE_correct :=
+  round_any_correct _ (fun m l => cond_incr (round_NE (Zeven m) l) m)
+    (fun _ => refl_equal _) (inbetween_float_NE beta fexp).
+
+Definition round_trunc_NE_correct :=
+  round_trunc_any_correct _ (fun m l => cond_incr (round_NE (Zeven m) l) m)
+    (fun _ => refl_equal _) (inbetween_float_NE beta fexp).
 
 End Fcalc_round.
