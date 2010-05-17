@@ -5,26 +5,6 @@ Section Fcalc_bracket.
 Variable d u : R.
 Hypothesis Hdu : (d < u)%R.
 
-Lemma ordered_middle :
-  (d < (d + u)/2 < u)%R.
-Proof.
-split.
-apply Rmult_lt_reg_r with 2%R.
-now apply (Z2R_lt 0 2).
-unfold Rdiv.
-rewrite Rmult_assoc, Rinv_l, Rmult_1_r.
-rewrite Rmult_plus_distr_l, Rmult_1_r.
-now apply Rplus_lt_compat_l.
-now apply (Z2R_neq 2 0).
-apply Rmult_lt_reg_r with 2%R.
-now apply (Z2R_lt 0 2).
-unfold Rdiv.
-rewrite Rmult_assoc, Rinv_l, Rmult_1_r.
-rewrite Rmult_plus_distr_l, Rmult_1_r.
-now apply Rplus_lt_compat_r.
-now apply (Z2R_neq 2 0).
-Qed.
-
 Inductive location := loc_Exact | loc_Inexact : comparison -> location.
 
 Variable x : R.
@@ -36,43 +16,6 @@ Inductive inbetween : location -> Prop :=
 Section Fcalc_bracket_any.
 
 Variable l : location.
-
-Theorem inbetween_not_Hi :
-  inbetween l ->
-  l <> loc_Inexact Gt ->
-  (d <= x <= (d + u)/2)%R.
-Proof.
-intros [Hx|[] Hx Hl] H ; try (now elim H) ; clear l H.
-rewrite Hx.
-split.
-apply Rle_refl.
-apply Rlt_le.
-apply ordered_middle.
-rewrite Rcompare_Eq_inv with (1 := Hl).
-split.
-apply Rlt_le.
-apply ordered_middle.
-apply Rle_refl.
-split ; apply Rlt_le.
-apply Hx.
-now apply Rcompare_Lt_inv.
-Qed.
-
-Theorem inbetween_Mi_Hi :
-  inbetween l ->
-  l = loc_Inexact Eq \/ l = loc_Inexact Gt ->
-  ((d + u)/2 <= x <= u)%R.
-Proof.
-intros [Hx|[] Hx Hl] H ; try (now elim H) ; clear l H.
-rewrite Rcompare_Eq_inv with (1 := Hl).
-split.
-apply Rle_refl.
-apply Rlt_le.
-apply ordered_middle.
-split ; apply Rlt_le.
-now apply Rcompare_Gt_inv.
-apply Hx.
-Qed.
 
 Theorem inbetween_bounds :
   inbetween l ->
@@ -133,12 +76,6 @@ Variable start step : R.
 Variable nb_steps : Z.
 Variable Hstep : (0 < step)%R.
 
-Lemma double_div2 :
-  ((start + start)/2 = start)%R.
-Proof.
-field.
-Qed.
-
 Lemma ordered_steps :
   forall k,
   (start + Z2R k * step < start + Z2R (k + 1) * step)%R.
@@ -151,7 +88,7 @@ apply Z2R_lt.
 apply Zlt_succ.
 Qed.
 
-Lemma mid_step :
+Lemma middle_range :
   forall k,
   ((start + (start + Z2R k * step)) / 2 = start + (Z2R k / 2 * step))%R.
 Proof.
@@ -186,7 +123,7 @@ now apply Rlt_le.
 apply Z2R_le.
 omega.
 (* . *)
-now rewrite mid_step.
+now rewrite middle_range.
 Qed.
 
 Theorem inbetween_step_Lo :
@@ -254,7 +191,7 @@ now apply (Z2R_lt 1).
 (* . *)
 apply Rcompare_Lt.
 apply Rlt_le_trans with (1 := proj2 Hx').
-rewrite mid_step.
+rewrite middle_range.
 apply Rcompare_not_Lt_inv.
 rewrite <- (Rmult_1_l step) at 2.
 rewrite Rcompare_plus_l, Rcompare_mult_r, Rcompare_half_l.
