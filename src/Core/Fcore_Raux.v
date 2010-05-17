@@ -130,6 +130,17 @@ rewrite H.
 apply Rle_refl.
 Qed.
 
+Theorem sqrt_ge_0 :
+  forall x : R,
+  (0 <= sqrt x)%R.
+Proof.
+intros x.
+unfold sqrt.
+destruct (Rcase_abs x) as [_|H].
+apply Rle_refl.
+apply Rsqrt_positivity.
+Qed.
+
 End Rmissing.
 
 Section Zmissing.
