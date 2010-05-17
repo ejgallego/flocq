@@ -828,6 +828,58 @@ Qed.
 
 End Fcalc_bracket_N.
 
+Section Fcalc_bracket_scale.
+
+Lemma inbetween_mult_aux :
+  forall x d s,
+  ((x * s + d * s) / 2 = (x + d) / 2 * s)%R.
+Proof.
+intros x d s.
+field.
+Qed.
+
+Theorem inbetween_mult_compat :
+  forall x d u l s,
+  (0 < s)%R ->
+  inbetween x d u l ->
+  inbetween (x * s) (d * s) (u * s) l.
+Proof.
+intros x d u l s Hs Hl.
+destruct Hl as [Hl|Hl1 Hl2|Hl|Hl1 Hl2] ; constructor.
+now apply (f_equal (fun v => (v * s)%R)).
+now apply Rmult_lt_compat_r.
+rewrite inbetween_mult_aux.
+now apply Rmult_lt_compat_r.
+rewrite Hl.
+field.
+rewrite inbetween_mult_aux.
+now apply Rmult_lt_compat_r.
+now apply Rmult_lt_compat_r.
+Qed.
+
+Theorem inbetween_mult_reg :
+  forall x d u l s,
+  (0 < s)%R ->
+  inbetween (x * s) (d * s) (u * s) l ->
+  inbetween x d u l.
+Proof.
+intros x d u l s Hs Hl.
+destruct Hl as [Hl|Hl1 Hl2|Hl|Hl1 Hl2] ; constructor.
+apply Rmult_eq_reg_r with (1 := Hl).
+now apply Rgt_not_eq.
+now apply Rmult_lt_reg_r with (1 := Hs).
+apply Rmult_lt_reg_r with (1 := Hs).
+now rewrite <- inbetween_mult_aux.
+apply Rmult_eq_reg_r with s.
+now rewrite <- inbetween_mult_aux.
+now apply Rgt_not_eq.
+apply Rmult_lt_reg_r with (1 := Hs).
+now rewrite <- inbetween_mult_aux.
+now apply Rmult_lt_reg_r with (1 := Hs).
+Qed.
+
+End Fcalc_bracket_scale.
+
 Section Fcalc_bracket_generic.
 
 Variable beta : radix.
@@ -839,6 +891,9 @@ Notation format := (generic_format beta fexp).
 
 Definition inbetween_float m e x l :=
   inbetween (F2R (Float beta m e)) (F2R (Float beta (m + 1) e)) x l.
+
+Definition inbetween_int m x l :=
+  inbetween (Z2R m) (Z2R (m + 1)) x l.
 
 Theorem inbetween_float_new_location :
   forall x m e l,
@@ -874,29 +929,55 @@ apply Zlt_gt.
 now apply Zlt_le_trans with (2 := radix_prop beta).
 Qed.
 
+Theorem inbetween_float_rounding :
+  forall rnd choice,
+  ( forall x m l, inbetween_int m x l -> Zrnd rnd x = choice m l ) ->
+  forall x m l,
+  let e := canonic_exponent beta fexp x in
+  inbetween_float m e x l ->
+  rounding beta fexp rnd x = F2R (Float beta (choice m l) e).
+Proof.
+intros rnd choice Hc x m l e Hl.
+unfold rounding, F2R. simpl.
+apply (f_equal (fun m => (Z2R m * bpow e)%R)).
+apply Hc.
+apply inbetween_mult_reg with (bpow e).
+apply bpow_gt_0.
+now rewrite scaled_mantissa_bpow.
+Qed.
+
+Theorem inbetween_float_rounding_pos :
+  forall rnd choice,
+  ( forall x m l, (0 < x)%R -> inbetween_int m x l -> Zrnd rnd x = choice m l ) ->
+  forall x m l, (0 < x)%R ->
+  let e := canonic_exponent beta fexp x in
+  inbetween_float m e x l ->
+  rounding beta fexp rnd x = F2R (Float beta (choice m l) e).
+Proof.
+intros rnd choice Hc x m l Hx e Hl.
+unfold rounding, F2R. simpl.
+apply (f_equal (fun m => (Z2R m * bpow e)%R)).
+apply Hc.
+apply Rmult_lt_0_compat.
+exact Hx.
+apply bpow_gt_0.
+apply inbetween_mult_reg with (bpow e).
+apply bpow_gt_0.
+now rewrite scaled_mantissa_bpow.
+Qed.
+
 Theorem inbetween_float_DN :
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float m e x l ->
-  F2R (Float beta m e) = rounding beta fexp ZrndDN x.
+  rounding beta fexp ZrndDN x = F2R (Float beta m e).
 Proof.
-intros x m l e Hl.
-assert (Hb: (F2R (Float beta m e) <= x < F2R (Float beta (m + 1) e))%R).
-apply inbetween_bounds_strict with (2 := Hl).
-apply F2R_lt_compat.
-apply Zlt_succ.
-replace m with (Zfloor (x * bpow (- e))).
-apply refl_equal.
+apply inbetween_float_rounding with (choice := fun m l => m).
+intros x m l Hl.
 apply Zfloor_imp.
-split.
-apply Rmult_le_reg_r with (bpow e).
-apply bpow_gt_0.
-rewrite Rmult_assoc, <- bpow_add, Zplus_opp_l, Rmult_1_r.
-apply Hb.
-apply Rmult_lt_reg_r with (bpow e).
-apply bpow_gt_0.
-rewrite Rmult_assoc, <- bpow_add, Zplus_opp_l, Rmult_1_r.
-apply Hb.
+apply inbetween_bounds_strict with (2 := Hl).
+apply Z2R_lt.
+apply Zlt_succ.
 Qed.
 
 Definition cond_incr (b : bool) m := if b then (m + 1)%Z else m.
@@ -911,47 +992,27 @@ Theorem inbetween_float_UP :
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float m e x l ->
-  F2R (Float beta (cond_incr (round_UP l) m) e) = rounding beta fexp ZrndUP x.
+  rounding beta fexp ZrndUP x = F2R (Float beta (cond_incr (round_UP l) m) e).
 Proof.
-intros x m l e Hl.
-assert (Hl': l = loc_Eq \/ l <> loc_Eq).
-case l ; try (now left) ; now right.
-destruct Hl' as [Hl'|Hl'].
+apply inbetween_float_rounding with (choice := fun m l => cond_incr (round_UP l) m).
+intros x m l Hl.
+assert (Hl': l = loc_Eq \/ (l <> loc_Eq /\ round_UP l = true)).
+case l ; try (now left) ; now right ; split.
+destruct Hl' as [Hl'|(Hl1, Hl2)].
 (* loc_Eq *)
-rewrite Hl' in Hl.
-inversion_clear Hl.
-rewrite H, Hl'.
-simpl.
-rewrite rounding_generic.
-apply refl_equal.
-apply generic_format_canonic.
-unfold canonic.
-now rewrite <- H.
+rewrite Hl'.
+destruct Hl ; try easy.
+rewrite H.
+apply Zceil_Z2R.
 (* not loc_Eq *)
-replace (round_UP l) with true.
+rewrite Hl2.
 simpl.
-assert (Hb: (F2R (Float beta m e) < x < F2R (Float beta (m + 1) e))%R).
-apply inbetween_bounds_strict_not_Eq with (2 := Hl).
-apply F2R_lt_compat.
-apply Zlt_succ.
-exact Hl'.
-replace (m + 1)%Z with (Zceil (x * bpow (- e))).
-apply refl_equal.
 apply Zceil_imp.
 ring_simplify (m + 1 - 1)%Z.
-split.
-apply Rmult_lt_reg_r with (bpow e).
-apply bpow_gt_0.
-rewrite Rmult_assoc, <- bpow_add, Zplus_opp_l, Rmult_1_r.
-apply Hb.
-apply Rlt_le.
-apply Rmult_lt_reg_r with (bpow e).
-apply bpow_gt_0.
-rewrite Rmult_assoc, <- bpow_add, Zplus_opp_l, Rmult_1_r.
-apply Hb.
-clear -Hl'.
-destruct l ; try easy.
-now elim Hl'.
+refine (let H := _ in conj (proj1 H) (Rlt_le _ _ (proj2 H))).
+apply inbetween_bounds_strict_not_Eq with (3 := Hl1) (2 := Hl).
+apply Z2R_lt.
+apply Zlt_succ.
 Qed.
 
 Definition round_NE (p : bool) l :=
@@ -976,7 +1037,7 @@ unfold round_NE.
 generalize (inbetween_float_UP _ _ _ Hl).
 fold e in Hd |- *.
 assert (Hd': Rnd_DN_pt format x (F2R (Float beta m e))).
-rewrite Hd.
+rewrite <- Hd.
 now apply generic_DN_pt.
 assert (Hu': Rnd_UP_pt format x (rounding beta fexp ZrndUP x)).
 now apply generic_UP_pt.
@@ -985,51 +1046,51 @@ destruct l ; simpl ; intros Hu.
 inversion_clear Hl.
 rewrite H.
 apply Rnd_NG_pt_refl.
-rewrite Hd.
+rewrite <- Hd.
 now apply generic_format_rounding.
 (* loc_Lo *)
 split.
-rewrite <- Hu in Hu'.
+rewrite Hu in Hu'.
 now apply (Rnd_N_pt_bracket_not_Hi _ _ _ _ Hd' Hu' loc_Lo).
 right.
 intros g Hg.
 destruct (generic_N_pt_DN_or_UP _ _ prop_exp _ _ Hg) as [H|H].
-now rewrite Hd.
+now rewrite <- Hd.
 rewrite H in Hg.
 elim (Rnd_not_N_pt_bracket_Lo _ _ _ _ Hd' Hl).
-now rewrite Hu.
+now rewrite <- Hu.
 (* loc_Mi *)
 assert (Hm: (0 <= m)%Z).
 apply Zlt_succ_le.
 apply F2R_gt_0_reg with beta e.
 apply Rlt_le_trans with (1 := Hx).
 unfold Zsucc.
-rewrite Hu.
+rewrite <- Hu.
 apply (generic_UP_pt beta fexp prop_exp x).
 destruct (Z_le_lt_eq_dec _ _ Hm) as [Hm'|Hm'].
 (* - 0 < m *)
 assert (Hcd : canonic beta fexp (Float beta m e)).
 unfold canonic.
 apply sym_eq.
-rewrite Hd.
-apply canonic_exponent_DN ; try easy.
 rewrite <- Hd.
+apply canonic_exponent_DN ; try easy.
+rewrite Hd.
 now apply F2R_gt_0_compat.
 case_eq (Zeven m) ; intros Heo.
 split.
 apply (Rnd_N_pt_bracket_not_Hi _ _ _ _ Hd' Hu' loc_Mi).
 easy.
-now rewrite <- Hu.
+now rewrite Hu.
 left.
 now eexists ; repeat split.
 split.
-rewrite <- Hu in Hu'.
+rewrite Hu in Hu'.
 apply (Rnd_N_pt_bracket_Mi_Hi _ _ _ _ Hd' Hu' loc_Mi).
 now left.
 exact Hl.
 left.
 generalize (proj1 Hu').
-rewrite <- Hu.
+rewrite Hu.
 unfold generic_format.
 fold e.
 set (cu := Float beta (Ztrunc (scaled_mantissa beta fexp (F2R (Float beta (m + 1) e))))
@@ -1056,7 +1117,7 @@ case_eq (Zeven m) ; intros Heo.
 split.
 apply (Rnd_N_pt_bracket_not_Hi _ _ _ _ Hd' Hu' loc_Mi).
 easy.
-now rewrite <- Hu.
+now rewrite Hu.
 left.
 rewrite <- Hm', F2R_0.
 exists (Float beta 0 (canonic_exponent beta fexp 0)).
@@ -1066,7 +1127,7 @@ repeat split.
 now rewrite <- Hm' in Heo.
 (* loc_Hi *)
 split.
-rewrite <- Hu in Hu'.
+rewrite Hu in Hu'.
 apply (Rnd_N_pt_bracket_Mi_Hi _ _ _ _ Hd' Hu' loc_Hi).
 now right.
 exact Hl.
@@ -1074,9 +1135,9 @@ right.
 intros g Hg.
 destruct (generic_N_pt_DN_or_UP _ _ prop_exp _ _ Hg) as [H|H].
 rewrite H in Hg.
-rewrite <- Hu in Hu'.
+rewrite Hu in Hu'.
 elim (Rnd_not_N_pt_bracket_Hi _ _ _ _ Hu' Hl).
-now rewrite Hd.
+now rewrite <- Hd.
 now rewrite H.
 Qed.
 
