@@ -5,10 +5,6 @@ Section Fcalc_digits.
 Variable beta : radix.
 Notation bpow e := (bpow beta e).
 
-Variable fexp : Z -> Z.
-Hypothesis prop_exp : valid_exp fexp.
-Notation format := (generic_format beta fexp).
-
 Fixpoint digits2_Pnat (n : positive) : nat :=
   match n with
   | xH => O

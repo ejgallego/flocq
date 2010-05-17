@@ -7,18 +7,14 @@ Section Fcalc_div.
 Variable beta : radix.
 Notation bpow e := (bpow beta e).
 
-Variable fexp : Z -> Z.
-Hypothesis prop_exp : valid_exp fexp.
-Notation format := (generic_format beta fexp).
-
 (*
  * 1. Shift dividend mantissa so that it has at least p2 + p digits.
  * 2. Perform the euclidean division.
  * 3. Compute position with remainder.
- * 4. Round to p digits.
  *
  * Complexity is fine as long as p1 <= 2p and p2 <= p.
  *)
+
 Definition Fdiv_aux prec m1 e1 m2 e2 :=
   let d1 := digits beta m1 in
   let d2 := digits beta m2 in
