@@ -15,6 +15,7 @@ FILES = \
 	Calc/Fcalc_digits.v \
 	Calc/Fcalc_div.v \
 	Calc/Fcalc_ops.v \
+	Calc/Fcalc_round_FIX.v \
 	Calc/Fcalc_sqrt.v \
 	Prop/Fprop_nearest.v
 
