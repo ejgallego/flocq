@@ -215,27 +215,42 @@ apply iff_sym.
 now apply FIX_format_generic.
 Qed.
 
-Theorem Rnd_NE_pt_FLT :
-  Zeven (radix_val beta) = false \/ (1 < prec)%Z ->
-  rounding_pred (Rnd_NE_pt beta FLT_exp).
+Hypothesis NE_prop : Zeven (radix_val beta) = false \/ (1 < prec)%Z.
+
+Theorem NE_ex_prop_FLT :
+  NE_ex_prop beta FLT_exp.
 Proof.
-intros H.
-apply Rnd_NE_pt_rounding.
-apply FLT_exp_correct.
-destruct H.
+destruct NE_prop as [H|H].
 now left.
 right.
 intros e.
 unfold FLT_exp.
-destruct (Zmax_spec (e - prec) emin) as [(H1,H2)|(H1,H2)].
-rewrite H2.
+destruct (Zmax_spec (e - prec) emin) as [(H1,H2)|(H1,H2)] ;
+  rewrite H2 ; clear H2.
 generalize (Zmax_spec (e + 1 - prec) emin).
 generalize (Zmax_spec (e - prec + 1 - prec) emin).
 omega.
-rewrite H2.
 generalize (Zmax_spec (e + 1 - prec) emin).
 generalize (Zmax_spec (emin + 1 - prec) emin).
 omega.
+Qed.
+
+Theorem generic_NE_pt_FLT :
+  forall x,
+  Rnd_NE_pt beta FLT_exp x (rounding beta FLT_exp ZrndNE x).
+Proof.
+intros x.
+apply generic_NE_pt.
+apply FLT_exp_correct.
+apply NE_ex_prop_FLT.
+Qed.
+
+Theorem Rnd_NE_pt_FLT :
+  rounding_pred (Rnd_NE_pt beta FLT_exp).
+Proof.
+apply Rnd_NE_pt_rounding.
+apply FLT_exp_correct.
+apply NE_ex_prop_FLT.
 Qed.
 
 End RND_FLT.

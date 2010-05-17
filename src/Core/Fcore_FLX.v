@@ -222,17 +222,34 @@ now apply <- FLX_format_FLXN.
 exact FLX_exp_correct.
 Qed.
 
-Theorem Rnd_NE_pt_FLX :
-  Zeven (radix_val beta) = false \/ (1 < prec)%Z ->
-  rounding_pred (Rnd_NE_pt beta FLX_exp).
+Hypothesis NE_prop : Zeven (radix_val beta) = false \/ (1 < prec)%Z.
+
+Theorem NE_ex_prop_FLX :
+  NE_ex_prop beta FLX_exp.
 Proof.
-intros H.
-apply Rnd_NE_pt_rounding.
-apply FLX_exp_correct.
-destruct H.
+destruct NE_prop as [H|H].
 now left.
 right.
-unfold FLX_exp ; split ; omega.
+unfold FLX_exp.
+split ; omega.
+Qed.
+
+Theorem generic_NE_pt_FLX :
+  forall x,
+  Rnd_NE_pt beta FLX_exp x (rounding beta FLX_exp ZrndNE x).
+Proof.
+intros x.
+apply generic_NE_pt.
+apply FLX_exp_correct.
+apply NE_ex_prop_FLX.
+Qed.
+
+Theorem Rnd_NE_pt_FLX :
+  rounding_pred (Rnd_NE_pt beta FLX_exp).
+Proof.
+apply Rnd_NE_pt_rounding.
+apply FLX_exp_correct.
+apply NE_ex_prop_FLX.
 Qed.
 
 End RND_FLX.
