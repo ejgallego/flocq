@@ -425,6 +425,33 @@ elim (Rlt_irrefl x).
 now apply Rlt_trans with y.
 Qed.
 
+Theorem Rcompare_Lt_inv :
+  forall x y,
+  Rcompare x y = Lt -> (x < y)%R.
+Proof.
+intros x y.
+now case Rcompare_spec.
+Qed.
+
+Theorem Rcompare_not_Lt :
+  forall x y,
+  (y <= x)%R -> Rcompare x y <> Lt.
+Proof.
+intros x y H1 H2.
+apply Rle_not_lt with (1 := H1).
+now apply Rcompare_Lt_inv.
+Qed.
+
+Theorem Rcompare_not_Lt_inv :
+  forall x y,
+  Rcompare x y <> Lt -> (y <= x)%R.
+Proof.
+intros x y H.
+apply Rnot_lt_le.
+contradict H.
+now apply Rcompare_Lt.
+Qed.
+
 Theorem Rcompare_Eq :
   forall x y,
   x = y -> Rcompare x y = Eq.
@@ -455,6 +482,33 @@ elim (Rlt_irrefl _ H).
 easy.
 Qed.
 
+Theorem Rcompare_Gt_inv :
+  forall x y,
+  Rcompare x y = Gt -> (y < x)%R.
+Proof.
+intros x y.
+now case Rcompare_spec.
+Qed.
+
+Theorem Rcompare_not_Gt :
+  forall x y,
+  (x <= y)%R -> Rcompare x y <> Gt.
+Proof.
+intros x y H1 H2.
+apply Rle_not_lt with (1 := H1).
+now apply Rcompare_Gt_inv.
+Qed.
+
+Theorem Rcompare_not_Gt_inv :
+  forall x y,
+  Rcompare x y <> Gt -> (x <= y)%R.
+Proof.
+intros x y H.
+apply Rnot_lt_le.
+contradict H.
+now apply Rcompare_Gt.
+Qed.
+
 Theorem Rcompare_Z2R :
   forall x y, Rcompare (Z2R x) (Z2R y) = Zcompare x y.
 Proof.
@@ -477,6 +531,91 @@ destruct (Rcompare_spec y x) as [H|H|H].
 now apply Rcompare_Gt.
 now apply Rcompare_Eq.
 now apply Rcompare_Lt.
+Qed.
+
+Theorem Rcompare_plus_r :
+  forall z x y,
+  Rcompare (x + z) (y + z) = Rcompare x y.
+Proof.
+intros z x y.
+destruct (Rcompare_spec x y) as [H|H|H].
+apply Rcompare_Lt.
+now apply Rplus_lt_compat_r.
+apply Rcompare_Eq.
+now rewrite H.
+apply Rcompare_Gt.
+now apply Rplus_lt_compat_r.
+Qed.
+
+Theorem Rcompare_plus_l :
+  forall z x y,
+  Rcompare (z + x) (z + y) = Rcompare x y.
+Proof.
+intros z x y.
+rewrite 2!(Rplus_comm z).
+apply Rcompare_plus_r.
+Qed.
+
+Theorem Rcompare_mult_r :
+  forall z x y,
+  (0 < z)%R ->
+  Rcompare (x * z) (y * z) = Rcompare x y.
+Proof.
+intros z x y Hz.
+destruct (Rcompare_spec x y) as [H|H|H].
+apply Rcompare_Lt.
+now apply Rmult_lt_compat_r.
+apply Rcompare_Eq.
+now rewrite H.
+apply Rcompare_Gt.
+now apply Rmult_lt_compat_r.
+Qed.
+
+Theorem Rcompare_mult_l :
+  forall z x y,
+  (0 < z)%R ->
+  Rcompare (z * x) (z * y) = Rcompare x y.
+Proof.
+intros z x y.
+rewrite 2!(Rmult_comm z).
+apply Rcompare_mult_r.
+Qed.
+
+Theorem Rcompare_middle :
+  forall x d u,
+  Rcompare (x - d) (u - x) = Rcompare x ((d + u) / 2).
+Proof.
+intros x d u.
+rewrite <- (Rcompare_plus_r (- x / 2 - d / 2) x).
+rewrite <- (Rcompare_mult_r (/2) (x - d)).
+field_simplify (x + (- x / 2 - d / 2))%R.
+now field_simplify ((d + u) / 2 + (- x / 2 - d / 2))%R.
+apply Rinv_0_lt_compat.
+now apply (Z2R_lt 0 2).
+Qed.
+
+Theorem Rcompare_half_l :
+  forall x y, Rcompare (x / 2) y = Rcompare x (2 * y).
+Proof.
+intros x y.
+rewrite <- (Rcompare_mult_r 2%R).
+unfold Rdiv.
+rewrite Rmult_assoc, Rinv_l, Rmult_1_r.
+now rewrite Rmult_comm.
+now apply (Z2R_neq 2 0).
+now apply (Z2R_lt 0 2).
+Qed.
+
+Theorem Rcompare_half_r :
+  forall x y, Rcompare x (y / 2) = Rcompare (2 * x) y.
+Proof.
+intros x y.
+rewrite <- (Rcompare_mult_r 2%R).
+unfold Rdiv.
+rewrite Rmult_assoc, Rinv_l, Rmult_1_r.
+now rewrite Rmult_comm.
+now apply (Z2R_neq 2 0).
+now apply (Z2R_lt 0 2).
 Qed.
 
 End Rcompare.
