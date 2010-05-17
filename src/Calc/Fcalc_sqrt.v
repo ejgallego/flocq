@@ -131,14 +131,14 @@ Definition Fsqrt_aux prec m e :=
   let l :=
     if Zeq_bool r 0 then loc_Exact
     else loc_Inexact (if Zle_bool r q then Lt else Gt) in
-  (q, e'', l).
+  (q, Zdiv2 e'', l).
 
 Theorem Fsqrt_aux_correct :
   forall prec m e,
   (0 < m)%Z ->
   let '(m', e', l) := Fsqrt_aux prec m e in
   (prec <= digits beta m')%Z /\
-  inbetween_float beta m' (Zdiv2 e') (sqrt (F2R (Float beta m e))) l.
+  inbetween_float beta m' e' (sqrt (F2R (Float beta m e))) l.
 Proof.
 intros prec m e Hm.
 unfold Fsqrt_aux.
