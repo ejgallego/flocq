@@ -609,18 +609,25 @@ Definition inbetween_int m x l :=
   inbetween (Z2R m) (Z2R (m + 1)) x l.
 
 Theorem inbetween_float_new_location :
-  forall x m e l,
+  forall x m e l k,
+  (0 < k)%Z ->
   inbetween_float m e x l ->
-  inbetween_float (Zdiv m (radix_val beta)) (e + 1) x (new_location (radix_val beta) (Zmod m (radix_val beta)) l).
+  inbetween_float (Zdiv m (Zpower (radix_val beta) k)) (e + k) x (new_location (Zpower (radix_val beta) k) (Zmod m (Zpower (radix_val beta) k)) l).
 Proof.
-intros x m e l Hx.
+intros x m e l k Hk Hx.
 unfold inbetween_float in *.
-assert (Hr: forall m, F2R (Float beta m (e + 1)) = F2R (Float beta (m * radix_val beta) e)).
-clear. intros m.
-rewrite (F2R_change_exp beta e). 2: apply Zle_succ.
-apply (f_equal (fun r => F2R (Float beta (m * r) e))).
-replace (e + 1 - e)%Z with 1%Z by ring.
-apply Zmult_1_r.
+assert (Hr: forall m, F2R (Float beta m (e + k)) = F2R (Float beta (m * Zpower (radix_val beta) k) e)).
+clear -Hk. intros m.
+rewrite (F2R_change_exp beta e).
+apply (f_equal (fun r => F2R (Float beta (m * Zpower _ r) e))).
+ring.
+omega.
+assert (Hp: (Zpower (radix_val beta) k > 0)%Z).
+apply Zlt_gt.
+apply Zpower_gt_0.
+generalize (radix_prop beta).
+omega.
+now apply Zlt_le_weak.
 (* . *)
 rewrite 2!Hr.
 rewrite Zmult_plus_distr_l, Zmult_1_l.
@@ -628,18 +635,22 @@ unfold F2R at 2. simpl.
 rewrite plus_Z2R, Rmult_plus_distr_r.
 apply new_location_correct.
 apply bpow_gt_0.
-apply Zgt_lt.
-apply Zlt_succ_gt.
-apply beta.
-apply Z_mod_lt.
-apply Zlt_gt.
-now apply Zlt_le_trans with (2 := radix_prop beta).
+now apply Zpower_gt_1.
+now apply Z_mod_lt.
 rewrite <- 2!Rmult_plus_distr_r, <- 2!plus_Z2R.
 rewrite Zmult_comm, Zplus_assoc.
-rewrite <- Z_div_mod_eq.
-exact Hx.
-apply Zlt_gt.
-now apply Zlt_le_trans with (2 := radix_prop beta).
+now rewrite <- Z_div_mod_eq.
+Qed.
+
+Theorem inbetween_float_new_location_single :
+  forall x m e l,
+  inbetween_float m e x l ->
+  inbetween_float (Zdiv m (radix_val beta)) (e + 1) x (new_location (radix_val beta) (Zmod m (radix_val beta)) l).
+Proof.
+intros x m e l Hx.
+replace (radix_val beta) with (Zpower (radix_val beta) 1).
+now apply inbetween_float_new_location.
+apply Zmult_1_r.
 Qed.
 
 Theorem inbetween_float_rounding :
