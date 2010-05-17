@@ -23,7 +23,7 @@ Theorem round_FIX_correct :
   (e <= emin)%Z \/ l = loc_Exact ->
   let '(m', e', l') := round_FIX (m, e, l) in
   inbetween_float beta m' e' x l' /\
-  (e' = canonic_exponent beta (FIX_exp emin) x \/ (l = loc_Exact /\ format x)).
+  (e' = canonic_exponent beta (FIX_exp emin) x \/ (l' = loc_Exact /\ format x)).
 Proof.
 intros x m e l H1 H2.
 unfold round_FIX.
