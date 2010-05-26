@@ -18,7 +18,8 @@ FILES = \
 	Calc/Fcalc_round.v \
 	Calc/Fcalc_round_FIX.v \
 	Calc/Fcalc_sqrt.v \
-	Prop/Fprop_nearest.v
+	Prop/Fprop_nearest.v \
+	Prop/Fprop_Sterbenz.v
 
 data_DATA = $(FILES:=o)
 EXTRA_DIST = $(FILES)
