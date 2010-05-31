@@ -20,6 +20,7 @@ FILES = \
 	Calc/Fcalc_sqrt.v \
 	Prop/Fprop_mult_error.v \
 	Prop/Fprop_nearest.v \
+	Prop/Fprop_plus_error.v \
 	Prop/Fprop_Sterbenz.v
 
 data_DATA = $(FILES:=o)
