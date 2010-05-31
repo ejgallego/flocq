@@ -1331,9 +1331,9 @@ apply ln_beta_unique.
 now rewrite Rabs_Ropp.
 Qed.
 
-Theorem ln_beta_monotone :
+Theorem ln_beta_monotone_abs :
   forall x y,
-  (0 < x)%R -> (x <= y)%R ->
+  (x <> 0)%R -> (Rabs x <= Rabs y)%R ->
   (projT1 (ln_beta x) <= projT1 (ln_beta y))%Z.
 Proof.
 intros x y H0x Hxy.
@@ -1341,10 +1341,25 @@ destruct (ln_beta x) as (ex, Hx).
 destruct (ln_beta y) as (ey, Hy).
 simpl.
 apply bpow_lt_bpow.
-specialize (Hx (Rgt_not_eq _ _ H0x)).
-specialize (Hy (Rgt_not_eq _ _ (Rlt_le_trans _ _ _ H0x Hxy))).
+specialize (Hx H0x).
 apply Rle_lt_trans with (1 := proj1 Hx).
-apply Rle_lt_trans with (2 := proj2 Hy).
+apply Rle_lt_trans with (1 := Hxy).
+apply Hy.
+intros Hy'.
+apply Rlt_not_le with (1 := Rabs_pos_lt _ H0x).
+apply Rle_trans with (1 := Hxy).
+rewrite Hy', Rabs_R0.
+apply Rle_refl.
+Qed.
+
+Theorem ln_beta_monotone :
+  forall x y,
+  (0 < x)%R -> (x <= y)%R ->
+  (projT1 (ln_beta x) <= projT1 (ln_beta y))%Z.
+Proof.
+intros x y H0x Hxy.
+apply ln_beta_monotone_abs.
+now apply Rgt_not_eq.
 rewrite 2!Rabs_pos_eq.
 exact Hxy.
 apply Rle_trans with (2 := Hxy).
