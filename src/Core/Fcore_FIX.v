@@ -66,4 +66,11 @@ right.
 split ; easy.
 Qed.
 
+Theorem FIX_not_FTZ :
+  not_FTZ_prop FIX_exp.
+Proof.
+intros e.
+apply Zle_refl.
+Qed.
+
 End RND_FIX.

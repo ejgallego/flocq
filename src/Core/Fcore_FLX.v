@@ -222,6 +222,14 @@ now apply <- FLX_format_FLXN.
 exact FLX_exp_correct.
 Qed.
 
+Theorem FLX_not_FTZ :
+  not_FTZ_prop FLX_exp.
+Proof.
+intros e.
+unfold FLX_exp.
+omega.
+Qed.
+
 Hypothesis NE_prop : Zeven (radix_val beta) = false \/ (1 < prec)%Z.
 
 Theorem NE_ex_prop_FLX :

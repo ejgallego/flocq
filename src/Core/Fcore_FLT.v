@@ -215,6 +215,19 @@ apply iff_sym.
 now apply FIX_format_generic.
 Qed.
 
+Theorem FLT_not_FTZ :
+  not_FTZ_prop FLT_exp.
+Proof.
+intros e.
+unfold FLT_exp.
+destruct (Zmax_spec (e - prec) emin) as [(H1,H2)|(H1,H2)] ;
+  rewrite H2 ; clear H2.
+generalize (Zmax_spec (e - prec + 1 - prec) emin).
+omega.
+generalize (Zmax_spec (emin + 1 - prec) emin).
+omega.
+Qed.
+
 Hypothesis NE_prop : Zeven (radix_val beta) = false \/ (1 < prec)%Z.
 
 Theorem NE_ex_prop_FLT :

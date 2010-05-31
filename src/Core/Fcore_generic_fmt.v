@@ -876,7 +876,8 @@ apply Rnd_UP_pt_unicity with (1 := H).
 apply generic_UP_pt.
 Qed.
 
-Hypothesis not_FTZ : forall e, (fexp (fexp e + 1) <= fexp e)%Z.
+Definition not_FTZ_prop := forall e, (fexp (fexp e + 1) <= fexp e)%Z.
+Hypothesis not_FTZ : not_FTZ_prop.
 
 Theorem subnormal_exponent :
   forall e x,
