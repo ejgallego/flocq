@@ -552,6 +552,46 @@ Qed.
 
 End Fcore_generic_rounding_pos.
 
+Section Zrounding_opp.
+
+Variable rnd : Zrounding.
+
+Definition Zrnd_opp x := Zopp (Zrnd rnd (-x)).
+
+Lemma Zrnd_opp_le :
+  forall x y, (x <= y)%R -> (Zrnd_opp x <= Zrnd_opp y)%Z.
+Proof.
+intros x y Hxy.
+unfold Zrnd_opp.
+generalize (Zrnd_monotone rnd _ _ (Ropp_le_contravar _ _ Hxy)).
+omega.
+Qed.
+
+Lemma Zrnd_opp_Z2R :
+  forall n, Zrnd_opp (Z2R n) = n.
+Proof.
+intros n.
+unfold Zrnd_opp.
+rewrite <- opp_Z2R, Zrnd_Z2R.
+apply Zopp_involutive.
+Qed.
+
+Definition Zrounding_opp := mkZrounding Zrnd_opp Zrnd_opp_le Zrnd_opp_Z2R.
+
+Theorem rounding_opp :
+  forall x,
+  rounding rnd (- x) = Ropp (rounding Zrounding_opp x).
+Proof.
+intros x.
+unfold rounding.
+rewrite opp_F2R, canonic_exponent_opp, scaled_mantissa_opp.
+apply (f_equal (fun m => F2R (Float beta m _))).
+apply sym_eq.
+exact (Zopp_involutive _).
+Qed.
+
+End Zrounding_opp.
+
 Definition ZrndDN := mkZrounding Zfloor Zfloor_le Zfloor_Z2R.
 Definition ZrndUP := mkZrounding Zceil Zceil_le Zceil_Z2R.
 
