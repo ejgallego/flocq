@@ -836,4 +836,32 @@ apply Rnd_UP_pt_unicity with (1 := H).
 apply generic_UP_pt.
 Qed.
 
+Hypothesis not_FTZ : forall e, (fexp (fexp e + 1) <= fexp e)%Z.
+
+Theorem subnormal_exponent :
+  forall e x,
+  (e <= fexp e)%Z ->
+  generic_format x ->
+  x = F2R (Float beta (Ztrunc (x * bpow (- fexp e))) (fexp e)).
+Proof.
+intros e x He Hx.
+pattern x at 2 ; rewrite Hx.
+unfold F2R at 2. simpl.
+rewrite Rmult_assoc, <- bpow_add.
+assert (H: Z2R (Zpower (radix_val beta) (canonic_exponent x + - fexp e)) = bpow (canonic_exponent x + - fexp e)).
+apply Z2R_Zpower.
+unfold canonic_exponent.
+set (ex := projT1 (ln_beta beta x)).
+generalize (not_FTZ ex).
+generalize (proj2 (proj2 (prop_exp _) He) (fexp ex + 1)%Z).
+omega.
+rewrite <- H.
+rewrite <- mult_Z2R, Ztrunc_Z2R.
+unfold F2R. simpl.
+rewrite mult_Z2R.
+rewrite H.
+rewrite Rmult_assoc, <- bpow_add.
+now ring_simplify (canonic_exponent x + - fexp e + fexp e)%Z.
+Qed.
+
 End RND_generic.
