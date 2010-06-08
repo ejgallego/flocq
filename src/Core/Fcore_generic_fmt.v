@@ -665,6 +665,31 @@ now rewrite <- Hx.
 apply bpow_ge_0.
 Qed.
 
+Theorem rounding_abs_abs :
+  forall P : R -> R -> Prop,
+  ( forall rnd x, P x (rounding rnd x) ) ->
+  forall rnd x, P (Rabs x) (Rabs (rounding rnd x)).
+Proof.
+intros P HP rnd x.
+destruct (Rle_or_lt 0 x) as [Hx|Hx].
+(* . *)
+rewrite 2!Rabs_pos_eq.
+apply HP.
+rewrite <- (rounding_0 rnd).
+now apply rounding_monotone.
+exact Hx.
+(* . *)
+rewrite (Rabs_left _ Hx).
+rewrite Rabs_left1.
+pattern x at 2 ; rewrite <- Ropp_involutive.
+rewrite rounding_opp.
+rewrite Ropp_involutive.
+apply HP.
+rewrite <- (rounding_0 rnd).
+apply rounding_monotone.
+now apply Rlt_le.
+Qed.
+
 Theorem rounding_DN_opp :
   forall x,
   rounding ZrndDN (-x) = (- rounding ZrndUP x)%R.
