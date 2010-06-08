@@ -82,15 +82,14 @@ apply Rle_0_minus.
 apply (generic_UP_pt beta fexp prop_exp x).
 Qed.
 
-Theorem ulp_half_error_pt :
-  forall x xr,
-  Rnd_N_pt F x xr ->
-  (Rabs (xr - x) <= /2 * ulp x)%R.
+Theorem ulp_half_error :
+  forall choice x,
+  (Rabs (rounding beta fexp (ZrndN choice) x - x) <= /2 * ulp x)%R.
 Proof.
-intros x xr Hxr.
+intros choice x.
 destruct (generic_format_EM beta fexp prop_exp x) as [Hx|Hx].
 (* x = rnd x *)
-rewrite Rnd_N_pt_idempotent with (1 := Hxr).
+rewrite rounding_generic.
 unfold Rminus.
 rewrite Rplus_opp_r, Rabs_R0.
 apply Rmult_le_pos.
@@ -101,7 +100,7 @@ apply bpow_ge_0.
 exact Hx.
 (* x <> rnd x *)
 set (d := rounding beta fexp ZrndDN x).
-destruct Hxr as (Hr1, Hr2).
+destruct (generic_N_pt beta fexp prop_exp choice x) as (Hr1, Hr2).
 destruct (Rle_or_lt (x - d) (d + ulp x - x)) as [H|H].
 (* . rnd(x) = rndd(x) *)
 apply Rle_trans with (Rabs (d - x)).
