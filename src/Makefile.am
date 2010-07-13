@@ -24,7 +24,6 @@ FILES = \
 	Prop/Fprop_relative.v \
 	Prop/Fprop_Sterbenz.v
 
-data_DATA = $(FILES:=o)
 EXTRA_DIST = $(FILES)
 CLEANFILES = $(FILES:=o) $(FILES:=d) $(FILES:.v=.glob)
 
@@ -39,5 +38,25 @@ datadir = $(libdir)
 	@$(COQDEP) -I Core -I Calc $< > $@
 
 SUFFIXES = .v .vo .vd
+
+install-data-local:
+	@$(NORMAL_INSTALL)
+	@test -z "$(datadir)" || \
+	for p in Core Calc Prop; do \
+	  $(MKDIR_P) "$(DESTDIR)$(datadir)/$$p"; \
+	done
+	@list='$(FILES:=o)'; test -n "$(datadir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p" "$(DESTDIR)$(datadir)/$$p"; \
+	done | \
+	while read src dst; do \
+	  echo " $(INSTALL_DATA) $$src $$dst"; \
+	  $(INSTALL_DATA) "$$src" "$$dst" || exit $$?; \
+	done
+
+uninstall-local:
+	@$(NORMAL_UNINSTALL)
+	test -z "$(datadir)" || rm -rf "$(DESTDIR)$(datadir)/$$p"
 
 -include $(FILES:=d)
