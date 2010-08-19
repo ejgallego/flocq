@@ -465,6 +465,22 @@ Notation format := (generic_format beta fexp).
 Definition inbetween_float m e x l :=
   inbetween (F2R (Float beta m e)) (F2R (Float beta (m + 1) e)) x l.
 
+Theorem inbetween_float_bounds :
+  forall x m e l,
+  inbetween_float m e x l ->
+  (F2R (Float beta m e) <= x < F2R (Float beta (m + 1) e))%R.
+Proof.
+intros x m e l [Hx|l' Hx Hl].
+rewrite Hx.
+split.
+apply Rle_refl.
+apply F2R_lt_compat.
+apply Zlt_succ.
+split.
+now apply Rlt_le.
+apply Hx.
+Qed.
+
 Definition inbetween_int m x l :=
   inbetween (Z2R m) (Z2R (m + 1)) x l.
 
