@@ -29,6 +29,8 @@ CLEANFILES = $(FILES:=o) $(FILES:=d) $(FILES:.v=.glob)
 
 datadir = $(libdir)
 
+all: $(FILES:=o)
+
 .v.vo:
 	@echo COQC $<
 	@$(COQC) $(COQRFLAG) -dont-load-proofs $<
