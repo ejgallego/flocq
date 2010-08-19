@@ -980,9 +980,45 @@ Qed.
 
 End Even_Odd.
 
+Section Proof_Irrelevance.
+
+Scheme eq_dep_elim := Induction for eq Sort Type.
+
+Definition eqbool_dep P (h1 : P true) b :=
+  match b return P b -> Prop with
+  | true => fun (h2 : P true) => h1 = h2
+  | false => fun (h2 : P false) => False
+  end.
+
+Lemma eqbool_irrelevance : forall (b : bool) (h1 h2 : b = true), h1 = h2.
+Proof.
+assert (forall (h : true = true), refl_equal true = h).
+apply (eq_dep_elim bool true (eqbool_dep _ _) (refl_equal _)).
+intros b.
+case b.
+intros h1 h2.
+now rewrite <- (H h1).
+intros h.
+discriminate h.
+Qed.
+
+End Proof_Irrelevance.
+
 Section pow.
 
 Record radix := { radix_val : Z ; radix_prop : Zle_bool 2 radix_val = true }.
+
+Theorem radix_val_inj :
+  forall r1 r2, radix_val r1 = radix_val r2 -> r1 = r2.
+Proof.
+intros (r1, H1) (r2, H2) H.
+simpl in H.
+revert H1.
+rewrite H.
+intros H1.
+apply f_equal.
+apply eqbool_irrelevance.
+Qed.
 
 Variable r : radix.
 
