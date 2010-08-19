@@ -484,10 +484,7 @@ ring.
 omega.
 assert (Hp: (Zpower (radix_val beta) k > 0)%Z).
 apply Zlt_gt.
-apply Zpower_gt_0.
-generalize (radix_prop beta).
-omega.
-now apply Zlt_le_weak.
+now apply Zpower_gt_0.
 (* . *)
 rewrite 2!Hr.
 rewrite Zmult_plus_distr_l, Zmult_1_l.

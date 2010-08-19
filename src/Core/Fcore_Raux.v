@@ -1393,19 +1393,6 @@ apply powerRZ_lt.
 now apply (Z2R_lt 0).
 Qed.
 
-Theorem Zpower_gt_0 :
-  forall b p,
-  (0 < b)%Z -> (0 <= p)%Z ->
-  (0 < Zpower b p)%Z.
-Proof.
-intros b p Hb Hz.
-unfold Zpower.
-destruct p.
-easy.
-now apply Zpower_pos_gt_0.
-now elim Hz.
-Qed.
-
 Theorem Zpower_gt_1 :
   forall p,
   (0 < p)%Z ->
@@ -1416,6 +1403,17 @@ apply lt_Z2R.
 rewrite Z2R_Zpower.
 now apply -> (bpow_lt 0).
 now apply Zlt_le_weak.
+Qed.
+
+Theorem Zpower_gt_0 :
+  forall p,
+  (0 < p)%Z ->
+  (0 < Zpower (radix_val r) p)%Z.
+Proof.
+intros.
+apply Zlt_trans with 1%Z.
+easy.
+now apply Zpower_gt_1.
 Qed.
 
 Theorem Zpower_Zpower_nat :

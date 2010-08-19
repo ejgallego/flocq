@@ -96,9 +96,7 @@ apply generic_format_0.
 exists (Float beta 0 0).
 split.
 now rewrite F2R_0.
-apply Zpower_gt_0.
-now apply Zlt_le_trans with (2 := radix_prop beta).
-now apply Zlt_le_weak.
+now apply Zpower_gt_0.
 (* . *)
 destruct (ln_beta beta x) as (ex, Hx2).
 simpl.

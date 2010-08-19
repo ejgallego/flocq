@@ -66,10 +66,7 @@ omega.
 split.
 apply Zmult_lt_0_compat.
 exact Hm1.
-apply Zpower_gt_0.
-generalize (radix_prop beta).
-omega.
-easy.
+now apply Zpower_gt_0.
 rewrite digits_shift.
 rewrite Zplus_comm.
 apply Zle_refl.

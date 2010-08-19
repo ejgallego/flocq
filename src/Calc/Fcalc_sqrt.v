@@ -199,10 +199,7 @@ now apply Zlt_not_eq.
 easy.
 apply Zmult_lt_0_compat.
 exact Hm.
-apply Zpower_gt_0.
-generalize (radix_prop beta).
-omega.
-easy.
+now apply Zpower_gt_0.
 now elim He2.
 clearbody m'.
 destruct Hs as (Hs1, (Hs2, Hs3)).
