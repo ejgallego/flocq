@@ -982,16 +982,25 @@ End Even_Odd.
 
 Section pow.
 
-Record radix :=  { radix_val : Z ; radix_prop :  (2 <= radix_val )%Z }.
+Record radix := { radix_val : Z ; radix_prop : Zle_bool 2 radix_val = true }.
 
-Variable r: radix.
+Variable r : radix.
 
-Theorem radix_pos: (0 < Z2R (radix_val r))%R.
+Theorem radix_gt_1 : (1 < radix_val r)%Z.
 Proof.
-destruct r; simpl.
-apply Rle_lt_trans with (Z2R 0).
-right; reflexivity.
-apply Z2R_lt; auto with zarith.
+destruct r as (v, Hr). simpl.
+apply Zlt_le_trans with 2%Z.
+easy.
+now apply Zle_bool_imp_le.
+Qed.
+
+Theorem radix_pos : (0 < Z2R (radix_val r))%R.
+Proof.
+destruct r as (v, Hr). simpl.
+apply (Z2R_lt 0).
+apply Zlt_le_trans with 2%Z.
+easy.
+now apply Zle_bool_imp_le.
 Qed.
 
 Definition bpow e :=
@@ -1033,9 +1042,7 @@ Proof.
 intros.
 rewrite bpow_powerRZ.
 apply powerRZ_le.
-change R0 with (Z2R 0).
-apply Z2R_lt.
-destruct r; simpl; auto with zarith.
+apply radix_pos.
 Qed.
 
 Theorem bpow_gt_0 :
@@ -1044,9 +1051,7 @@ Proof.
 intros.
 rewrite bpow_powerRZ.
 apply powerRZ_lt.
-change R0 with (Z2R 0).
-apply Z2R_lt.
-destruct r; simpl; auto with zarith.
+apply radix_pos.
 Qed.
 
 Theorem bpow_add :
@@ -1055,9 +1060,8 @@ Proof.
 intros.
 repeat rewrite bpow_powerRZ.
 apply powerRZ_add.
-change R0 with (Z2R 0).
-apply Z2R_neq.
-destruct r; simpl; auto with zarith.
+apply Rgt_not_eq.
+apply radix_pos.
 Qed.
 
 Theorem bpow_1 :
@@ -1124,8 +1128,7 @@ intros n _.
 assert (1 < Zpower_nat (radix_val r) 1)%Z.
 unfold Zpower_nat, iter_nat.
 rewrite Zmult_1_r.
-generalize (radix_prop r).
-omega.
+apply radix_gt_1.
 induction n.
 exact H.
 change (S (S n)) with (1 + (S n))%nat.
@@ -1214,9 +1217,7 @@ rewrite <- mult_Z2R.
 apply f_equal.
 unfold Zpower_nat at 1, iter_nat.
 now rewrite Zmult_1_r.
-apply (Z2R_lt 0).
-generalize (radix_prop r).
-omega.
+apply radix_pos.
 (* general case *)
 intros [|e|e].
 rewrite Rmult_0_l.
@@ -1243,9 +1244,8 @@ rewrite exp_0.
 unfold fact.
 rewrite exp_ln.
 apply (Z2R_lt 1).
-now apply Zlt_le_trans with (2 := radix_prop r).
-apply (Z2R_lt 0).
-now apply Zlt_le_trans with (2 := radix_prop r).
+apply radix_gt_1.
+apply radix_pos.
 (* . *)
 exists (Zfloor (ln (Rabs x) / fact) + 1)%Z.
 intros Hx'.

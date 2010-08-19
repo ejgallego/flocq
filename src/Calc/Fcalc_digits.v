@@ -159,6 +159,7 @@ induction (S (digits2_Pnat p)).
 easy.
 change (2 * Zpower_nat 2 n <= radix_val beta * Zpower_nat (radix_val beta) n)%Z.
 apply Zmult_le_compat ; try easy.
+apply Zle_bool_imp_le.
 apply beta.
 now apply Zpower_NR0.
 apply Zle_0_nat.
