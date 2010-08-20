@@ -147,13 +147,10 @@ rewrite inj_S.
 omega.
 apply <- bpow_lt.
 apply Rle_lt_trans with (1 := proj1 He).
-apply Rlt_le_trans with (Z2R (Zpower_nat 2 (S (digits2_Pnat p)))).
+rewrite <- Z2R_Zpower_nat.
 apply Z2R_lt.
+apply Zlt_le_trans with (Zpower_nat 2 (S (digits2_Pnat p))).
 exact (proj2 (digits2_Pnat_correct p)).
-rewrite <- Z2R_Zpower.
-apply Z2R_le.
-rewrite Zpower_Zpower_nat.
-rewrite Zabs_nat_Z_of_nat.
 clear.
 induction (S (digits2_Pnat p)).
 easy.
@@ -162,8 +159,6 @@ apply Zmult_le_compat ; try easy.
 apply Zle_bool_imp_le.
 apply beta.
 now apply Zpower_NR0.
-apply Zle_0_nat.
-apply Zle_0_nat.
 apply Zmult_1_r.
 Qed.
 

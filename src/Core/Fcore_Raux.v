@@ -1128,6 +1128,17 @@ generalize (bpow_gt_0 (Zpos p)).
 simpl; auto with real.
 Qed.
 
+Theorem Z2R_Zpower_nat :
+  forall e : nat,
+  Z2R (Zpower_nat (radix_val r) e) = bpow (Z_of_nat e).
+Proof.
+intros [|e].
+split.
+rewrite <- nat_of_P_o_P_of_succ_nat_eq_succ.
+rewrite <- Zpower_pos_nat.
+now rewrite <- Zpos_eq_Z_of_nat_o_nat_of_P.
+Qed.
+
 Theorem Z2R_Zpower :
   forall e : Z,
   (0 <= e)%Z ->
