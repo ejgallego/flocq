@@ -294,9 +294,9 @@ Qed.
 Section Fcore_generic_rounding_pos.
 
 Record Zrounding := mkZrounding {
-  Zrnd : R -> Z ;
-  Zrnd_monotone : forall x y, (x <= y)%R -> (Zrnd x <= Zrnd y)%Z ;
-  Zrnd_Z2R : forall n, Zrnd (Z2R n) = n
+  Zrnd : R -> Z -> Z ;
+  Zrnd_monotone : forall x y e, (x <= y)%R -> (Zrnd x e <= Zrnd y e)%Z ;
+  Zrnd_Z2R : forall n e, Zrnd (Z2R n) e = n
 }.
 
 Variable rnd : Zrounding.
@@ -305,18 +305,18 @@ Let Zrnd_monotone := Zrnd_monotone rnd.
 Let Zrnd_Z2R := Zrnd_Z2R rnd.
 
 Theorem Zrnd_DN_or_UP :
-  forall x, Zrnd x = Zfloor x \/ Zrnd x = Zceil x.
+  forall x e, Zrnd x e = Zfloor x \/ Zrnd x e = Zceil x.
 Proof.
-intros x.
-destruct (Zle_or_lt (Zrnd x) (Zfloor x)) as [Hx|Hx].
+intros x e.
+destruct (Zle_or_lt (Zrnd x e) (Zfloor x)) as [Hx|Hx].
 left.
 apply Zle_antisym with (1 := Hx).
-rewrite <- (Zrnd_Z2R (Zfloor x)).
+rewrite <- (Zrnd_Z2R (Zfloor x) e).
 apply Zrnd_monotone.
 apply Zfloor_lb.
 right.
 apply Zle_antisym.
-rewrite <- (Zrnd_Z2R (Zceil x)).
+rewrite <- (Zrnd_Z2R (Zceil x) e).
 apply Zrnd_monotone.
 apply Zceil_ub.
 rewrite Zceil_floor_neq.
@@ -328,7 +328,7 @@ apply Zlt_irrefl with (1 := Hx).
 Qed.
 
 Definition rounding x :=
-  F2R (Float beta (Zrnd (scaled_mantissa x)) (canonic_exponent x)).
+  F2R (Float beta (Zrnd (scaled_mantissa x) (canonic_exponent x)) (canonic_exponent x)).
 
 Theorem rounding_monotone_pos :
   forall x y, (0 < x)%R -> (x <= y)%R -> (rounding x <= rounding y)%R.
@@ -365,14 +365,14 @@ apply Zrnd_monotone.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 exact Hxy.
-apply Rle_trans with (F2R (Float beta (Zrnd (bpow (ey - 1) * bpow (- fexp ey))%R) (fexp ey))).
+apply Rle_trans with (F2R (Float beta (Zrnd (bpow (ey - 1) * bpow (- fexp ey)) (fexp ey)) (fexp ey))).
 rewrite <- bpow_add.
 rewrite <- (Z2R_Zpower beta (ey - 1 + -fexp ey)). 2: omega.
 rewrite Zrnd_Z2R.
 destruct (Zle_or_lt ex (fexp ex)) as [Hx1|Hx1].
 apply Rle_trans with (F2R (Float beta 1 (fexp ex))).
 apply F2R_le_compat.
-rewrite <- (Zrnd_Z2R 1).
+rewrite <- (Zrnd_Z2R 1 (fexp ex)).
 apply Zrnd_monotone.
 apply Rlt_le.
 exact (proj2 (mantissa_small_pos _ _ Hex Hx1)).
@@ -381,7 +381,7 @@ rewrite Z2R_Zpower. 2: omega.
 rewrite <- bpow_add, Rmult_1_l.
 apply -> bpow_le.
 omega.
-apply Rle_trans with (F2R (Float beta (Zrnd (bpow ex * bpow (- fexp ex))%R) (fexp ex))).
+apply Rle_trans with (F2R (Float beta (Zrnd (bpow ex * bpow (- fexp ex)) (fexp ex)) (fexp ex))).
 apply F2R_le_compat.
 apply Zrnd_monotone.
 apply Rmult_le_compat_r.
@@ -441,7 +441,7 @@ intros x ex He Hx.
 unfold rounding, scaled_mantissa.
 rewrite (canonic_exponent_fexp_pos _ _ Hx).
 unfold F2R. simpl.
-destruct (Zrnd_DN_or_UP (x * bpow (- fexp ex))) as [Hr|Hr] ; rewrite Hr.
+destruct (Zrnd_DN_or_UP (x * bpow (- fexp ex)) (fexp ex)) as [Hr|Hr] ; rewrite Hr.
 (* DN *)
 split.
 replace (ex - 1)%Z with (ex - 1 + - fexp ex + fexp ex)%Z by ring.
@@ -500,7 +500,7 @@ intros x ex He Hx.
 unfold rounding, scaled_mantissa.
 rewrite (canonic_exponent_fexp_pos _ _ Hx).
 unfold F2R. simpl.
-destruct (Zrnd_DN_or_UP (x * bpow (-fexp ex))) as [Hr|Hr] ; rewrite Hr.
+destruct (Zrnd_DN_or_UP (x * bpow (-fexp ex)) (fexp ex)) as [Hr|Hr] ; rewrite Hr.
 (* DN *)
 left.
 apply Rmult_eq_0_compat_r.
@@ -556,21 +556,23 @@ Section Zrounding_opp.
 
 Variable rnd : Zrounding.
 
-Definition Zrnd_opp x := Zopp (Zrnd rnd (-x)).
+Definition Zrnd_opp x e := Zopp (Zrnd rnd (-x) e).
 
 Lemma Zrnd_opp_le :
-  forall x y, (x <= y)%R -> (Zrnd_opp x <= Zrnd_opp y)%Z.
+  forall x y e, (x <= y)%R -> (Zrnd_opp x e <= Zrnd_opp y e)%Z.
 Proof.
-intros x y Hxy.
+intros x y e Hxy.
 unfold Zrnd_opp.
-generalize (Zrnd_monotone rnd _ _ (Ropp_le_contravar _ _ Hxy)).
-omega.
+apply Zopp_le_cancel.
+rewrite 2!Zopp_involutive.
+apply Zrnd_monotone.
+now apply Ropp_le_contravar.
 Qed.
 
 Lemma Zrnd_opp_Z2R :
-  forall n, Zrnd_opp (Z2R n) = n.
+  forall n e, Zrnd_opp (Z2R n) e = n.
 Proof.
-intros n.
+intros n e.
 unfold Zrnd_opp.
 rewrite <- opp_Z2R, Zrnd_Z2R.
 apply Zopp_involutive.
@@ -592,8 +594,11 @@ Qed.
 
 End Zrounding_opp.
 
-Definition ZrndDN := mkZrounding Zfloor Zfloor_le Zfloor_Z2R.
-Definition ZrndUP := mkZrounding Zceil Zceil_le Zceil_Z2R.
+Definition mkZrounding2 rnd (mono : forall x y, (x <= y)%R -> (rnd x <= rnd y)%Z) (z2r : forall n, rnd (Z2R n) = n) :=
+  mkZrounding (fun x _ => rnd x) (fun x y _ => mono x y) (fun n _ => z2r n).
+
+Definition ZrndDN := mkZrounding2 Zfloor Zfloor_le Zfloor_Z2R.
+Definition ZrndUP := mkZrounding2 Zceil Zceil_le Zceil_Z2R.
 
 Theorem rounding_DN_or_UP :
   forall rnd x,
@@ -602,7 +607,7 @@ Proof.
 intros rnd x.
 unfold rounding.
 unfold Zrnd at 2 4. simpl.
-destruct (Zrnd_DN_or_UP rnd (scaled_mantissa x)) as [Hx|Hx].
+destruct (Zrnd_DN_or_UP rnd (scaled_mantissa x) (canonic_exponent x)) as [Hx|Hx].
 left. now rewrite Hx.
 right. now rewrite Hx.
 Qed.
@@ -629,7 +634,7 @@ now apply Ropp_le_contravar.
 (* . 0 <= y *)
 apply Rle_trans with R0.
 apply F2R_le_0_compat. simpl.
-rewrite <- (Zrnd_Z2R rnd 0).
+rewrite <- (Zrnd_Z2R rnd 0 (canonic_exponent x)).
 apply Zrnd_monotone.
 simpl.
 rewrite <- (Rmult_0_l (bpow (- fexp (projT1 (ln_beta beta x))))).
@@ -637,7 +642,7 @@ apply Rmult_le_compat_r.
 apply bpow_ge_0.
 now apply Rlt_le.
 apply F2R_ge_0_compat. simpl.
-rewrite <- (Zrnd_Z2R rnd 0).
+rewrite <- (Zrnd_Z2R rnd 0 (canonic_exponent y)).
 apply Zrnd_monotone.
 apply Rmult_le_pos.
 exact Hy.
@@ -647,7 +652,7 @@ rewrite Hx.
 rewrite rounding_0.
 apply F2R_ge_0_compat.
 simpl.
-rewrite <- (Zrnd_Z2R rnd 0).
+rewrite <- (Zrnd_Z2R rnd 0 (canonic_exponent y)).
 apply Zrnd_monotone.
 apply Rmult_le_pos.
 now rewrite <- Hx.
@@ -1135,7 +1140,7 @@ rewrite opp_Z2R.
 apply Rplus_comm.
 Qed.
 
-Definition ZrndN := mkZrounding Znearest Znearest_monotone Znearest_Z2R.
+Definition ZrndN := mkZrounding2 Znearest Znearest_monotone Znearest_Z2R.
 
 Theorem Znearest_N_strict :
   forall x,

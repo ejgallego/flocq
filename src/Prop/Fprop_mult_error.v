@@ -77,10 +77,10 @@ apply Hex.
 apply Hey.
 (* *)
 assert (Hr: ((F2R (Float beta (- (Ztrunc (scaled_mantissa beta (FLX_exp prec) x) *
-  Ztrunc (scaled_mantissa beta (FLX_exp prec) y)) + Zrnd rnd (scaled_mantissa beta (FLX_exp prec) (x * y)) *
+  Ztrunc (scaled_mantissa beta (FLX_exp prec) y)) + Zrnd rnd (scaled_mantissa beta (FLX_exp prec) (x * y)) (canonic_exponent beta (FLX_exp prec) (x * y)) *
   radix_val beta ^ (cexp (x * y)%R - (cexp x + cexp y))) (cexp x + cexp y))) = f - x * y)%R).
-rewrite Hx at 6.
-rewrite Hy at 6.
+rewrite Hx at 7.
+rewrite Hy at 7.
 rewrite <- mult_F2R.
 simpl.
 unfold f, rounding, Rminus.
