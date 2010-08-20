@@ -9,9 +9,28 @@ Inductive location := loc_Exact | loc_Inexact : comparison -> location.
 
 Variable x : R.
 
+Definition inbetween_loc :=
+  match Rcompare x d with
+  | Gt => loc_Inexact (Rcompare x ((d + u) / 2))
+  | _ => loc_Exact
+  end.
+
 Inductive inbetween : location -> Prop :=
   | inbetween_Exact : x = d -> inbetween loc_Exact
   | inbetween_Inexact l : (d < x < u)%R -> Rcompare x ((d + u) / 2)%R = l -> inbetween (loc_Inexact l).
+
+Theorem inbetween_spec :
+  (d <= x < u)%R -> inbetween inbetween_loc.
+Proof.
+intros Hx.
+unfold inbetween_loc.
+destruct (Rcompare_spec x d) as [H|H|H].
+now elim Rle_not_lt with (1 := proj1 Hx).
+now constructor.
+constructor.
+now split.
+easy.
+Qed.
 
 Section Fcalc_bracket_any.
 
