@@ -622,18 +622,7 @@ rewrite (scaled_mantissa_opp (-x)), (scaled_mantissa_opp (-y)).
 rewrite (canonic_exponent_opp (-x)), (canonic_exponent_opp (-y)).
 apply Ropp_le_cancel.
 rewrite 2!opp_F2R.
-assert (Hrnd_monotone : forall x y, (x <= y)%R -> (- Zrnd rnd (-x) <= - Zrnd rnd (-y))%Z).
-clear.
-intros x y Hxy.
-apply Zopp_le_cancel.
-rewrite 2!Zopp_involutive.
-apply Zrnd_monotone.
-now apply Ropp_le_contravar.
-assert (Hrnd_Z2R : forall n, (- Zrnd rnd (- Z2R n))%Z = n).
-intros n.
-rewrite <- opp_Z2R, Zrnd_Z2R.
-apply Zopp_involutive.
-apply (rounding_monotone_pos (mkZrounding (fun m => (- Zrnd rnd (- m))%Z) Hrnd_monotone Hrnd_Z2R)).
+apply (rounding_monotone_pos (Zrounding_opp rnd) (-y) (-x)).
 rewrite <- Ropp_0.
 now apply Ropp_lt_contravar.
 now apply Ropp_le_contravar.
