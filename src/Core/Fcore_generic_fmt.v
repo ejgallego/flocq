@@ -552,6 +552,17 @@ Qed.
 
 End Fcore_generic_rounding_pos.
 
+Theorem rounding_ext :
+  forall rnd1 rnd2,
+  ( forall x e, Zrnd rnd1 x e = Zrnd rnd2 x e ) ->
+  forall x,
+  rounding rnd1 x = rounding rnd2 x.
+Proof.
+intros rnd1 rnd2 Hext x.
+unfold rounding.
+now rewrite Hext.
+Qed.
+
 Section Zrounding_opp.
 
 Variable rnd : Zrounding.
