@@ -18,6 +18,22 @@ Definition ulp x := bpow (canonic_exponent beta fexp x).
 
 Definition F := generic_format beta fexp.
 
+Theorem ulp_opp :
+  forall x, ulp (- x) = ulp x.
+Proof.
+intros x.
+unfold ulp.
+now rewrite canonic_exponent_opp.
+Qed.
+
+Theorem ulp_abs :
+  forall x, ulp (Rabs x) = ulp x.
+Proof.
+intros x.
+unfold ulp.
+now rewrite canonic_exponent_abs.
+Qed.
+
 Theorem ulp_DN_UP :
   forall x, ~ F x ->
   rounding beta fexp ZrndUP x = (rounding beta fexp ZrndDN x + ulp x)%R.

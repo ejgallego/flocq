@@ -1378,6 +1378,18 @@ apply ln_beta_unique.
 now rewrite Rabs_Ropp.
 Qed.
 
+Theorem ln_beta_abs :
+  forall x,
+  projT1 (ln_beta (Rabs x)) = projT1 (ln_beta x).
+Proof.
+intros x.
+set (m := projT1 (ln_beta x)).
+unfold Rabs.
+case Rcase_abs ; intros _.
+now rewrite ln_beta_opp.
+apply refl_equal.
+Qed.
+
 Theorem ln_beta_monotone_abs :
   forall x y,
   (x <> 0)%R -> (Rabs x <= Rabs y)%R ->

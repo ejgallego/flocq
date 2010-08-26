@@ -82,6 +82,15 @@ now rewrite 2!Zfloor_Z2R.
 Qed.
 *)
 
+Theorem canonic_exponent_abs :
+  forall x,
+  canonic_exponent (Rabs x) = canonic_exponent x.
+Proof.
+intros x.
+unfold canonic_exponent.
+now rewrite ln_beta_abs.
+Qed.
+
 Theorem generic_format_bpow :
   forall e, (fexp (e + 1) <= e)%Z ->
   generic_format (bpow e).
