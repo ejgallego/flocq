@@ -12,6 +12,32 @@ Hypothesis prop_exp : valid_exp fexp.
 
 Variable rnd : Zrounding.
 
+Theorem generic_relative_error_lt_conversion :
+  forall x b, (0 < b)%R ->
+  (Rabs (rounding beta fexp rnd x - x) < b * Rabs x)%R ->
+  exists eps,
+  (Rabs eps < b)%R /\ rounding beta fexp rnd x = (x * (1 + eps))%R.
+Proof.
+intros x b Hb0 Hxb.
+destruct (Req_dec x 0) as [Hx0|Hx0].
+(* *)
+exists R0.
+split.
+now rewrite Rabs_R0.
+rewrite Hx0, Rmult_0_l.
+apply rounding_0.
+(* *)
+exists ((rounding beta fexp rnd x - x) / x)%R.
+split. 2: now field.
+unfold Rdiv.
+rewrite Rabs_mult.
+apply Rmult_lt_reg_r with (Rabs x).
+now apply Rabs_pos_lt.
+rewrite Rmult_assoc, <- Rabs_mult.
+rewrite Rinv_l with (1 := Hx0).
+now rewrite Rabs_R1, Rmult_1_r.
+Qed.
+
 Variable emin p : Z.
 Hypothesis Hmin : forall k, (emin < k)%Z -> (p <= k - fexp k)%Z.
 
@@ -46,6 +72,18 @@ apply bpow_ge_0.
 apply He.
 Qed.
 
+Theorem generic_relative_error_ex :
+  forall x,
+  (bpow emin <= Rabs x)%R ->
+  exists eps,
+  (Rabs eps < bpow (-p + 1))%R /\ rounding beta fexp rnd x = (x * (1 + eps))%R.
+Proof.
+intros x Hx.
+apply generic_relative_error_lt_conversion.
+apply bpow_gt_0.
+now apply generic_relative_error.
+Qed.
+
 Theorem generic_relative_error_F2R :
   forall m, let x := F2R (Float beta m emin) in
   (x <> 0)%R ->
@@ -59,6 +97,18 @@ apply bpow_le_F2R.
 apply F2R_lt_reg with beta emin.
 rewrite F2R_0, <- abs_F2R.
 now apply Rabs_pos_lt.
+Qed.
+
+Theorem generic_relative_error_F2R_ex :
+  forall m, let x := F2R (Float beta m emin) in
+  (x <> 0)%R ->
+  exists eps,
+  (Rabs eps < bpow (-p + 1))%R /\ rounding beta fexp rnd x = (x * (1 + eps))%R.
+Proof.
+intros m x Hx.
+apply generic_relative_error_lt_conversion.
+apply bpow_gt_0.
+now apply generic_relative_error_F2R.
 Qed.
 
 Theorem generic_relative_error_2 :
@@ -289,6 +339,30 @@ omega.
 exact Hx.
 Qed.
 
+Theorem relative_error_FLT_F2R_ex :
+  forall m, let x := F2R (Float beta m (emin + prec - 1)) in
+  (x <> 0)%R ->
+  exists eps,
+  (Rabs eps < bpow (-prec + 1))%R /\ rounding beta (FLT_exp emin prec) rnd x = (x * (1 + eps))%R.
+Proof.
+intros m x Hx.
+apply generic_relative_error_lt_conversion.
+apply bpow_gt_0.
+now apply relative_error_FLT_F2R.
+Qed.
+
+Theorem relative_error_FLT_ex :
+  forall x,
+  (bpow (emin + prec - 1) <= Rabs x)%R ->
+  exists eps,
+  (Rabs eps < bpow (-prec + 1))%R /\ rounding beta (FLT_exp emin prec) rnd x = (x * (1 + eps))%R.
+Proof.
+intros x Hx.
+apply generic_relative_error_lt_conversion.
+apply bpow_gt_0.
+now apply relative_error_FLT.
+Qed.
+
 Variable choice : R -> bool.
 
 Theorem relative_error_N_FLT :
@@ -372,6 +446,18 @@ intros k _.
 unfold FLX_exp.
 omega.
 apply He.
+Qed.
+
+Theorem relative_error_FLX_ex :
+  forall x,
+  (x <> 0)%R ->
+  exists eps,
+  (Rabs eps < bpow (-prec + 1))%R /\ rounding beta (FLX_exp prec) rnd x = (x * (1 + eps))%R.
+Proof.
+intros x Hx.
+apply generic_relative_error_lt_conversion.
+apply bpow_gt_0.
+now apply relative_error_FLX.
 Qed.
 
 Theorem relative_error_FLX_2 :
