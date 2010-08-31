@@ -180,8 +180,7 @@ Theorem round_trunc_any_correct :
   (0 <= x)%R ->
   inbetween_float beta m e x l ->
   (e <= fexp (digits beta m + e))%Z \/ l = loc_Exact ->
-  let '(m', e', l') := truncate (m, e, l) in
-  rounding beta fexp rnd x = F2R (Float beta (choice m' l') e').
+  rounding beta fexp rnd x = let '(m', e', l') := truncate (m, e, l) in F2R (Float beta (choice m' l') e').
 Proof.
 intros x m e l Hx Hl He.
 generalize (truncate_correct x m e l Hx Hl He).
