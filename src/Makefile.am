@@ -19,7 +19,6 @@ FILES = \
 	Calc/Fcalc_round_FIX.v \
 	Calc/Fcalc_sqrt.v \
 	Prop/Fprop_mult_error.v \
-	Prop/Fprop_nearest.v \
 	Prop/Fprop_plus_error.v \
 	Prop/Fprop_relative.v \
 	Prop/Fprop_Sterbenz.v

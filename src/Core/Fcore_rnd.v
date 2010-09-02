@@ -722,6 +722,30 @@ now rewrite <- Hx.
 exact HF.
 Qed.
 
+Theorem Rnd_N_pt_abs :
+  forall F : R -> Prop,
+  F 0 ->
+  ( forall x, F x -> F (- x) ) ->
+  forall x f : R,
+  Rnd_N_pt F x f -> Rnd_N_pt F (Rabs x) (Rabs f).
+Proof.
+intros F HF0 HF x f Hxf.
+unfold Rabs at 1.
+destruct (Rcase_abs x) as [Hx|Hx].
+rewrite Rabs_left1.
+apply Rnd_N_pt_sym.
+exact HF.
+now rewrite 2!Ropp_involutive.
+apply Rnd_N_pt_neg with (3 := Hxf).
+exact HF0.
+now apply Rlt_le.
+rewrite Rabs_pos_eq.
+exact Hxf.
+apply Rnd_N_pt_pos with (3 := Hxf).
+exact HF0.
+now apply Rge_le.
+Qed.
+
 Theorem Rnd_DN_UP_pt_N :
   forall F : R -> Prop,
   forall x d u f : R,
