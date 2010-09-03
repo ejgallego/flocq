@@ -619,7 +619,7 @@ Definition mkZrounding2 rnd (mono : forall x y, (x <= y)%R -> (rnd x <= rnd y)%Z
 
 Definition ZrndDN := mkZrounding2 Zfloor Zfloor_le Zfloor_Z2R.
 Definition ZrndUP := mkZrounding2 Zceil Zceil_le Zceil_Z2R.
-(* Definition ZrndTZ := .. SB *)
+Definition ZrndTZ := mkZrounding2 Ztrunc Ztrunc_le Ztrunc_Z2R.
 
 
 Theorem rounding_DN_or_UP :
@@ -684,24 +684,18 @@ Qed.
 Theorem rounding_monotone_l :
   forall rnd x y, generic_format x -> (x <= y)%R -> (x <= rounding rnd y)%R.
 Proof.
-Admitted. (* SB *)
-
+intros rnd x y Hx Hxy.
+rewrite <- (rounding_generic rnd x Hx).
+now apply rounding_monotone.
+Qed.
 
 Theorem rounding_monotone_r :
   forall rnd x y, generic_format y -> (x <= y)%R -> (rounding rnd x <= y)%R.
 Proof.
-Admitted. (* SB *)
-
-Theorem rounding_monotone_abs_l :
-  forall rnd x y, generic_format x -> (x <= Rabs y)%R -> (x <= Rabs (rounding rnd y))%R.
-Proof.
-Admitted. (* SB *)
-
-
-Theorem rounding_monotone_abs_r :
-  forall rnd x y, generic_format y -> (Rabs x <= y)%R -> (Rabs (rounding rnd x) <= y)%R.
-Proof.
-Admitted. (* SB *)
+intros rnd x y Hy Hxy.
+rewrite <- (rounding_generic rnd y Hy).
+now apply rounding_monotone.
+Qed.
 
 
 Theorem rounding_abs_abs :
@@ -727,6 +721,26 @@ apply HP.
 rewrite <- (rounding_0 rnd).
 apply rounding_monotone.
 now apply Rlt_le.
+Qed.
+
+
+
+Theorem rounding_monotone_abs_l :
+  forall rnd x y, generic_format x -> (x <= Rabs y)%R -> (x <= Rabs (rounding rnd y))%R.
+Proof.
+intros rnd x y.
+apply rounding_abs_abs.
+clear rnd y; intros rnd y Hy.
+now apply rounding_monotone_l.
+Qed.
+
+Theorem rounding_monotone_abs_r :
+  forall rnd x y, generic_format y -> (Rabs x <= y)%R -> (Rabs (rounding rnd x) <= y)%R.
+Proof.
+intros rnd x y.
+apply rounding_abs_abs.
+clear rnd x; intros rnd x Hx.
+now apply rounding_monotone_r.
 Qed.
 
 Theorem rounding_DN_opp :

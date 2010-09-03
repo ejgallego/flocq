@@ -855,6 +855,25 @@ rewrite Zceil_Z2R.
 apply Zfloor_Z2R.
 Qed.
 
+Theorem Ztrunc_le : 
+ forall x y, (x <= y)%R ->
+  (Ztrunc x <= Ztrunc y)%Z.
+Proof.
+intros x y Hxy; unfold Ztrunc at 1.
+destruct Rlt_le_dec as [Hx|Hx].
+unfold Ztrunc; destruct Rlt_le_dec as [Hy|Hy].
+now apply Zceil_le.
+apply Zle_trans with 0%Z.
+apply Zceil_glb.
+simpl; auto with real.
+apply Zfloor_lub.
+now simpl.
+rewrite Ztrunc_floor.
+now apply Zfloor_le.
+now apply Rle_trans with (1:=Hx). 
+Qed.
+
+
 Theorem Ztrunc_opp :
   forall x,
   Ztrunc (- x) = Zopp (Ztrunc x).
