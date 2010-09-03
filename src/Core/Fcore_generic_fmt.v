@@ -619,6 +619,8 @@ Definition mkZrounding2 rnd (mono : forall x y, (x <= y)%R -> (rnd x <= rnd y)%Z
 
 Definition ZrndDN := mkZrounding2 Zfloor Zfloor_le Zfloor_Z2R.
 Definition ZrndUP := mkZrounding2 Zceil Zceil_le Zceil_Z2R.
+(* Definition ZrndTZ := .. SB *)
+
 
 Theorem rounding_DN_or_UP :
   forall rnd x,
@@ -678,6 +680,29 @@ apply Rmult_le_pos.
 now rewrite <- Hx.
 apply bpow_ge_0.
 Qed.
+
+Theorem rounding_monotone_l :
+  forall rnd x y, generic_format x -> (x <= y)%R -> (x <= rounding rnd y)%R.
+Proof.
+Admitted. (* SB *)
+
+
+Theorem rounding_monotone_r :
+  forall rnd x y, generic_format y -> (x <= y)%R -> (rounding rnd x <= y)%R.
+Proof.
+Admitted. (* SB *)
+
+Theorem rounding_monotone_abs_l :
+  forall rnd x y, generic_format x -> (x <= Rabs y)%R -> (x <= Rabs (rounding rnd y))%R.
+Proof.
+Admitted. (* SB *)
+
+
+Theorem rounding_monotone_abs_r :
+  forall rnd x y, generic_format y -> (Rabs x <= y)%R -> (Rabs (rounding rnd x) <= y)%R.
+Proof.
+Admitted. (* SB *)
+
 
 Theorem rounding_abs_abs :
   forall P : R -> R -> Prop,

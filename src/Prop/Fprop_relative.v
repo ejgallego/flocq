@@ -511,6 +511,17 @@ omega.
 exact Hp.
 Qed.
 
+
+Theorem error_N_FLT :
+  forall x,
+  exists eps, exists  eta,
+  (Rabs eps <= /2 * bpow (-prec + 1))%R /\ 
+  (Rabs eta <= /2 * bpow (emin))%R      /\ 
+  (eps*eta=0)%R /\
+  rounding beta (FLT_exp emin prec) (ZrndN choice) x = (x * (1 + eps) + eta)%R.
+Proof.
+Admitted. (* SB *)
+
 End Fprop_relative_FLT.
 
 Section Fprop_relative_FLX.
