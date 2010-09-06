@@ -21,6 +21,7 @@ FILES = \
 	Prop/Fprop_mult_error.v \
 	Prop/Fprop_plus_error.v \
 	Prop/Fprop_relative.v \
+	Prop/Fprop_div_sqrt_error.v \
 	Prop/Fprop_Sterbenz.v
 
 EXTRA_DIST = $(FILES)
