@@ -512,15 +512,57 @@ exact Hp.
 Qed.
 
 
-Theorem error_N_FLT :
+Theorem error_N_FLT_aux :
   forall x,
+  (0 < x)%R ->
   exists eps, exists  eta,
   (Rabs eps <= /2 * bpow (-prec + 1))%R /\ 
   (Rabs eta <= /2 * bpow (emin))%R      /\ 
   (eps*eta=0)%R /\
   rounding beta (FLT_exp emin prec) (ZrndN choice) x = (x * (1 + eps) + eta)%R.
 Proof.
-Admitted. (* SB *)
+intros x Hx2.
+case (Rle_or_lt (bpow (emin+prec)) x); intros Hx.
+(* *)
+destruct generic_relative_error_N_ex with (FLT_exp emin prec) (emin+prec)%Z prec choice x 
+  as (eps,(Heps1,Heps2)).
+now apply FLT_exp_correct.
+intros; unfold FLT_exp.
+rewrite Zmax_left; omega.
+rewrite Rabs_right;[assumption|apply Rle_ge; now left].
+exists eps; exists 0%R.
+split;[assumption|split].
+rewrite Rabs_R0; apply Rmult_le_pos.
+auto with real.
+apply bpow_ge_0.
+split;[apply Rmult_0_r|idtac].
+now rewrite Rplus_0_r.
+(* *)
+exists 0%R; exists (rounding beta (FLT_exp emin prec) (ZrndN choice) x - x)%R.
+split.
+rewrite Rabs_R0; apply Rmult_le_pos.
+auto with real.
+apply bpow_ge_0.
+split.
+apply Rle_trans with (/2*ulp beta (FLT_exp emin prec) x)%R.
+apply ulp_half_error.
+now apply FLT_exp_correct.
+apply Rmult_le_compat_l; auto with real.
+unfold ulp; apply ->bpow_le.
+unfold FLT_exp, canonic_exponent.
+rewrite Zmax_right.
+omega.
+destruct (ln_beta beta x) as (e,He); simpl.
+assert (e-1 < emin+prec)%Z.
+apply <- (bpow_lt beta).
+apply Rle_lt_trans with (2:=Hx).
+rewrite <- (Rabs_right x).
+apply He; auto with real.
+apply Rle_ge; now left.
+omega.
+split;ring.
+Qed.
+
 
 End Fprop_relative_FLT.
 

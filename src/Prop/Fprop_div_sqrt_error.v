@@ -19,13 +19,13 @@ Proof.
 (* probablement seulement en FLX *)
 Admitted. (* SB *)
 
-(* Theorem div_error_Z :
+Theorem div_error_Z :
   forall x y,
   format x -> format y ->
   format (x - rounding beta fexp (ZrndTZ) (x/y) * y)%R.
 Proof.
 (* probablement seulement en FLX *)
-Admitted. (* SB *) *)
+Admitted. (* SB *) 
 
 
 Theorem sqrt_error_N :
