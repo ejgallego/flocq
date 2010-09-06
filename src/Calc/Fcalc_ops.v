@@ -30,6 +30,30 @@ apply refl_equal.
 omega.
 Qed.
 
+Theorem Falign_spec_exp:
+  forall f1 f2 : float beta,
+  snd (Falign f1 f2)= Zmin (Fexp f1) (Fexp f2).
+intros f1 f2.
+destruct f1 as (m1,e1);destruct f2 as (m2,e2).
+unfold Falign; simpl.
+generalize (Zle_cases e1 e2);case (Zle_bool e1 e2); intros He.
+case (Zmin_spec e1 e2); intros (H1,H2); easy.
+case (Zmin_spec e1 e2); intros (H1,H2); easy.
+Qed.
+
+
+
+Definition Fopp (f1: float beta) :=
+   let '(Float m1 e1) := f1 in
+    Float beta (-m1)%Z e1.
+
+Theorem Fopp_F2R :
+  forall f1 : float beta,
+  (F2R (Fopp f1) = -F2R f1)%R.
+unfold Fopp, F2R; intros (m1,e1).
+simpl; rewrite opp_Z2R; ring.
+Qed.
+
 Definition Fplus (f1 f2 : float beta) :=
   let '(m1, m2 ,e) := Falign f1 f2 in
   Float beta (m1 + m2) e.
@@ -48,6 +72,20 @@ unfold F2R. simpl.
 rewrite plus_Z2R.
 apply Rmult_plus_distr_r.
 Qed.
+
+
+Definition Fminus (f1 f2 : float beta) :=
+  Fplus f1 (Fopp f2).
+
+Theorem minus_F2R :
+  forall f1 f2 : float beta,
+  F2R (Fminus f1 f2) = (F2R f1 - F2R f2)%R.
+Proof.
+intros f1 f2; unfold Fminus.
+rewrite plus_F2R, Fopp_F2R.
+ring.
+Qed.
+
 
 Definition Fmult (f1 f2 : float beta) :=
   let '(Float m1 e1) := f1 in
