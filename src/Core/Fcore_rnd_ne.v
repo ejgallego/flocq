@@ -463,22 +463,24 @@ Theorem rounding_NE_opp :
   forall x,
   rounding beta fexp ZrndNE (-x) = (- rounding beta fexp ZrndNE x)%R.
 Proof.
-apply rounding_N_opp.
-intros x Hx.
-assert (H: Z2R (Zfloor x) <> x).
-intros H.
-apply Rlt_not_eq with (2 := Hx).
-rewrite H.
-unfold Rminus. rewrite Rplus_opp_r.
-apply Rinv_0_lt_compat.
-now apply (Z2R_lt 0 2).
-rewrite Bool.negb_involutive.
+intros x; unfold ZrndNE.
+rewrite rounding_N_opp.
+unfold rounding.
+apply f_equal; apply f_equal; apply f_equal2; trivial.
+unfold Zrnd; simpl.
+generalize ((scaled_mantissa beta fexp x)); clear x; intros x.
+unfold Znearest; case Rcompare_spec ; simpl ; trivial.
+intros.
+replace (negb (Zeven (Zfloor (- x)))) with (Zeven (Zfloor x)); trivial.
 rewrite <- (Zopp_involutive (Zfloor (- x))).
 fold (Zceil x).
 rewrite Zeven_opp.
-rewrite Zceil_floor_neq with (1 := H).
+rewrite Zceil_floor_neq.
 rewrite Zeven_plus.
 now case (Zeven (Zfloor x)).
+intros H1; contradict H.
+rewrite H1; ring_simplify (x-x)%R.
+apply sym_not_eq; apply Rinv_neq_0_compat; replace 2%R with (INR 2); auto with real.
 Qed.
 
 Theorem generic_NE_pt :

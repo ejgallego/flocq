@@ -1170,34 +1170,6 @@ apply Rmult_lt_compat_r with (2 := H1).
 now apply (Z2R_lt 0 2).
 Qed.
 
-Theorem Znearest_opp :
-  ( forall x, (x - Z2R (Zfloor x) = /2)%R -> choice (-x) = negb (choice x) ) ->
-  forall x,
-  Znearest (- x) = (- Znearest x)%Z.
-Proof.
-intros Hc x.
-destruct (Req_dec (Z2R (Zfloor x)) x) as [Hx|Hx].
-rewrite <- Hx.
-rewrite <- opp_Z2R.
-now rewrite 2!Znearest_Z2R.
-unfold Znearest.
-replace (- x - Z2R (Zfloor (-x)))%R with (Z2R (Zceil x) - x)%R.
-rewrite Rcompare_ceil_floor_mid with (1 := Hx).
-rewrite Rcompare_sym.
-rewrite <- Rcompare_floor_ceil_mid with (1 := Hx).
-unfold Zceil.
-rewrite Ropp_involutive.
-case Rcompare_spec ; simpl ; trivial.
-intros H.
-rewrite Hc with (1 := H).
-case choice ; simpl ; trivial.
-now rewrite Zopp_involutive.
-intros _.
-now rewrite Zopp_involutive.
-unfold Zceil.
-rewrite opp_Z2R.
-apply Rplus_comm.
-Qed.
 
 Definition ZrndN := mkZrounding2 Znearest Znearest_monotone Znearest_Z2R.
 
@@ -1346,21 +1318,54 @@ apply Rle_trans with (1 := H).
 apply Rmin_r.
 Qed.
 
-Theorem rounding_N_opp :
-  ( forall x, (x - Z2R (Zfloor x) = /2)%R -> choice (-x) = negb (choice x) ) ->
-  forall x,
-  rounding ZrndN (-x) = (- rounding ZrndN x)%R.
+End Znearest.
+
+Section ZrndN_opp.
+
+Theorem Znearest_opp :
+  forall choice x,
+  Znearest choice (- x) = (- Znearest (fun t => negb (choice (-t)%R)) x)%Z.
 Proof.
-intros Hc x.
+intros choice x.
+destruct (Req_dec (Z2R (Zfloor x)) x) as [Hx|Hx].
+rewrite <- Hx.
+rewrite <- opp_Z2R.
+now rewrite 2!Znearest_Z2R.
+unfold Znearest.
+replace (- x - Z2R (Zfloor (-x)))%R with (Z2R (Zceil x) - x)%R.
+rewrite Rcompare_ceil_floor_mid with (1 := Hx).
+rewrite Rcompare_floor_ceil_mid with (1 := Hx).
+rewrite Rcompare_sym.
+unfold Zceil.
+rewrite Ropp_involutive.
+case Rcompare_spec ; simpl ; trivial.
+intros H.
+case (choice (-x)%R); simpl; trivial.
+now rewrite Zopp_involutive.
+intros _.
+now rewrite Zopp_involutive.
+unfold Zceil.
+rewrite opp_Z2R.
+apply Rplus_comm.
+Qed.
+
+
+
+
+Theorem rounding_N_opp :
+  forall choice,
+  forall x,
+  rounding (ZrndN choice) (-x) = (- rounding (ZrndN (fun t => negb (choice (-t)%R))) x)%R.
+Proof.
+intros choice x.
 unfold rounding, F2R. simpl.
 rewrite canonic_exponent_opp.
 rewrite scaled_mantissa_opp.
 rewrite Znearest_opp.
 rewrite opp_Z2R.
 now rewrite Ropp_mult_distr_l_reverse.
-exact Hc.
 Qed.
 
-End Znearest.
+End ZrndN_opp.
 
 End RND_generic.

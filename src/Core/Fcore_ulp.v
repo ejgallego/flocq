@@ -190,4 +190,117 @@ unfold ulp.
 now rewrite canonic_exponent_DN with (2 := Hd).
 Qed.
 
+
+Theorem ulp_error_f :
+  (forall m n, (m <= n)%Z -> (fexp m <= fexp n)%Z ) ->
+  forall Zrnd x,
+  (rounding beta fexp Zrnd x <> 0)%R ->
+  (Rabs (rounding beta fexp Zrnd x - x) < ulp (rounding beta fexp Zrnd x))%R.
+Proof.
+intros Hf Zrnd x Hfx.
+case (rounding_DN_or_UP beta fexp Zrnd x); intros Hx.
+(* *)
+case (Rle_or_lt 0 (rounding beta fexp ZrndDN x)).
+intros H; destruct H.
+rewrite Hx at 2.
+rewrite ulp_DN_pt_eq; trivial.
+apply ulp_error.
+rewrite Hx in Hfx; contradict Hfx; auto with real.
+intros H.
+apply Rlt_le_trans with (1:=ulp_error _ _).
+rewrite <- (ulp_opp x), <- (ulp_opp (rounding beta fexp Zrnd x)).
+apply ulp_monotone; trivial.
+apply Ropp_0_gt_lt_contravar; apply Rlt_gt.
+case (Rle_or_lt 0 x); trivial.
+intros H1; contradict H.
+apply Rle_not_lt.
+apply rounding_monotone_l; trivial.
+apply generic_format_0.
+apply Ropp_le_contravar; rewrite Hx.
+apply (generic_DN_pt beta fexp prop_exp x).
+(* *)
+rewrite Hx; case (Rle_or_lt 0 (rounding beta fexp ZrndUP x)).
+intros H; destruct H.
+apply Rlt_le_trans with (1:=ulp_error _ _).
+apply ulp_monotone; trivial.
+case (Rle_or_lt x 0); trivial.
+intros H1; contradict H.
+apply Rle_not_lt.
+apply rounding_monotone_r; trivial.
+apply generic_format_0.
+apply (generic_UP_pt beta fexp prop_exp x).
+rewrite Hx in Hfx; contradict Hfx; auto with real.
+intros H.
+rewrite <- (ulp_opp (rounding beta fexp ZrndUP x)).
+rewrite <- rounding_DN_opp.
+rewrite ulp_DN_pt_eq; trivial.
+replace (rounding beta fexp ZrndUP x - x)%R with (-((rounding beta fexp ZrndDN (-x) - (-x))))%R.
+rewrite Rabs_Ropp.
+apply ulp_error.
+rewrite rounding_DN_opp; ring.
+rewrite rounding_DN_opp; apply Ropp_0_gt_lt_contravar; apply Rlt_gt; assumption.
+Qed.
+
+
+Theorem ulp_half_error_f : 
+  (forall m n, (m <= n)%Z -> (fexp m <= fexp n)%Z ) ->
+  forall choice x,
+  (rounding beta fexp (ZrndN choice) x <> 0)%R ->
+  (Rabs (rounding beta fexp (ZrndN choice) x - x) <= /2 * ulp (rounding beta fexp (ZrndN choice) x))%R.
+intros Hf choice x Hfx.
+case (rounding_DN_or_UP beta fexp (ZrndN choice) x); intros Hx.
+(* *)
+case (Rle_or_lt 0 (rounding beta fexp ZrndDN x)).
+intros H; destruct H.
+rewrite Hx at 2.
+rewrite ulp_DN_pt_eq; trivial.
+apply ulp_half_error.
+rewrite Hx in Hfx; contradict Hfx; auto with real.
+intros H.
+apply Rle_trans with (1:=ulp_half_error _ _).
+apply Rmult_le_compat_l.
+auto with real.
+rewrite <- (ulp_opp x), <- (ulp_opp (rounding beta fexp (ZrndN choice) x)).
+apply ulp_monotone; trivial.
+apply Ropp_0_gt_lt_contravar; apply Rlt_gt.
+case (Rle_or_lt 0 x); trivial.
+intros H1; contradict H.
+apply Rle_not_lt.
+apply rounding_monotone_l; trivial.
+apply generic_format_0.
+apply Ropp_le_contravar; rewrite Hx.
+apply (generic_DN_pt beta fexp prop_exp x).
+(* *)
+case (Rle_or_lt 0 (rounding beta fexp ZrndUP x)).
+intros H; destruct H.
+apply Rle_trans with (1:=ulp_half_error _ _).
+apply Rmult_le_compat_l.
+auto with real.
+apply ulp_monotone; trivial.
+case (Rle_or_lt x 0); trivial.
+intros H1; contradict H.
+apply Rle_not_lt.
+apply rounding_monotone_r; trivial.
+apply generic_format_0.
+rewrite Hx; apply (generic_UP_pt beta fexp prop_exp x).
+rewrite Hx in Hfx; contradict Hfx; auto with real.
+intros H.
+rewrite Hx at 2; rewrite <- (ulp_opp (rounding beta fexp ZrndUP x)).
+rewrite <- rounding_DN_opp.
+rewrite ulp_DN_pt_eq; trivial.
+replace (rounding beta fexp (ZrndN choice) x - x)%R with 
+  (-((rounding beta fexp (ZrndN (fun t => negb (choice (-t)%R))) (-x) - (-x))))%R.
+rewrite Rabs_Ropp.
+apply ulp_half_error.
+rewrite <- (Ropp_involutive x) at 3.
+rewrite rounding_N_opp with (x:=(-x)%R).
+ring.
+rewrite rounding_DN_opp; apply Ropp_0_gt_lt_contravar; apply Rlt_gt; assumption.
+Qed.
+
+
+
+
+
+
 End Fcore_ulp.
