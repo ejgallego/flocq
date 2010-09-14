@@ -659,6 +659,54 @@ Qed.
 
 End Rcompare.
 
+Section Rle_bool.
+
+Definition Rle_bool x y :=
+  match Rcompare x y with
+  | Gt => false
+  | _ => true
+  end.
+
+Inductive Rle_bool_prop (x y : R) : bool -> Prop :=
+  | Rle_bool_true_ : (x <= y)%R -> Rle_bool_prop x y true
+  | Rle_bool_false_ : (y < x)%R -> Rle_bool_prop x y false.
+
+Theorem Rle_bool_spec :
+  forall x y, Rle_bool_prop x y (Rle_bool x y).
+Proof.
+intros x y.
+unfold Rle_bool.
+case Rcompare_spec ; constructor.
+now apply Rlt_le.
+rewrite H.
+apply Rle_refl.
+exact H.
+Qed.
+
+Theorem Rle_bool_true :
+  forall x y,
+  (x <= y)%R -> Rle_bool x y = true.
+Proof.
+intros x y Hxy.
+case Rle_bool_spec ; intros H.
+apply refl_equal.
+elim (Rlt_irrefl x).
+now apply Rle_lt_trans with y.
+Qed.
+
+Theorem Rle_bool_false :
+  forall x y,
+  (y < x)%R -> Rle_bool x y = false.
+Proof.
+intros x y Hxy.
+case Rle_bool_spec ; intros H.
+elim (Rlt_irrefl x).
+now apply Rle_lt_trans with y.
+apply refl_equal.
+Qed.
+
+End Rle_bool.
+
 Section Floor_Ceil.
 
 Definition Zfloor (x : R) := (up x - 1)%Z.
