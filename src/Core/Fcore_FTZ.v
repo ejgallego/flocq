@@ -219,13 +219,13 @@ Section FTZ_rounding.
 
 Hypothesis rnd : Zrounding.
 
-Definition Zrnd_FTZ x e :=
-  if Rle_bool R1 (Rabs x) then Zrnd rnd x e else Z0.
+Definition Zrnd_FTZ x :=
+  if Rle_bool R1 (Rabs x) then Zrnd rnd x else Z0.
 
 Theorem Z_FTZ_Z2R :
-  forall n e, Zrnd_FTZ (Z2R n) e = n.
+  forall n, Zrnd_FTZ (Z2R n) = n.
 Proof.
-intros n e.
+intros n.
 unfold Zrnd_FTZ.
 rewrite Zrnd_Z2R.
 case Rle_bool_spec.
@@ -238,17 +238,17 @@ now case n ; trivial ; simpl ; intros [p|p|].
 Qed.
 
 Theorem Z_FTZ_monotone :
-  forall x y e, (x <= y)%R ->
-  (Zrnd_FTZ x e <= Zrnd_FTZ y e)%Z.
+  forall x y, (x <= y)%R ->
+  (Zrnd_FTZ x <= Zrnd_FTZ y)%Z.
 Proof.
-intros x y e Hxy.
+intros x y Hxy.
 unfold Zrnd_FTZ.
 case Rle_bool_spec ; intros Hx ;
   case Rle_bool_spec ; intros Hy.
 4: easy.
 (* 1 <= |x| *)
 now apply Zrnd_monotone.
-rewrite <- (Zrnd_Z2R rnd 0 e).
+rewrite <- (Zrnd_Z2R rnd 0).
 apply Zrnd_monotone.
 apply Rle_trans with (Z2R (-1)). 2: now apply Z2R_le.
 destruct (Rabs_le_r_inv _ _ Hx) as [Hx1|Hx1].
@@ -258,7 +258,7 @@ apply Rle_lt_trans with (2 := Hy).
 apply Rle_trans with (1 := Hxy).
 apply RRle_abs.
 (* |x| < 1 *)
-rewrite <- (Zrnd_Z2R rnd 0 e).
+rewrite <- (Zrnd_Z2R rnd 0).
 apply Zrnd_monotone.
 apply Rle_trans with (Z2R 1).
 now apply Z2R_le.

@@ -30,7 +30,7 @@ rewrite Z2R_Zpower. 2: omega.
 rewrite <- bpow_add.
 apply (f_equal (fun v => Z2R m * bpow v)%R).
 ring.
-exists ((Zrnd rnd (Z2R m * bpow (e - e')) e') * Zpower (radix_val beta) (e' - e))%Z.
+exists ((Zrnd rnd (Z2R m * bpow (e - e'))) * Zpower (radix_val beta) (e' - e))%Z.
 unfold F2R. simpl.
 rewrite mult_Z2R.
 rewrite Z2R_Zpower. 2: omega.

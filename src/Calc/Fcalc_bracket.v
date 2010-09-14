@@ -547,11 +547,11 @@ Qed.
 
 Theorem inbetween_float_rounding :
   forall rnd choice,
-  ( forall x m e l, inbetween_int m x l -> Zrnd rnd x e = choice m e l ) ->
+  ( forall x m l, inbetween_int m x l -> Zrnd rnd x = choice m l ) ->
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float m e x l ->
-  rounding beta fexp rnd x = F2R (Float beta (choice m e l) e).
+  rounding beta fexp rnd x = F2R (Float beta (choice m l) e).
 Proof.
 intros rnd choice Hc x m l e Hl.
 unfold rounding, F2R. simpl.
@@ -568,8 +568,8 @@ Theorem inbetween_float_DN :
   inbetween_float m e x l ->
   rounding beta fexp ZrndDN x = F2R (Float beta m e).
 Proof.
-apply inbetween_float_rounding with (choice := fun m e l => m).
-intros x m e l Hl.
+apply inbetween_float_rounding with (choice := fun m l => m).
+intros x m l Hl.
 refine (Zfloor_imp m _ _).
 apply inbetween_bounds with (2 := Hl).
 apply Z2R_lt.
@@ -590,8 +590,8 @@ Theorem inbetween_float_UP :
   inbetween_float m e x l ->
   rounding beta fexp ZrndUP x = F2R (Float beta (cond_incr (round_UP l) m) e).
 Proof.
-apply inbetween_float_rounding with (choice := fun m e l => cond_incr (round_UP l) m).
-intros x m e l Hl.
+apply inbetween_float_rounding with (choice := fun m l => cond_incr (round_UP l) m).
+intros x m l Hl.
 assert (Hl': l = loc_Exact \/ (l <> loc_Exact /\ round_UP l = true)).
 case l ; try (now left) ; now right ; split.
 destruct Hl' as [Hl'|(Hl1, Hl2)].
@@ -623,14 +623,14 @@ Theorem inbetween_float_NE :
   inbetween_float m e x l ->
   rounding beta fexp ZrndNE x = F2R (Float beta (cond_incr (round_NE (Zeven m) l) m) e).
 Proof.
-apply inbetween_float_rounding with (choice := fun m e l => cond_incr (round_NE (Zeven m) l) m).
-intros x m e l Hl.
+apply inbetween_float_rounding with (choice := fun m l => cond_incr (round_NE (Zeven m) l) m).
+intros x m l Hl.
 inversion_clear Hl as [Hx|l' Hx Hl'].
 (* Exact *)
 rewrite Hx.
 now rewrite Zrnd_Z2R.
 (* not Exact *)
-unfold Zrnd, ZrndNE, ZrndN, Znearest, mkZrounding2.
+unfold Zrnd, ZrndNE, ZrndN, Znearest.
 assert (Hm: Zfloor x = m).
 apply Zfloor_imp.
 exact (conj (Rlt_le _ _ (proj1 Hx)) (proj2 Hx)).
