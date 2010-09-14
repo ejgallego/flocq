@@ -154,6 +154,60 @@ apply Rle_refl.
 apply Rsqrt_positivity.
 Qed.
 
+Theorem Rabs_le_l :
+  forall x y,
+  (-y <= x <= y)%R -> (Rabs x <= y)%R.
+Proof.
+intros x y (Hyx,Hxy).
+unfold Rabs.
+case Rcase_abs ; intros Hx.
+apply Ropp_le_cancel.
+now rewrite Ropp_involutive.
+exact Hxy.
+Qed.
+
+Theorem Rabs_le_l_inv :
+  forall x y,
+  (Rabs x <= y)%R -> (-y <= x <= y)%R.
+Proof.
+intros x y Hxy.
+split.
+apply Rle_trans with (- Rabs x)%R.
+now apply Ropp_le_contravar.
+apply Ropp_le_cancel.
+rewrite Ropp_involutive, <- Rabs_Ropp.
+apply RRle_abs.
+apply Rle_trans with (2 := Hxy).
+apply RRle_abs.
+Qed.
+
+Theorem Rabs_le_r :
+  forall x y,
+  (y <= -x \/ x <= y)%R -> (x <= Rabs y)%R.
+Proof.
+intros x y [Hyx|Hxy].
+apply Rle_trans with (-y)%R.
+apply Ropp_le_cancel.
+now rewrite Ropp_involutive.
+rewrite <- Rabs_Ropp.
+apply RRle_abs.
+apply Rle_trans with (1 := Hxy).
+apply RRle_abs.
+Qed.
+
+Theorem Rabs_le_r_inv :
+  forall x y,
+  (x <= Rabs y)%R -> (y <= -x \/ x <= y)%R.
+Proof.
+unfold Rabs.
+intros x y.
+case Rcase_abs ; intros Hy Hxy.
+left.
+apply Ropp_le_cancel.
+now rewrite Ropp_involutive.
+now right.
+Qed.
+
 End Rmissing.
 
 Section Zmissing.
