@@ -30,6 +30,19 @@ rewrite H.
 now destruct (Rcase_abs y) as [_|_] ; [right|left].
 Qed.
 
+
+Theorem Rabs_Rminus_pos:
+  forall x y : R,
+  (0 <= y)%R -> (y <= 2*x)%R ->
+  (Rabs (x-y) <= x)%R.
+intros x y Hx Hy.
+unfold Rabs; case (Rcase_abs (x - y)); intros H.
+apply Rplus_le_reg_l with x; ring_simplify; assumption.
+apply Rplus_le_reg_l with (-x)%R; ring_simplify.
+auto with real.
+Qed.
+
+
 Theorem Rplus_le_reg_r :
   forall r r1 r2 : R,
   (r1 + r <= r2 + r)%R -> (r1 <= r2)%R.
