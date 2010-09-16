@@ -42,7 +42,7 @@ unfold Fplus.
 rewrite <- Falign_spec_exp.
 destruct (Falign beta fx fy) as (p,t); destruct p; now apply Zeq_le.
 Qed.
- 
+
 
 Theorem format_nx: forall x, format x -> exists fx:float beta, (x=F2R fx)%R /\ Fexp fx = cexp x.
 intros x; unfold generic_format.
@@ -56,10 +56,11 @@ Variable Hp1 : Zlt 1 prec.
 Theorem div_error_FLX :
   forall Zrnd x y,
   format x -> format y ->
-  (y <> 0)%R ->
   format (x - rounding beta (FLX_exp prec) Zrnd (x/y) * y)%R.
 Proof.
-intros Zrnd x y Hx Hy Zy.
+intros Zrnd x y Hx Hy.
+destruct (Req_dec y 0) as [Zy|Zy].
+now rewrite Zy, Rmult_0_r, Rminus_0_r.
 case (Req_dec (rounding beta (FLX_exp prec) Zrnd (x/y)) 0); intros Hr.
 rewrite Hr; ring_simplify (x-0*y)%R; assumption.
 destruct (format_nx x Hx) as (fx,(Hx1,Hx2)).
@@ -107,7 +108,7 @@ now apply Zle_bool_imp_le.
 rewrite <- bpow_add.
 unfold canonic_exponent, FLX_exp.
 destruct (ln_beta beta (F2R fr)).
-simpl (projT1 (exist (fun e : Z => F2R fr <> 0%R -> (bpow (e - 1) <= Rabs (F2R fr) < bpow e)%R) x0 a))%Z.
+simpl projT1.
 rewrite <- Hr1 in a.
 specialize (a Hr); rewrite Hr1 in a.
 apply Rle_trans with (2:=proj1 a).
