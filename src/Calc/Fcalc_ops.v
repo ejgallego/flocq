@@ -54,6 +54,17 @@ unfold Fopp, F2R; intros (m1,e1).
 simpl; rewrite opp_Z2R; ring.
 Qed.
 
+Definition Fabs (f1: float beta) :=
+   let '(Float m1 e1) := f1 in
+    Float beta (Zabs m1)%Z e1.
+
+Theorem Fabs_F2R :
+  forall f1 : float beta,
+  (F2R (Fabs f1) = Rabs (F2R f1))%R.
+intros (m1,e1).
+now rewrite abs_F2R.
+Qed.
+
 Definition Fplus (f1 f2 : float beta) :=
   let '(m1, m2 ,e) := Falign f1 f2 in
   Float beta (m1 + m2) e.

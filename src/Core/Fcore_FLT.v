@@ -143,6 +143,20 @@ unfold generic_format, scaled_mantissa.
 now rewrite (FLT_canonic_FLX x Hx0 Hx).
 Qed.
 
+
+Theorem FLX_generic_format_FLT :
+  forall x : R,
+  generic_format beta FLT_exp x -> generic_format beta (FLX_exp prec) x.
+Proof.
+intros x Hx.
+unfold generic_format in Hx; rewrite Hx.
+apply generic_format_canonic_exponent.
+rewrite <- Hx.
+unfold canonic_exponent, FLX_exp, FLT_exp.
+apply Zle_max_l.
+Qed.
+
+
 Theorem FLT_format_FLX :
   forall x : R,
   (bpow (emin + prec - 1) <= Rabs x)%R ->
@@ -154,6 +168,20 @@ apply iff_trans with (1 := FLT_generic_format_FLX x Hx1).
 apply iff_sym.
 now apply FLX_format_generic.
 Qed.
+
+
+Theorem FLT_rounding_FLX : forall rnd x,
+  (bpow (emin + prec - 1) <= Rabs x)%R ->
+  rounding beta FLT_exp rnd x = rounding beta (FLX_exp prec) rnd x.
+intros rnd x Hx.
+unfold rounding, scaled_mantissa.
+rewrite ->FLT_canonic_FLX; trivial.
+intros H; contradict Hx.
+rewrite H, Rabs_R0; apply Rlt_not_le.
+apply bpow_gt_0.
+Qed.
+
+
 
 Theorem FLT_canonic_FIX :
   forall x, x <> R0 ->
