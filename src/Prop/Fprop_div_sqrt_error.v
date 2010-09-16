@@ -146,19 +146,25 @@ destruct (ln_beta beta y); simpl.
 left; now apply a.
 Qed.
 
-
-
 Theorem sqrt_error_N :
-  forall x, (0 <= x)%R ->
-  format x ->
+  forall x, format x ->
   format (x - Rsqr (rounding beta (FLX_exp prec) (ZrndN choice) (sqrt x)))%R.
 Proof.
-intros x Px Hx.
+intros x Hx.
+destruct (total_order_T x 0) as [[Hxz|Hxz]|Hxz].
+unfold sqrt.
+destruct (Rcase_abs x).
+rewrite rounding_0.
+unfold Rsqr.
+now rewrite Rmult_0_l, Rminus_0_r.
+elim (Rlt_irrefl 0).
+now apply Rgt_ge_trans with x.
+rewrite Hxz, sqrt_0, rounding_0.
+unfold Rsqr.
+rewrite Rmult_0_l, Rminus_0_r.
+apply generic_format_0.
 case (Req_dec (rounding beta (FLX_exp prec) (ZrndN choice) (sqrt x)) 0); intros Hr.
 rewrite Hr; unfold Rsqr; ring_simplify (x-0*0)%R; assumption.
-case (Req_dec x 0); intros Hxz.
-contradict Hr.
-now rewrite Hxz, sqrt_0, rounding_0.
 destruct (format_nx x Hx) as (fx,(Hx1,Hx2)).
 destruct (format_nx (rounding beta (FLX_exp prec) (ZrndN choice) (sqrt x))) as (fr,(Hr1,Hr2)).
 apply generic_format_rounding.
@@ -168,10 +174,8 @@ unfold Rsqr; now rewrite Fopp_F2R,mult_F2R, <- Hr1.
 (* *) 
 apply Rle_lt_trans with x.
 apply Rabs_Rminus_pos.
-auto with real.
-apply Rle_trans with (Rsqr (sqrt (2*x)))%R.
-2: right; rewrite Rsqr_sqrt; auto.
-2: apply Rmult_le_pos; auto with real.
+apply Rle_0_sqr.
+rewrite <- (Rsqr_sqrt (2 * x)).
 apply Rsqr_le_abs_1.
 rewrite Hr1.
 replace (F2R fr) with ((F2R fr - sqrt x)+sqrt x)%R by ring.
@@ -192,10 +196,8 @@ omega.
 apply Rmult_le_compat_l.
 apply bpow_ge_0.
 apply a.
-assert (0 < sqrt x)%R; auto with real.
-apply sqrt_lt_R0.
-case Px; trivial.
-intros H; contradict H; auto with real.
+apply Rgt_not_eq.
+now apply sqrt_lt_R0.
 apply Rle_trans with ((1+bpow (-prec+1)*/2)*Rabs (sqrt x))%R;[right; ring|idtac].
 apply Rle_trans with (sqrt 2 * Rabs (sqrt x))%R.
 apply Rmult_le_compat_r.
@@ -210,40 +212,46 @@ apply Rplus_le_compat.
 apply Rplus_le_compat_l.
 apply ->bpow_le; omega.
 apply Rmult_le_compat_r.
-left; replace 4%R with (INR 3+1)%R.
-apply RinvN_pos.
-simpl; ring.
+apply Rlt_le.
+apply Rinv_0_lt_compat.
+now apply (Z2R_lt 0 4).
 rewrite <-bpow_add, <-bpow_add.
 apply ->bpow_le; omega.
+change (-2 + 1)%Z with (-1)%Z.
 simpl.
-ring_simplify (2-1)%Z; unfold Zpower_pos; simpl.
+unfold Zpower_pos. simpl.
 rewrite Zmult_1_r, 2!Rmult_1_l.
-apply Rle_trans with (1+/ Z2R 2 + /2)%R.
-2: simpl; right; field.
+pattern 2%R at 3 ; replace 2%R with (1 + /2 + /2)%R by field.
 apply Rplus_le_compat.
 apply Rplus_le_compat_l.
-apply Rle_Rinv; try replace 0%R with (Z2R 0) by reflexivity.
-apply Z2R_lt; omega.
-apply Z2R_lt.
-clear;destruct beta; simpl.
-assert (2 <= radix_val)%Z.
-now apply Zle_bool_imp_le.
-omega.
-apply Z2R_le.
-clear;destruct beta; simpl.
-now apply Zle_bool_imp_le.
-left; apply Rinv_1_lt_contravar; auto with real.
-rewrite <- (Rmult_1_l 2) at 1; auto with real.
+apply Rle_Rinv.
+now apply (Z2R_lt 0 2).
+apply (Z2R_lt 0).
+apply Zlt_le_trans with 2%Z.
+apply refl_equal.
+apply Zle_bool_imp_le.
+apply beta.
+apply (Z2R_le 2).
+apply Zle_bool_imp_le.
+apply beta.
+apply Rlt_le.
+apply Rinv_1_lt_contravar.
+now apply (Z2R_le 1 2).
+now apply (Z2R_lt 2 4).
 rewrite sqrt_mult; auto with real.
 rewrite Rabs_mult.
 rewrite (Rabs_right (sqrt 2)); auto with real.
 apply Rle_ge; apply sqrt_positivity; auto with real.
+apply Rmult_le_pos.
+now apply (Z2R_le 0 2).
+now apply Rlt_le.
 rewrite Hx2; unfold canonic_exponent, FLX_exp.
 ring_simplify (prec + (projT1 (ln_beta beta x) - prec))%Z.
 destruct (ln_beta beta x); simpl.
 rewrite <- (Rabs_right x).
-now apply a.
-now apply Rle_ge.
+apply a.
+now apply Rgt_not_eq.
+now apply Rgt_ge.
 (* *)
 replace (Fexp (Fopp beta (Fmult beta fr fr))) with (Fexp fr + Fexp fr)%Z.
 2: unfold Fopp, Fmult; destruct fr; now simpl.
@@ -287,10 +295,8 @@ now apply Rplus_lt_compat_r.
 rewrite Rmult_plus_distr_r, Rmult_1_l.
 apply Rplus_le_compat_l.
 assert (sqrt x <> 0)%R.
-assert (0 < sqrt x)%R; auto with real.
-apply sqrt_lt_R0.
-case Px; trivial.
-intros H'; contradict H'; now apply sym_not_eq.
+apply Rgt_not_eq.
+now apply sqrt_lt_R0.
 destruct (ln_beta beta (sqrt x)).
 specialize (a H0).
 apply Rle_trans with (bpow x0).
@@ -308,7 +314,7 @@ unfold FLX_exp; omega.
 apply a.
 apply Rlt_le_trans with (1:=H).
 apply ->bpow_le; omega.
+now apply Rlt_le.
 Qed.
-
 
 End Fprop_divsqrt_error.
