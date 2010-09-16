@@ -23,9 +23,9 @@ case (Req_dec (x+y) 0); intros H.
 rewrite H; apply generic_format_0.
 rewrite Hx, Hy, <- plus_F2R.
 apply generic_format_canonic_exponent.
-replace (Float beta (let (Fnum, _) := Fplus beta fx fy in Fnum)
-         (let (_, Fexp) := Fplus beta fx fy in Fexp)) with (Fplus beta fx fy).
-2: now destruct (Fplus beta fx fy).
+case_eq (Fplus beta fx fy).
+intros mz ez Hz.
+rewrite <- Hz.
 apply Zle_trans with (Zmin (Fexp fx) (Fexp fy)).
 unfold canonic_exponent, FLX_exp.
 rewrite plus_F2R, <- Hx, <- Hy.
@@ -38,9 +38,11 @@ now apply Rle_lt_trans with (1:=proj1 a).
 apply Zplus_le_reg_l with prec; ring_simplify.
 apply (bpow_lt_bpow beta).
 now apply Rle_lt_trans with (1:=proj1 a).
-unfold Fplus.
 rewrite <- Falign_spec_exp.
-destruct (Falign beta fx fy) as (p,t); destruct p; now apply Zeq_le.
+generalize (f_equal Fexp Hz).
+unfold Fplus.
+destruct (Falign beta fx fy) as ((p,q),t).
+apply Zeq_le.
 Qed.
 
 Theorem format_nx: forall x, format x -> exists fx:float beta, (x=F2R fx)%R /\ Fexp fx = cexp x.
