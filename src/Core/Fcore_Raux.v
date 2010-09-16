@@ -143,6 +143,29 @@ rewrite H.
 apply Rle_refl.
 Qed.
 
+Theorem Rinv_lt :
+  forall x y,
+  (0 < x)%R -> (x < y)%R -> (/y < /x)%R.
+Proof.
+intros x y Hx Hxy.
+apply Rinv_lt_contravar.
+apply Rmult_lt_0_compat.
+exact Hx.
+now apply Rlt_trans with x.
+exact Hxy.
+Qed.
+
+Theorem Rinv_le :
+  forall x y,
+  (0 < x)%R -> (x <= y)%R -> (/y <= /x)%R.
+Proof.
+intros x y Hx Hxy.
+apply Rle_Rinv.
+exact Hx.
+now apply Rlt_le_trans with x.
+exact Hxy.
+Qed.
+
 Theorem sqrt_ge_0 :
   forall x : R,
   (0 <= sqrt x)%R.
