@@ -1,5 +1,6 @@
 Require Import Fcore.
 Require Import Fcalc_ops.
+Require Import Fprop_relative.
 
 Section Fprop_divsqrt_error.
 
@@ -175,76 +176,52 @@ unfold Rsqr; now rewrite Fopp_F2R,mult_F2R, <- Hr1.
 apply Rle_lt_trans with x.
 apply Rabs_Rminus_pos.
 apply Rle_0_sqr.
-rewrite <- (Rsqr_sqrt (2 * x)).
+destruct (relative_error_N_FLX_ex beta prec Hp choice (sqrt x)) as (eps,(Heps1,Heps2)).
+rewrite Heps2.
+rewrite Rsqr_mult, Rsqr_sqrt, Rmult_comm. 2: now apply Rlt_le.
+apply Rmult_le_compat_r.
+now apply Rlt_le.
+apply Rle_trans with (5²/4²)%R.
+rewrite <- Rsqr_div.
 apply Rsqr_le_abs_1.
-rewrite Hr1.
-replace (F2R fr) with ((F2R fr - sqrt x)+sqrt x)%R by ring.
-apply Rle_trans with (1:=Rabs_triang _ _).
-apply Rle_trans with (/2*bpow (-prec+1)*Rabs (sqrt x) + Rabs (sqrt x))%R.
-apply Rplus_le_compat_r; rewrite <- Hr1.
-apply Rle_trans with (/2*ulp beta (FLX_exp prec) (sqrt x))%R.
-apply ulp_half_error.
-now apply FLX_exp_correct.
-rewrite Rmult_assoc; apply Rmult_le_compat_l.
-auto with real.
-unfold ulp, canonic_exponent, FLX_exp.
-destruct (ln_beta beta (sqrt x)); simpl.
-apply Rle_trans with (bpow (-prec+1)*bpow(x0-1))%R.
-rewrite <- bpow_add.
-apply ->bpow_le.
+apply Rle_trans with (1 := Rabs_triang _ _).
+rewrite Rabs_R1.
+apply Rplus_le_reg_l with (-1)%R.
+rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l.
+apply Rle_trans with (1 := Heps1).
+rewrite Rabs_pos_eq.
+apply Rmult_le_reg_l with 2%R.
+now apply (Z2R_lt 0 2).
+rewrite <- Rmult_assoc, Rinv_r, Rmult_1_l.
+apply Rle_trans with (bpow (-1)).
+apply -> bpow_le.
 omega.
-apply Rmult_le_compat_l.
-apply bpow_ge_0.
-apply a.
+replace (2 * (-1 + 5 / 4))%R with (/2)%R by field.
+apply Rinv_le.
+now apply (Z2R_lt 0 2).
+apply (Z2R_le 2).
+unfold Zpower_pos. simpl.
+rewrite Zmult_1_r.
+apply Zle_bool_imp_le.
+apply beta.
 apply Rgt_not_eq.
-now apply sqrt_lt_R0.
-apply Rle_trans with ((1+bpow (-prec+1)*/2)*Rabs (sqrt x))%R;[right; ring|idtac].
-apply Rle_trans with (sqrt 2 * Rabs (sqrt x))%R.
-apply Rmult_le_compat_r.
-apply Rabs_pos.
-apply Rsqr_incr_0_var.
-2: apply sqrt_positivity; auto with real.
-rewrite Rsqr_sqrt; auto with real.
-apply Rle_trans with (1+bpow (- prec + 1)  + bpow (- prec + 1)*bpow (- prec + 1)*/4)%R.
-right; unfold Rsqr; field.
-apply Rle_trans with (1+bpow (- 2 + 1) + bpow (- 1 + 1) * bpow (- 1 + 1) * / 4)%R.
-apply Rplus_le_compat.
-apply Rplus_le_compat_l.
-apply ->bpow_le; omega.
-apply Rmult_le_compat_r.
+now apply (Z2R_lt 0 2).
+unfold Rdiv.
+apply Rmult_le_pos.
+now apply (Z2R_le 0 5).
 apply Rlt_le.
 apply Rinv_0_lt_compat.
 now apply (Z2R_lt 0 4).
-rewrite <-bpow_add, <-bpow_add.
-apply ->bpow_le; omega.
-change (-2 + 1)%Z with (-1)%Z.
-simpl.
-unfold Zpower_pos. simpl.
-rewrite Zmult_1_r, 2!Rmult_1_l.
-pattern 2%R at 3 ; replace 2%R with (1 + /2 + /2)%R by field.
-apply Rplus_le_compat.
-apply Rplus_le_compat_l.
-apply Rle_Rinv.
-now apply (Z2R_lt 0 2).
-apply (Z2R_lt 0).
-apply Zlt_le_trans with 2%Z.
-apply refl_equal.
-apply Zle_bool_imp_le.
-apply beta.
-apply (Z2R_le 2).
-apply Zle_bool_imp_le.
-apply beta.
-apply Rlt_le.
-apply Rinv_1_lt_contravar.
-now apply (Z2R_le 1 2).
-now apply (Z2R_lt 2 4).
-rewrite sqrt_mult; auto with real.
-rewrite Rabs_mult.
-rewrite (Rabs_right (sqrt 2)); auto with real.
-apply Rle_ge; apply sqrt_positivity; auto with real.
-apply Rmult_le_pos.
-now apply (Z2R_le 0 2).
-now apply Rlt_le.
+apply Rgt_not_eq.
+now apply (Z2R_lt 0 4).
+unfold Rsqr.
+replace (5 * 5 / (4 * 4))%R with (25 * /16)%R by field.
+apply Rmult_le_reg_r with 16%R.
+now apply (Z2R_lt 0 16).
+rewrite Rmult_assoc, Rinv_l, Rmult_1_r.
+now apply (Z2R_le 25 32).
+apply Rgt_not_eq.
+now apply (Z2R_lt 0 16).
 rewrite Hx2; unfold canonic_exponent, FLX_exp.
 ring_simplify (prec + (projT1 (ln_beta beta x) - prec))%Z.
 destruct (ln_beta beta x); simpl.
