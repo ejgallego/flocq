@@ -38,11 +38,8 @@ now apply Rle_lt_trans with (1:=proj1 a).
 apply Zplus_le_reg_l with prec; ring_simplify.
 apply (bpow_lt_bpow beta).
 now apply Rle_lt_trans with (1:=proj1 a).
-rewrite <- Falign_spec_exp.
-generalize (f_equal Fexp Hz).
-unfold Fplus.
-destruct (Falign beta fx fy) as ((p,q),t).
-apply Zeq_le.
+rewrite <- Fexp_Fplus, Hz.
+apply Zle_refl.
 Qed.
 
 Theorem format_nx: forall x, format x -> exists fx:float beta, (x=F2R fx)%R /\ Fexp fx = cexp x.

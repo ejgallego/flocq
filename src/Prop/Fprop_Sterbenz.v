@@ -55,11 +55,7 @@ apply Rle_lt_trans with (2 := Hxy).
 destruct (ln_beta beta (x + y)) as (exy', Exy). simpl.
 now apply Exy.
 replace exy with (Fexp (Fplus beta fx fy)) by exact (f_equal Fexp Pxy).
-unfold Fplus.
-generalize (Falign_spec_exp beta fx fy).
-case (Falign beta fx fy). simpl.
-intros (p, q) z Hz.
-rewrite Hz.
+rewrite Fexp_Fplus.
 simpl. clear -monotone_exp.
 apply sym_eq.
 destruct (Zmin_spec ex ey) as [(H1,H2)|(H1,H2)] ; rewrite H2.
