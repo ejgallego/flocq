@@ -22,6 +22,71 @@ apply monotone_exp.
 now apply ln_beta_monotone.
 Qed.
 
+Theorem generic_format_plus :
+  forall x y,
+  format x -> format y ->
+  (Rabs (x + y) < bpow (Zmin (projT1 (ln_beta beta x)) (projT1 (ln_beta beta y))))%R ->
+  format (x + y)%R.
+Proof.
+intros x y Fx Fy Hxy.
+destruct (Req_dec (x + y) 0) as [Zxy|Zxy].
+rewrite Zxy.
+apply generic_format_0.
+destruct (Req_dec x R0) as [Zx|Zx].
+now rewrite Zx, Rplus_0_l.
+destruct (Req_dec y R0) as [Zy|Zy].
+now rewrite Zy, Rplus_0_r.
+revert Hxy.
+destruct (ln_beta beta x) as (ex, Ex). simpl.
+specialize (Ex Zx).
+destruct (ln_beta beta y) as (ey, Ey). simpl.
+specialize (Ey Zy).
+intros Hxy.
+set (fx := Float beta (Ztrunc (scaled_mantissa beta fexp x)) (fexp ex)).
+assert (Hx: x = F2R fx).
+rewrite Fx at 1.
+unfold canonic_exponent.
+now rewrite ln_beta_unique with (1 := Ex).
+set (fy := Float beta (Ztrunc (scaled_mantissa beta fexp y)) (fexp ey)).
+assert (Hy: y = F2R fy).
+rewrite Fy at 1.
+unfold canonic_exponent.
+now rewrite ln_beta_unique with (1 := Ey).
+rewrite Hx, Hy.
+rewrite <- plus_F2R.
+apply generic_format_canonic_exponent.
+case_eq (Fplus beta fx fy).
+intros mxy exy Pxy.
+rewrite <- Pxy, plus_F2R, <- Hx, <- Hy.
+unfold canonic_exponent.
+replace exy with (fexp (Zmin ex ey)).
+apply monotone_exp.
+apply bpow_lt_bpow with beta.
+apply Rle_lt_trans with (2 := Hxy).
+destruct (ln_beta beta (x + y)) as (exy', Exy). simpl.
+now apply Exy.
+replace exy with (Fexp (Fplus beta fx fy)) by exact (f_equal Fexp Pxy).
+unfold Fplus.
+generalize (Falign_spec_exp beta fx fy).
+case (Falign beta fx fy). simpl.
+intros (p, q) z Hz.
+rewrite Hz.
+simpl. clear -monotone_exp.
+destruct (Zmin_spec ex ey) as [(H1,H2)|(H1,H2)] ; rewrite H2.
+apply Zle_antisym.
+apply Zmin_glb.
+apply Zle_refl.
+now apply monotone_exp.
+apply Zle_min_l.
+apply Zle_antisym.
+apply Zmin_glb.
+apply monotone_exp.
+apply Zlt_le_weak.
+now apply Zgt_lt.
+apply Zle_refl.
+apply Zle_min_r.
+Qed.
+
 Theorem sterbenz_aux :
   forall x y, format x -> format y ->
   (y <= x <= 2 * y)%R ->
