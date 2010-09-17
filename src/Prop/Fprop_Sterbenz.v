@@ -11,17 +11,6 @@ Hypothesis prop_exp : valid_exp fexp.
 Hypothesis monotone_exp : forall ex ey, (ex <= ey)%Z -> (fexp ex <= fexp ey)%Z.
 Notation format := (generic_format beta fexp).
 
-Lemma canonic_exponent_monotone :
-  forall x y,
-  (0 < x)%R -> (x <= y)%R ->
-  (canonic_exponent beta fexp x <= canonic_exponent beta fexp y)%Z.
-Proof.
-intros x y Hx Hxy.
-unfold canonic_exponent.
-apply monotone_exp.
-now apply ln_beta_monotone.
-Qed.
-
 Theorem generic_format_plus :
   forall x y,
   format x -> format y ->
@@ -116,55 +105,27 @@ Theorem sterbenz_aux :
   format (x - y)%R.
 Proof.
 intros x y Hx Hy (Hxy1, Hxy2).
-assert (Hxy: (0 <= x - y)%R).
-apply Rplus_le_reg_r with y.
-now ring_simplify.
-destruct Hxy as [Hxy|Hxy].
-(* . *)
+unfold Rminus.
+apply generic_format_plus_weak.
+exact Hx.
+now apply generic_format_opp.
+rewrite Rabs_pos_eq.
+rewrite Rabs_Ropp.
+rewrite Rmin_comm.
 assert (Hy0: (0 <= y)%R).
 apply Rplus_le_reg_r with y.
 apply Rle_trans with x.
 now rewrite Rplus_0_l.
 now rewrite Rmult_plus_distr_r, Rmult_1_l in Hxy2.
-destruct Hy0 as [Hy0|Hy0].
-(* .. *)
-assert (Hf: (x - y = F2R (Float beta
-  (- Ztrunc (scaled_mantissa beta fexp y) + Ztrunc (scaled_mantissa beta fexp x) *
-     Zpower (radix_val beta) (canonic_exponent beta fexp x - canonic_exponent beta fexp y)) (canonic_exponent beta fexp y)))%R).
-rewrite Hx at 1.
-rewrite Hy at 1.
-unfold Rminus.
-rewrite opp_F2R.
-rewrite Rplus_comm.
-rewrite <- plus_F2R.
-unfold Fplus. simpl.
-rewrite Zle_imp_le_bool.
-easy.
-now apply canonic_exponent_monotone.
-(* ... *)
-rewrite Hf.
-apply generic_format_canonic_exponent.
-rewrite <- Hf.
-clear Hf.
-apply canonic_exponent_monotone.
-exact Hxy.
+rewrite Rabs_pos_eq with (1 := Hy0).
+rewrite Rabs_pos_eq.
+unfold Rmin.
+destruct (Rle_dec y x) as [Hyx|Hyx].
 apply Rplus_le_reg_r with y.
-apply Rle_trans with x.
-ring_simplify.
-apply Rle_refl.
-now rewrite Rmult_plus_distr_r, Rmult_1_l in Hxy2.
-(* .. *)
-elim (Rlt_irrefl 0).
-apply Rlt_le_trans with  x.
-replace x with (x - y)%R.
-exact Hxy.
-rewrite <- Hy0.
-unfold Rminus.
-now rewrite Ropp_0, Rplus_0_r.
-now rewrite <- (Rmult_0_r 2), Hy0.
-(* . *)
-rewrite <- Hxy.
-apply generic_format_0.
+now ring_simplify.
+now elim Hyx.
+now apply Rle_trans with y.
+now apply Rle_0_minus.
 Qed.
 
 Theorem sterbenz :
