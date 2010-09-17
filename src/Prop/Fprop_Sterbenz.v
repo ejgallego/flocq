@@ -72,19 +72,14 @@ case (Falign beta fx fy). simpl.
 intros (p, q) z Hz.
 rewrite Hz.
 simpl. clear -monotone_exp.
+apply sym_eq.
 destruct (Zmin_spec ex ey) as [(H1,H2)|(H1,H2)] ; rewrite H2.
-apply Zle_antisym.
-apply Zmin_glb.
-apply Zle_refl.
+apply Zmin_left.
 now apply monotone_exp.
-apply Zle_min_l.
-apply Zle_antisym.
-apply Zmin_glb.
+apply Zmin_right.
 apply monotone_exp.
 apply Zlt_le_weak.
 now apply Zgt_lt.
-apply Zle_refl.
-apply Zle_min_r.
 Qed.
 
 Theorem sterbenz_aux :
