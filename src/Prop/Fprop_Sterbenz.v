@@ -82,6 +82,34 @@ apply Zlt_le_weak.
 now apply Zgt_lt.
 Qed.
 
+Theorem generic_format_plus_weak :
+  forall x y,
+  format x -> format y ->
+  (Rabs (x + y) <= Rmin (Rabs x) (Rabs y))%R ->
+  format (x + y)%R.
+Proof.
+intros x y Fx Fy Hxy.
+destruct (Req_dec x R0) as [Zx|Zx].
+now rewrite Zx, Rplus_0_l.
+destruct (Req_dec y R0) as [Zy|Zy].
+now rewrite Zy, Rplus_0_r.
+apply generic_format_plus ; try assumption.
+apply Rle_lt_trans with (1 := Hxy).
+unfold Rmin.
+destruct (Rle_dec (Rabs x) (Rabs y)) as [Hxy'|Hxy'].
+rewrite Zmin_left.
+destruct (ln_beta beta x) as (ex, Hx).
+now apply Hx.
+now apply ln_beta_monotone_abs.
+rewrite Zmin_right.
+destruct (ln_beta beta y) as (ex, Hy).
+now apply Hy.
+apply ln_beta_monotone_abs.
+exact Zy.
+apply Rlt_le.
+now apply Rnot_le_lt.
+Qed.
+
 Theorem sterbenz_aux :
   forall x y, format x -> format y ->
   (y <= x <= 2 * y)%R ->
