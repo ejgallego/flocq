@@ -17,7 +17,7 @@ Definition Falign (f1 f2 : float beta) :=
 
 Theorem Falign_spec :
   forall f1 f2 : float beta,
-  let '(m1, m2 ,e) := Falign f1 f2 in
+  let '(m1, m2, e) := Falign f1 f2 in
   F2R f1 = F2R (Float beta m1 e) /\ F2R f2 = F2R (Float beta m2 e).
 Proof.
 unfold Falign.
@@ -32,20 +32,18 @@ Qed.
 
 Theorem Falign_spec_exp:
   forall f1 f2 : float beta,
-  snd (Falign f1 f2)= Zmin (Fexp f1) (Fexp f2).
-intros f1 f2.
-destruct f1 as (m1,e1);destruct f2 as (m2,e2).
+  snd (Falign f1 f2) = Zmin (Fexp f1) (Fexp f2).
+Proof.
+intros (m1,e1) (m2,e2).
 unfold Falign; simpl.
 generalize (Zle_cases e1 e2);case (Zle_bool e1 e2); intros He.
 case (Zmin_spec e1 e2); intros (H1,H2); easy.
 case (Zmin_spec e1 e2); intros (H1,H2); easy.
 Qed.
 
-
-
 Definition Fopp (f1: float beta) :=
-   let '(Float m1 e1) := f1 in
-    Float beta (-m1)%Z e1.
+  let '(Float m1 e1) := f1 in
+  Float beta (-m1)%Z e1.
 
 Theorem Fopp_F2R :
   forall f1 : float beta,
@@ -55,8 +53,8 @@ simpl; rewrite opp_Z2R; ring.
 Qed.
 
 Definition Fabs (f1: float beta) :=
-   let '(Float m1 e1) := f1 in
-    Float beta (Zabs m1)%Z e1.
+  let '(Float m1 e1) := f1 in
+  Float beta (Zabs m1)%Z e1.
 
 Theorem Fabs_F2R :
   forall f1 : float beta,
@@ -84,6 +82,15 @@ rewrite plus_Z2R.
 apply Rmult_plus_distr_r.
 Qed.
 
+Theorem Fexp_Fplus :
+  forall f1 f2 : float beta,
+  Fexp (Fplus f1 f2) = Zmin (Fexp f1) (Fexp f2).
+Proof.
+intros f1 f2.
+unfold Fplus.
+rewrite <- Falign_spec_exp.
+now destruct (Falign f1 f2) as ((p,q),e).
+Qed.
 
 Definition Fminus (f1 f2 : float beta) :=
   Fplus f1 (Fopp f2).
@@ -96,7 +103,6 @@ intros f1 f2; unfold Fminus.
 rewrite plus_F2R, Fopp_F2R.
 ring.
 Qed.
-
 
 Definition Fmult (f1 f2 : float beta) :=
   let '(Float m1 e1) := f1 in
