@@ -244,6 +244,24 @@ apply Zplus_le_reg_r with (-x - y)%Z.
 now ring_simplify.
 Qed.
 
+Theorem Zmin_left :
+  forall x y : Z,
+  (x <= y)%Z -> Zmin x y = x.
+Proof.
+intros x y.
+generalize (Zmin_spec x y).
+omega.
+Qed.
+
+Theorem Zmin_right :
+  forall x y : Z,
+  (y <= x)%Z -> Zmin x y = y.
+Proof.
+intros x y.
+generalize (Zmin_spec x y).
+omega.
+Qed.
+
 End Zmissing.
 
 Section Z2R.
