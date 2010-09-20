@@ -300,6 +300,27 @@ rewrite Rmult_assoc, <- bpow_add, Zplus_opp_r, Rmult_1_r.
 now rewrite Ztrunc_Z2R.
 Qed.
 
+
+Theorem canonic_exp_ge:
+  forall prec,
+  (forall e, (e-prec <= fexp e)%Z) ->
+  (* OK with FLX, FLT and FTZ *)
+  forall x, generic_format x ->
+  (Rabs x < bpow (prec + canonic_exponent x))%R.
+intros prec Hp x Hx.
+case (Req_dec x 0); intros Hxz.
+rewrite Hxz, Rabs_R0.
+apply bpow_gt_0.
+unfold canonic_exponent.
+destruct (ln_beta beta x); simpl.
+specialize (a Hxz).
+apply Rlt_le_trans with (1:=proj2 a).
+apply -> bpow_le.
+specialize (Hp x0).
+omega.
+Qed.
+
+
 Section Fcore_generic_rounding_pos.
 
 Record Zrounding := mkZrounding {

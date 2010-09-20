@@ -145,24 +145,6 @@ Notation format := (generic_format beta (FLT_exp emin prec)).
 Notation cexp := (canonic_exponent beta (FLT_exp emin prec)).
 
 
-Theorem canonic_exp_ge_FLT:
-  forall x, format x ->
-  (Rabs x < bpow (prec + cexp x))%R.
-intros x Hx.
-case (Req_dec x 0); intros Hxz.
-rewrite Hxz, Rabs_R0.
-apply bpow_gt_0.
-unfold canonic_exponent, FLT_exp.
-destruct (ln_beta beta x); simpl.
-specialize (a Hxz).
-apply Rlt_le_trans with (1:=proj2 a).
-apply -> bpow_le.
-case (Zmax_spec (x0-prec) emin); intros (H1,H2).
-rewrite H2; omega.
-rewrite H2; omega.
-Qed.
-
-
 Theorem mult_error_FLT :
   forall rnd,
   forall x y,
