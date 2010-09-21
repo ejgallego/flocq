@@ -54,6 +54,81 @@ rewrite H.
 now rewrite scaled_mantissa_bpow.
 Qed.
 
+Theorem rounding_DN_ulp :
+  forall x, (0 < x)%R -> F x ->
+  forall eps, (0 <= eps < ulp x)%R ->
+  rounding beta fexp ZrndDN (x + eps) = x.
+Proof.
+intros x Zx Fx eps Heps.
+assert (He: canonic_exponent beta fexp (x + eps) = canonic_exponent beta fexp x).
+(* *)
+apply (f_equal fexp).
+destruct (ln_beta beta x) as (ex, He).
+simpl.
+specialize (He (Rgt_not_eq _ _ Zx)).
+apply ln_beta_unique.
+rewrite Rabs_pos_eq.
+rewrite Rabs_pos_eq in He.
+split.
+apply Rle_trans with (1 := proj1 He).
+pattern x at 1 ; rewrite <- Rplus_0_r.
+now apply Rplus_le_compat_l.
+apply Rlt_le_trans with (x + ulp x)%R.
+now apply Rplus_lt_compat_l.
+pattern x at 1 ; rewrite Fx.
+unfold ulp.
+unfold F2R. simpl.
+pattern (bpow (canonic_exponent beta fexp x)) at 2 ; rewrite <- Rmult_1_l.
+rewrite <- Rmult_plus_distr_r.
+change 1%R with (Z2R 1).
+rewrite <- plus_Z2R.
+change (F2R (Float beta (Ztrunc (scaled_mantissa beta fexp x) + 1) (canonic_exponent beta fexp x)) <= bpow ex)%R.
+apply F2R_p1_le_bpow.
+apply F2R_gt_0_reg with beta (canonic_exponent beta fexp x).
+now rewrite <- Fx.
+now rewrite <- Fx.
+now apply Rlt_le.
+apply Rplus_le_le_0_compat.
+now apply Rlt_le.
+apply Heps.
+(* *)
+unfold rounding, scaled_mantissa.
+rewrite He.
+pattern x at 4 ; rewrite Fx.
+apply (f_equal (fun m => F2R (Float beta m _))).
+unfold scaled_mantissa, Zrnd. simpl.
+rewrite Ztrunc_floor.
+apply Zfloor_imp.
+split.
+apply (Rle_trans _ _ _ (Zfloor_lb _)).
+apply Rmult_le_compat_r.
+apply bpow_ge_0.
+pattern x at 1 ; rewrite <- Rplus_0_r.
+now apply Rplus_le_compat_l.
+apply Rlt_le_trans with ((x + ulp x) * bpow (- canonic_exponent beta fexp x))%R.
+apply Rmult_lt_compat_r.
+apply bpow_gt_0.
+now apply Rplus_lt_compat_l.
+rewrite Rmult_plus_distr_r.
+rewrite plus_Z2R.
+apply Rplus_le_compat.
+pattern x at 1 3 ; rewrite Fx.
+unfold F2R. simpl.
+rewrite Rmult_assoc.
+rewrite <- bpow_add.
+rewrite Zplus_opp_r.
+rewrite Rmult_1_r.
+rewrite Zfloor_Z2R.
+apply Rle_refl.
+unfold ulp.
+rewrite <- bpow_add.
+rewrite Zplus_opp_r.
+apply Rle_refl.
+apply Rmult_le_pos.
+now apply Rlt_le.
+apply bpow_ge_0.
+Qed.
+
 Theorem ulp_error :
   forall Zrnd x,
   (Rabs (rounding beta fexp Zrnd x - x) < ulp x)%R.
