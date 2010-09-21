@@ -303,7 +303,7 @@ Qed.
 
 Theorem canonic_exp_ge:
   forall prec,
-  (forall e, (e-prec <= fexp e)%Z) ->
+  (forall e, (e-fexp e <= prec)%Z) ->
   (* OK with FLX, FLT and FTZ *)
   forall x, generic_format x ->
   (Rabs x < bpow (prec + canonic_exponent x))%R.
