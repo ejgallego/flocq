@@ -194,6 +194,32 @@ admit.
 now apply Rlt_le.
 Qed.
 
+Theorem rounding_UP_succ :
+  forall x, (0 < x)%R -> F x ->
+  forall eps, (0 < eps <= ulp x)%R ->
+  rounding beta fexp ZrndUP (x + eps) = (x + ulp x)%R.
+Proof.
+intros x Zx Fx eps (Heps1,[Heps2|Heps2]).
+assert (Heps: (0 <= eps < ulp x)%R).
+split.
+now apply Rlt_le.
+exact Heps2.
+assert (Hd := rounding_DN_succ x Zx Fx eps Heps).
+rewrite ulp_DN_UP.
+rewrite Hd.
+unfold ulp, canonic_exponent.
+now rewrite ln_beta_succ.
+intros Fs.
+rewrite rounding_generic in Hd.
+apply Rgt_not_eq with (2 := Hd).
+pattern x at 2 ; rewrite <- Rplus_0_r.
+now apply Rplus_lt_compat_l.
+exact Fs.
+rewrite Heps2.
+apply rounding_generic.
+now apply generic_format_succ.
+Qed.
+
 Theorem ulp_error :
   forall Zrnd x,
   (Rabs (rounding beta fexp Zrnd x - x) < ulp x)%R.
