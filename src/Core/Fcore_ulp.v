@@ -54,15 +54,31 @@ rewrite H.
 now rewrite scaled_mantissa_bpow.
 Qed.
 
-Theorem rounding_DN_ulp :
+Theorem succ_le_bpow :
+  forall x e, (0 < x)%R -> F x ->
+  (x < bpow e)%R ->
+  (x + ulp x <= bpow e)%R.
+Proof.
+intros x e Zx Fx Hx.
+pattern x at 1 ; rewrite Fx.
+unfold ulp, F2R. simpl.
+pattern (bpow (canonic_exponent beta fexp x)) at 2 ; rewrite <- Rmult_1_l.
+rewrite <- Rmult_plus_distr_r.
+change 1%R with (Z2R 1).
+rewrite <- plus_Z2R.
+change (F2R (Float beta (Ztrunc (scaled_mantissa beta fexp x) + 1) (canonic_exponent beta fexp x)) <= bpow e)%R.
+apply F2R_p1_le_bpow.
+apply F2R_gt_0_reg with beta (canonic_exponent beta fexp x).
+now rewrite <- Fx.
+now rewrite <- Fx.
+Qed.
+
+Theorem ln_beta_succ :
   forall x, (0 < x)%R -> F x ->
   forall eps, (0 <= eps < ulp x)%R ->
-  rounding beta fexp ZrndDN (x + eps) = x.
+  projT1 (ln_beta beta (x + eps)) = projT1 (ln_beta beta x).
 Proof.
 intros x Zx Fx eps Heps.
-assert (He: canonic_exponent beta fexp (x + eps) = canonic_exponent beta fexp x).
-(* *)
-apply (f_equal fexp).
 destruct (ln_beta beta x) as (ex, He).
 simpl.
 specialize (He (Rgt_not_eq _ _ Zx)).
@@ -76,8 +92,7 @@ now apply Rplus_le_compat_l.
 apply Rlt_le_trans with (x + ulp x)%R.
 now apply Rplus_lt_compat_l.
 pattern x at 1 ; rewrite Fx.
-unfold ulp.
-unfold F2R. simpl.
+unfold ulp, F2R. simpl.
 pattern (bpow (canonic_exponent beta fexp x)) at 2 ; rewrite <- Rmult_1_l.
 rewrite <- Rmult_plus_distr_r.
 change 1%R with (Z2R 1).
@@ -91,12 +106,20 @@ now apply Rlt_le.
 apply Rplus_le_le_0_compat.
 now apply Rlt_le.
 apply Heps.
-(* *)
-unfold rounding, scaled_mantissa.
-rewrite He.
-pattern x at 4 ; rewrite Fx.
-apply (f_equal (fun m => F2R (Float beta m _))).
+Qed.
+
+Theorem rounding_DN_succ :
+  forall x, (0 < x)%R -> F x ->
+  forall eps, (0 <= eps < ulp x)%R ->
+  rounding beta fexp ZrndDN (x + eps) = x.
+Proof.
+intros x Zx Fx eps Heps.
+pattern x at 2 ; rewrite Fx.
+unfold rounding.
 unfold scaled_mantissa, Zrnd. simpl.
+unfold canonic_exponent at 1 2.
+rewrite ln_beta_succ ; trivial.
+apply (f_equal (fun m => F2R (Float beta m _))).
 rewrite Ztrunc_floor.
 apply Zfloor_imp.
 split.
