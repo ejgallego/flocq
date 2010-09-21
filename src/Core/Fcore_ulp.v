@@ -152,6 +152,48 @@ now apply Rlt_le.
 apply bpow_ge_0.
 Qed.
 
+Theorem generic_format_succ :
+  forall x, (0 < x)%R -> F x ->
+  F (x + ulp x).
+Proof.
+intros x Zx Fx.
+destruct (ln_beta beta x) as (ex, Ex).
+specialize (Ex (Rgt_not_eq _ _ Zx)).
+assert (Ex' := Ex).
+rewrite Rabs_pos_eq in Ex'.
+destruct (succ_le_bpow x ex) ; try easy.
+unfold F, generic_format.
+unfold scaled_mantissa, canonic_exponent.
+rewrite ln_beta_unique with beta (x + ulp x)%R ex.
+pattern x at 1 3 ; rewrite Fx.
+unfold ulp, scaled_mantissa, canonic_exponent, F2R. simpl.
+rewrite ln_beta_unique with (1 := Ex).
+rewrite Rmult_plus_distr_r.
+rewrite Rmult_assoc.
+rewrite <- bpow_add, Zplus_opp_r, Rmult_1_r.
+change (bpow 0) with (Z2R 1).
+rewrite <- plus_Z2R.
+rewrite Ztrunc_Z2R.
+rewrite plus_Z2R.
+rewrite Rmult_plus_distr_r.
+now rewrite Rmult_1_l.
+rewrite Rabs_pos_eq.
+split.
+apply Rle_trans with (1 := proj1 Ex').
+pattern x at 1 ; rewrite <- Rplus_0_r.
+apply Rplus_le_compat_l.
+apply bpow_ge_0.
+exact H.
+apply Rplus_le_le_0_compat.
+now apply Rlt_le.
+apply bpow_ge_0.
+rewrite H.
+apply generic_format_bpow.
+apply (prop_exp ex).
+admit.
+now apply Rlt_le.
+Qed.
+
 Theorem ulp_error :
   forall Zrnd x,
   (Rabs (rounding beta fexp Zrnd x - x) < ulp x)%R.
