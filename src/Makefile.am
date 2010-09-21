@@ -22,7 +22,8 @@ FILES = \
 	Prop/Fprop_plus_error.v \
 	Prop/Fprop_relative.v \
 	Prop/Fprop_div_sqrt_error.v \
-	Prop/Fprop_Sterbenz.v
+	Prop/Fprop_Sterbenz.v \
+	Appli/Fappli_Axpy.v
 
 EXTRA_DIST = $(FILES)
 CLEANFILES = $(FILES:=o) $(FILES:=d) $(FILES:.v=.glob)

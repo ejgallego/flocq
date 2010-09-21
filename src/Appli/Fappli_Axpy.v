@@ -35,3 +35,6 @@ Theorem Axpy_opt :
       bpow (1-prec) / (6*bpow 1) * Rabs y)%R ->
          (MinOrMax (a1 * x1 + y1) u).
 Admitted.
+
+
+End Axpy.
