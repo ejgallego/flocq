@@ -32,16 +32,6 @@ Definition scaled_mantissa x :=
 Definition generic_format (x : R) :=
   x = F2R (Float beta (Ztrunc (scaled_mantissa x)) (canonic_exponent x)).
 
-(*
-Theorem canonic_mantissa_0 :
-  canonic_mantissa 0 = Z0.
-Proof.
-unfold canonic_mantissa.
-rewrite Rmult_0_l.
-exact (Zfloor_Z2R 0).
-Qed.
-*)
-
 Theorem generic_format_0 :
   generic_format 0.
 Proof.
@@ -59,28 +49,6 @@ intros x.
 unfold canonic_exponent.
 now rewrite ln_beta_opp.
 Qed.
-
-(*
-Theorem canonic_mantissa_opp :
-  forall x,
-  generic_format x ->
-  canonic_mantissa (-x) = (- canonic_mantissa x)%Z.
-Proof.
-unfold generic_format, canonic_mantissa.
-intros x Hx.
-rewrite canonic_exponent_opp.
-rewrite Hx at 1 3.
-generalize (canonic_exponent x).
-intros e.
-clear.
-unfold F2R. simpl.
-rewrite Ropp_mult_distr_l_reverse.
-rewrite Rmult_assoc, <- bpow_add, Zplus_opp_r.
-rewrite Rmult_1_r.
-rewrite <- opp_Z2R.
-now rewrite 2!Zfloor_Z2R.
-Qed.
-*)
 
 Theorem canonic_exponent_abs :
   forall x,
@@ -179,6 +147,12 @@ rewrite Rmult_assoc, <- bpow_add, Zplus_opp_l.
 apply Rmult_1_r.
 Qed.
 
+Theorem scaled_mantissa_0 :
+  scaled_mantissa 0 = R0.
+Proof.
+apply Rmult_0_l.
+Qed.
+
 Theorem scaled_mantissa_opp :
   forall x,
   scaled_mantissa (-x) = (-scaled_mantissa x)%R.
@@ -187,6 +161,19 @@ intros x.
 unfold scaled_mantissa.
 rewrite canonic_exponent_opp.
 now rewrite Ropp_mult_distr_l_reverse.
+Qed.
+
+Theorem scaled_mantissa_abs :
+  forall x,
+  scaled_mantissa (Rabs x) = Rabs (scaled_mantissa x).
+Proof.
+intros x.
+unfold scaled_mantissa.
+rewrite canonic_exponent_abs, Rabs_mult.
+apply f_equal.
+apply sym_eq.
+apply Rabs_pos_eq.
+apply bpow_ge_0.
 Qed.
 
 Theorem generic_format_opp :
@@ -241,6 +228,31 @@ rewrite Rmult_assoc, <- bpow_add, Zplus_opp_l.
 rewrite Rmult_1_r, Rmult_1_l.
 apply Rlt_le_trans with (1 := proj2 Hx).
 now apply -> bpow_le.
+Qed.
+
+Theorem scaled_mantissa_small :
+  forall x ex,
+  (Rabs x < bpow ex)%R ->
+  (ex <= fexp ex)%Z ->
+  (Rabs (scaled_mantissa x) < 1)%R.
+Proof.
+intros x ex Ex He.
+destruct (Req_dec x 0) as [Zx|Zx].
+rewrite Zx, scaled_mantissa_0, Rabs_R0.
+now apply (Z2R_lt 0 1).
+rewrite <- scaled_mantissa_abs.
+unfold scaled_mantissa.
+rewrite canonic_exponent_abs.
+unfold canonic_exponent.
+destruct (ln_beta beta x) as (ex', Ex').
+simpl.
+specialize (Ex' Zx).
+apply (mantissa_small_pos _ _ Ex').
+assert (ex' <= fexp ex)%Z.
+apply Zle_trans with (2 := He).
+apply bpow_lt_bpow with beta.
+now apply Rle_lt_trans with (2 := Ex).
+now rewrite (proj2 (proj2 (prop_exp _) He)).
 Qed.
 
 Theorem mantissa_DN_small_pos :
