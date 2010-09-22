@@ -423,12 +423,12 @@ rewrite rounding_DN_opp; ring.
 rewrite rounding_DN_opp; apply Ropp_0_gt_lt_contravar; apply Rlt_gt; assumption.
 Qed.
 
-
 Theorem ulp_half_error_f : 
   (forall m n, (m <= n)%Z -> (fexp m <= fexp n)%Z ) ->
   forall choice x,
   (rounding beta fexp (ZrndN choice) x <> 0)%R ->
   (Rabs (rounding beta fexp (ZrndN choice) x - x) <= /2 * ulp (rounding beta fexp (ZrndN choice) x))%R.
+Proof.
 intros Hf choice x Hfx.
 case (rounding_DN_or_UP beta fexp (ZrndN choice) x); intros Hx.
 (* *)
@@ -470,19 +470,12 @@ intros H.
 rewrite Hx at 2; rewrite <- (ulp_opp (rounding beta fexp ZrndUP x)).
 rewrite <- rounding_DN_opp.
 rewrite ulp_DN_pt_eq; trivial.
-replace (rounding beta fexp (ZrndN choice) x - x)%R with 
-  (-((rounding beta fexp (ZrndN (fun t => negb (choice (-t)%R))) (-x) - (-x))))%R.
-rewrite Rabs_Ropp.
+pattern x at 1 2; rewrite <- Ropp_involutive.
+rewrite rounding_N_opp.
+unfold Rminus.
+rewrite <- Ropp_plus_distr, Rabs_Ropp.
 apply ulp_half_error.
-rewrite <- (Ropp_involutive x) at 3.
-rewrite rounding_N_opp with (x:=(-x)%R).
-ring.
 rewrite rounding_DN_opp; apply Ropp_0_gt_lt_contravar; apply Rlt_gt; assumption.
 Qed.
-
-
-
-
-
 
 End Fcore_ulp.
