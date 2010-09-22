@@ -33,32 +33,31 @@ now apply H.
 Qed.
 
 
-Theorem implies_MinOrMax_le:
+Theorem implies_DN_lt_ulp_f:
   forall x f, format f ->
-  (f <= x)%R ->
-  (Rabs (f-x) < ulp x)%R -> 
-  MinOrMax x f.
+  (0 < f <= x)%R ->
+  (Rabs (f-x) < ulp f)%R -> 
+  (f = rounding beta (FLX_exp prec) ZrndDN x)%R.
 intros x f Hf Hxf1 Hxf2.
-left; apply sym_eq.
-apply Rnd_DN_pt_unicity with format x.
-apply generic_DN_pt.
-now apply FLX_exp_correct.
-split;[assumption|idtac].
-split;[assumption|idtac].
-intros g Hg Hxg.
-case (Rle_or_lt g f); trivial; intros Hfg.
-contradict Hxf2.
-apply Rle_not_lt.
-rewrite Rabs_left1.
-2: apply Rle_minus; assumption.
-replace (-(f-x))%R with ((x-g)+(g-f))%R by ring.
-rewrite <- (Rplus_0_l (ulp x)).
-apply Rplus_le_compat.
-apply Rle_0_minus; assumption.
-(*succ_lt_le:*)
+apply sym_eq.
+replace x with (f+-(f-x))%R by ring.
+apply rounding_DN_succ; trivial.
+apply Hxf1.
+replace (- (f - x))%R with (Rabs (f-x)).
+split; trivial; apply Rabs_pos.
+rewrite Rabs_left1; trivial.
+now apply Rle_minus.
+Qed.
+
+
+Theorem implies_DN_lt_ulp:
+  forall x f, format f ->
+  (0 < f <= x)%R ->
+  (Rabs (f-x) < ulp x)%R -> 
+  (f = rounding beta (FLX_exp prec) ZrndDN x)%R.
+intros x f Hf Hxf1 Hxf2.
+apply implies_DN_lt_ulp_f; trivial.
 Admitted.
-
-
 
 
 Theorem implies_MinOrMax_quarter:
