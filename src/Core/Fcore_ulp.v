@@ -236,6 +236,27 @@ apply rounding_generic.
 now apply generic_format_succ.
 Qed.
 
+Theorem succ_lt_le:
+  forall x y,
+  F x -> F y ->
+  (0 < x < y)%R ->
+  (x + ulp x <= y)%R.
+intros x y Hx Hy H.
+case (Rle_or_lt (ulp x) (y-x)); intros H1.
+apply Rplus_le_reg_r with (-x)%R.
+now ring_simplify (x+ulp x + -x)%R.
+replace y with (x+(y-x))%R by ring.
+absurd (x < y)%R.
+2: apply H.
+apply Rle_not_lt; apply Req_le.
+rewrite <- rounding_DN_succ with (eps:=(y-x)%R); try easy.
+ring_simplify (x+(y-x))%R.
+apply sym_eq; now apply rounding_generic.
+split; trivial.
+apply Rlt_le; now apply Rlt_Rminus.
+Qed.
+
+
 Theorem ulp_error :
   forall Zrnd x,
   (Rabs (rounding beta fexp Zrnd x - x) < ulp x)%R.

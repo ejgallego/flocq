@@ -55,6 +55,7 @@ replace (-(f-x))%R with ((x-g)+(g-f))%R by ring.
 rewrite <- (Rplus_0_l (ulp x)).
 apply Rplus_le_compat.
 apply Rle_0_minus; assumption.
+(*succ_lt_le:*)
 Admitted.
 
 
