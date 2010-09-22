@@ -177,7 +177,7 @@ apply Rle_refl.
 apply Rsqrt_positivity.
 Qed.
 
-Theorem Rabs_le_l :
+Theorem Rabs_le :
   forall x y,
   (-y <= x <= y)%R -> (Rabs x <= y)%R.
 Proof.
@@ -189,7 +189,7 @@ now rewrite Ropp_involutive.
 exact Hxy.
 Qed.
 
-Theorem Rabs_le_l_inv :
+Theorem Rabs_le_inv :
   forall x y,
   (Rabs x <= y)%R -> (-y <= x <= y)%R.
 Proof.
@@ -204,7 +204,7 @@ apply Rle_trans with (2 := Hxy).
 apply RRle_abs.
 Qed.
 
-Theorem Rabs_le_r :
+Theorem Rabs_ge :
   forall x y,
   (y <= -x \/ x <= y)%R -> (x <= Rabs y)%R.
 Proof.
@@ -218,15 +218,58 @@ apply Rle_trans with (1 := Hxy).
 apply RRle_abs.
 Qed.
 
-Theorem Rabs_le_r_inv :
+Theorem Rabs_ge_inv :
   forall x y,
   (x <= Rabs y)%R -> (y <= -x \/ x <= y)%R.
 Proof.
-unfold Rabs.
 intros x y.
+unfold Rabs.
 case Rcase_abs ; intros Hy Hxy.
 left.
 apply Ropp_le_cancel.
+now rewrite Ropp_involutive.
+now right.
+Qed.
+
+Theorem Rabs_lt :
+  forall x y,
+  (-y < x < y)%R -> (Rabs x < y)%R.
+Proof.
+intros x y (Hyx,Hxy).
+now apply Rabs_def1.
+Qed.
+
+Theorem Rabs_lt_inv :
+  forall x y,
+  (Rabs x < y)%R -> (-y < x < y)%R.
+Proof.
+intros x y H.
+now split ; eapply Rabs_def2.
+Qed.
+
+Theorem Rabs_gt :
+  forall x y,
+  (y < -x \/ x < y)%R -> (x < Rabs y)%R.
+Proof.
+intros x y [Hyx|Hxy].
+rewrite <- Rabs_Ropp.
+apply Rlt_le_trans with (Ropp y).
+apply Ropp_lt_cancel.
+now rewrite Ropp_involutive.
+apply RRle_abs.
+apply Rlt_le_trans with (1 := Hxy).
+apply RRle_abs.
+Qed.
+
+Theorem Rabs_gt_inv :
+  forall x y,
+  (x < Rabs y)%R -> (y < -x \/ x < y)%R.
+Proof.
+intros x y.
+unfold Rabs.
+case Rcase_abs ; intros Hy Hxy.
+left.
+apply Ropp_lt_cancel.
 now rewrite Ropp_involutive.
 now right.
 Qed.

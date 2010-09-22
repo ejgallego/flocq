@@ -251,7 +251,7 @@ now apply Zrnd_monotone.
 rewrite <- (Zrnd_Z2R rnd 0).
 apply Zrnd_monotone.
 apply Rle_trans with (Z2R (-1)). 2: now apply Z2R_le.
-destruct (Rabs_le_r_inv _ _ Hx) as [Hx1|Hx1].
+destruct (Rabs_ge_inv _ _ Hx) as [Hx1|Hx1].
 exact Hx1.
 elim Rle_not_lt with (1 := Hx1).
 apply Rle_lt_trans with (2 := Hy).
@@ -262,7 +262,7 @@ rewrite <- (Zrnd_Z2R rnd 0).
 apply Zrnd_monotone.
 apply Rle_trans with (Z2R 1).
 now apply Z2R_le.
-destruct (Rabs_le_r_inv _ _ Hy) as [Hy1|Hy1].
+destruct (Rabs_ge_inv _ _ Hy) as [Hy1|Hy1].
 elim Rle_not_lt with (1 := Hy1).
 apply Rlt_le_trans with (2 := Hxy).
 apply (Rabs_def2 _ _ Hx).
