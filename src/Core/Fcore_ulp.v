@@ -166,8 +166,9 @@ unfold F, generic_format.
 unfold scaled_mantissa, canonic_exponent.
 rewrite ln_beta_unique with beta (x + ulp x)%R ex.
 pattern x at 1 3 ; rewrite Fx.
-unfold ulp, scaled_mantissa, canonic_exponent, F2R. simpl.
-rewrite ln_beta_unique with (1 := Ex).
+unfold ulp, scaled_mantissa.
+rewrite canonic_exponent_fexp with (1 := Ex).
+unfold F2R. simpl.
 rewrite Rmult_plus_distr_r.
 rewrite Rmult_assoc.
 rewrite <- bpow_add, Zplus_opp_r, Rmult_1_r.
@@ -190,7 +191,22 @@ apply bpow_ge_0.
 rewrite H.
 apply generic_format_bpow.
 apply (prop_exp ex).
-admit.
+destruct (Zle_or_lt ex (fexp ex)) ; trivial.
+elim Rlt_not_le with (1 := Zx).
+rewrite Fx.
+replace (Ztrunc (scaled_mantissa beta fexp x)) with Z0.
+rewrite F2R_0.
+apply Rle_refl.
+unfold scaled_mantissa.
+rewrite canonic_exponent_fexp with (1 := Ex).
+destruct (mantissa_small_pos beta fexp x ex) ; trivial.
+rewrite Ztrunc_floor.
+apply sym_eq.
+apply Zfloor_imp.
+split.
+now apply Rlt_le.
+exact H2.
+now apply Rlt_le.
 now apply Rlt_le.
 Qed.
 
