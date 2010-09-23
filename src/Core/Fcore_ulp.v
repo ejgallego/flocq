@@ -595,6 +595,38 @@ omega.
 Qed.
 
 
+Theorem toto2:
+  forall x, (0 < x)%R -> F x -> 
+ let e :=projT1 (ln_beta beta x) in
+  x =  bpow (e - 1) ->
+  F (x - bpow (fexp (e-1))).
+Admitted.
+(* intros x Zx Fx e Hx.
+pose (f:=(x - bpow (fexp (e - 2)))%R).
+fold f.
+assert (f <> 0)%R.
+apply Rminus_eq_contra.
+rewrite Hx.
+apply sym_not_eq.
+apply Rlt_not_eq.
+apply -> bpow_lt.
+unfold valid_exp in prop_exp.
+specialize (prop_exp (e-1)%Z).
+
+omega.
+
+
+
+unfold F, generic_format, canonic_exponent.
+destruct (ln_beta beta f); simpl.
+assert (
+
+
+
+unfold valid_exp in prop_exp.
+*)
+
+
 (*
 Theorem toto2:
   forall x,
