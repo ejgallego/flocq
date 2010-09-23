@@ -222,6 +222,42 @@ apply bpow_gt_0.
 now apply Zle_minus_le_0.
 Qed.
 
+Theorem bpow_le_F2R_m1 :
+  forall m e1 e2 : Z,
+  (1 < m)%Z ->
+  (bpow e2 < F2R (Float beta m e1))%R ->
+  (bpow e2 <= F2R (Float beta (m - 1) e1))%R.
+Proof.
+intros m e1 e2 Hm.
+case (Zle_or_lt e1 e2); intros He.
+replace e2 with (e2 - e1 + e1)%Z by ring.
+rewrite bpow_add.
+unfold F2R. simpl.
+rewrite <- (Z2R_Zpower beta (e2 - e1)).
+intros H.
+apply Rmult_le_compat_r.
+apply bpow_ge_0.
+apply Rmult_lt_reg_r in H.
+apply Z2R_le.
+rewrite (Zpred_succ (Zpower _ _)).
+apply Zplus_le_compat_r.
+apply Zlt_le_succ.
+now apply lt_Z2R.
+apply bpow_gt_0.
+now apply Zle_minus_le_0.
+intros H.
+apply Rle_trans with (1*bpow e1)%R.
+rewrite Rmult_1_l.
+apply -> bpow_le.
+now apply Zlt_le_weak.
+unfold F2R. simpl.
+apply Rmult_le_compat_r.
+apply bpow_ge_0.
+replace 1%R with (Z2R 1) by reflexivity.
+apply Z2R_le.
+omega.
+Qed.
+
 Theorem ln_beta_F2R_bounds :
   forall x m e, (0 < m)%Z ->
   (F2R (Float beta m e) <= x < F2R (Float beta (m + 1) e))%R ->

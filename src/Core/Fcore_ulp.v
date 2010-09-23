@@ -241,6 +241,7 @@ Theorem succ_lt_le:
   F x -> F y ->
   (0 < x < y)%R ->
   (x + ulp x <= y)%R.
+Proof.
 intros x y Hx Hy H.
 case (Rle_or_lt (ulp x) (y-x)); intros H1.
 apply Rplus_le_reg_r with (-x)%R.
@@ -498,5 +499,132 @@ rewrite <- Ropp_plus_distr, Rabs_Ropp.
 apply ulp_half_error.
 rewrite rounding_DN_opp; apply Ropp_0_gt_lt_contravar; apply Rlt_gt; assumption.
 Qed.
+
+Theorem pred_ge_bpow :
+  forall x e,  F x ->
+  x <> ulp x ->
+  (bpow e < x)%R ->
+  (bpow e <= x - ulp x)%R.
+Proof.
+intros x e Fx Hx' Hx.
+(* *)
+assert (1 <= Ztrunc (scaled_mantissa beta fexp x))%Z.
+assert (0 <  Ztrunc (scaled_mantissa beta fexp x))%Z.
+apply F2R_gt_0_reg with beta (canonic_exponent beta fexp x).
+rewrite <- Fx.
+apply Rle_lt_trans with (2:=Hx).
+apply bpow_ge_0.
+omega.
+case (Zle_lt_or_eq _ _ H); intros Hm.
+(* *)
+pattern x at 1 ; rewrite Fx.
+unfold ulp, F2R. simpl.
+pattern (bpow (canonic_exponent beta fexp x)) at 2 ; rewrite <- Rmult_1_l.
+rewrite <- Rmult_minus_distr_r.
+change 1%R with (Z2R 1).
+rewrite <- minus_Z2R.
+change (bpow e <= F2R (Float beta (Ztrunc (scaled_mantissa beta fexp x) - 1) (canonic_exponent beta fexp x)))%R.
+apply bpow_le_F2R_m1; trivial.
+now rewrite <- Fx.
+(* *)
+contradict Hx'.
+pattern x at 1; rewrite Fx.
+rewrite  <- Hm.
+unfold ulp, F2R; simpl.
+now rewrite Rmult_1_l.
+Qed.
+
+
+Theorem toto1:
+  forall x, (0 < x)%R -> F x -> 
+  x <> bpow (projT1 (ln_beta beta x)-1) ->
+  F (x - ulp x).
+intros x Zx Fx Hx.
+destruct (ln_beta beta x) as (ex, Ex).
+simpl in Hx.
+specialize (Ex (Rgt_not_eq _ _ Zx)).
+assert (Ex' : (bpow (ex - 1) < x < bpow ex)%R).
+rewrite Rabs_pos_eq in Ex.
+destruct Ex as (H,H'); destruct H; split; trivial.
+contradict Hx; easy.
+now apply Rlt_le.
+unfold F, generic_format.
+unfold scaled_mantissa, canonic_exponent.
+rewrite ln_beta_unique with beta (x - ulp x)%R ex.
+pattern x at 1 3 ; rewrite Fx.
+unfold ulp, scaled_mantissa.
+rewrite canonic_exponent_fexp with (1 := Ex).
+unfold F2R. simpl.
+rewrite Rmult_minus_distr_r.
+rewrite Rmult_assoc.
+rewrite <- bpow_add, Zplus_opp_r, Rmult_1_r.
+change (bpow 0) with (Z2R 1).
+rewrite <- minus_Z2R.
+rewrite Ztrunc_Z2R.
+rewrite minus_Z2R.
+rewrite Rmult_minus_distr_r.
+now rewrite Rmult_1_l.
+rewrite Rabs_pos_eq.
+split.
+apply pred_ge_bpow; trivial.
+unfold ulp; intro H.
+assert (ex-1 < canonic_exponent beta fexp x  < ex)%Z.
+split; apply <- (bpow_lt beta); rewrite <- H; easy.
+clear -H0. omega.
+apply Ex'.
+apply Rle_lt_trans with (2 := proj2 Ex').
+pattern x at 3 ; rewrite <- Rplus_0_r.
+apply Rplus_le_compat_l.
+rewrite <-Ropp_0.
+apply Ropp_le_contravar.
+apply bpow_ge_0.
+apply Rle_0_minus.
+pattern x at 2; rewrite Fx.
+unfold ulp, F2R; simpl.
+pattern (bpow (canonic_exponent beta fexp x)) at 1; rewrite <- Rmult_1_l.
+apply Rmult_le_compat_r.
+apply bpow_ge_0.
+replace 1%R with (Z2R 1) by reflexivity.
+apply Z2R_le.
+assert (0 <  Ztrunc (scaled_mantissa beta fexp x))%Z.
+apply F2R_gt_0_reg with beta (canonic_exponent beta fexp x).
+rewrite <- Fx.
+apply Rle_lt_trans with (2:=proj1 Ex').
+apply bpow_ge_0.
+omega.
+Qed.
+
+
+(*
+Theorem toto2:
+  forall x,
+  x = bpow (projT1 (ln_beta beta x)) ->
+  forall eps, (0 < eps <= bpow (fexp (x-1)))%R ->
+  rounding beta fexp ZrndDN (x - eps) = x - bpow (fexp (x-1)).
+
+Theorem pred :
+  forall x : R,
+  {f | F x -> (0 < x)%R -> F f /\ (f + ulp f)%R = x}.
+
+Theorem rounding_DN_succ :
+  forall x, (0 < x)%R -> F x ->
+  forall eps, (0 <= eps < ulp x)%R ->
+  rounding beta fexp ZrndDN (x + eps) = x.
+Proof.
+heorem generic_format_succ :
+  forall x, (0 < x)%R -> F x ->
+  F (x + ulp x).
+Theorem rounding_UP_succ :
+  forall x, (0 < x)%R -> F x ->
+  forall eps, (0 < eps <= ulp x)%R ->
+  rounding beta fexp ZrndUP (x + eps) = (x + ulp x)%R.
+Proof.
+
+Theorem succ_lt_le:
+  forall x y,
+  F x -> F y ->
+  (0 < x < y)%R ->
+  (x + ulp x <= y)%R.
+intros x y Hx Hy H. *)
 
 End Fcore_ulp.
