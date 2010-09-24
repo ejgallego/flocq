@@ -500,6 +500,14 @@ apply ulp_half_error.
 rewrite rounding_DN_opp; apply Ropp_0_gt_lt_contravar; apply Rlt_gt; assumption.
 Qed.
 
+
+
+Definition Fpred x :=
+  match Rcompare x (bpow (projT1 (ln_beta beta x)-1)) with 
+      Eq => (x - bpow (fexp (projT1 (ln_beta beta x)-1)%Z))%R
+    | _  => (x - ulp x)%R
+     end.
+
 Theorem pred_ge_bpow :
   forall x e,  F x ->
   x <> ulp x ->
@@ -535,7 +543,7 @@ now rewrite Rmult_1_l.
 Qed.
 
 
-Theorem toto1:
+Theorem Fpred_format_1:
   forall x, (0 < x)%R -> F x -> 
   x <> bpow (projT1 (ln_beta beta x)-1) ->
   F (x - ulp x).
@@ -595,39 +603,123 @@ omega.
 Qed.
 
 
-Theorem toto2:
+Theorem Fpred_format_2:
   forall x, (0 < x)%R -> F x -> 
- let e :=projT1 (ln_beta beta x) in
+  let e :=projT1 (ln_beta beta x) in
   x =  bpow (e - 1) ->
   F (x - bpow (fexp (e-1))).
-Admitted.
-(* intros x Zx Fx e Hx.
-pose (f:=(x - bpow (fexp (e - 2)))%R).
+intros x Zx Fx e Hx.
+pose (f:=(x - bpow (fexp (e - 1)))%R).
 fold f.
-assert (f <> 0)%R.
-apply Rminus_eq_contra.
-rewrite Hx.
-apply sym_not_eq.
-apply Rlt_not_eq.
-apply -> bpow_lt.
-unfold valid_exp in prop_exp.
-specialize (prop_exp (e-1)%Z).
-
+case (Zle_or_lt (fexp (e-1)) (e-1)); intros He.
+case (Zle_lt_or_eq _ _ He); clear He; intros He.
+assert (f = F2R (Float beta (Zpower (radix_val beta) (e-1-(fexp (e-1))) -1) (fexp (e-1))))%R.
+unfold f; rewrite Hx.
+unfold F2R; simpl.
+rewrite minus_Z2R, Z2R_Zpower.
+rewrite Rmult_minus_distr_r, Rmult_1_l.
+rewrite <- bpow_add.
+now replace (e - 1 - fexp (e - 1) + fexp (e - 1))%Z with (e-1)%Z by ring.
 omega.
-
-
-
-unfold F, generic_format, canonic_exponent.
-destruct (ln_beta beta f); simpl.
-assert (
-
-
-
+rewrite H.
+apply generic_format_canonic_exponent.
+apply Zeq_le.
+apply canonic_exponent_fexp.
+rewrite <- H.
+unfold f; rewrite Hx.
+rewrite Rabs_right.
+split.
+apply Rplus_le_reg_l with (bpow (fexp (e-1))).
+ring_simplify.
+apply Rle_trans with (bpow (e - 2) + bpow (e - 2))%R.
+apply Rplus_le_compat; apply -> bpow_le; omega.
+apply Rle_trans with (2*bpow (e - 2))%R;[right; ring|idtac].
+apply Rle_trans with (bpow 1*bpow (e - 2))%R.
+apply Rmult_le_compat_r.
+apply bpow_ge_0.
+replace 2%R with (Z2R 2) by reflexivity.
+replace (bpow 1) with (Z2R (radix_val beta)).
+apply Z2R_le.
+apply <- Zle_is_le_bool.
+now destruct beta.
+simpl.
+unfold Zpower_pos; simpl.
+now rewrite Zmult_1_r.
+rewrite <- bpow_add.
+replace (1+(e-2))%Z with (e-1)%Z by ring.
+now right.
+rewrite <- Rplus_0_r.
+apply Rplus_lt_compat_l.
+rewrite <- Ropp_0.
+apply Ropp_lt_contravar.
+apply bpow_gt_0.
+apply Rle_ge; apply Rle_0_minus.
+apply -> bpow_le.
+omega.
+replace f with 0%R.
+apply generic_format_0.
+unfold f.
+rewrite Hx, He.
+ring.
 unfold valid_exp in prop_exp.
-*)
+assert (e <= fexp e)%Z.
+replace (fexp e) with (fexp (e-1)).
+omega.
+destruct (prop_exp (e-1)%Z) as (Y1,Y2).
+apply sym_eq; apply Y2; omega.
+absurd (x=0)%R.
+auto with real.
+rewrite Fx.
+replace (Ztrunc (scaled_mantissa beta fexp x)) with 0%Z.
+apply F2R_0.
+apply sym_eq.
+rewrite Ztrunc_floor.
+unfold scaled_mantissa, canonic_exponent.
+fold e.
+apply mantissa_DN_small_pos; trivial.
+unfold e; clear -Zx.
+destruct (ln_beta beta x); simpl.
+rewrite Rabs_right in a.
+apply a.
+auto with real.
+apply Rle_ge; apply Rlt_le; easy.
+unfold scaled_mantissa.
+apply Rmult_le_pos.
+apply Rlt_le; easy.
+apply bpow_ge_0.
+Qed.
+
+
+Theorem Fpred_format:
+  forall x, (0 < x)%R -> F x -> 
+  F (Fpred x).
+intros x Zx Fx.
+case (Req_dec  x (bpow (projT1 (ln_beta beta x)-1))); intros Hx.
+replace (Fpred x) with (x - bpow (fexp (projT1 (ln_beta beta x)-1)))%R.
+now apply Fpred_format_2.
+unfold Fpred.
+now rewrite Rcompare_Eq.
+replace (Fpred x) with (x - ulp x)%R.
+now apply Fpred_format_1.
+unfold Fpred.
+case_eq (Rcompare x (bpow (projT1 (ln_beta beta x) - 1))); intros H; trivial.
+contradict Hx.
+now apply Rcompare_Eq_inv.
+Qed.
+
+
+
+
 
 
 (*
+
+pred x + ulp (pred x) = x
+
+pred x = x - ulp (x - ulp x / (1 ou 2 ou beta))
+  formule générale ???
+
+
 Theorem toto2:
   forall x,
   x = bpow (projT1 (ln_beta beta x)) ->
@@ -637,6 +729,8 @@ Theorem toto2:
 Theorem pred :
   forall x : R,
   {f | F x -> (0 < x)%R -> F f /\ (f + ulp f)%R = x}.
+
+
 
 Theorem rounding_DN_succ :
   forall x, (0 < x)%R -> F x ->
