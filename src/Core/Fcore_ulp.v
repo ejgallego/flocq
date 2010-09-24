@@ -547,6 +547,7 @@ Theorem Fpred_format_1:
   forall x, (0 < x)%R -> F x -> 
   x <> bpow (projT1 (ln_beta beta x)-1) ->
   F (x - ulp x).
+Proof.
 intros x Zx Fx Hx.
 destruct (ln_beta beta x) as (ex, Ex).
 simpl in Hx.
@@ -608,6 +609,7 @@ Theorem Fpred_format_2:
   let e :=projT1 (ln_beta beta x) in
   x =  bpow (e - 1) ->
   F (x - bpow (fexp (e-1))).
+Proof.
 intros x Zx Fx e Hx.
 pose (f:=(x - bpow (fexp (e - 1)))%R).
 fold f.
@@ -693,6 +695,7 @@ Qed.
 Theorem Fpred_format:
   forall x, (0 < x)%R -> F x -> 
   F (Fpred x).
+Proof.
 intros x Zx Fx.
 case (Req_dec  x (bpow (projT1 (ln_beta beta x)-1))); intros Hx.
 replace (Fpred x) with (x - bpow (fexp (projT1 (ln_beta beta x)-1)))%R.
@@ -712,6 +715,7 @@ Theorem Fpred_ulp_1:
   forall x, (0 < x)%R -> F x -> 
   x <> bpow (projT1 (ln_beta beta x)-1) ->
   ((x - ulp x) + ulp (x-ulp x) = x)%R.
+Proof.
 intros x Zx Fx Hx.
 replace (ulp (x - ulp x)) with (ulp x).
 ring.
@@ -761,6 +765,7 @@ Theorem Fpred_ulp_2:
   x =  bpow (e - 1) ->
   (x - bpow (fexp (e-1)) <> 0)%R ->
   ((x - bpow (fexp (e-1))) + ulp (x - bpow (fexp (e-1))) = x)%R.
+Proof.
 intros x Zx Fx e Hxe Zp.
 replace (ulp (x - bpow (fexp (e - 1)))) with (bpow (fexp (e - 1))).
 ring.
@@ -838,6 +843,7 @@ Theorem Fpred_ulp:
   forall x, (0 < x)%R -> F x ->
   (Fpred x <> 0)%R ->
   (Fpred x + ulp (Fpred x) = x)%R.
+Proof.
 intros x Zx Fx.
 case (Req_dec  x (bpow (projT1 (ln_beta beta x)-1))); intros Hx.
 replace (Fpred x) with (x - bpow (fexp (projT1 (ln_beta beta x)-1)))%R.
@@ -852,42 +858,66 @@ contradict Hx.
 now apply Rcompare_Eq_inv.
 Qed.
 
+Theorem Fpred_lt:
+  forall x, 
+   (Fpred x < x)%R.
+intros.
+assert (x-ulp x < x)%R.
+rewrite <- Rplus_0_r.
+apply Rplus_lt_compat_l.
+rewrite <- Ropp_0.
+apply Ropp_lt_contravar.
+apply bpow_gt_0.
+unfold Fpred.
+case (Rcompare x (bpow (projT1 (ln_beta beta x) - 1))); try exact H.
+rewrite <- Rplus_0_r.
+apply Rplus_lt_compat_l.
+rewrite <- Ropp_0.
+apply Ropp_lt_contravar.
+apply bpow_gt_0.
+Qed.
 
+
+Theorem rounding_UP_pred :
+  forall x, (0 < Fpred x)%R -> F x ->
+  forall eps, (0 < eps <= ulp (Fpred x) )%R ->
+  rounding beta fexp ZrndUP (Fpred x + eps) = x.
+Proof.
+intros x Hx Fx eps Heps.
+rewrite rounding_UP_succ; trivial.
+apply Fpred_ulp; trivial.
+apply Rlt_trans with (1:=Hx).
+apply Fpred_lt.
+auto with real.
+apply Fpred_format; trivial.
+apply Rlt_trans with (1:=Hx).
+apply Fpred_lt.
+Qed.
+
+
+Theorem rounding_DN_pred :
+  forall x, (0 < x)%R -> F x ->
+  forall eps, (0 < eps <= ulp (Fpred x))%R ->
+  rounding beta fexp ZrndDN (x - eps) = Fpred x.
+Proof.
+intros x Hx Fx eps Heps.
+replace (x-eps)%R with (Fpred x + (ulp (Fpred x)-eps))%R.
+(*
+2: pattern x rewrite <- (Fpred_ulp x).
+
+rewrite rounding_DN_succ; trivial.
+apply Fpred_ulp; trivial.
+apply Rlt_trans with (1:=Hx).
+apply Fpred_lt.
+auto with real.
+apply Fpred_format; trivial.
+apply Rlt_trans with (1:=Hx).
+apply Fpred_lt.
+Qed.*)
+
+Admitted.
 
 (*
-
-pred x + ulp (pred x) = x
-
-pred x = x - ulp (x - ulp x / (1 ou 2 ou beta))
-  formule générale ???
-
-
-Theorem toto2:
-  forall x,
-  x = bpow (projT1 (ln_beta beta x)) ->
-  forall eps, (0 < eps <= bpow (fexp (x-1)))%R ->
-  rounding beta fexp ZrndDN (x - eps) = x - bpow (fexp (x-1)).
-
-Theorem pred :
-  forall x : R,
-  {f | F x -> (0 < x)%R -> F f /\ (f + ulp f)%R = x}.
-
-
-
-Theorem rounding_DN_succ :
-  forall x, (0 < x)%R -> F x ->
-  forall eps, (0 <= eps < ulp x)%R ->
-  rounding beta fexp ZrndDN (x + eps) = x.
-Proof.
-heorem generic_format_succ :
-  forall x, (0 < x)%R -> F x ->
-  F (x + ulp x).
-Theorem rounding_UP_succ :
-  forall x, (0 < x)%R -> F x ->
-  forall eps, (0 < eps <= ulp x)%R ->
-  rounding beta fexp ZrndUP (x + eps) = (x + ulp x)%R.
-Proof.
-
 Theorem succ_lt_le:
   forall x y,
   F x -> F y ->
