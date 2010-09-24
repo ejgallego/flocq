@@ -708,7 +708,149 @@ now apply Rcompare_Eq_inv.
 Qed.
 
 
+Theorem Fpred_ulp_1:
+  forall x, (0 < x)%R -> F x -> 
+  x <> bpow (projT1 (ln_beta beta x)-1) ->
+  ((x - ulp x) + ulp (x-ulp x) = x)%R.
+intros x Zx Fx Hx.
+replace (ulp (x - ulp x)) with (ulp x).
+ring.
+unfold ulp at 1 2; apply f_equal.
+unfold canonic_exponent; apply f_equal.
+destruct (ln_beta beta x) as (ex, Hex).
+simpl in *.
+assert (x <> 0)%R by auto with real.
+specialize (Hex H).
+apply sym_eq.
+apply ln_beta_unique.
+rewrite Rabs_right.
+rewrite Rabs_right in Hex.
+2: apply Rle_ge; apply Rlt_le; easy.
+split.
+destruct Hex as ([H1|H1],H2).
+apply pred_ge_bpow; trivial.
+unfold ulp; intros H3.
+assert (ex-1 < canonic_exponent beta fexp x  < ex)%Z.
+split; apply <- (bpow_lt beta); rewrite <- H3; easy.
+omega.
+contradict Hx; auto with real.
+apply Rle_lt_trans with (2:=proj2 Hex).
+rewrite <- Rplus_0_r.
+apply Rplus_le_compat_l.
+rewrite <- Ropp_0.
+apply Ropp_le_contravar.
+apply bpow_ge_0.
+apply Rle_ge.
+apply Rle_0_minus.
+pattern x at 2; rewrite Fx.
+unfold ulp, F2R; simpl.
+pattern (bpow (canonic_exponent beta fexp x)) at 1; rewrite <- Rmult_1_l.
+apply Rmult_le_compat_r.
+apply bpow_ge_0.
+replace 1%R with (Z2R (Zsucc 0)) by reflexivity.
+apply Z2R_le.
+apply Zlt_le_succ.
+apply F2R_gt_0_reg with beta (canonic_exponent beta fexp x).
+now rewrite <- Fx.
+Qed.
 
+
+Theorem Fpred_ulp_2:
+  forall x, (0 < x)%R -> F x -> 
+  let e :=projT1 (ln_beta beta x) in
+  x =  bpow (e - 1) ->
+  (x - bpow (fexp (e-1)) <> 0)%R ->
+  ((x - bpow (fexp (e-1))) + ulp (x - bpow (fexp (e-1))) = x)%R.
+intros x Zx Fx e Hxe Zp.
+replace (ulp (x - bpow (fexp (e - 1)))) with (bpow (fexp (e - 1))).
+ring.
+case (Zle_or_lt (fexp (e-1)) (e-1)); intros He.
+case (Zle_lt_or_eq _ _ He); clear He; intros He.
+(* *)
+unfold ulp; apply f_equal.
+unfold canonic_exponent; apply f_equal.
+apply sym_eq.
+apply ln_beta_unique.
+rewrite Rabs_right.
+split.
+apply Rplus_le_reg_l with (bpow (fexp (e-1))).
+ring_simplify.
+apply Rle_trans with (bpow (e - 2) + bpow (e - 2))%R.
+apply Rplus_le_compat; apply -> bpow_le; omega.
+apply Rle_trans with (2*bpow (e - 2))%R;[right; ring|idtac].
+apply Rle_trans with (bpow 1*bpow (e - 2))%R.
+apply Rmult_le_compat_r.
+apply bpow_ge_0.
+replace 2%R with (Z2R 2) by reflexivity.
+replace (bpow 1) with (Z2R (radix_val beta)).
+apply Z2R_le.
+apply <- Zle_is_le_bool.
+now destruct beta.
+simpl.
+unfold Zpower_pos; simpl.
+now rewrite Zmult_1_r.
+rewrite <- bpow_add.
+replace (1+(e-2))%Z with (e-1)%Z by ring.
+now right.
+rewrite <- Rplus_0_r, Hxe.
+apply Rplus_lt_compat_l.
+rewrite <- Ropp_0.
+apply Ropp_lt_contravar.
+apply bpow_gt_0.
+apply Rle_ge; apply Rle_0_minus.
+rewrite Hxe.
+apply -> bpow_le.
+omega.
+(* *)
+contradict Zp.
+rewrite Hxe, He; ring.
+(* *)
+unfold valid_exp in prop_exp.
+assert (e <= fexp e)%Z.
+replace (fexp e) with (fexp (e-1)).
+omega.
+destruct (prop_exp (e-1)%Z) as (Y1,Y2).
+apply sym_eq; apply Y2; omega.
+absurd (x=0)%R.
+auto with real.
+rewrite Fx.
+replace (Ztrunc (scaled_mantissa beta fexp x)) with 0%Z.
+apply F2R_0.
+apply sym_eq.
+rewrite Ztrunc_floor.
+unfold scaled_mantissa, canonic_exponent.
+fold e.
+apply mantissa_DN_small_pos; trivial.
+unfold e; clear -Zx.
+destruct (ln_beta beta x); simpl.
+rewrite Rabs_right in a.
+apply a.
+auto with real.
+apply Rle_ge; apply Rlt_le; easy.
+unfold scaled_mantissa.
+apply Rmult_le_pos.
+apply Rlt_le; easy.
+apply bpow_ge_0.
+Qed.
+
+
+Theorem Fpred_ulp:
+  forall x, (0 < x)%R -> F x ->
+  (Fpred x <> 0)%R ->
+  (Fpred x + ulp (Fpred x) = x)%R.
+intros x Zx Fx.
+case (Req_dec  x (bpow (projT1 (ln_beta beta x)-1))); intros Hx.
+replace (Fpred x) with (x - bpow (fexp (projT1 (ln_beta beta x)-1)))%R.
+now apply Fpred_ulp_2.
+unfold Fpred.
+now rewrite Rcompare_Eq.
+replace (Fpred x) with (x - ulp x)%R.
+intros; now apply Fpred_ulp_1.
+unfold Fpred.
+case_eq (Rcompare x (bpow (projT1 (ln_beta beta x) - 1))); intros H; trivial.
+contradict Hx.
+now apply Rcompare_Eq_inv.
+Qed.
 
 
 
