@@ -844,7 +844,52 @@ apply refl_equal.
 Qed.
 
 End Rle_bool.
+Section Req_bool.
 
+Definition Req_bool x y :=
+  match Rcompare x y with
+  | Eq => true
+  | _ => false
+  end.
+
+Inductive Req_bool_prop (x y : R) : bool -> Prop :=
+  | Req_bool_true_ : (x = y)%R -> Req_bool_prop x y true
+  | Req_bool_false_ : (x <> y)%R -> Req_bool_prop x y false.
+
+Theorem Req_bool_spec :
+  forall x y, Req_bool_prop x y (Req_bool x y).
+Proof.
+intros x y.
+unfold Req_bool.
+case Rcompare_spec ; constructor.
+now apply Rlt_not_eq.
+easy.
+now apply Rgt_not_eq.
+Qed.
+
+Theorem Req_bool_true :
+  forall x y,
+  (x = y)%R -> Req_bool x y = true.
+Proof.
+intros x y Hxy.
+case Req_bool_spec ; intros H.
+apply refl_equal.
+contradict H.
+exact Hxy.
+Qed.
+
+Theorem Req_bool_false :
+  forall x y,
+  (x <> y)%R -> Req_bool x y = false.
+Proof.
+intros x y Hxy.
+case Req_bool_spec ; intros H.
+contradict Hxy.
+exact H.
+apply refl_equal.
+Qed.
+
+End Req_bool.
 Section Floor_Ceil.
 
 Definition Zfloor (x : R) := (up x - 1)%Z.

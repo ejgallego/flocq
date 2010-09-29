@@ -502,10 +502,10 @@ Qed.
 
 
 
-Definition Fpred x :=
-  match Rcompare x (bpow (projT1 (ln_beta beta x)-1)) with 
-      Eq => (x - bpow (fexp (projT1 (ln_beta beta x)-1)%Z))%R
-    | _  => (x - ulp x)%R
+Definition pred x :=
+  match Req_bool x (bpow (projT1 (ln_beta beta x)-1)) with 
+      true => (x - bpow (fexp (projT1 (ln_beta beta x)-1)%Z))%R
+    | false  => (x - ulp x)%R
      end.
 
 Theorem pred_ge_bpow :
@@ -543,7 +543,7 @@ now rewrite Rmult_1_l.
 Qed.
 
 
-Theorem Fpred_format_1:
+Theorem format_pred_1:
   forall x, (0 < x)%R -> F x -> 
   x <> bpow (projT1 (ln_beta beta x)-1) ->
   F (x - ulp x).
@@ -604,7 +604,7 @@ omega.
 Qed.
 
 
-Theorem Fpred_format_2:
+Theorem format_pred_2:
   forall x, (0 < x)%R -> F x -> 
   let e :=projT1 (ln_beta beta x) in
   x =  bpow (e - 1) ->
@@ -692,26 +692,19 @@ apply bpow_ge_0.
 Qed.
 
 
-Theorem Fpred_format:
+Theorem format_pred:
   forall x, (0 < x)%R -> F x -> 
-  F (Fpred x).
+  F (pred x).
 Proof.
 intros x Zx Fx.
-case (Req_dec  x (bpow (projT1 (ln_beta beta x)-1))); intros Hx.
-replace (Fpred x) with (x - bpow (fexp (projT1 (ln_beta beta x)-1)))%R.
-now apply Fpred_format_2.
-unfold Fpred.
-now rewrite Rcompare_Eq.
-replace (Fpred x) with (x - ulp x)%R.
-now apply Fpred_format_1.
-unfold Fpred.
-case_eq (Rcompare x (bpow (projT1 (ln_beta beta x) - 1))); intros H; trivial.
-contradict Hx.
-now apply Rcompare_Eq_inv.
+unfold pred.
+case Req_bool_spec; intros H.
+now apply format_pred_2.
+now apply format_pred_1.
 Qed.
 
 
-Theorem Fpred_ulp_1:
+Theorem pred_ulp_1:
   forall x, (0 < x)%R -> F x -> 
   x <> bpow (projT1 (ln_beta beta x)-1) ->
   ((x - ulp x) + ulp (x-ulp x) = x)%R.
@@ -759,7 +752,7 @@ now rewrite <- Fx.
 Qed.
 
 
-Theorem Fpred_ulp_2:
+Theorem pred_ulp_2:
   forall x, (0 < x)%R -> F x -> 
   let e :=projT1 (ln_beta beta x) in
   x =  bpow (e - 1) ->
@@ -839,37 +832,31 @@ apply bpow_ge_0.
 Qed.
 
 
-Theorem Fpred_ulp:
+Theorem pred_ulp:
   forall x, (0 < x)%R -> F x ->
-  (Fpred x <> 0)%R ->
-  (Fpred x + ulp (Fpred x) = x)%R.
+  (pred x <> 0)%R ->
+  (pred x + ulp (pred x) = x)%R.
 Proof.
 intros x Zx Fx.
-case (Req_dec  x (bpow (projT1 (ln_beta beta x)-1))); intros Hx.
-replace (Fpred x) with (x - bpow (fexp (projT1 (ln_beta beta x)-1)))%R.
-now apply Fpred_ulp_2.
-unfold Fpred.
-now rewrite Rcompare_Eq.
-replace (Fpred x) with (x - ulp x)%R.
-intros; now apply Fpred_ulp_1.
-unfold Fpred.
-case_eq (Rcompare x (bpow (projT1 (ln_beta beta x) - 1))); intros H; trivial.
-contradict Hx.
-now apply Rcompare_Eq_inv.
+unfold pred.
+case Req_bool_spec; intros H Zp.
+now apply pred_ulp_2.
+now apply pred_ulp_1.
 Qed.
 
-Theorem Fpred_lt:
+Theorem pred_lt:
   forall x, 
-   (Fpred x < x)%R.
+   (pred x < x)%R.
 intros.
-assert (x-ulp x < x)%R.
+unfold pred.
+case Req_bool_spec; intros H.
+(* *)
 rewrite <- Rplus_0_r.
 apply Rplus_lt_compat_l.
 rewrite <- Ropp_0.
 apply Ropp_lt_contravar.
 apply bpow_gt_0.
-unfold Fpred.
-case (Rcompare x (bpow (projT1 (ln_beta beta x) - 1))); try exact H.
+(* *)
 rewrite <- Rplus_0_r.
 apply Rplus_lt_compat_l.
 rewrite <- Ropp_0.
@@ -879,29 +866,29 @@ Qed.
 
 
 Theorem rounding_UP_pred :
-  forall x, (0 < Fpred x)%R -> F x ->
-  forall eps, (0 < eps <= ulp (Fpred x) )%R ->
-  rounding beta fexp ZrndUP (Fpred x + eps) = x.
+  forall x, (0 < pred x)%R -> F x ->
+  forall eps, (0 < eps <= ulp (pred x) )%R ->
+  rounding beta fexp ZrndUP (pred x + eps) = x.
 Proof.
 intros x Hx Fx eps Heps.
 rewrite rounding_UP_succ; trivial.
-apply Fpred_ulp; trivial.
+apply pred_ulp; trivial.
 apply Rlt_trans with (1:=Hx).
-apply Fpred_lt.
+apply pred_lt.
 auto with real.
-apply Fpred_format; trivial.
+apply format_pred; trivial.
 apply Rlt_trans with (1:=Hx).
-apply Fpred_lt.
+apply pred_lt.
 Qed.
 
 
 Theorem rounding_DN_pred :
   forall x, (0 < x)%R -> F x ->
-  forall eps, (0 < eps <= ulp (Fpred x))%R ->
-  rounding beta fexp ZrndDN (x - eps) = Fpred x.
+  forall eps, (0 < eps <= ulp (pred x))%R ->
+  rounding beta fexp ZrndDN (x - eps) = pred x.
 Proof.
 intros x Hx Fx eps Heps.
-replace (x-eps)%R with (Fpred x + (ulp (Fpred x)-eps))%R.
+replace (x-eps)%R with (pred x + (ulp (pred x)-eps))%R.
 (*
 2: pattern x rewrite <- (Fpred_ulp x).
 
