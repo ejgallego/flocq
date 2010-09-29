@@ -847,6 +847,7 @@ Qed.
 Theorem pred_lt:
   forall x, 
    (pred x < x)%R.
+Proof.
 intros.
 unfold pred.
 case Req_bool_spec; intros H.
@@ -908,12 +909,45 @@ now apply Heps.
 Qed.
 
 
-(*
-Theorem succ_lt_le:
+
+Theorem le_pred_lt:
   forall x y,
   F x -> F y ->
   (0 < x < y)%R ->
-  (x + ulp x <= y)%R.
-intros x y Hx Hy H. *)
+  (x  <= pred y)%R.
+Proof.
+intros x y Hx Hy H. 
+(* *)
+assert (0 < pred y)%R.
+
+admit.
+
+(* *)
+case (Rle_or_lt (ulp (pred y)) (y-x)); intros H1.
+(* *)
+apply Rplus_le_reg_r with (-x + ulp (pred y))%R.
+ring_simplify (x+(-x+ulp (pred y)))%R.
+apply Rle_trans with (1:=H1).
+rewrite <- (pred_ulp y) at 1; trivial.
+apply Req_le; ring.
+apply Rlt_trans with (1:=proj1 H); easy.
+now apply Rgt_not_eq.
+(* *)
+replace x with (y-(y-x))%R by ring.
+rewrite <- rounding_DN_pred with (eps:=(y-x)%R); try easy.
+ring_simplify (y-(y-x))%R.
+apply Req_le.
+apply sym_eq; now apply rounding_generic.
+split; trivial.
+now apply Rlt_Rminus.
+now apply Rlt_le.
+Qed.
+
+
+
+
+
+
+
 
 End Fcore_ulp.
