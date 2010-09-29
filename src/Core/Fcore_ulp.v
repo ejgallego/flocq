@@ -883,26 +883,30 @@ Qed.
 
 
 Theorem rounding_DN_pred :
-  forall x, (0 < x)%R -> F x ->
+  forall x, (0 < pred x)%R -> F x ->
   forall eps, (0 < eps <= ulp (pred x))%R ->
   rounding beta fexp ZrndDN (x - eps) = pred x.
 Proof.
-intros x Hx Fx eps Heps.
+intros x Hpx Fx eps Heps.
+assert (Hx:(0 < x)%R).
+apply Rlt_trans with (1:=Hpx).
+apply pred_lt.
 replace (x-eps)%R with (pred x + (ulp (pred x)-eps))%R.
-(*
-2: pattern x rewrite <- (Fpred_ulp x).
-
+2: pattern x at 3; rewrite <- (pred_ulp x); trivial.
+2: ring.
+2: now apply Rgt_not_eq.
 rewrite rounding_DN_succ; trivial.
-apply Fpred_ulp; trivial.
-apply Rlt_trans with (1:=Hx).
-apply Fpred_lt.
-auto with real.
-apply Fpred_format; trivial.
-apply Rlt_trans with (1:=Hx).
-apply Fpred_lt.
-Qed.*)
+now apply format_pred.
+split.
+apply Rle_0_minus.
+now apply Heps.
+rewrite <- Rplus_0_r.
+apply Rplus_lt_compat_l.
+rewrite <- Ropp_0.
+apply Ropp_lt_contravar.
+now apply Heps.
+Qed.
 
-Admitted.
 
 (*
 Theorem succ_lt_le:
