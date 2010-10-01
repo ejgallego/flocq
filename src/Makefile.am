@@ -45,7 +45,7 @@ SUFFIXES = .v .vo .vd
 install-data-local:
 	@$(NORMAL_INSTALL)
 	@test -z "$(datadir)" || \
-	for p in Core Calc Prop; do \
+	for p in Core Calc Prop Appli; do \
 	  $(MKDIR_P) "$(DESTDIR)$(datadir)/$$p"; \
 	done
 	@list='$(FILES:=o)'; test -n "$(datadir)" || list=; \
