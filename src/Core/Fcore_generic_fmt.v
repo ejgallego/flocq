@@ -333,6 +333,42 @@ omega.
 Qed.
 
 
+Theorem generic_format_bpow_inv :
+  forall e,
+    generic_format (bpow e) ->
+   (fexp e <= e)%Z.
+Proof.
+intros e He.
+apply Znot_gt_le; intros He2.
+unfold valid_exp in prop_exp.
+assert (e+1 <= fexp (e+1))%Z.
+replace (fexp (e+1)) with (fexp e).
+omega.
+destruct (prop_exp e) as (Y1,Y2).
+apply sym_eq; apply Y2; omega.
+absurd (bpow e=0)%R.
+apply sym_not_eq; apply Rlt_not_eq.
+apply bpow_gt_0.
+rewrite He.
+replace (Ztrunc (scaled_mantissa (bpow e))) with 0%Z.
+apply F2R_0.
+apply sym_eq.
+rewrite Ztrunc_floor.
+unfold scaled_mantissa, canonic_exponent.
+apply mantissa_DN_small_pos; trivial.
+rewrite ln_beta_bpow.
+split.
+apply Req_le.
+apply f_equal.
+ring.
+apply -> bpow_lt.
+omega.
+now rewrite ln_beta_bpow.
+unfold scaled_mantissa.
+apply Rmult_le_pos; apply bpow_ge_0.
+Qed.
+
+
 Section Fcore_generic_rounding_pos.
 
 Record Zrounding := mkZrounding {
