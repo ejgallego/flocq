@@ -14,7 +14,7 @@ Notation format := (generic_format beta fexp).
 Theorem generic_format_plus :
   forall x y,
   format x -> format y ->
-  (Rabs (x + y) < bpow (Zmin (projT1 (ln_beta beta x)) (projT1 (ln_beta beta y))))%R ->
+  (Rabs (x + y) < bpow (Zmin (ln_beta beta x) (ln_beta beta y)))%R ->
   format (x + y)%R.
 Proof.
 intros x y Fx Fy Hxy.

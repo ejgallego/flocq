@@ -261,7 +261,7 @@ Qed.
 Theorem ln_beta_F2R_bounds :
   forall x m e, (0 < m)%Z ->
   (F2R (Float beta m e) <= x < F2R (Float beta (m + 1) e))%R ->
-  projT1 (ln_beta beta x) = projT1 (ln_beta beta (F2R (Float beta m e))).
+  ln_beta beta x = ln_beta beta (F2R (Float beta m e)) :> Z.
 Proof.
 intros x m e Hp (Hx,Hx2).
 destruct (ln_beta beta (F2R (Float beta m e))) as (ex, He).
@@ -308,7 +308,7 @@ Qed.
 
 Theorem F2R_lt_bpow :
   forall f : float beta, forall e',
-  (Zabs (Fnum f) < Zpower (radix_val beta) (e' - Fexp f))%Z ->
+  (Zabs (Fnum f) < Zpower beta (e' - Fexp f))%Z ->
   (Rabs (F2R f) < bpow e')%R.
 Proof.
 intros (m, e) e' Hm.
@@ -332,7 +332,7 @@ Qed.
 Theorem F2R_change_exp :
   forall e' m e : Z,
   (e' <= e)%Z ->
-  F2R (Float beta m e) = F2R (Float beta (m * Zpower (radix_val beta) (e - e')) e').
+  F2R (Float beta m e) = F2R (Float beta (m * Zpower beta (e - e')) e').
 Proof.
 intros e' m e He.
 unfold F2R. simpl.
@@ -345,9 +345,9 @@ Qed.
 
 Theorem F2R_prec_normalize :
   forall m e e' p : Z,
-  (Zabs m < Zpower (radix_val beta) p)%Z ->
+  (Zabs m < Zpower beta p)%Z ->
   (bpow (e' - 1)%Z <= Rabs (F2R (Float beta m e)))%R ->
-  F2R (Float beta m e) = F2R (Float beta (m * Zpower (radix_val beta) (e - e' + p)) (e' - p)).
+  F2R (Float beta m e) = F2R (Float beta (m * Zpower beta (e - e' + p)) (e' - p)).
 Proof.
 intros m e e' p Hm Hf.
 assert (Hp: (0 <= p)%Z).
@@ -370,7 +370,7 @@ Qed.
 Theorem ln_beta_F2R :
   forall m e : Z,
   m <> Z0 ->
-  (projT1 (ln_beta beta (F2R (Float beta m e))) = projT1 (ln_beta beta (Z2R m)) + e)%Z.
+  (ln_beta beta (F2R (Float beta m e)) = ln_beta beta (Z2R m) + e :> Z)%Z.
 Proof.
 intros m e H.
 destruct (ln_beta beta (Z2R m)) as (d, Hd).
@@ -396,7 +396,7 @@ Theorem float_distribution_pos :
   forall m1 e1 m2 e2 : Z,
   (0 < m1)%Z ->
   (F2R (Float beta m1 e1) < F2R (Float beta m2 e2) < F2R (Float beta (m1 + 1) e1))%R ->
-  (e2 < e1)%Z /\ (e1 + projT1 (ln_beta beta (Z2R m1)) = e2 + projT1 (ln_beta beta (Z2R m2)))%Z.
+  (e2 < e1)%Z /\ (e1 + ln_beta beta (Z2R m1) = e2 + ln_beta beta (Z2R m2))%Z.
 Proof.
 intros m1 e1 m2 e2 Hp1 (H12, H21).
 assert (He: (e2 < e1)%Z).

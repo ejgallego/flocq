@@ -21,7 +21,7 @@ Definition valid_exp :=
 Variable prop_exp : valid_exp.
 
 Definition canonic_exponent x :=
-  fexp (projT1 (ln_beta beta x)).
+  fexp (ln_beta beta x).
 
 Definition canonic (f : float beta) :=
   Fexp f = canonic_exponent (F2R f).
@@ -85,7 +85,7 @@ unfold generic_format, scaled_mantissa.
 set (e' := canonic_exponent (F2R (Float beta m e))).
 intros He.
 unfold F2R at 3. simpl.
-assert (H: (Z2R m * bpow e * bpow (- e') = Z2R (m * Zpower (radix_val beta) (e + -e')))%R).
+assert (H: (Z2R m * bpow e * bpow (- e') = Z2R (m * Zpower beta (e + -e')))%R).
 rewrite Rmult_assoc, <- bpow_add, mult_Z2R.
 rewrite Z2R_Zpower.
 apply refl_equal.
@@ -312,10 +312,9 @@ rewrite Rmult_assoc, <- bpow_add, Zplus_opp_r, Rmult_1_r.
 now rewrite Ztrunc_Z2R.
 Qed.
 
-
 Theorem canonic_exp_ge:
   forall prec,
-  (forall e, (e-fexp e <= prec)%Z) ->
+  (forall e, (e - fexp e <= prec)%Z) ->
   (* OK with FLX, FLT and FTZ *)
   forall x, generic_format x ->
   (Rabs x < bpow (prec + canonic_exponent x))%R.
@@ -324,14 +323,13 @@ case (Req_dec x 0); intros Hxz.
 rewrite Hxz, Rabs_R0.
 apply bpow_gt_0.
 unfold canonic_exponent.
-destruct (ln_beta beta x); simpl.
-specialize (a Hxz).
-apply Rlt_le_trans with (1:=proj2 a).
+destruct (ln_beta beta x) as (ex,Ex) ; simpl.
+specialize (Ex Hxz).
+apply Rlt_le_trans with (1 := proj2 Ex).
 apply -> bpow_le.
-specialize (Hp x0).
+specialize (Hp ex).
 omega.
 Qed.
-
 
 Theorem generic_format_bpow_inv :
   forall e,
@@ -367,7 +365,6 @@ now rewrite ln_beta_bpow.
 unfold scaled_mantissa.
 apply Rmult_le_pos; apply bpow_ge_0.
 Qed.
-
 
 Section Fcore_generic_rounding_pos.
 
@@ -526,7 +523,7 @@ replace (ex - 1)%Z with (ex - 1 + - fexp ex + fexp ex)%Z by ring.
 rewrite bpow_add.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-assert (Hf: Z2R (Zpower (radix_val beta) (ex - 1 - fexp ex)) = bpow (ex - 1 + - fexp ex)).
+assert (Hf: Z2R (Zpower beta (ex - 1 - fexp ex)) = bpow (ex - 1 + - fexp ex)).
 apply Z2R_Zpower.
 omega.
 rewrite <- Hf.
@@ -553,7 +550,7 @@ pattern ex at 3 ; replace ex with (ex - fexp ex + fexp ex)%Z by ring.
 rewrite bpow_add.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-assert (Hf: Z2R (Zpower (radix_val beta) (ex - fexp ex)) = bpow (ex - fexp ex)).
+assert (Hf: Z2R (Zpower beta (ex - fexp ex)) = bpow (ex - fexp ex)).
 apply Z2R_Zpower.
 omega.
 rewrite <- Hf.
@@ -724,7 +721,7 @@ apply F2R_le_0_compat. simpl.
 rewrite <- (Zrnd_Z2R rnd 0).
 apply Zrnd_monotone.
 simpl.
-rewrite <- (Rmult_0_l (bpow (- fexp (projT1 (ln_beta beta x))))).
+rewrite <- (Rmult_0_l (bpow (- fexp (ln_beta beta x)))).
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 now apply Rlt_le.
@@ -1031,10 +1028,10 @@ intros e x He Hx.
 pattern x at 2 ; rewrite Hx.
 unfold F2R at 2. simpl.
 rewrite Rmult_assoc, <- bpow_add.
-assert (H: Z2R (Zpower (radix_val beta) (canonic_exponent x + - fexp e)) = bpow (canonic_exponent x + - fexp e)).
+assert (H: Z2R (Zpower beta (canonic_exponent x + - fexp e)) = bpow (canonic_exponent x + - fexp e)).
 apply Z2R_Zpower.
 unfold canonic_exponent.
-set (ex := projT1 (ln_beta beta x)).
+set (ex := ln_beta beta x).
 generalize (not_FTZ ex).
 generalize (proj2 (proj2 (prop_exp _) He) (fexp ex + 1)%Z).
 omega.

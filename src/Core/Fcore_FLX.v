@@ -18,7 +18,7 @@ Variable Hp : Zlt 0 prec.
 (* unbounded floating-point format *)
 Definition FLX_format (x : R) :=
   exists f : float beta,
-  x = F2R f /\ (Zabs (Fnum f) < Zpower (radix_val beta) prec)%Z.
+  x = F2R f /\ (Zabs (Fnum f) < Zpower beta prec)%Z.
 
 Definition FLX_RoundingModeP (rnd : R -> R):=
   Rounding_for_Format FLX_format rnd.
@@ -106,7 +106,7 @@ apply iff_trans with (FIX_format beta (ex - prec) x).
 apply FLX_format_FIX.
 exact (conj (proj1 Hx2) (Rlt_le _ _ (proj2 Hx2))).
 apply FIX_format_generic.
-assert (Hf: FLX_exp (projT1 (ln_beta beta x)) = FIX_exp (ex - prec) (projT1 (ln_beta beta x))).
+assert (Hf: FLX_exp (ln_beta beta x) = FIX_exp (ex - prec) (ln_beta beta x)).
 unfold FIX_exp, FLX_exp.
 now rewrite ln_beta_unique with (1 := Hx2).
 split ;
@@ -128,7 +128,7 @@ Qed.
 Definition FLXN_format (x : R) :=
   exists f : float beta,
   x = F2R f /\ (x <> R0 ->
-  Zpower (radix_val beta) (prec - 1) <= Zabs (Fnum f) < Zpower (radix_val beta) prec)%Z.
+  Zpower beta (prec - 1) <= Zabs (Fnum f) < Zpower beta prec)%Z.
 
 Definition FLXN_RoundingModeP (rnd : R -> R):=
   Rounding_for_Format FLXN_format rnd.
@@ -159,7 +159,7 @@ apply H4.
 rewrite <- Z2R_Zpower, <- abs_Z2R.
 now apply Z2R_lt.
 now apply Zlt_le_weak.
-exists (Float beta (xm * Zpower (radix_val beta) (prec - d)) (xe + d - prec)).
+exists (Float beta (xm * Zpower beta (prec - d)) (xe + d - prec)).
 split.
 unfold F2R. simpl.
 rewrite mult_Z2R, Z2R_Zpower.
@@ -228,7 +228,7 @@ unfold FLX_exp.
 omega.
 Qed.
 
-Hypothesis NE_prop : Zeven (radix_val beta) = false \/ (1 < prec)%Z.
+Hypothesis NE_prop : Zeven beta = false \/ (1 < prec)%Z.
 
 Theorem NE_ex_prop_FLX :
   NE_ex_prop beta FLX_exp.

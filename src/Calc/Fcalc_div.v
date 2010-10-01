@@ -21,7 +21,7 @@ Definition Fdiv_aux prec m1 e1 m2 e2 :=
   let e := (e1 - e2)%Z in
   let (m, e') :=
     match (d2 + prec - d1)%Z with
-    | Zpos p => (m1 * Zpower_pos (radix_val beta) p, e + Zneg p)%Z
+    | Zpos p => (m1 * Zpower_pos beta p, e + Zneg p)%Z
     | _ => (m1, e)
     end in
   let '(q, r) :=  Zdiv_eucl m m2 in
@@ -41,7 +41,7 @@ set (d1 := digits beta m1).
 set (d2 := digits beta m2).
 case_eq
  (match (d2 + prec - d1)%Z with
-  | Zpos p => ((m1 * Zpower_pos (radix_val beta) p)%Z, (e1 - e2 + Zneg p)%Z)
+  | Zpos p => ((m1 * Zpower_pos beta p)%Z, (e1 - e2 + Zneg p)%Z)
   | _ => (m1, (e1 - e2)%Z)
   end).
 intros m' e' Hme.
@@ -56,7 +56,7 @@ repeat split.
 now rewrite <- H0.
 apply Zle_refl.
 replace (e1 - e2 + Zneg p + e2)%Z with (e1 - Zpos p)%Z by (unfold Zminus ; simpl ; ring).
-fold (Zpower (radix_val beta) (Zpos p)).
+fold (Zpower beta (Zpos p)).
 split.
 pattern (Zpos p) at 1 ; replace (Zpos p) with (e1 - (e1 - Zpos p))%Z by ring.
 apply sym_eq.

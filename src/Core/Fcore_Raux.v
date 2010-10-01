@@ -1269,7 +1269,7 @@ End Proof_Irrelevance.
 
 Section pow.
 
-Record radix := { radix_val : Z ; radix_prop : Zle_bool 2 radix_val = true }.
+Record radix := { radix_val :> Z ; radix_prop : Zle_bool 2 radix_val = true }.
 
 Theorem radix_val_inj :
   forall r1 r2, radix_val r1 = radix_val r2 -> r1 = r2.
@@ -1285,7 +1285,7 @@ Qed.
 
 Variable r : radix.
 
-Theorem radix_gt_1 : (1 < radix_val r)%Z.
+Theorem radix_gt_1 : (1 < r)%Z.
 Proof.
 destruct r as (v, Hr). simpl.
 apply Zlt_le_trans with 2%Z.
@@ -1293,7 +1293,7 @@ easy.
 now apply Zle_bool_imp_le.
 Qed.
 
-Theorem radix_pos : (0 < Z2R (radix_val r))%R.
+Theorem radix_pos : (0 < Z2R r)%R.
 Proof.
 destruct r as (v, Hr). simpl.
 apply (Z2R_lt 0).
@@ -1304,8 +1304,8 @@ Qed.
 
 Definition bpow e :=
   match e with
-  | Zpos p => Z2R (Zpower_pos (radix_val r) p)
-  | Zneg p => Rinv (Z2R (Zpower_pos (radix_val r) p))
+  | Zpos p => Z2R (Zpower_pos r p)
+  | Zneg p => Rinv (Z2R (Zpower_pos r p))
   | Z0 => R1
   end.
 
@@ -1327,7 +1327,7 @@ Qed.
 
 Theorem bpow_powerRZ :
   forall e,
-  bpow e = powerRZ (Z2R (radix_val r)) e.
+  bpow e = powerRZ (Z2R r) e.
 Proof.
 destruct e ; unfold bpow.
 reflexivity.
@@ -1364,14 +1364,14 @@ apply radix_pos.
 Qed.
 
 Theorem bpow_1 :
-  bpow 1 = Z2R (radix_val r).
+  bpow 1 = Z2R r.
 Proof.
 unfold bpow, Zpower_pos, iter_pos.
 now rewrite Zmult_1_r.
 Qed.
 
 Theorem bpow_add1 :
-  forall e : Z, (bpow (e+1) = Z2R (radix_val r) * bpow e)%R.
+  forall e : Z, (bpow (e + 1) = Z2R r * bpow e)%R.
 Proof.
 intros.
 rewrite <- bpow_1.
@@ -1393,7 +1393,7 @@ Qed.
 
 Theorem Z2R_Zpower_nat :
   forall e : nat,
-  Z2R (Zpower_nat (radix_val r) e) = bpow (Z_of_nat e).
+  Z2R (Zpower_nat r e) = bpow (Z_of_nat e).
 Proof.
 intros [|e].
 split.
@@ -1405,7 +1405,7 @@ Qed.
 Theorem Z2R_Zpower :
   forall e : Z,
   (0 <= e)%Z ->
-  Z2R (Zpower (radix_val r) e) = bpow e.
+  Z2R (Zpower r e) = bpow e.
 Proof.
 intros [|e|e] H.
 split.
@@ -1435,7 +1435,7 @@ elim (lt_irrefl 0).
 pattern O at 2 ; rewrite <- H.
 apply lt_O_nat_of_P.
 intros n _.
-assert (1 < Zpower_nat (radix_val r) 1)%Z.
+assert (1 < Zpower_nat r 1)%Z.
 unfold Zpower_nat, iter_nat.
 rewrite Zmult_1_r.
 apply radix_gt_1.
@@ -1502,10 +1502,10 @@ Qed.
 
 Theorem bpow_exp :
   forall e : Z,
-  bpow e = exp (Z2R e * ln (Z2R (radix_val r))).
+  bpow e = exp (Z2R e * ln (Z2R r)).
 Proof.
 (* positive case *)
-assert (forall e, bpow (Zpos e) = exp (Z2R (Zpos e) * ln (Z2R (radix_val r)))).
+assert (forall e, bpow (Zpos e) = exp (Z2R (Zpos e) * ln (Z2R r))).
 intros e.
 unfold bpow.
 rewrite Zpower_pos_nat.
@@ -1534,19 +1534,23 @@ rewrite Rmult_0_l.
 now rewrite exp_0.
 apply H.
 unfold bpow.
-change (Z2R (Zpower_pos (radix_val r) e)) with (bpow (Zpos e)).
+change (Z2R (Zpower_pos r e)) with (bpow (Zpos e)).
 rewrite H.
 rewrite <- exp_Ropp.
 rewrite <- Ropp_mult_distr_l_reverse.
 now rewrite <- opp_Z2R.
 Qed.
 
-Theorem ln_beta :
-  forall x : R,
-  {e | (x <> 0)%R -> (bpow (e - 1)%Z <= Rabs x < bpow e)%R}.
+Record ln_beta_prop x := {
+  ln_beta_val :> Z ;
+   _ : (x <> 0)%R -> (bpow (ln_beta_val - 1)%Z <= Rabs x < bpow ln_beta_val)%R
+}.
+
+Definition ln_beta :
+  forall x : R, ln_beta_prop x.
 Proof.
 intros x.
-set (fact := ln (Z2R (radix_val r))).
+set (fact := ln (Z2R r)).
 (* . *)
 assert (0 < fact)%R.
 apply exp_lt_inv.
@@ -1614,7 +1618,7 @@ Qed.
 Theorem ln_beta_unique :
   forall (x : R) (e : Z),
   (bpow (e - 1) <= Rabs x < bpow e)%R ->
-  projT1 (ln_beta x) = e.
+  ln_beta x = e :> Z.
 Proof.
 intros x e1 He.
 destruct (Req_dec x 0) as [Hx|Hx].
@@ -1629,7 +1633,7 @@ Qed.
 
 Theorem ln_beta_opp :
   forall x,
-  projT1 (ln_beta (-x)) = projT1 (ln_beta x).
+  ln_beta (-x) = ln_beta x :> Z.
 Proof.
 intros x.
 destruct (Req_dec x 0) as [Hx|Hx].
@@ -1643,20 +1647,19 @@ Qed.
 
 Theorem ln_beta_abs :
   forall x,
-  projT1 (ln_beta (Rabs x)) = projT1 (ln_beta x).
+  ln_beta (Rabs x) = ln_beta x :> Z.
 Proof.
 intros x.
-set (m := projT1 (ln_beta x)).
 unfold Rabs.
 case Rcase_abs ; intros _.
-now rewrite ln_beta_opp.
+apply ln_beta_opp.
 apply refl_equal.
 Qed.
 
 Theorem ln_beta_monotone_abs :
   forall x y,
   (x <> 0)%R -> (Rabs x <= Rabs y)%R ->
-  (projT1 (ln_beta x) <= projT1 (ln_beta y))%Z.
+  (ln_beta x <= ln_beta y)%Z.
 Proof.
 intros x y H0x Hxy.
 destruct (ln_beta x) as (ex, Hx).
@@ -1677,7 +1680,7 @@ Qed.
 Theorem ln_beta_monotone :
   forall x y,
   (0 < x)%R -> (x <= y)%R ->
-  (projT1 (ln_beta x) <= projT1 (ln_beta y))%Z.
+  (ln_beta x <= ln_beta y)%Z.
 Proof.
 intros x y H0x Hxy.
 apply ln_beta_monotone_abs.
@@ -1690,7 +1693,7 @@ now apply Rlt_le.
 Qed.
 
 Theorem ln_beta_bpow :
-  forall e, projT1 (ln_beta (bpow e)) = (e + 1)%Z.
+  forall e, (ln_beta (bpow e) = e + 1 :> Z)%Z.
 Proof.
 intros e.
 apply ln_beta_unique.
@@ -1718,7 +1721,7 @@ Qed.
 Theorem Zpower_gt_1 :
   forall p,
   (0 < p)%Z ->
-  (1 < Zpower (radix_val r) p)%Z.
+  (1 < Zpower r p)%Z.
 Proof.
 intros.
 apply lt_Z2R.
@@ -1730,7 +1733,7 @@ Qed.
 Theorem Zpower_gt_0 :
   forall p,
   (0 < p)%Z ->
-  (0 < Zpower (radix_val r) p)%Z.
+  (0 < Zpower r p)%Z.
 Proof.
 intros.
 apply Zlt_trans with 1%Z.

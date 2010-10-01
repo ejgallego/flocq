@@ -15,7 +15,7 @@ Definition truncate t :=
   let '(m, e, l) := t in
   let k := (fexp (digits beta m + e) - e)%Z in
   if Zlt_bool 0 k then
-    let p := Zpower (radix_val beta) k in
+    let p := Zpower beta k in
     (Zdiv m p, (e + k)%Z, new_location p (Zmod m p) l)
   else t.
 
@@ -31,7 +31,7 @@ Proof.
 intros x m e l Hx H1 H2.
 unfold truncate.
 set (k := (fexp (digits beta m + e) - e)%Z).
-set (p := Zpower (radix_val beta) k).
+set (p := Zpower beta k).
 (* *)
 assert (Hx': (F2R (Float beta m e) <= x < F2R (Float beta (m + 1) e))%R).
 apply inbetween_bounds with (2 := H1).

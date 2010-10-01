@@ -122,7 +122,7 @@ rewrite bpow_add.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 rewrite Hy2; unfold canonic_exponent, FLX_exp.
-ring_simplify (prec + (projT1 (ln_beta beta y) - prec))%Z.
+ring_simplify (prec + (ln_beta beta y - prec))%Z.
 destruct (ln_beta beta y); simpl.
 left; now apply a.
 Qed.
@@ -205,7 +205,7 @@ now apply (Z2R_le 25 32).
 apply Rgt_not_eq.
 now apply (Z2R_lt 0 16).
 rewrite Hx2; unfold canonic_exponent, FLX_exp.
-ring_simplify (prec + (projT1 (ln_beta beta x) - prec))%Z.
+ring_simplify (prec + (ln_beta beta x - prec))%Z.
 destruct (ln_beta beta x); simpl.
 rewrite <- (Rabs_right x).
 apply a.
@@ -243,7 +243,7 @@ apply Rle_lt_trans with (1:=Rabs_triang _ _).
 assert (Rabs (F2R fr) < bpow (prec + Fexp fr))%R.
 rewrite Hr2; unfold canonic_exponent; rewrite Hr1.
 unfold FLX_exp.
-ring_simplify (prec + (projT1 (ln_beta beta (F2R fr)) - prec))%Z.
+ring_simplify (prec + (ln_beta beta (F2R fr) - prec))%Z.
 destruct (ln_beta beta (F2R fr)); simpl.
 apply a.
 rewrite <- Hr1; auto.
@@ -256,21 +256,21 @@ apply Rplus_le_compat_l.
 assert (sqrt x <> 0)%R.
 apply Rgt_not_eq.
 now apply sqrt_lt_R0.
-destruct (ln_beta beta (sqrt x)).
-specialize (a H0).
-apply Rle_trans with (bpow x0).
-left; apply a.
+destruct (ln_beta beta (sqrt x)) as (es,Es).
+specialize (Es H0).
+apply Rle_trans with (bpow es).
+now apply Rlt_le.
 apply ->bpow_le.
-case (Zle_or_lt x0 (prec+Fexp fr)); trivial.
+case (Zle_or_lt es (prec + Fexp fr)) ; trivial.
 intros H1.
-absurd (Rabs (F2R fr) < bpow (x0-1))%R.
+absurd (Rabs (F2R fr) < bpow (es - 1))%R.
 apply Rle_not_lt.
 rewrite <- Hr1.
 apply rounding_monotone_abs_l.
 now apply FLX_exp_correct.
 apply generic_format_bpow.
 unfold FLX_exp; omega.
-apply a.
+apply Es.
 apply Rlt_le_trans with (1:=H).
 apply ->bpow_le; omega.
 now apply Rlt_le.

@@ -13,7 +13,7 @@ Definition round_FIX t :=
   let '(m, e, l) := t in
   let k := (emin - e)%Z in
   if Zlt_bool 0 k then
-    let p := Zpower (radix_val beta) k in
+    let p := Zpower beta k in
     (Zdiv m p, (e + k)%Z, new_location p (Zmod m p) l)
   else t.
 
@@ -28,7 +28,7 @@ Proof.
 intros x m e l H1 H2.
 unfold round_FIX.
 set (k := (emin - e)%Z).
-set (p := Zpower (radix_val beta) k).
+set (p := Zpower beta k).
 unfold canonic_exponent, FIX_exp.
 generalize (Zlt_cases 0 k).
 case (Zlt_bool 0 k) ; intros Hk.

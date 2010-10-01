@@ -52,7 +52,7 @@ Qed.
 Theorem implies_MinOrMax_not_bpow:
   forall x f, format f ->
   (0 < f)%R ->
-  f <> bpow (projT1 (ln_beta beta f)) ->
+  f <> bpow (ln_beta beta f) ->
   (Rabs (f-x) < ulp f)%R -> 
   MinOrMax x f.
 intros x f Hf1 Hf2 Hf3 Hxf1.
@@ -84,7 +84,7 @@ Qed.
 
 Theorem implies_MinOrMax_bpow:
   forall x f, format f ->
-  f = bpow (projT1 (ln_beta beta f)) ->
+  f = bpow (ln_beta beta f) ->
   (Rabs (f-x) < /2* ulp f)%R -> 
   MinOrMax x f.
 intros x f Hf1 Hf2 Hxf.

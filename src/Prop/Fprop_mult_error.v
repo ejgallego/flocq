@@ -77,7 +77,7 @@ apply Hey.
 (* *)
 assert (Hr: ((F2R (Float beta (- (Ztrunc (scaled_mantissa beta (FLX_exp prec) x) *
   Ztrunc (scaled_mantissa beta (FLX_exp prec) y)) + Zrnd rnd (scaled_mantissa beta (FLX_exp prec) (x * y)) *
-  radix_val beta ^ (cexp (x * y)%R - (cexp x + cexp y))) (cexp x + cexp y))) = f - x * y)%R).
+  beta ^ (cexp (x * y)%R - (cexp x + cexp y))) (cexp x + cexp y))) = f - x * y)%R).
 rewrite Hx at 6.
 rewrite Hy at 6.
 rewrite <- mult_F2R.
@@ -89,7 +89,7 @@ now rewrite Zle_imp_le_bool with (1 := Hc2).
 (* *)
 exists (Float beta (- (Ztrunc (scaled_mantissa beta (FLX_exp prec) x) *
   Ztrunc (scaled_mantissa beta (FLX_exp prec) y)) + Zrnd rnd (scaled_mantissa beta (FLX_exp prec) (x * y)) *
-  radix_val beta ^ (cexp (x * y)%R - (cexp x + cexp y))) (cexp x + cexp y)).
+  beta ^ (cexp (x * y)%R - (cexp x + cexp y))) (cexp x + cexp y)).
 split;[assumption|split].
 rewrite Hr.
 simpl.
@@ -179,7 +179,7 @@ unfold f; rewrite <- H1.
 apply generic_format_canonic_exponent.
 simpl in H2, H3.
 unfold canonic_exponent, FLT_exp.
-case (Zmax_spec (projT1 (ln_beta beta (F2R (Float beta m e))) - prec) emin);
+case (Zmax_spec (ln_beta beta (F2R (Float beta m e)) - prec) emin);
   intros (M1,M2); rewrite M2.
 apply Zle_trans with (2:=H2).
 unfold canonic_exponent, FLX_exp.
@@ -198,27 +198,18 @@ now rewrite Hxy0, Rmult_0_l.
 assert (Hy0: (y <> 0)%R).
 contradict Hxy0.
 now rewrite Hxy0, Rmult_0_r.
-destruct (ln_beta beta x); simpl.
-specialize (a Hx0).
-destruct (ln_beta beta y); simpl.
-specialize (a0 Hy0).
-assert (emin+2*prec -1 < x0+x1)%Z.
+destruct (ln_beta beta x) as (ex,Ex) ; simpl.
+specialize (Ex Hx0).
+destruct (ln_beta beta y) as (ey,Ey) ; simpl.
+specialize (Ey Hy0).
+assert (emin + 2 * prec -1 < ex + ey)%Z.
 2: omega.
 apply <- (bpow_lt beta).
 apply Rle_lt_trans with (1:=Hxy).
 rewrite Rabs_mult, bpow_add.
 apply Rmult_le_0_lt_compat; try apply Rabs_pos.
-apply a.
-apply a0.
+apply Ex.
+apply Ey.
 Qed.
 
-
-
 End Fprop_mult_error_FLT.
-
-
-
-
-
-
-

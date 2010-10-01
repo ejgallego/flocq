@@ -124,7 +124,7 @@ Definition Fsqrt_aux prec m e :=
   let (s', e'') := if Zeven e' then (s, e') else (s + 1, e' - 1)%Z in
   let m' :=
     match s' with
-    | Zpos p => (m * Zpower_pos (radix_val beta) p)%Z
+    | Zpos p => (m * Zpower_pos beta p)%Z
     | _ => m
     end in
   let (q, r) := Zsqrt m' in
@@ -172,7 +172,7 @@ destruct He as (He1, (He2, (He3, He4))).
 (* . shift *)
 set (m' := match s' with
   | Z0 => m
-  | Zpos p => (m * Zpower_pos (radix_val beta) p)%Z
+  | Zpos p => (m * Zpower_pos beta p)%Z
   | Zneg _ => m
   end).
 assert (Hs: F2R (Float beta m' e') = F2R (Float beta m e) /\ (2 * prec <= digits beta m')%Z /\ (0 < m')%Z).
@@ -182,7 +182,7 @@ destruct s' as [|p|p].
 repeat split ; try easy.
 fold d.
 omega.
-fold (Zpower (radix_val beta) (Zpos p)).
+fold (Zpower beta (Zpos p)).
 split.
 replace (Zpos p) with (Zpos p + e' - e')%Z by ring.
 rewrite <- F2R_change_exp.

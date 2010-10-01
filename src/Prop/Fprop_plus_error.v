@@ -30,7 +30,7 @@ rewrite Z2R_Zpower. 2: omega.
 rewrite <- bpow_add.
 apply (f_equal (fun v => Z2R m * bpow v)%R).
 ring.
-exists ((Zrnd rnd (Z2R m * bpow (e - e'))) * Zpower (radix_val beta) (e' - e))%Z.
+exists ((Zrnd rnd (Z2R m * bpow (e - e'))) * Zpower beta (e' - e))%Z.
 unfold F2R. simpl.
 rewrite mult_Z2R.
 rewrite Z2R_Zpower. 2: omega.
@@ -61,7 +61,7 @@ apply generic_format_0.
 set (mx := Ztrunc (scaled_mantissa beta fexp x)).
 set (my := Ztrunc (scaled_mantissa beta fexp y)).
 (* *)
-assert (Hxy: (x + y)%R = F2R (Float beta (mx + my * radix_val beta ^ (ey - ex)) ex)).
+assert (Hxy: (x + y)%R = F2R (Float beta (mx + my * beta ^ (ey - ex)) ex)).
 rewrite Hx, Hy.
 fold mx my ex ey.
 rewrite <- plus_F2R.
@@ -69,13 +69,13 @@ unfold Fplus. simpl.
 now rewrite Zle_imp_le_bool with (1 := He).
 (* *)
 rewrite Hxy.
-destruct (rounding_repr_same_exp (ZrndN choice) (mx + my * radix_val beta ^ (ey - ex)) ex) as (mxy, Hxy').
+destruct (rounding_repr_same_exp (ZrndN choice) (mx + my * beta ^ (ey - ex)) ex) as (mxy, Hxy').
 rewrite Hxy'.
 assert (H: (F2R (Float beta mxy ex) -
-   F2R (Float beta (mx + my * radix_val beta ^ (ey - ex)) ex))%R = F2R
+   F2R (Float beta (mx + my * beta ^ (ey - ex)) ex))%R = F2R
      (Float beta
-        (- (mx + my * radix_val beta ^ (ey - ex)) +
-         mxy * radix_val beta ^ (ex - ex)) ex)).
+        (- (mx + my * beta ^ (ey - ex)) +
+         mxy * beta ^ (ex - ex)) ex)).
 unfold Rminus.
 rewrite opp_F2R, Rplus_comm, <- plus_F2R.
 unfold Fplus. simpl.
@@ -134,7 +134,7 @@ specialize (Hexy H0).
 destruct (Zle_or_lt exy (fexp exy)) as [He'|He'].
 (* . *)
 assert (H: (x + y)%R = F2R (Float beta (Ztrunc (x * bpow (- fexp exy)) +
-  Ztrunc (y * bpow (- fexp exy)) * Zpower (radix_val beta) (fexp exy - fexp exy)) (fexp exy))).
+  Ztrunc (y * bpow (- fexp exy)) * Zpower beta (fexp exy - fexp exy)) (fexp exy))).
 rewrite (subnormal_exponent beta fexp prop_exp not_FTZ exy x He' Hx) at 1.
 rewrite (subnormal_exponent beta fexp prop_exp not_FTZ exy y He' Hy) at 1.
 rewrite <- plus_F2R.

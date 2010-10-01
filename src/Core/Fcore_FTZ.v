@@ -17,7 +17,7 @@ Variable Hp : Zlt 0 prec.
 (* floating-point format with abrupt underflow *)
 Definition FTZ_format (x : R) :=
   exists f : float beta,
-  x = F2R f /\ (x <> R0 -> Zpower (radix_val beta) (prec - 1) <= Zabs (Fnum f) < Zpower (radix_val beta) prec)%Z /\
+  x = F2R f /\ (x <> R0 -> Zpower beta (prec - 1) <= Zabs (Fnum f) < Zpower beta prec)%Z /\
   (emin <= Fexp f)%Z.
 
 Definition FTZ_RoundingModeP (rnd : R -> R):=

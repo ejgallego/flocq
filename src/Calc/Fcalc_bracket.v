@@ -507,17 +507,17 @@ Theorem inbetween_float_new_location :
   forall x m e l k,
   (0 < k)%Z ->
   inbetween_float m e x l ->
-  inbetween_float (Zdiv m (Zpower (radix_val beta) k)) (e + k) x (new_location (Zpower (radix_val beta) k) (Zmod m (Zpower (radix_val beta) k)) l).
+  inbetween_float (Zdiv m (Zpower beta k)) (e + k) x (new_location (Zpower beta k) (Zmod m (Zpower beta k)) l).
 Proof.
 intros x m e l k Hk Hx.
 unfold inbetween_float in *.
-assert (Hr: forall m, F2R (Float beta m (e + k)) = F2R (Float beta (m * Zpower (radix_val beta) k) e)).
+assert (Hr: forall m, F2R (Float beta m (e + k)) = F2R (Float beta (m * Zpower beta k) e)).
 clear -Hk. intros m.
 rewrite (F2R_change_exp beta e).
 apply (f_equal (fun r => F2R (Float beta (m * Zpower _ r) e))).
 ring.
 omega.
-assert (Hp: (Zpower (radix_val beta) k > 0)%Z).
+assert (Hp: (Zpower beta k > 0)%Z).
 apply Zlt_gt.
 now apply Zpower_gt_0.
 (* . *)
@@ -537,10 +537,10 @@ Qed.
 Theorem inbetween_float_new_location_single :
   forall x m e l,
   inbetween_float m e x l ->
-  inbetween_float (Zdiv m (radix_val beta)) (e + 1) x (new_location (radix_val beta) (Zmod m (radix_val beta)) l).
+  inbetween_float (Zdiv m beta) (e + 1) x (new_location beta (Zmod m beta) l).
 Proof.
 intros x m e l Hx.
-replace (radix_val beta) with (Zpower (radix_val beta) 1).
+replace (radix_val beta) with (Zpower beta 1).
 now apply inbetween_float_new_location.
 apply Zmult_1_r.
 Qed.

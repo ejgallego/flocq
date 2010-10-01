@@ -126,7 +126,7 @@ Qed.
 Theorem ln_beta_succ :
   forall x, (0 < x)%R -> F x ->
   forall eps, (0 <= eps < ulp x)%R ->
-  projT1 (ln_beta beta (x + eps)) = projT1 (ln_beta beta x).
+  ln_beta beta (x + eps) = ln_beta beta x :> Z.
 Proof.
 intros x Zx Fx eps Heps.
 destruct (ln_beta beta x) as (ex, He).
@@ -550,13 +550,11 @@ apply ulp_half_error.
 rewrite rounding_DN_opp; apply Ropp_0_gt_lt_contravar; apply Rlt_gt; assumption.
 Qed.
 
-
-
 Definition pred x :=
-  match Req_bool x (bpow (projT1 (ln_beta beta x)-1)) with 
-      true => (x - bpow (fexp (projT1 (ln_beta beta x)-1)%Z))%R
-    | false  => (x - ulp x)%R
-     end.
+  if Req_bool x (bpow (ln_beta beta x - 1)) then
+    (x - bpow (fexp (ln_beta beta x - 1)))%R
+  else
+    (x - ulp x)%R.
 
 Theorem pred_ge_bpow :
   forall x e,  F x ->
@@ -595,7 +593,7 @@ Qed.
 
 Theorem format_pred_1:
   forall x, (0 < x)%R -> F x -> 
-  x <> bpow (projT1 (ln_beta beta x)-1) ->
+  x <> bpow (ln_beta beta x - 1) ->
   F (x - ulp x).
 Proof.
 intros x Zx Fx Hx.
@@ -653,12 +651,11 @@ apply bpow_ge_0.
 omega.
 Qed.
 
-
-Theorem format_pred_2:
+Theorem format_pred_2 :
   forall x, (0 < x)%R -> F x -> 
-  let e :=projT1 (ln_beta beta x) in
+  let e := ln_beta_val beta x (ln_beta beta x) in
   x =  bpow (e - 1) ->
-  F (x - bpow (fexp (e-1))).
+  F (x - bpow (fexp (e - 1))).
 Proof.
 intros x Zx Fx e Hx.
 pose (f:=(x - bpow (fexp (e - 1)))%R).
@@ -667,7 +664,7 @@ assert (He:(fexp (e-1) <= e-1)%Z).
 apply generic_format_bpow_inv with beta; trivial.
 rewrite <- Hx; assumption.
 case (Zle_lt_or_eq _ _ He); clear He; intros He.
-assert (f = F2R (Float beta (Zpower (radix_val beta) (e-1-(fexp (e-1))) -1) (fexp (e-1))))%R.
+assert (f = F2R (Float beta (Zpower beta (e-1-(fexp (e-1))) -1) (fexp (e-1))))%R.
 unfold f; rewrite Hx.
 unfold F2R; simpl.
 rewrite minus_Z2R, Z2R_Zpower.
@@ -692,7 +689,7 @@ apply Rle_trans with (bpow 1*bpow (e - 2))%R.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 replace 2%R with (Z2R 2) by reflexivity.
-replace (bpow 1) with (Z2R (radix_val beta)).
+replace (bpow 1) with (Z2R beta).
 apply Z2R_le.
 apply <- Zle_is_le_bool.
 now destruct beta.
@@ -717,8 +714,7 @@ rewrite Hx, He.
 ring.
 Qed.
 
-
-Theorem format_pred:
+Theorem format_pred :
   forall x, (0 < x)%R -> F x -> 
   F (pred x).
 Proof.
@@ -729,10 +725,9 @@ now apply format_pred_2.
 now apply format_pred_1.
 Qed.
 
-
-Theorem pred_ulp_1:
+Theorem pred_ulp_1 :
   forall x, (0 < x)%R -> F x -> 
-  x <> bpow (projT1 (ln_beta beta x)-1) ->
+  x <> bpow (ln_beta beta x - 1) ->
   ((x - ulp x) + ulp (x-ulp x) = x)%R.
 Proof.
 intros x Zx Fx Hx.
@@ -780,7 +775,7 @@ Qed.
 
 Theorem pred_ulp_2:
   forall x, (0 < x)%R -> F x -> 
-  let e :=projT1 (ln_beta beta x) in
+  let e := ln_beta_val beta x (ln_beta beta x) in
   x =  bpow (e - 1) ->
   (x - bpow (fexp (e-1)) <> 0)%R ->
   ((x - bpow (fexp (e-1))) + ulp (x - bpow (fexp (e-1))) = x)%R.
@@ -808,7 +803,7 @@ apply Rle_trans with (bpow 1*bpow (e - 2))%R.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 replace 2%R with (Z2R 2) by reflexivity.
-replace (bpow 1) with (Z2R (radix_val beta)).
+replace (bpow 1) with (Z2R beta).
 apply Z2R_le.
 apply <- Zle_is_le_bool.
 now destruct beta.
@@ -832,8 +827,7 @@ contradict Zp.
 rewrite Hxe, He; ring.
 Qed.
 
-
-Theorem pred_ulp:
+Theorem pred_ulp :
   forall x, (0 < x)%R -> F x ->
   (pred x <> 0)%R ->
   (pred x + ulp (pred x) = x)%R.
@@ -845,9 +839,9 @@ now apply pred_ulp_2.
 now apply pred_ulp_1.
 Qed.
 
-Theorem pred_lt:
+Theorem pred_lt :
   forall x, 
-   (pred x < x)%R.
+  (pred x < x)%R.
 Proof.
 intros.
 unfold pred.
@@ -868,7 +862,7 @@ Qed.
 
 Theorem  pred_pos:
   forall x, 
-    (0 < x)%R -> F x -> (0 <= pred x)%R.
+  (0 < x)%R -> F x -> (0 <= pred x)%R.
 intros x Zx Fx.
 unfold pred.
 case Req_bool_spec; intros H.
@@ -876,16 +870,15 @@ case Req_bool_spec; intros H.
 apply Rle_0_minus.
 rewrite H.
 apply -> bpow_le.
-destruct (ln_beta beta x); simpl.
+destruct (ln_beta beta x) as (ex,Ex) ; simpl.
 rewrite ln_beta_bpow.
-ring_simplify (x0-1+1-1)%Z.
+ring_simplify (ex - 1 + 1 - 1)%Z.
 apply generic_format_bpow_inv with beta; trivial.
 simpl in H.
 rewrite <- H; assumption.
 apply Rle_0_minus.
 now apply ulp_le_pos.
 Qed.
-
 
 Theorem rounding_UP_pred :
   forall x, (0 < pred x)%R -> F x ->

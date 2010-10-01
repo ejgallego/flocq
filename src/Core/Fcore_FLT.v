@@ -19,7 +19,7 @@ Variable Hp : Zlt 0 prec.
 (* floating-point format with gradual underflow *)
 Definition FLT_format (x : R) :=
   exists f : float beta,
-  x = F2R f /\ (Zabs (Fnum f) < Zpower (radix_val beta) prec)%Z /\ (emin <= Fexp f)%Z.
+  x = F2R f /\ (Zabs (Fnum f) < Zpower beta prec)%Z /\ (emin <= Fexp f)%Z.
 
 Definition FLT_RoundingModeP (rnd : R -> R):=
   Rounding_for_Format FLT_format rnd.
@@ -256,7 +256,7 @@ generalize (Zmax_spec (emin + 1 - prec) emin).
 omega.
 Qed.
 
-Hypothesis NE_prop : Zeven (radix_val beta) = false \/ (1 < prec)%Z.
+Hypothesis NE_prop : Zeven beta = false \/ (1 < prec)%Z.
 
 Theorem NE_ex_prop_FLT :
   NE_ex_prop beta FLT_exp.

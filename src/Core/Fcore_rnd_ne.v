@@ -79,7 +79,7 @@ rewrite rounding_UP_opp, <- opp_F2R.
 now apply f_equal.
 Qed.
 
-Definition NE_ex_prop := Zeven (radix_val beta) = false \/ forall e,
+Definition NE_ex_prop := Zeven beta = false \/ forall e,
   ((fexp e < e)%Z -> (fexp (e + 1) < e)%Z) /\ ((e <= fexp e)%Z -> fexp (fexp e + 1) = fexp e).
 
 Hypothesis strong_fexp : NE_ex_prop.
@@ -99,7 +99,7 @@ apply F2R_eq_0_reg with beta (Fexp xd).
 change (F2R xd = R0).
 rewrite Hxd.
 apply rounding_DN_small_pos with (1 := Hex) (2 := Hxe).
-assert (Hu3 : xu = Float beta (1 * Zpower (radix_val beta) (fexp ex - fexp (fexp ex + 1))) (fexp (fexp ex + 1))).
+assert (Hu3 : xu = Float beta (1 * Zpower beta (fexp ex - fexp (fexp ex + 1))) (fexp (fexp ex + 1))).
 apply canonic_unicity with (1 := Hu).
 apply (f_equal fexp).
 rewrite <- F2R_change_exp.
@@ -148,7 +148,7 @@ elim (Rlt_not_le _ _ Hu2).
 rewrite Hxu.
 now apply (rounding_bounded_large_pos beta fexp ZrndUP x ex).
 (* - xu = bpow ex *)
-assert (Hu3: xu = Float beta (1 * Zpower (radix_val beta) (ex - fexp (ex + 1))) (fexp (ex + 1))).
+assert (Hu3: xu = Float beta (1 * Zpower beta (ex - fexp (ex + 1))) (fexp (ex + 1))).
 apply canonic_unicity with (1 := Hu).
 apply (f_equal fexp).
 rewrite <- F2R_change_exp.
@@ -159,8 +159,8 @@ apply sym_eq.
 rewrite <- F2R_change_exp.
 apply F2R_bpow.
 exact Hxe2.
-assert (Hd3: xd = Float beta (Zpower (radix_val beta) (ex - fexp ex) - 1) (fexp ex)).
-assert (H: F2R xd = F2R (Float beta (Zpower (radix_val beta) (ex - fexp ex) - 1) (fexp ex))).
+assert (Hd3: xd = Float beta (Zpower beta (ex - fexp ex) - 1) (fexp ex)).
+assert (H: F2R xd = F2R (Float beta (Zpower beta (ex - fexp ex) - 1) (fexp ex))).
 unfold F2R. simpl.
 rewrite minus_Z2R.
 unfold Rminus.
@@ -188,9 +188,9 @@ rewrite Zeven_mult. simpl.
 unfold Zminus at 2.
 rewrite Zeven_plus.
 rewrite eqb_sym. simpl.
-fold (negb (Zeven (radix_val beta ^ (ex - fexp ex)))).
+fold (negb (Zeven (beta ^ (ex - fexp ex)))).
 rewrite Bool.negb_involutive.
-rewrite (Zeven_Zpower (radix_val beta) (ex - fexp ex)). 2: omega.
+rewrite (Zeven_Zpower beta (ex - fexp ex)). 2: omega.
 destruct strong_fexp.
 rewrite H.
 apply Zodd_Zpower with (2 := H).
@@ -390,7 +390,7 @@ unfold scaled_mantissa, canonic_exponent.
 rewrite ln_beta_bpow.
 rewrite <- bpow_add, <- Z2R_Zpower.
 rewrite Ztrunc_Z2R.
-case_eq (Zeven (radix_val beta)) ; intros Hr.
+case_eq (Zeven beta) ; intros Hr.
 destruct strong_fexp as [Hs|Hs].
 now rewrite Hs in Hr.
 destruct (Hs ex) as (H,_).
@@ -402,7 +402,7 @@ replace (Zfloor mx) with (Zceil mx + -1)%Z by omega.
 rewrite Zeven_plus.
 apply eqb_true.
 unfold mx.
-replace (Zceil (scaled_mantissa beta fexp x)) with (Zpower (radix_val beta) (ex - fexp ex)).
+replace (Zceil (scaled_mantissa beta fexp x)) with (Zpower beta (ex - fexp ex)).
 rewrite Zodd_Zpower with (2 := Hr).
 easy.
 omega.

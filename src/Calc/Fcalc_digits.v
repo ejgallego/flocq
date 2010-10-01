@@ -35,15 +35,15 @@ Hypothesis Hp : (0 <= p)%Z.
 Fixpoint digits_aux (nb pow : Z) (n : nat) { struct n } : Z :=
   match n with
   | O => nb
-  | S n => if Zlt_bool p pow then nb else digits_aux (nb + 1) (Zmult (radix_val beta) pow) n
+  | S n => if Zlt_bool p pow then nb else digits_aux (nb + 1) (Zmult beta pow) n
   end.
 
 Lemma digits_aux_invariant :
   forall k n nb,
   (0 <= nb)%Z ->
-  (Zpower (radix_val beta) (nb + Z_of_nat k - 1) <= p)%Z ->
-  digits_aux (nb + Z_of_nat k) (Zpower (radix_val beta) (nb + Z_of_nat k)) n =
-  digits_aux nb (Zpower (radix_val beta) nb) (n + k).
+  (Zpower beta (nb + Z_of_nat k - 1) <= p)%Z ->
+  digits_aux (nb + Z_of_nat k) (Zpower beta (nb + Z_of_nat k)) n =
+  digits_aux nb (Zpower beta nb) (n + k).
 Proof.
 induction k ; intros n nb Hnb.
 now rewrite Zplus_0_r, plus_0_r.
@@ -54,7 +54,7 @@ rewrite (Zplus_comm _ 1), Zplus_assoc.
 rewrite IHk.
 rewrite <- plus_n_Sm.
 simpl.
-generalize (Zlt_cases p (Zpower (radix_val beta) nb)).
+generalize (Zlt_cases p (Zpower beta nb)).
 case Zlt_bool ; intros Hpp.
 elim (Zlt_irrefl p).
 apply Zlt_le_trans with (1 := Hpp).
@@ -81,8 +81,8 @@ End digits_aux.
 Definition digits n :=
   match n with
   | Z0 => Z0
-  | Zneg p => digits_aux (Zpos p) 1 (radix_val beta) (digits2_Pnat p)
-  | Zpos p => digits_aux n 1 (radix_val beta) (digits2_Pnat p)
+  | Zneg p => digits_aux (Zpos p) 1 beta (digits2_Pnat p)
+  | Zpos p => digits_aux n 1 beta (digits2_Pnat p)
   end.
 
 Theorem digits_abs :
@@ -94,7 +94,7 @@ Qed.
 Theorem digits_ln_beta :
   forall n,
   n <> Z0 ->
-  digits n = projT1 (ln_beta beta (Z2R n)).
+  digits n = ln_beta beta (Z2R n).
 Proof.
 intros n Hn.
 destruct (ln_beta beta (Z2R n)) as (e, He).
@@ -117,7 +117,7 @@ now apply (Zlt_le_succ 0).
 assert (He2: (Z_of_nat (Zabs_nat (e - 1)) = e - 1)%Z).
 rewrite inj_Zabs_nat.
 now apply Zabs_eq.
-replace (radix_val beta) with (Zpower (radix_val beta) 1).
+replace (radix_val beta) with (Zpower beta 1).
 replace (digits2_Pnat p) with (digits2_Pnat p - Zabs_nat (e - 1) + Zabs_nat (e - 1)).
 rewrite <- digits_aux_invariant.
 rewrite He2.
@@ -125,7 +125,7 @@ ring_simplify (1 + (e - 1))%Z.
 destruct (digits2_Pnat p - Zabs_nat (e - 1)) as [|n].
 easy.
 simpl.
-generalize (Zlt_cases (Zpos p) (Zpower (radix_val beta) e)).
+generalize (Zlt_cases (Zpos p) (Zpower beta e)).
 case Zlt_bool ; intros Hpp.
 easy.
 elim Rlt_not_le with (1 := proj2 He).
@@ -154,7 +154,7 @@ exact (proj2 (digits2_Pnat_correct p)).
 clear.
 induction (S (digits2_Pnat p)).
 easy.
-change (2 * Zpower_nat 2 n <= radix_val beta * Zpower_nat (radix_val beta) n)%Z.
+change (2 * Zpower_nat 2 n <= beta * Zpower_nat beta n)%Z.
 apply Zmult_le_compat ; try easy.
 apply Zle_bool_imp_le.
 apply beta.
@@ -188,7 +188,7 @@ Qed.
 Theorem digits_shift :
   forall m e,
   m <> Z0 -> (0 <= e)%Z ->
-  digits (m * Zpower (radix_val beta) e) = (digits m + e)%Z.
+  digits (m * Zpower beta e) = (digits m + e)%Z.
 Proof.
 intros m e Hm He.
 rewrite 2!digits_ln_beta.

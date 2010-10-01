@@ -12,8 +12,8 @@ Definition Falign (f1 f2 : float beta) :=
   let '(Float m1 e1) := f1 in
   let '(Float m2 e2) := f2 in
   if Zle_bool e1 e2
-  then (m1, (m2 * Zpower (radix_val beta) (e2 - e1))%Z, e1)
-  else ((m1 * Zpower (radix_val beta) (e1 - e2))%Z, m2, e2).
+  then (m1, (m2 * Zpower beta (e2 - e1))%Z, e1)
+  else ((m1 * Zpower beta (e1 - e2))%Z, m2, e2).
 
 Theorem Falign_spec :
   forall f1 f2 : float beta,
