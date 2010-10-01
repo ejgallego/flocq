@@ -23,15 +23,15 @@ Definition IdempotentP (F : R -> Prop) (rnd : R -> R) :=
 Definition Rounding_for_Format (F : R -> Prop) (rnd : R -> R) :=
    MonotoneP rnd /\ IdempotentP F rnd.
 
-Definition rounding_pred_total (P : R -> R -> Prop) :=
+Definition round_pred_total (P : R -> R -> Prop) :=
   forall x, exists f, P x f.
 
-Definition rounding_pred_monotone (P : R -> R -> Prop) :=
+Definition round_pred_monotone (P : R -> R -> Prop) :=
   forall x y f g, P x f -> P y g -> (x <= y)%R -> (f <= g)%R.
 
-Definition rounding_pred (P : R -> R -> Prop) :=
-  rounding_pred_total P /\
-  rounding_pred_monotone P.
+Definition round_pred (P : R -> R -> Prop) :=
+  round_pred_total P /\
+  round_pred_monotone P.
 
 End Def.
 
@@ -41,7 +41,7 @@ Implicit Arguments F2R [[beta]].
 
 Section RND.
 
-(* property of being a rounding toward -inf *)
+(* property of being a round toward -inf *)
 Definition Rnd_DN_pt (F : R -> Prop) (x f : R) :=
   F f /\ (f <= x)%R /\
   forall g : R, F g -> (g <= x)%R -> (g <= f)%R.
@@ -49,7 +49,7 @@ Definition Rnd_DN_pt (F : R -> Prop) (x f : R) :=
 Definition Rnd_DN (F : R -> Prop) (rnd : R -> R) :=
   forall x : R, Rnd_DN_pt F x (rnd x).
 
-(* property of being a rounding toward +inf *)
+(* property of being a round toward +inf *)
 Definition Rnd_UP_pt (F : R -> Prop) (x f : R) :=
   F f /\ (x <= f)%R /\
   forall g : R, F g -> (x <= g)%R -> (f <= g)%R.
@@ -57,7 +57,7 @@ Definition Rnd_UP_pt (F : R -> Prop) (x f : R) :=
 Definition Rnd_UP (F : R -> Prop) (rnd : R -> R) :=
   forall x : R, Rnd_UP_pt F x (rnd x).
 
-(* property of being a rounding toward zero *)
+(* property of being a round toward zero *)
 Definition Rnd_ZR_pt (F : R -> Prop) (x f : R) :=
   ( (0 <= x)%R -> Rnd_DN_pt F x f ) /\
   ( (x <= 0)%R -> Rnd_UP_pt F x f ).
@@ -65,7 +65,7 @@ Definition Rnd_ZR_pt (F : R -> Prop) (x f : R) :=
 Definition Rnd_ZR (F : R -> Prop) (rnd : R -> R) :=
   forall x : R, Rnd_ZR_pt F x (rnd x).
 
-(* property of being a rounding to nearest *)
+(* property of being a round to nearest *)
 Definition Rnd_N_pt (F : R -> Prop) (x f : R) :=
   F f /\
   forall g : R, F g -> (Rabs (f - x) <= Rabs (g - x))%R.

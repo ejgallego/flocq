@@ -223,7 +223,7 @@ replace (digits beta q * 2)%Z with (digits beta q + digits beta q)%Z by ring.
 apply digits_mult_strong.
 omega.
 omega.
-(* . rounding *)
+(* . round *)
 unfold inbetween_float, F2R. simpl.
 rewrite sqrt_mult.
 2: now apply (Z2R_le 0) ; apply Zlt_le_weak.
@@ -233,7 +233,7 @@ rewrite He1, Zplus_0_r in Hev. clear He1.
 rewrite Hev.
 replace (Zdiv2 (2 * e2)) with e2 by now case e2.
 replace (2 * e2)%Z with (e2 + e2)%Z by ring.
-rewrite bpow_add.
+rewrite bpow_plus.
 fold (Rsqr (bpow e2)).
 rewrite sqrt_Rsqr.
 2: apply Rlt_le ; apply bpow_gt_0.
@@ -242,7 +242,7 @@ apply bpow_gt_0.
 rewrite Hq.
 case Zeq_bool_spec ; intros Hr'.
 (* .. r = 0 *)
-rewrite Hr', Zplus_0_r, mult_Z2R.
+rewrite Hr', Zplus_0_r, Z2R_mult.
 fold (Rsqr (Z2R q)).
 rewrite sqrt_Rsqr.
 now constructor.
@@ -253,14 +253,14 @@ constructor.
 split.
 (* ... bounds *)
 apply Rle_lt_trans with (sqrt (Z2R (q * q))).
-rewrite mult_Z2R.
+rewrite Z2R_mult.
 fold (Rsqr (Z2R q)).
 rewrite sqrt_Rsqr.
 apply Rle_refl.
 apply (Z2R_le 0).
 omega.
 apply sqrt_lt_1.
-rewrite mult_Z2R.
+rewrite Z2R_mult.
 apply Rle_0_sqr.
 rewrite <- Hq.
 apply (Z2R_le 0).
@@ -272,12 +272,12 @@ apply sqrt_lt_1.
 rewrite <- Hq.
 apply (Z2R_le 0).
 now apply Zlt_le_weak.
-rewrite mult_Z2R.
+rewrite Z2R_mult.
 apply Rle_0_sqr.
 apply Z2R_lt.
 ring_simplify.
 omega.
-rewrite mult_Z2R.
+rewrite Z2R_mult.
 fold (Rsqr (Z2R (q + 1))).
 rewrite sqrt_Rsqr.
 apply Rle_refl.
@@ -290,7 +290,7 @@ replace ((2 * sqrt (Z2R (q * q + r))) * (2 * sqrt (Z2R (q * q + r))))%R
   with (4 * Rsqr (sqrt (Z2R (q * q + r))))%R by (unfold Rsqr ; ring).
 rewrite Rsqr_sqrt.
 change 4%R with (Z2R 4).
-rewrite <- plus_Z2R, <- 2!mult_Z2R.
+rewrite <- Z2R_plus, <- 2!Z2R_mult.
 rewrite Rcompare_Z2R.
 replace ((q + (q + 1)) * (q + (q + 1)))%Z with (4 * (q * q) + 4 * q + 1)%Z by ring.
 generalize (Zle_cases r q).
@@ -305,7 +305,7 @@ now apply Zlt_le_weak.
 apply Rmult_le_pos.
 now apply (Z2R_le 0 2).
 apply sqrt_ge_0.
-rewrite <- plus_Z2R.
+rewrite <- Z2R_plus.
 apply (Z2R_le 0).
 omega.
 Qed.

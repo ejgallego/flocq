@@ -51,22 +51,22 @@ Qed.
 Theorem div_error_FLX :
   forall Zrnd x y,
   format x -> format y ->
-  format (x - rounding beta (FLX_exp prec) Zrnd (x/y) * y)%R.
+  format (x - round beta (FLX_exp prec) Zrnd (x/y) * y)%R.
 Proof.
 intros Zrnd x y Hx Hy.
 destruct (Req_dec y 0) as [Zy|Zy].
 now rewrite Zy, Rmult_0_r, Rminus_0_r.
-case (Req_dec (rounding beta (FLX_exp prec) Zrnd (x/y)) 0); intros Hr.
+case (Req_dec (round beta (FLX_exp prec) Zrnd (x/y)) 0); intros Hr.
 rewrite Hr; ring_simplify (x-0*y)%R; assumption.
 assert (Zx: x <> R0).
 contradict Hr.
 rewrite Hr.
 unfold Rdiv.
-now rewrite Rmult_0_l, rounding_0.
+now rewrite Rmult_0_l, round_0.
 destruct (format_nx x Hx) as (fx,(Hx1,Hx2)).
 destruct (format_nx y Hy) as (fy,(Hy1,Hy2)).
-destruct (format_nx (rounding beta (FLX_exp prec) Zrnd (x / y))) as (fr,(Hr1,Hr2)).
-apply generic_format_rounding.
+destruct (format_nx (round beta (FLX_exp prec) Zrnd (x / y))) as (fr,(Hr1,Hr2)).
+apply generic_format_round.
 now apply FLX_exp_correct.
 unfold Rminus; apply format_add with fx (Fopp beta (Fmult beta fr fy)); trivial.
 now rewrite Fopp_F2R,mult_F2R, <- Hr1, <- Hy1.
@@ -101,8 +101,8 @@ apply Zle_refl.
 (* *)
 replace (Fexp (Fopp beta (Fmult beta fr fy))) with (Fexp fr + Fexp fy)%Z.
 2: unfold Fopp, Fmult; destruct fr; destruct fy; now simpl.
-replace (x + - (rounding beta (FLX_exp prec) Zrnd (x / y) * y))%R with
-  (y * (-(rounding beta (FLX_exp prec) Zrnd (x / y) - x/y)))%R.
+replace (x + - (round beta (FLX_exp prec) Zrnd (x / y) * y))%R with
+  (y * (-(round beta (FLX_exp prec) Zrnd (x / y) - x/y)))%R.
 2: field; assumption.
 rewrite Rabs_mult.
 apply Rlt_le_trans with (Rabs y * bpow (Fexp fr))%R.
@@ -118,7 +118,7 @@ exact Hr.
 unfold ulp; apply f_equal.
 now rewrite Hr2, <- Hr1.
 replace (prec+(Fexp fr+Fexp fy))%Z with ((prec+Fexp fy)+Fexp fr)%Z by ring.
-rewrite bpow_add.
+rewrite bpow_plus.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 rewrite Hy2; unfold canonic_exponent, FLX_exp.
@@ -131,26 +131,26 @@ Variable Hp1 : Zlt 1 prec.
 
 Theorem sqrt_error_N :
   forall x, format x ->
-  format (x - Rsqr (rounding beta (FLX_exp prec) (ZrndN choice) (sqrt x)))%R.
+  format (x - Rsqr (round beta (FLX_exp prec) (rndN choice) (sqrt x)))%R.
 Proof.
 intros x Hx.
 destruct (total_order_T x 0) as [[Hxz|Hxz]|Hxz].
 unfold sqrt.
 destruct (Rcase_abs x).
-rewrite rounding_0.
+rewrite round_0.
 unfold Rsqr.
 now rewrite Rmult_0_l, Rminus_0_r.
 elim (Rlt_irrefl 0).
 now apply Rgt_ge_trans with x.
-rewrite Hxz, sqrt_0, rounding_0.
+rewrite Hxz, sqrt_0, round_0.
 unfold Rsqr.
 rewrite Rmult_0_l, Rminus_0_r.
 apply generic_format_0.
-case (Req_dec (rounding beta (FLX_exp prec) (ZrndN choice) (sqrt x)) 0); intros Hr.
+case (Req_dec (round beta (FLX_exp prec) (rndN choice) (sqrt x)) 0); intros Hr.
 rewrite Hr; unfold Rsqr; ring_simplify (x-0*0)%R; assumption.
 destruct (format_nx x Hx) as (fx,(Hx1,Hx2)).
-destruct (format_nx (rounding beta (FLX_exp prec) (ZrndN choice) (sqrt x))) as (fr,(Hr1,Hr2)).
-apply generic_format_rounding.
+destruct (format_nx (round beta (FLX_exp prec) (rndN choice) (sqrt x))) as (fr,(Hr1,Hr2)).
+apply generic_format_round.
 now apply FLX_exp_correct.
 unfold Rminus; apply format_add with fx (Fopp beta (Fmult beta fr fr)); trivial.
 unfold Rsqr; now rewrite Fopp_F2R,mult_F2R, <- Hr1.
@@ -231,7 +231,7 @@ right; unfold ulp; apply f_equal.
 rewrite Hr2, <- Hr1; trivial. 
 rewrite Rmult_assoc, Rmult_comm.
 replace (prec+(Fexp fr+Fexp fr))%Z with (Fexp fr + (prec+Fexp fr))%Z by ring.
-rewrite bpow_add, Rmult_assoc.
+rewrite bpow_plus, Rmult_assoc.
 apply Rmult_lt_compat_l.
 apply bpow_gt_0.
 apply Rmult_lt_reg_l with 2%R.
@@ -266,7 +266,7 @@ intros H1.
 absurd (Rabs (F2R fr) < bpow (es - 1))%R.
 apply Rle_not_lt.
 rewrite <- Hr1.
-apply rounding_monotone_abs_l.
+apply round_monotone_abs_l.
 now apply FLX_exp_correct.
 apply generic_format_bpow.
 unfold FLX_exp; omega.

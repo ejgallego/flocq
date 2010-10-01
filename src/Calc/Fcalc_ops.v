@@ -49,7 +49,7 @@ Theorem Fopp_F2R :
   forall f1 : float beta,
   (F2R (Fopp f1) = -F2R f1)%R.
 unfold Fopp, F2R; intros (m1,e1).
-simpl; rewrite opp_Z2R; ring.
+simpl; rewrite Z2R_opp; ring.
 Qed.
 
 Definition Fabs (f1: float beta) :=
@@ -78,7 +78,7 @@ destruct (Falign f1 f2) as ((m1, m2), e).
 intros (H1, H2).
 rewrite H1, H2.
 unfold F2R. simpl.
-rewrite plus_Z2R.
+rewrite Z2R_plus.
 apply Rmult_plus_distr_r.
 Qed.
 
@@ -115,7 +115,7 @@ Theorem mult_F2R :
 Proof.
 intros (m1, e1) (m2, e2).
 unfold Fmult, F2R. simpl.
-rewrite mult_Z2R, bpow_add.
+rewrite Z2R_mult, bpow_plus.
 ring.
 Qed.
 

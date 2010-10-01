@@ -110,8 +110,8 @@ omega.
 now apply Zlt_le_weak.
 (* . the location is correctly computed *)
 unfold inbetween_float, F2R. simpl.
-rewrite bpow_add, plus_Z2R.
-rewrite Hq, plus_Z2R, mult_Z2R.
+rewrite bpow_plus, Z2R_plus.
+rewrite Hq, Z2R_plus, Z2R_mult.
 replace ((Z2R m2 * Z2R q + Z2R r) * (bpow e' * bpow e2) / (Z2R m2 * bpow e2))%R
   with ((Z2R q + Z2R r / Z2R m2) * bpow e')%R.
 apply inbetween_mult_compat.

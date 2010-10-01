@@ -100,7 +100,7 @@ intros n Hn.
 destruct (ln_beta beta (Z2R n)) as (e, He).
 simpl.
 specialize (He (Z2R_neq _ _ Hn)).
-rewrite <- abs_Z2R in He.
+rewrite <- Z2R_abs in He.
 assert (Hn': (0 < Zabs n)%Z).
 destruct n ; try easy.
 now elim Hn.
@@ -174,7 +174,7 @@ apply <- bpow_le.
 apply Rlt_le.
 apply Rle_lt_trans with (Rabs (Z2R n)).
 simpl.
-rewrite <- abs_Z2R.
+rewrite <- Z2R_abs.
 apply (Z2R_le 1).
 apply (Zlt_le_succ 0).
 revert H.
@@ -192,7 +192,7 @@ Theorem digits_shift :
 Proof.
 intros m e Hm He.
 rewrite 2!digits_ln_beta.
-rewrite mult_Z2R.
+rewrite Z2R_mult.
 rewrite Z2R_Zpower with (1 := He).
 change (Z2R m * bpow e)%R with (F2R (Float beta m e)).
 apply ln_beta_F2R.
@@ -281,11 +281,11 @@ apply Rlt_le_trans with (Z2R (x + 1) * Z2R (y + 1))%R.
 apply Rle_lt_trans with (Z2R (x + y + x * y)).
 rewrite <- (Rabs_pos_eq _ (Rlt_le _ _ Hxy)).
 apply Hexy.
-rewrite <- mult_Z2R.
+rewrite <- Z2R_mult.
 apply Z2R_lt.
 apply Zplus_lt_reg_r with (- (x + y + x * y + 1))%Z.
 now ring_simplify.
-rewrite bpow_add.
+rewrite bpow_plus.
 apply Rmult_le_compat ; try (apply (Z2R_le 0) ; omega).
 rewrite <- (Rmult_1_r (Z2R (x + 1))).
 change (F2R (Float beta (x + 1) 0) <= bpow ex)%R.

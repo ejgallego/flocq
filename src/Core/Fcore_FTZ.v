@@ -69,7 +69,7 @@ generalize (Zlt_cases (ex - prec) emin).
 case (Zlt_bool (ex - prec) emin) ; intros H1.
 elim (Rlt_not_le _ _ (proj2 Hx6)).
 apply Rle_trans with (bpow (prec - 1) * bpow emin)%R.
-rewrite <- bpow_add.
+rewrite <- bpow_plus.
 apply -> bpow_le.
 omega.
 rewrite Hx1, abs_F2R.
@@ -132,7 +132,7 @@ apply le_Z2R.
 rewrite Z2R_Zpower.
 apply Rmult_le_reg_r with (bpow (ex - prec)).
 apply bpow_gt_0.
-rewrite <- bpow_add.
+rewrite <- bpow_plus.
 replace (prec - 1 + (ex - prec))%Z with (ex - 1)%Z by ring.
 change (bpow (ex - 1) <= F2R (Float beta (Zabs (Ztrunc (x * bpow (- (ex - prec))))) (ex - prec)))%R.
 rewrite <- abs_F2R, <- Hx2.
@@ -143,7 +143,7 @@ apply lt_Z2R.
 rewrite Z2R_Zpower.
 apply Rmult_lt_reg_r with (bpow (ex - prec)).
 apply bpow_gt_0.
-rewrite <- bpow_add.
+rewrite <- bpow_plus.
 replace (prec + (ex - prec))%Z with ex by ring.
 change (F2R (Float beta (Zabs (Ztrunc (x * bpow (- (ex - prec))))) (ex - prec)) < bpow ex)%R.
 rewrite <- abs_F2R, <- Hx2.
@@ -201,7 +201,7 @@ apply bpow_gt_0.
 rewrite H1, abs_F2R in Hx.
 apply Rlt_le_trans with (2 := Hx).
 replace (emin + prec - 1)%Z with (prec + (emin - 1))%Z by ring.
-rewrite bpow_add.
+rewrite bpow_plus.
 apply Rmult_lt_compat_r.
 apply bpow_gt_0.
 rewrite <- Z2R_Zpower.
@@ -215,9 +215,9 @@ apply Rle_refl.
 now apply Zlt_le_weak.
 Qed.
 
-Section FTZ_rounding.
+Section FTZ_round.
 
-Hypothesis rnd : Zrounding.
+Hypothesis rnd : Zround.
 
 Definition Zrnd_FTZ x :=
   if Rle_bool R1 (Rabs x) then Zrnd rnd x else Z0.
@@ -230,7 +230,7 @@ unfold Zrnd_FTZ.
 rewrite Zrnd_Z2R.
 case Rle_bool_spec.
 easy.
-rewrite <- abs_Z2R.
+rewrite <- Z2R_abs.
 intros H.
 generalize (lt_Z2R _ 1 H).
 clear.
@@ -269,15 +269,15 @@ apply (Rabs_def2 _ _ Hx).
 exact Hy1.
 Qed.
 
-Definition ZrFTZ := mkZrounding Zrnd_FTZ Z_FTZ_monotone Z_FTZ_Z2R.
+Definition ZrFTZ := mkZround Zrnd_FTZ Z_FTZ_monotone Z_FTZ_Z2R.
 
-Theorem FTZ_rounding :
+Theorem FTZ_round :
   forall x : R,
   (bpow (emin + prec - 1) <= Rabs x)%R ->
-  rounding beta FTZ_exp ZrFTZ x = rounding beta (FLX_exp prec) rnd x.
+  round beta FTZ_exp ZrFTZ x = round beta (FLX_exp prec) rnd x.
 Proof.
 intros x Hx.
-unfold rounding, scaled_mantissa, canonic_exponent.
+unfold round, scaled_mantissa, canonic_exponent.
 destruct (ln_beta beta x) as (ex, He). simpl.
 unfold Zrnd_FTZ.
 assert (Hx0: x <> R0).
@@ -297,7 +297,7 @@ rewrite Rabs_mult.
 rewrite (Rabs_pos_eq (bpow (- FLX_exp prec ex))).
 change R1 with (bpow 0).
 rewrite <- (Zplus_opp_r (FLX_exp prec ex)).
-rewrite bpow_add.
+rewrite bpow_plus.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 apply Rle_trans with (2 := proj1 He).
@@ -312,16 +312,16 @@ omega.
 easy.
 Qed.
 
-Theorem FTZ_rounding_small :
+Theorem FTZ_round_small :
   forall x : R,
   (Rabs x < bpow (emin + prec - 1))%R ->
-  rounding beta FTZ_exp ZrFTZ x = R0.
+  round beta FTZ_exp ZrFTZ x = R0.
 Proof.
 intros x Hx.
 destruct (Req_dec x 0) as [Hx0|Hx0].
 rewrite Hx0.
-apply rounding_0.
-unfold rounding, scaled_mantissa, canonic_exponent.
+apply round_0.
+unfold round, scaled_mantissa, canonic_exponent.
 destruct (ln_beta beta x) as (ex, He). simpl.
 specialize (He Hx0).
 unfold Zrnd_FTZ.
@@ -331,7 +331,7 @@ rewrite Rabs_mult.
 rewrite (Rabs_pos_eq (bpow (- FTZ_exp ex))).
 change R1 with (bpow 0).
 rewrite <- (Zplus_opp_r (FTZ_exp ex)).
-rewrite bpow_add.
+rewrite bpow_plus.
 apply Rmult_lt_compat_r.
 apply bpow_gt_0.
 apply Rlt_le_trans with (1 := Hx).
@@ -349,6 +349,6 @@ omega.
 apply bpow_ge_0.
 Qed.
 
-End FTZ_rounding.
+End FTZ_round.
 
 End RND_FTZ.

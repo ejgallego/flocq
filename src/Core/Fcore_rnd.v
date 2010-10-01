@@ -5,9 +5,9 @@ Section RND_prop.
 
 Open Scope R_scope.
 
-Theorem rounding_val_of_pred :
+Theorem round_val_of_pred :
   forall rnd : R -> R -> Prop,
-  rounding_pred rnd ->
+  round_pred rnd ->
   forall x, { f : R | rnd x f }.
 Proof.
 intros rnd (H1,H2) x.
@@ -32,20 +32,20 @@ now apply H4.
 now rewrite H.
 Qed.
 
-Theorem rounding_fun_of_pred :
+Theorem round_fun_of_pred :
   forall rnd : R -> R -> Prop,
-  rounding_pred rnd ->
+  round_pred rnd ->
   { f : R -> R | forall x, rnd x (f x) }.
 Proof.
 intros rnd H.
-exists (fun x => projT1 (rounding_val_of_pred rnd H x)).
+exists (fun x => projT1 (round_val_of_pred rnd H x)).
 intros x.
-now destruct rounding_val_of_pred as (f, H1).
+now destruct round_val_of_pred as (f, H1).
 Qed.
 
-Theorem rounding_unicity :
+Theorem round_unicity :
   forall rnd : R -> R -> Prop,
-  rounding_pred_monotone rnd ->
+  round_pred_monotone rnd ->
   forall x f1 f2,
   rnd x f1 ->
   rnd x f2 ->
@@ -59,7 +59,7 @@ Qed.
 
 Theorem Rnd_DN_pt_monotone :
   forall F : R -> Prop,
-  rounding_pred_monotone (Rnd_DN_pt F).
+  round_pred_monotone (Rnd_DN_pt F).
 Proof.
 intros F x y f g (Hx1,(Hx2,_)) (Hy1,(_,Hy2)) Hxy.
 apply Hy2.
@@ -84,7 +84,7 @@ Theorem Rnd_DN_pt_unicity :
   f1 = f2.
 Proof.
 intros F.
-apply rounding_unicity.
+apply round_unicity.
 apply Rnd_DN_pt_monotone.
 Qed.
 
@@ -100,7 +100,7 @@ Qed.
 
 Theorem Rnd_UP_pt_monotone :
   forall F : R -> Prop,
-  rounding_pred_monotone (Rnd_UP_pt F).
+  round_pred_monotone (Rnd_UP_pt F).
 Proof.
 intros F x y f g (Hx1,(_,Hx2)) (Hy1,(Hy2,_)) Hxy.
 apply Hx2.
@@ -125,7 +125,7 @@ Theorem Rnd_UP_pt_unicity :
   f1 = f2.
 Proof.
 intros F.
-apply rounding_unicity.
+apply round_unicity.
 apply Rnd_UP_pt_monotone.
 Qed.
 
@@ -437,7 +437,7 @@ Qed.
 
 Theorem Rnd_ZR_pt_monotone :
   forall F : R -> Prop, F 0 ->
-  rounding_pred_monotone (Rnd_ZR_pt F).
+  round_pred_monotone (Rnd_ZR_pt F).
 Proof.
 intros F F0 x y f g (Hx1, Hx2) (Hy1, Hy2) Hxy.
 destruct (Rle_or_lt 0 x) as [Hx|Hx].
@@ -851,7 +851,7 @@ Qed.
 Theorem Rnd_NG_pt_monotone :
   forall (F : R -> Prop) (P : R -> R -> Prop),
   Rnd_NG_pt_unicity_prop F P ->
-  rounding_pred_monotone (Rnd_NG_pt F P).
+  round_pred_monotone (Rnd_NG_pt F P).
 Proof.
 intros F P HP x y f g (Hf,Hx) (Hg,Hy) [Hxy|Hxy].
 now apply Rnd_N_pt_monotone with F x y.
@@ -1063,7 +1063,7 @@ Qed.
 Theorem Rnd_NA_pt_monotone :
   forall F : R -> Prop,
   F 0 ->
-  rounding_pred_monotone (Rnd_NA_pt F).
+  round_pred_monotone (Rnd_NA_pt F).
 Proof.
 intros F HF x y f g Hxf Hyg Hxy.
 apply (Rnd_NG_pt_monotone F _ (Rnd_NA_pt_unicity_prop F HF) x y).
@@ -1121,9 +1121,9 @@ intros x Hx.
 now apply Rnd_NA_pt_idempotent with F.
 Qed.
 
-Theorem rounding_pred_pos_imp_rnd :
+Theorem round_pred_pos_imp_rnd :
   forall P : R -> R -> Prop,
-  rounding_pred_monotone P ->
+  round_pred_monotone P ->
   P 0 0 ->
   forall x f, P x f -> 0 <= x -> 0 <= f.
 Proof.
@@ -1131,9 +1131,9 @@ intros P HP HP0 x f Hxf Hx.
 now apply (HP 0 x).
 Qed.
 
-Theorem rounding_pred_rnd_imp_pos :
+Theorem round_pred_rnd_imp_pos :
   forall P : R -> R -> Prop,
-  rounding_pred_monotone P ->
+  round_pred_monotone P ->
   P 0 0 ->
   forall x f, P x f -> 0 < f -> 0 < x.
 Proof.
@@ -1144,9 +1144,9 @@ apply Rlt_not_le with (1 := Hf).
 now apply (HP x 0).
 Qed.
 
-Theorem rounding_pred_neg_imp_rnd :
+Theorem round_pred_neg_imp_rnd :
   forall P : R -> R -> Prop,
-  rounding_pred_monotone P ->
+  round_pred_monotone P ->
   P 0 0 ->
   forall x f, P x f -> x <= 0 -> f <= 0.
 Proof.
@@ -1154,9 +1154,9 @@ intros P HP HP0 x f Hxf Hx.
 now apply (HP x 0).
 Qed.
 
-Theorem rounding_pred_rnd_imp_neg :
+Theorem round_pred_rnd_imp_neg :
   forall P : R -> R -> Prop,
-  rounding_pred_monotone P ->
+  round_pred_monotone P ->
   P 0 0 ->
   forall x f, P x f -> f < 0 -> x < 0.
 Proof.
@@ -1266,7 +1266,7 @@ Qed.
 Inductive satisfies_any (F : R -> Prop) :=
   Satisfies_any :
     F 0 -> ( forall x : R, F x -> F (-x) ) ->
-    rounding_pred_total (Rnd_DN_pt F) -> satisfies_any F.
+    round_pred_total (Rnd_DN_pt F) -> satisfies_any F.
 
 Theorem satisfies_any_eq :
   forall F1 F2 : R -> Prop,
@@ -1297,7 +1297,7 @@ Qed.
 Theorem satisfies_any_imp_DN :
   forall F : R -> Prop,
   satisfies_any F ->
-  rounding_pred (Rnd_DN_pt F).
+  round_pred (Rnd_DN_pt F).
 Proof.
 intros F (_,_,Hrnd).
 split.
@@ -1308,7 +1308,7 @@ Qed.
 Theorem satisfies_any_imp_UP :
   forall F : R -> Prop,
   satisfies_any F ->
-  rounding_pred (Rnd_UP_pt F).
+  round_pred (Rnd_UP_pt F).
 Proof.
 intros F Hany.
 split.
@@ -1325,7 +1325,7 @@ Qed.
 Theorem satisfies_any_imp_ZR :
   forall F : R -> Prop,
   satisfies_any F ->
-  rounding_pred (Rnd_ZR_pt F).
+  round_pred (Rnd_ZR_pt F).
 Proof.
 intros F Hany.
 split.
@@ -1366,7 +1366,7 @@ Theorem satisfies_any_imp_NG :
   forall (F : R -> Prop) (P : R -> R -> Prop),
   satisfies_any F ->
   NG_existence_prop F P ->
-  rounding_pred_total (Rnd_NG_pt F P).
+  round_pred_total (Rnd_NG_pt F P).
 Proof.
 intros F P Hany HP x.
 destruct (proj1 (satisfies_any_imp_DN F Hany) x) as (d, Hd).
@@ -1507,11 +1507,11 @@ Qed.
 Theorem satisfies_any_imp_NA :
   forall F : R -> Prop,
   satisfies_any F ->
-  rounding_pred (Rnd_NA_pt F).
+  round_pred (Rnd_NA_pt F).
 Proof.
 intros F Hany.
 split.
-assert (H : rounding_pred_total (Rnd_NG_pt F (fun a b => (Rabs a <= Rabs b)%R))).
+assert (H : round_pred_total (Rnd_NG_pt F (fun a b => (Rabs a <= Rabs b)%R))).
 apply satisfies_any_imp_NG.
 apply Hany.
 intros x d u Hf Hd Hu.

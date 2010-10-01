@@ -208,7 +208,7 @@ now apply Rlt_le.
 (* . *)
 revert H.
 replace e2 with (e2 - e1 + e1)%Z by ring.
-rewrite bpow_add.
+rewrite bpow_plus.
 unfold F2R. simpl.
 rewrite <- (Z2R_Zpower beta (e2 - e1)).
 intros H.
@@ -231,7 +231,7 @@ Proof.
 intros m e1 e2 Hm.
 case (Zle_or_lt e1 e2); intros He.
 replace e2 with (e2 - e1 + e1)%Z by ring.
-rewrite bpow_add.
+rewrite bpow_plus.
 unfold F2R. simpl.
 rewrite <- (Z2R_Zpower beta (e2 - e1)).
 intros H.
@@ -288,7 +288,7 @@ Proof.
 intros m e.
 unfold F2R.
 rewrite Rabs_mult.
-rewrite <- abs_Z2R.
+rewrite <- Z2R_abs.
 simpl.
 apply f_equal.
 apply Rabs_right.
@@ -303,7 +303,7 @@ Proof.
 intros m e.
 unfold F2R. simpl.
 rewrite <- Ropp_mult_distr_l_reverse.
-now rewrite opp_Z2R.
+now rewrite Z2R_opp.
 Qed.
 
 Theorem F2R_lt_bpow :
@@ -317,7 +317,7 @@ destruct (Zle_or_lt e e') as [He|He].
 unfold F2R. simpl.
 apply Rmult_lt_reg_r with (bpow (-e)).
 apply bpow_gt_0.
-rewrite Rmult_assoc, <- 2!bpow_add, Zplus_opp_r, Rmult_1_r.
+rewrite Rmult_assoc, <- 2!bpow_plus, Zplus_opp_r, Rmult_1_r.
 rewrite <-Z2R_Zpower. 2: now apply Zle_left.
 now apply Z2R_lt.
 elim Zlt_not_le with (1 := Hm).
@@ -336,10 +336,10 @@ Theorem F2R_change_exp :
 Proof.
 intros e' m e He.
 unfold F2R. simpl.
-rewrite mult_Z2R, Z2R_Zpower, Rmult_assoc.
+rewrite Z2R_mult, Z2R_Zpower, Rmult_assoc.
 apply f_equal.
 pattern e at 1 ; replace e with (e - e' + e')%Z by ring.
-apply bpow_add.
+apply bpow_plus.
 now apply Zle_minus_le_0.
 Qed.
 
@@ -359,7 +359,7 @@ apply F2R_change_exp.
 cut (e' - 1 < e + p)%Z. omega.
 apply <- bpow_lt.
 apply Rle_lt_trans with (1 := Hf).
-rewrite abs_F2R, Zplus_comm, bpow_add.
+rewrite abs_F2R, Zplus_comm, bpow_plus.
 apply Rmult_lt_compat_r.
 apply bpow_gt_0.
 rewrite <- Z2R_Zpower.
@@ -379,14 +379,14 @@ specialize (Hd (Z2R_neq _ _ H)).
 apply ln_beta_unique.
 rewrite abs_F2R.
 unfold F2R. simpl.
-rewrite <- abs_Z2R in Hd.
+rewrite <- Z2R_abs in Hd.
 split.
 replace (d + e - 1)%Z with (d - 1 + e)%Z by ring.
-rewrite bpow_add.
+rewrite bpow_plus.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 apply Hd.
-rewrite bpow_add.
+rewrite bpow_plus.
 apply Rmult_lt_compat_r.
 apply bpow_gt_0.
 apply Hd.

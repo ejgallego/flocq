@@ -58,9 +58,9 @@ exact FIX_exp_correct.
 Qed.
 
 Theorem Rnd_NE_pt_FIX :
-  rounding_pred (Rnd_NE_pt beta FIX_exp).
+  round_pred (Rnd_NE_pt beta FIX_exp).
 Proof.
-apply Rnd_NE_pt_rounding.
+apply Rnd_NE_pt_round.
 apply FIX_exp_correct.
 right.
 split ; easy.

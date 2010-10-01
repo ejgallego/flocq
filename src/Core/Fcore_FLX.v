@@ -54,7 +54,7 @@ eexists ; repeat split.
 apply lt_Z2R.
 apply Rmult_lt_reg_r with (bpow (e - prec)).
 apply bpow_gt_0.
-rewrite Z2R_Zpower, <- bpow_add.
+rewrite Z2R_Zpower, <- bpow_plus.
 ring_simplify (prec + (e - prec))%Z.
 rewrite <- H2.
 simpl.
@@ -156,14 +156,14 @@ cut (d - 1 < prec)%Z. omega.
 apply <- (bpow_lt beta).
 apply Rle_lt_trans with (Rabs (Z2R xm)).
 apply H4.
-rewrite <- Z2R_Zpower, <- abs_Z2R.
+rewrite <- Z2R_Zpower, <- Z2R_abs.
 now apply Z2R_lt.
 now apply Zlt_le_weak.
 exists (Float beta (xm * Zpower beta (prec - d)) (xe + d - prec)).
 split.
 unfold F2R. simpl.
-rewrite mult_Z2R, Z2R_Zpower.
-rewrite Rmult_assoc, <- bpow_add.
+rewrite Z2R_mult, Z2R_Zpower.
+rewrite Rmult_assoc, <- bpow_plus.
 rewrite H1.
 now ring_simplify (prec - d + (xe + d - prec))%Z.
 exact H5.
@@ -172,27 +172,27 @@ split.
 apply le_Z2R.
 apply Rmult_le_reg_r with (bpow (d - prec)).
 apply bpow_gt_0.
-rewrite abs_Z2R, mult_Z2R, Rabs_mult, 2!Z2R_Zpower.
-rewrite <- bpow_add.
-rewrite <- abs_Z2R.
+rewrite Z2R_abs, Z2R_mult, Rabs_mult, 2!Z2R_Zpower.
+rewrite <- bpow_plus.
+rewrite <- Z2R_abs.
 rewrite Rabs_pos_eq.
-rewrite Rmult_assoc, <- bpow_add.
+rewrite Rmult_assoc, <- bpow_plus.
 ring_simplify (prec - 1 + (d - prec))%Z.
 ring_simplify (prec - d + (d - prec))%Z.
-now rewrite Rmult_1_r, abs_Z2R.
+now rewrite Rmult_1_r, Z2R_abs.
 apply bpow_ge_0.
 exact H5.
 omega.
 apply lt_Z2R.
-rewrite abs_Z2R, mult_Z2R, Rabs_mult.
+rewrite Z2R_abs, Z2R_mult, Rabs_mult.
 rewrite 2!Z2R_Zpower.
-rewrite <- abs_Z2R, Rabs_pos_eq.
+rewrite <- Z2R_abs, Rabs_pos_eq.
 apply Rmult_lt_reg_r with (bpow (d - prec)).
 apply bpow_gt_0.
-rewrite Rmult_assoc, <- 2!bpow_add.
+rewrite Rmult_assoc, <- 2!bpow_plus.
 ring_simplify (prec + (d - prec))%Z.
 ring_simplify (prec - d + (d - prec))%Z.
-now rewrite Rmult_1_r, abs_Z2R.
+now rewrite Rmult_1_r, Z2R_abs.
 apply bpow_ge_0.
 now apply Zlt_le_weak.
 exact H5.
@@ -242,7 +242,7 @@ Qed.
 
 Theorem generic_NE_pt_FLX :
   forall x,
-  Rnd_NE_pt beta FLX_exp x (rounding beta FLX_exp ZrndNE x).
+  Rnd_NE_pt beta FLX_exp x (round beta FLX_exp rndNE x).
 Proof.
 intros x.
 apply generic_NE_pt.
@@ -251,9 +251,9 @@ apply NE_ex_prop_FLX.
 Qed.
 
 Theorem Rnd_NE_pt_FLX :
-  rounding_pred (Rnd_NE_pt beta FLX_exp).
+  round_pred (Rnd_NE_pt beta FLX_exp).
 Proof.
-apply Rnd_NE_pt_rounding.
+apply Rnd_NE_pt_round.
 apply FLX_exp_correct.
 apply NE_ex_prop_FLX.
 Qed.

@@ -150,20 +150,20 @@ Qed.
 
 Section round_dir.
 
-Variable rnd: Zrounding.
+Variable rnd: Zround.
 Variable choice : Z -> location -> Z.
 Hypothesis choice_valid : forall m, choice m loc_Exact = m.
 Hypothesis inbetween_float_valid :
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float beta m e x l ->
-  rounding beta fexp rnd x = F2R (Float beta (choice m l) e).
+  round beta fexp rnd x = F2R (Float beta (choice m l) e).
 
 Theorem round_any_correct :
   forall x m e l,
   inbetween_float beta m e x l ->
   (e = canonic_exponent beta fexp x \/ (l = loc_Exact /\ format x)) ->
-  rounding beta fexp rnd x = F2R (Float beta (choice m l) e).
+  round beta fexp rnd x = F2R (Float beta (choice m l) e).
 Proof.
 intros x m e l Hin [He|(Hl,Hf)].
 rewrite He in Hin |- *.
@@ -172,7 +172,7 @@ rewrite Hl in Hin.
 inversion_clear Hin.
 rewrite Hl, choice_valid.
 rewrite <- H.
-now apply rounding_generic.
+now apply round_generic.
 Qed.
 
 Theorem round_trunc_any_correct :
@@ -180,7 +180,7 @@ Theorem round_trunc_any_correct :
   (0 <= x)%R ->
   inbetween_float beta m e x l ->
   (e <= fexp (digits beta m + e))%Z \/ l = loc_Exact ->
-  rounding beta fexp rnd x = let '(m', e', l') := truncate (m, e, l) in F2R (Float beta (choice m' l') e').
+  round beta fexp rnd x = let '(m', e', l') := truncate (m, e, l) in F2R (Float beta (choice m' l') e').
 Proof.
 intros x m e l Hx Hl He.
 generalize (truncate_correct x m e l Hx Hl He).

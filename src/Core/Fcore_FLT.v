@@ -84,7 +84,7 @@ apply lt_Z2R.
 rewrite Z2R_Zpower. 2: now apply Zlt_le_weak.
 apply Rmult_lt_reg_r with (bpow ex).
 apply bpow_gt_0.
-rewrite <- bpow_add.
+rewrite <- bpow_plus.
 change (F2R (Float beta (Zabs mx) ex) < bpow (prec + ex))%R.
 rewrite <- abs_F2R.
 rewrite <- Hx.
@@ -170,11 +170,11 @@ now apply FLX_format_generic.
 Qed.
 
 
-Theorem FLT_rounding_FLX : forall rnd x,
+Theorem FLT_round_FLX : forall rnd x,
   (bpow (emin + prec - 1) <= Rabs x)%R ->
-  rounding beta FLT_exp rnd x = rounding beta (FLX_exp prec) rnd x.
+  round beta FLT_exp rnd x = round beta (FLX_exp prec) rnd x.
 intros rnd x Hx.
-unfold rounding, scaled_mantissa.
+unfold round, scaled_mantissa.
 rewrite ->FLT_canonic_FLX; trivial.
 intros H; contradict Hx.
 rewrite H, Rabs_R0; apply Rlt_not_le.
@@ -278,7 +278,7 @@ Qed.
 
 Theorem generic_NE_pt_FLT :
   forall x,
-  Rnd_NE_pt beta FLT_exp x (rounding beta FLT_exp ZrndNE x).
+  Rnd_NE_pt beta FLT_exp x (round beta FLT_exp rndNE x).
 Proof.
 intros x.
 apply generic_NE_pt.
@@ -287,9 +287,9 @@ apply NE_ex_prop_FLT.
 Qed.
 
 Theorem Rnd_NE_pt_FLT :
-  rounding_pred (Rnd_NE_pt beta FLT_exp).
+  round_pred (Rnd_NE_pt beta FLT_exp).
 Proof.
-apply Rnd_NE_pt_rounding.
+apply Rnd_NE_pt_round.
 apply FLT_exp_correct.
 apply NE_ex_prop_FLT.
 Qed.

@@ -358,7 +358,7 @@ apply Ropp_eq_compat.
 apply P2R_INR.
 Qed.
 
-Theorem opp_Z2R :
+Theorem Z2R_opp :
   forall n, Z2R (-n) = (- Z2R n)%R.
 Proof.
 intros.
@@ -366,7 +366,7 @@ repeat rewrite Z2R_IZR.
 apply Ropp_Ropp_IZR.
 Qed.
 
-Theorem plus_Z2R :
+Theorem Z2R_plus :
   forall m n, (Z2R (m + n) = Z2R m + Z2R n)%R.
 Proof.
 intros.
@@ -385,7 +385,7 @@ rewrite Ropp_Ropp_IZR.
 apply refl_equal.
 Qed.
 
-Theorem minus_Z2R :
+Theorem Z2R_minus :
   forall m n, (Z2R (m - n) = Z2R m - Z2R n)%R.
 Proof.
 intros.
@@ -393,7 +393,7 @@ repeat rewrite Z2R_IZR.
 apply minus_IZR.
 Qed.
 
-Theorem mult_Z2R :
+Theorem Z2R_mult :
   forall m n, (Z2R (m * n) = Z2R m * Z2R n)%R.
 Proof.
 intros.
@@ -475,7 +475,7 @@ repeat rewrite Z2R_IZR.
 apply IZR_neq.
 Qed.
 
-Theorem abs_Z2R :
+Theorem Z2R_abs :
   forall z, Z2R (Zabs z) = Rabs (Z2R z).
 Proof.
 intros.
@@ -900,7 +900,7 @@ Theorem Zfloor_lb :
 Proof.
 intros x.
 unfold Zfloor.
-rewrite minus_Z2R.
+rewrite Z2R_minus.
 simpl.
 rewrite Z2R_IZR.
 apply Rplus_le_reg_r with (1 - x)%R.
@@ -914,7 +914,7 @@ Theorem Zfloor_ub :
 Proof.
 intros x.
 unfold Zfloor.
-rewrite minus_Z2R.
+rewrite Z2R_minus.
 unfold Rminus.
 rewrite Rplus_assoc.
 rewrite Rplus_opp_l, Rplus_0_r.
@@ -932,7 +932,7 @@ apply Zlt_succ_le.
 apply lt_Z2R.
 apply Rle_lt_trans with (1 := Hnx).
 unfold Zsucc.
-rewrite plus_Z2R.
+rewrite Z2R_plus.
 apply Zfloor_ub.
 Qed.
 
@@ -980,7 +980,7 @@ Theorem Zceil_ub :
 Proof.
 intros x.
 unfold Zceil.
-rewrite opp_Z2R.
+rewrite Z2R_opp.
 apply Ropp_le_cancel.
 rewrite Ropp_involutive.
 apply Zfloor_lb.
@@ -996,7 +996,7 @@ unfold Zceil.
 apply Zopp_le_cancel.
 rewrite Zopp_involutive.
 apply Zfloor_lub.
-rewrite opp_Z2R.
+rewrite Z2R_opp.
 now apply Ropp_le_contravar.
 Qed.
 
@@ -1011,11 +1011,11 @@ rewrite <- (Zopp_involutive n).
 apply f_equal.
 apply Zfloor_imp.
 split.
-rewrite opp_Z2R.
+rewrite Z2R_opp.
 now apply Ropp_le_contravar.
 rewrite <- (Zopp_involutive 1).
 rewrite <- Zopp_plus_distr.
-rewrite opp_Z2R.
+rewrite Z2R_opp.
 now apply Ropp_lt_contravar.
 Qed.
 
@@ -1025,7 +1025,7 @@ Theorem Zceil_Z2R :
 Proof.
 intros n.
 unfold Zceil.
-rewrite <- opp_Z2R, Zfloor_Z2R.
+rewrite <- Z2R_opp, Zfloor_Z2R.
 apply Zopp_involutive.
 Qed.
 
@@ -1055,7 +1055,7 @@ apply Rle_antisym.
 apply Zfloor_lb.
 exact H.
 apply Rlt_le.
-rewrite plus_Z2R.
+rewrite Z2R_plus.
 apply Zfloor_ub.
 Qed.
 
@@ -1309,7 +1309,7 @@ Definition bpow e :=
   | Z0 => R1
   end.
 
-Theorem Zpower_pos_powerRZ :
+Theorem Z2R_Zpower_pos :
   forall n m,
   Z2R (Zpower_pos n m) = powerRZ (Z2R n) (Zpos m).
 Proof.
@@ -1320,7 +1320,7 @@ induction (nat_of_P m).
 apply refl_equal.
 unfold Zpower_nat.
 simpl.
-rewrite mult_Z2R.
+rewrite Z2R_mult.
 apply Rmult_eq_compat_l.
 exact IHn0.
 Qed.
@@ -1331,8 +1331,8 @@ Theorem bpow_powerRZ :
 Proof.
 destruct e ; unfold bpow.
 reflexivity.
-now rewrite Zpower_pos_powerRZ.
-now rewrite Zpower_pos_powerRZ.
+now rewrite Z2R_Zpower_pos.
+now rewrite Z2R_Zpower_pos.
 Qed.
 
 Theorem  bpow_ge_0 :
@@ -1353,7 +1353,7 @@ apply powerRZ_lt.
 apply radix_pos.
 Qed.
 
-Theorem bpow_add :
+Theorem bpow_plus :
   forall e1 e2 : Z, (bpow (e1 + e2) = bpow e1 * bpow e2)%R.
 Proof.
 intros.
@@ -1370,12 +1370,12 @@ unfold bpow, Zpower_pos, iter_pos.
 now rewrite Zmult_1_r.
 Qed.
 
-Theorem bpow_add1 :
+Theorem bpow_plus1 :
   forall e : Z, (bpow (e + 1) = Z2R r * bpow e)%R.
 Proof.
 intros.
 rewrite <- bpow_1.
-rewrite <- bpow_add.
+rewrite <- bpow_plus.
 now rewrite Zplus_comm.
 Qed.
 
@@ -1420,7 +1420,7 @@ Proof.
 intros e1 e2 H.
 replace e2 with (e1 + (e2 - e1))%Z by ring.
 rewrite <- (Rmult_1_r (bpow e1)).
-rewrite bpow_add.
+rewrite bpow_plus.
 apply Rmult_lt_compat_l.
 apply bpow_gt_0.
 assert (0 < e2 - e1)%Z by omega.
@@ -1523,7 +1523,7 @@ rewrite exp_plus.
 rewrite Rmult_1_l.
 rewrite exp_ln.
 rewrite <- IHn.
-rewrite <- mult_Z2R.
+rewrite <- Z2R_mult.
 apply f_equal.
 unfold Zpower_nat at 1, iter_nat.
 now rewrite Zmult_1_r.
@@ -1538,7 +1538,7 @@ change (Z2R (Zpower_pos r e)) with (bpow (Zpos e)).
 rewrite H.
 rewrite <- exp_Ropp.
 rewrite <- Ropp_mult_distr_l_reverse.
-now rewrite <- opp_Z2R.
+now rewrite <- Z2R_opp.
 Qed.
 
 Record ln_beta_prop x := {
@@ -1570,19 +1570,19 @@ rewrite 2!bpow_exp.
 fold fact.
 pattern x at 2 3 ; replace x with (exp (ln x * / fact * fact)).
 split.
-rewrite minus_Z2R.
+rewrite Z2R_minus.
 apply exp_increasing_weak.
 apply Rmult_le_compat_r.
 now apply Rlt_le.
 unfold Rminus.
-rewrite plus_Z2R.
+rewrite Z2R_plus.
 rewrite Rplus_assoc.
 rewrite Rplus_opp_r, Rplus_0_r.
 apply Zfloor_lb.
 apply exp_increasing.
 apply Rmult_lt_compat_r.
 exact H.
-rewrite plus_Z2R.
+rewrite Z2R_plus.
 apply Zfloor_ub.
 rewrite Rmult_assoc.
 rewrite Rinv_l.
@@ -1713,7 +1713,7 @@ Theorem Zpower_pos_gt_0 :
 Proof.
 intros b p Hb.
 apply lt_Z2R.
-rewrite Zpower_pos_powerRZ.
+rewrite Z2R_Zpower_pos.
 apply powerRZ_lt.
 now apply (Z2R_lt 0).
 Qed.
@@ -1778,7 +1778,7 @@ now rewrite Hb.
 now apply Zlt_le_weak.
 Qed.
 
-Theorem Zodd_Zpower :
+Theorem Zeven_Zpower_odd :
   forall b e, (0 <= e)%Z -> Zeven b = false ->
   Zeven (Zpower b e) = false.
 Proof.

@@ -161,7 +161,7 @@ apply Rcompare_not_Lt_inv.
 rewrite Rcompare_plus_l, Rcompare_mult_r, Rcompare_half_l.
 apply Rcompare_not_Lt.
 change 2%R with (Z2R 2).
-rewrite <- mult_Z2R.
+rewrite <- Z2R_mult.
 apply Z2R_le.
 omega.
 exact Hstep.
@@ -183,7 +183,7 @@ apply Rcompare_Lt_inv.
 rewrite Rcompare_plus_l, Rcompare_mult_r, Rcompare_half_l.
 apply Rcompare_Lt.
 change 2%R with (Z2R 2).
-rewrite <- mult_Z2R.
+rewrite <- Z2R_mult.
 apply Z2R_lt.
 omega.
 exact Hstep.
@@ -228,7 +228,7 @@ Lemma middle_odd :
 Proof.
 intros k Hk.
 rewrite <- Hk.
-rewrite 2!plus_Z2R, mult_Z2R.
+rewrite 2!Z2R_plus, Z2R_mult.
 simpl. field.
 Qed.
 
@@ -259,7 +259,7 @@ rewrite Hl.
 rewrite Rcompare_plus_l, Rcompare_mult_r, Rcompare_half_r.
 apply Rcompare_Lt.
 change 2%R with (Z2R 2).
-rewrite <- mult_Z2R.
+rewrite <- Z2R_mult.
 apply Z2R_lt.
 rewrite <- Hk.
 apply Zlt_succ.
@@ -282,7 +282,7 @@ apply Rle_lt_trans with (2 := proj1 Hx').
 apply Rcompare_not_Lt_inv.
 rewrite Rcompare_plus_l, Rcompare_mult_r, Rcompare_half_r.
 change 2%R with (Z2R 2).
-rewrite <- mult_Z2R.
+rewrite <- Z2R_mult.
 apply Rcompare_not_Lt.
 apply Z2R_le.
 rewrite Hk.
@@ -301,7 +301,7 @@ apply inbetween_step_not_Eq with (1 := Hx).
 omega.
 apply Rcompare_Eq.
 inversion_clear Hx as [Hx'|].
-rewrite Hx', <- Hk, mult_Z2R.
+rewrite Hx', <- Hk, Z2R_mult.
 simpl (Z2R 2).
 field.
 Qed.
@@ -524,12 +524,12 @@ now apply Zpower_gt_0.
 rewrite 2!Hr.
 rewrite Zmult_plus_distr_l, Zmult_1_l.
 unfold F2R at 2. simpl.
-rewrite plus_Z2R, Rmult_plus_distr_r.
+rewrite Z2R_plus, Rmult_plus_distr_r.
 apply new_location_correct.
 apply bpow_gt_0.
 now apply Zpower_gt_1.
 now apply Z_mod_lt.
-rewrite <- 2!Rmult_plus_distr_r, <- 2!plus_Z2R.
+rewrite <- 2!Rmult_plus_distr_r, <- 2!Z2R_plus.
 rewrite Zmult_comm, Zplus_assoc.
 now rewrite <- Z_div_mod_eq.
 Qed.
@@ -545,16 +545,16 @@ now apply inbetween_float_new_location.
 apply Zmult_1_r.
 Qed.
 
-Theorem inbetween_float_rounding :
+Theorem inbetween_float_round :
   forall rnd choice,
   ( forall x m l, inbetween_int m x l -> Zrnd rnd x = choice m l ) ->
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float m e x l ->
-  rounding beta fexp rnd x = F2R (Float beta (choice m l) e).
+  round beta fexp rnd x = F2R (Float beta (choice m l) e).
 Proof.
 intros rnd choice Hc x m l e Hl.
-unfold rounding, F2R. simpl.
+unfold round, F2R. simpl.
 apply (f_equal (fun m => (Z2R m * bpow e)%R)).
 apply Hc.
 apply inbetween_mult_reg with (bpow e).
@@ -566,9 +566,9 @@ Theorem inbetween_float_DN :
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float m e x l ->
-  rounding beta fexp ZrndDN x = F2R (Float beta m e).
+  round beta fexp rndDN x = F2R (Float beta m e).
 Proof.
-apply inbetween_float_rounding with (choice := fun m l => m).
+apply inbetween_float_round with (choice := fun m l => m).
 intros x m l Hl.
 refine (Zfloor_imp m _ _).
 apply inbetween_bounds with (2 := Hl).
@@ -588,9 +588,9 @@ Theorem inbetween_float_UP :
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float m e x l ->
-  rounding beta fexp ZrndUP x = F2R (Float beta (cond_incr (round_UP l) m) e).
+  round beta fexp rndUP x = F2R (Float beta (cond_incr (round_UP l) m) e).
 Proof.
-apply inbetween_float_rounding with (choice := fun m l => cond_incr (round_UP l) m).
+apply inbetween_float_round with (choice := fun m l => cond_incr (round_UP l) m).
 intros x m l Hl.
 assert (Hl': l = loc_Exact \/ (l <> loc_Exact /\ round_UP l = true)).
 case l ; try (now left) ; now right ; split.
@@ -621,16 +621,16 @@ Theorem inbetween_float_NE :
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float m e x l ->
-  rounding beta fexp ZrndNE x = F2R (Float beta (cond_incr (round_NE (Zeven m) l) m) e).
+  round beta fexp rndNE x = F2R (Float beta (cond_incr (round_NE (Zeven m) l) m) e).
 Proof.
-apply inbetween_float_rounding with (choice := fun m l => cond_incr (round_NE (Zeven m) l) m).
+apply inbetween_float_round with (choice := fun m l => cond_incr (round_NE (Zeven m) l) m).
 intros x m l Hl.
 inversion_clear Hl as [Hx|l' Hx Hl'].
 (* Exact *)
 rewrite Hx.
 now rewrite Zrnd_Z2R.
 (* not Exact *)
-unfold Zrnd, ZrndNE, ZrndN, Znearest.
+unfold Zrnd, rndNE, rndN, Znearest.
 assert (Hm: Zfloor x = m).
 apply Zfloor_imp.
 exact (conj (Rlt_le _ _ (proj1 Hx)) (proj2 Hx)).
@@ -639,7 +639,7 @@ rewrite Hm.
 replace (Rcompare (x - Z2R m) (/2)) with l'.
 now case l'.
 rewrite <- Hl'.
-rewrite plus_Z2R.
+rewrite Z2R_plus.
 rewrite <- (Rcompare_plus_r (- Z2R m) x).
 apply f_equal.
 simpl (Z2R 1).

@@ -86,13 +86,13 @@ Qed.
 
 Theorem ulp_DN_UP :
   forall x, ~ F x ->
-  rounding beta fexp ZrndUP x = (rounding beta fexp ZrndDN x + ulp x)%R.
+  round beta fexp rndUP x = (round beta fexp rndDN x + ulp x)%R.
 Proof.
 intros x Fx.
-unfold rounding, Zrnd, ulp. simpl.
+unfold round, Zrnd, ulp. simpl.
 unfold F2R. simpl.
 rewrite Zceil_floor_neq.
-rewrite plus_Z2R. simpl.
+rewrite Z2R_plus. simpl.
 ring.
 intros H.
 apply Fx.
@@ -115,7 +115,7 @@ unfold ulp, F2R. simpl.
 pattern (bpow (canonic_exponent beta fexp x)) at 2 ; rewrite <- Rmult_1_l.
 rewrite <- Rmult_plus_distr_r.
 change 1%R with (Z2R 1).
-rewrite <- plus_Z2R.
+rewrite <- Z2R_plus.
 change (F2R (Float beta (Ztrunc (scaled_mantissa beta fexp x) + 1) (canonic_exponent beta fexp x)) <= bpow e)%R.
 apply F2R_p1_le_bpow.
 apply F2R_gt_0_reg with beta (canonic_exponent beta fexp x).
@@ -146,7 +146,7 @@ unfold ulp, F2R. simpl.
 pattern (bpow (canonic_exponent beta fexp x)) at 2 ; rewrite <- Rmult_1_l.
 rewrite <- Rmult_plus_distr_r.
 change 1%R with (Z2R 1).
-rewrite <- plus_Z2R.
+rewrite <- Z2R_plus.
 change (F2R (Float beta (Ztrunc (scaled_mantissa beta fexp x) + 1) (canonic_exponent beta fexp x)) <= bpow ex)%R.
 apply F2R_p1_le_bpow.
 apply F2R_gt_0_reg with beta (canonic_exponent beta fexp x).
@@ -158,14 +158,14 @@ now apply Rlt_le.
 apply Heps.
 Qed.
 
-Theorem rounding_DN_succ :
+Theorem round_DN_succ :
   forall x, (0 < x)%R -> F x ->
   forall eps, (0 <= eps < ulp x)%R ->
-  rounding beta fexp ZrndDN (x + eps) = x.
+  round beta fexp rndDN (x + eps) = x.
 Proof.
 intros x Zx Fx eps Heps.
 pattern x at 2 ; rewrite Fx.
-unfold rounding.
+unfold round.
 unfold scaled_mantissa, Zrnd. simpl.
 unfold canonic_exponent at 1 2.
 rewrite ln_beta_succ ; trivial.
@@ -183,18 +183,18 @@ apply Rmult_lt_compat_r.
 apply bpow_gt_0.
 now apply Rplus_lt_compat_l.
 rewrite Rmult_plus_distr_r.
-rewrite plus_Z2R.
+rewrite Z2R_plus.
 apply Rplus_le_compat.
 pattern x at 1 3 ; rewrite Fx.
 unfold F2R. simpl.
 rewrite Rmult_assoc.
-rewrite <- bpow_add.
+rewrite <- bpow_plus.
 rewrite Zplus_opp_r.
 rewrite Rmult_1_r.
 rewrite Zfloor_Z2R.
 apply Rle_refl.
 unfold ulp.
-rewrite <- bpow_add.
+rewrite <- bpow_plus.
 rewrite Zplus_opp_r.
 apply Rle_refl.
 apply Rmult_le_pos.
@@ -221,11 +221,11 @@ rewrite canonic_exponent_fexp with (1 := Ex).
 unfold F2R. simpl.
 rewrite Rmult_plus_distr_r.
 rewrite Rmult_assoc.
-rewrite <- bpow_add, Zplus_opp_r, Rmult_1_r.
+rewrite <- bpow_plus, Zplus_opp_r, Rmult_1_r.
 change (bpow 0) with (Z2R 1).
-rewrite <- plus_Z2R.
+rewrite <- Z2R_plus.
 rewrite Ztrunc_Z2R.
-rewrite plus_Z2R.
+rewrite Z2R_plus.
 rewrite Rmult_plus_distr_r.
 now rewrite Rmult_1_l.
 rewrite Rabs_pos_eq.
@@ -260,29 +260,29 @@ now apply Rlt_le.
 now apply Rlt_le.
 Qed.
 
-Theorem rounding_UP_succ :
+Theorem round_UP_succ :
   forall x, (0 < x)%R -> F x ->
   forall eps, (0 < eps <= ulp x)%R ->
-  rounding beta fexp ZrndUP (x + eps) = (x + ulp x)%R.
+  round beta fexp rndUP (x + eps) = (x + ulp x)%R.
 Proof.
 intros x Zx Fx eps (Heps1,[Heps2|Heps2]).
 assert (Heps: (0 <= eps < ulp x)%R).
 split.
 now apply Rlt_le.
 exact Heps2.
-assert (Hd := rounding_DN_succ x Zx Fx eps Heps).
+assert (Hd := round_DN_succ x Zx Fx eps Heps).
 rewrite ulp_DN_UP.
 rewrite Hd.
 unfold ulp, canonic_exponent.
 now rewrite ln_beta_succ.
 intros Fs.
-rewrite rounding_generic in Hd.
+rewrite round_generic in Hd.
 apply Rgt_not_eq with (2 := Hd).
 pattern x at 2 ; rewrite <- Rplus_0_r.
 now apply Rplus_lt_compat_l.
 exact Fs.
 rewrite Heps2.
-apply rounding_generic.
+apply round_generic.
 now apply generic_format_succ.
 Qed.
 
@@ -300,9 +300,9 @@ replace y with (x+(y-x))%R by ring.
 absurd (x < y)%R.
 2: apply H.
 apply Rle_not_lt; apply Req_le.
-rewrite <- rounding_DN_succ with (eps:=(y-x)%R); try easy.
+rewrite <- round_DN_succ with (eps:=(y-x)%R); try easy.
 ring_simplify (x+(y-x))%R.
-apply sym_eq; now apply rounding_generic.
+apply sym_eq; now apply round_generic.
 split; trivial.
 apply Rlt_le; now apply Rlt_Rminus.
 Qed.
@@ -310,30 +310,30 @@ Qed.
 
 Theorem ulp_error :
   forall Zrnd x,
-  (Rabs (rounding beta fexp Zrnd x - x) < ulp x)%R.
+  (Rabs (round beta fexp Zrnd x - x) < ulp x)%R.
 Proof.
 intros Zrnd x.
 destruct (generic_format_EM beta fexp prop_exp x) as [Hx|Hx].
 (* x = rnd x *)
-rewrite rounding_generic with (1 := Hx).
+rewrite round_generic with (1 := Hx).
 unfold Rminus.
 rewrite Rplus_opp_r, Rabs_R0.
 apply bpow_gt_0.
 (* x <> rnd x *)
-destruct (rounding_DN_or_UP beta fexp Zrnd x) as [H|H] ; rewrite H ; clear H.
+destruct (round_DN_or_UP beta fexp Zrnd x) as [H|H] ; rewrite H ; clear H.
 (* . *)
 rewrite Rabs_left1.
 rewrite Ropp_minus_distr.
-apply Rplus_lt_reg_r with (rounding beta fexp ZrndDN x).
+apply Rplus_lt_reg_r with (round beta fexp rndDN x).
 rewrite <- ulp_DN_UP with (1 := Hx).
 ring_simplify.
-assert (Hu: (x <= rounding beta fexp ZrndUP x)%R).
+assert (Hu: (x <= round beta fexp rndUP x)%R).
 apply (generic_UP_pt beta fexp prop_exp x).
 destruct Hu as [Hu|Hu].
 exact Hu.
 elim Hx.
 rewrite Hu.
-now apply generic_format_rounding.
+now apply generic_format_round.
 apply Rle_minus.
 apply (generic_DN_pt beta fexp prop_exp x).
 (* . *)
@@ -341,25 +341,25 @@ rewrite Rabs_pos_eq.
 rewrite ulp_DN_UP with (1 := Hx).
 apply Rplus_lt_reg_r with (x - ulp x)%R.
 ring_simplify.
-assert (Hd: (rounding beta fexp ZrndDN x <= x)%R).
+assert (Hd: (round beta fexp rndDN x <= x)%R).
 apply (generic_DN_pt beta fexp prop_exp x).
 destruct Hd as [Hd|Hd].
 exact Hd.
 elim Hx.
 rewrite <- Hd.
-now apply generic_format_rounding.
+now apply generic_format_round.
 apply Rle_0_minus.
 apply (generic_UP_pt beta fexp prop_exp x).
 Qed.
 
 Theorem ulp_half_error :
   forall choice x,
-  (Rabs (rounding beta fexp (ZrndN choice) x - x) <= /2 * ulp x)%R.
+  (Rabs (round beta fexp (rndN choice) x - x) <= /2 * ulp x)%R.
 Proof.
 intros choice x.
 destruct (generic_format_EM beta fexp prop_exp x) as [Hx|Hx].
 (* x = rnd x *)
-rewrite rounding_generic.
+rewrite round_generic.
 unfold Rminus.
 rewrite Rplus_opp_r, Rabs_R0.
 apply Rmult_le_pos.
@@ -369,7 +369,7 @@ now apply (Z2R_lt 0 2).
 apply bpow_ge_0.
 exact Hx.
 (* x <> rnd x *)
-set (d := rounding beta fexp ZrndDN x).
+set (d := round beta fexp rndDN x).
 destruct (generic_N_pt beta fexp prop_exp choice x) as (Hr1, Hr2).
 destruct (Rle_or_lt (x - d) (d + ulp x - x)) as [H|H].
 (* . rnd(x) = rndd(x) *)
@@ -387,7 +387,7 @@ right. field.
 apply Rle_minus.
 apply (generic_DN_pt beta fexp prop_exp x).
 (* . rnd(x) = rndu(x) *)
-assert (Hu: (d + ulp x)%R = rounding beta fexp ZrndUP x).
+assert (Hu: (d + ulp x)%R = round beta fexp rndUP x).
 unfold d.
 now rewrite <- ulp_DN_UP.
 apply Rle_trans with (Rabs (d + ulp x - x)).
@@ -436,8 +436,8 @@ Qed.
 
 Theorem ulp_DN_pt_eq :
   forall x,
-  (0 < rounding beta fexp ZrndDN x)%R ->
-  ulp (rounding beta fexp ZrndDN x) = ulp x.
+  (0 < round beta fexp rndDN x)%R ->
+  ulp (round beta fexp rndDN x) = ulp x.
 Proof.
 intros x Hd.
 unfold ulp.
@@ -448,13 +448,13 @@ Qed.
 Theorem ulp_error_f :
   (forall m n, (m <= n)%Z -> (fexp m <= fexp n)%Z ) ->
   forall Zrnd x,
-  (rounding beta fexp Zrnd x <> 0)%R ->
-  (Rabs (rounding beta fexp Zrnd x - x) < ulp (rounding beta fexp Zrnd x))%R.
+  (round beta fexp Zrnd x <> 0)%R ->
+  (Rabs (round beta fexp Zrnd x - x) < ulp (round beta fexp Zrnd x))%R.
 Proof.
 intros Hf Zrnd x Hfx.
-case (rounding_DN_or_UP beta fexp Zrnd x); intros Hx.
+case (round_DN_or_UP beta fexp Zrnd x); intros Hx.
 (* *)
-case (Rle_or_lt 0 (rounding beta fexp ZrndDN x)).
+case (Rle_or_lt 0 (round beta fexp rndDN x)).
 intros H; destruct H.
 rewrite Hx at 2.
 rewrite ulp_DN_pt_eq; trivial.
@@ -462,49 +462,49 @@ apply ulp_error.
 rewrite Hx in Hfx; contradict Hfx; auto with real.
 intros H.
 apply Rlt_le_trans with (1:=ulp_error _ _).
-rewrite <- (ulp_opp x), <- (ulp_opp (rounding beta fexp Zrnd x)).
+rewrite <- (ulp_opp x), <- (ulp_opp (round beta fexp Zrnd x)).
 apply ulp_monotone; trivial.
 apply Ropp_0_gt_lt_contravar; apply Rlt_gt.
 case (Rle_or_lt 0 x); trivial.
 intros H1; contradict H.
 apply Rle_not_lt.
-apply rounding_monotone_l; trivial.
+apply round_monotone_l; trivial.
 apply generic_format_0.
 apply Ropp_le_contravar; rewrite Hx.
 apply (generic_DN_pt beta fexp prop_exp x).
 (* *)
-rewrite Hx; case (Rle_or_lt 0 (rounding beta fexp ZrndUP x)).
+rewrite Hx; case (Rle_or_lt 0 (round beta fexp rndUP x)).
 intros H; destruct H.
 apply Rlt_le_trans with (1:=ulp_error _ _).
 apply ulp_monotone; trivial.
 case (Rle_or_lt x 0); trivial.
 intros H1; contradict H.
 apply Rle_not_lt.
-apply rounding_monotone_r; trivial.
+apply round_monotone_r; trivial.
 apply generic_format_0.
 apply (generic_UP_pt beta fexp prop_exp x).
 rewrite Hx in Hfx; contradict Hfx; auto with real.
 intros H.
-rewrite <- (ulp_opp (rounding beta fexp ZrndUP x)).
-rewrite <- rounding_DN_opp.
+rewrite <- (ulp_opp (round beta fexp rndUP x)).
+rewrite <- round_DN_opp.
 rewrite ulp_DN_pt_eq; trivial.
-replace (rounding beta fexp ZrndUP x - x)%R with (-((rounding beta fexp ZrndDN (-x) - (-x))))%R.
+replace (round beta fexp rndUP x - x)%R with (-((round beta fexp rndDN (-x) - (-x))))%R.
 rewrite Rabs_Ropp.
 apply ulp_error.
-rewrite rounding_DN_opp; ring.
-rewrite rounding_DN_opp; apply Ropp_0_gt_lt_contravar; apply Rlt_gt; assumption.
+rewrite round_DN_opp; ring.
+rewrite round_DN_opp; apply Ropp_0_gt_lt_contravar; apply Rlt_gt; assumption.
 Qed.
 
 Theorem ulp_half_error_f : 
   (forall m n, (m <= n)%Z -> (fexp m <= fexp n)%Z ) ->
   forall choice x,
-  (rounding beta fexp (ZrndN choice) x <> 0)%R ->
-  (Rabs (rounding beta fexp (ZrndN choice) x - x) <= /2 * ulp (rounding beta fexp (ZrndN choice) x))%R.
+  (round beta fexp (rndN choice) x <> 0)%R ->
+  (Rabs (round beta fexp (rndN choice) x - x) <= /2 * ulp (round beta fexp (rndN choice) x))%R.
 Proof.
 intros Hf choice x Hfx.
-case (rounding_DN_or_UP beta fexp (ZrndN choice) x); intros Hx.
+case (round_DN_or_UP beta fexp (rndN choice) x); intros Hx.
 (* *)
-case (Rle_or_lt 0 (rounding beta fexp ZrndDN x)).
+case (Rle_or_lt 0 (round beta fexp rndDN x)).
 intros H; destruct H.
 rewrite Hx at 2.
 rewrite ulp_DN_pt_eq; trivial.
@@ -514,18 +514,18 @@ intros H.
 apply Rle_trans with (1:=ulp_half_error _ _).
 apply Rmult_le_compat_l.
 auto with real.
-rewrite <- (ulp_opp x), <- (ulp_opp (rounding beta fexp (ZrndN choice) x)).
+rewrite <- (ulp_opp x), <- (ulp_opp (round beta fexp (rndN choice) x)).
 apply ulp_monotone; trivial.
 apply Ropp_0_gt_lt_contravar; apply Rlt_gt.
 case (Rle_or_lt 0 x); trivial.
 intros H1; contradict H.
 apply Rle_not_lt.
-apply rounding_monotone_l; trivial.
+apply round_monotone_l; trivial.
 apply generic_format_0.
 apply Ropp_le_contravar; rewrite Hx.
 apply (generic_DN_pt beta fexp prop_exp x).
 (* *)
-case (Rle_or_lt 0 (rounding beta fexp ZrndUP x)).
+case (Rle_or_lt 0 (round beta fexp rndUP x)).
 intros H; destruct H.
 apply Rle_trans with (1:=ulp_half_error _ _).
 apply Rmult_le_compat_l.
@@ -534,20 +534,20 @@ apply ulp_monotone; trivial.
 case (Rle_or_lt x 0); trivial.
 intros H1; contradict H.
 apply Rle_not_lt.
-apply rounding_monotone_r; trivial.
+apply round_monotone_r; trivial.
 apply generic_format_0.
 rewrite Hx; apply (generic_UP_pt beta fexp prop_exp x).
 rewrite Hx in Hfx; contradict Hfx; auto with real.
 intros H.
-rewrite Hx at 2; rewrite <- (ulp_opp (rounding beta fexp ZrndUP x)).
-rewrite <- rounding_DN_opp.
+rewrite Hx at 2; rewrite <- (ulp_opp (round beta fexp rndUP x)).
+rewrite <- round_DN_opp.
 rewrite ulp_DN_pt_eq; trivial.
 pattern x at 1 2; rewrite <- Ropp_involutive.
-rewrite rounding_N_opp.
+rewrite round_N_opp.
 unfold Rminus.
 rewrite <- Ropp_plus_distr, Rabs_Ropp.
 apply ulp_half_error.
-rewrite rounding_DN_opp; apply Ropp_0_gt_lt_contravar; apply Rlt_gt; assumption.
+rewrite round_DN_opp; apply Ropp_0_gt_lt_contravar; apply Rlt_gt; assumption.
 Qed.
 
 Definition pred x :=
@@ -578,7 +578,7 @@ unfold ulp, F2R. simpl.
 pattern (bpow (canonic_exponent beta fexp x)) at 2 ; rewrite <- Rmult_1_l.
 rewrite <- Rmult_minus_distr_r.
 change 1%R with (Z2R 1).
-rewrite <- minus_Z2R.
+rewrite <- Z2R_minus.
 change (bpow e <= F2R (Float beta (Ztrunc (scaled_mantissa beta fexp x) - 1) (canonic_exponent beta fexp x)))%R.
 apply bpow_le_F2R_m1; trivial.
 now rewrite <- Fx.
@@ -614,11 +614,11 @@ rewrite canonic_exponent_fexp with (1 := Ex).
 unfold F2R. simpl.
 rewrite Rmult_minus_distr_r.
 rewrite Rmult_assoc.
-rewrite <- bpow_add, Zplus_opp_r, Rmult_1_r.
+rewrite <- bpow_plus, Zplus_opp_r, Rmult_1_r.
 change (bpow 0) with (Z2R 1).
-rewrite <- minus_Z2R.
+rewrite <- Z2R_minus.
 rewrite Ztrunc_Z2R.
-rewrite minus_Z2R.
+rewrite Z2R_minus.
 rewrite Rmult_minus_distr_r.
 now rewrite Rmult_1_l.
 rewrite Rabs_pos_eq.
@@ -667,9 +667,9 @@ case (Zle_lt_or_eq _ _ He); clear He; intros He.
 assert (f = F2R (Float beta (Zpower beta (e-1-(fexp (e-1))) -1) (fexp (e-1))))%R.
 unfold f; rewrite Hx.
 unfold F2R; simpl.
-rewrite minus_Z2R, Z2R_Zpower.
+rewrite Z2R_minus, Z2R_Zpower.
 rewrite Rmult_minus_distr_r, Rmult_1_l.
-rewrite <- bpow_add.
+rewrite <- bpow_plus.
 now replace (e - 1 - fexp (e - 1) + fexp (e - 1))%Z with (e-1)%Z by ring.
 omega.
 rewrite H.
@@ -696,7 +696,7 @@ now destruct beta.
 simpl.
 unfold Zpower_pos; simpl.
 now rewrite Zmult_1_r.
-rewrite <- bpow_add.
+rewrite <- bpow_plus.
 replace (1+(e-2))%Z with (e-1)%Z by ring.
 now right.
 rewrite <- Rplus_0_r.
@@ -810,7 +810,7 @@ now destruct beta.
 simpl.
 unfold Zpower_pos; simpl.
 now rewrite Zmult_1_r.
-rewrite <- bpow_add.
+rewrite <- bpow_plus.
 replace (1+(e-2))%Z with (e-1)%Z by ring.
 now right.
 rewrite <- Rplus_0_r, Hxe.
@@ -880,13 +880,13 @@ apply Rle_0_minus.
 now apply ulp_le_pos.
 Qed.
 
-Theorem rounding_UP_pred :
+Theorem round_UP_pred :
   forall x, (0 < pred x)%R -> F x ->
   forall eps, (0 < eps <= ulp (pred x) )%R ->
-  rounding beta fexp ZrndUP (pred x + eps) = x.
+  round beta fexp rndUP (pred x + eps) = x.
 Proof.
 intros x Hx Fx eps Heps.
-rewrite rounding_UP_succ; trivial.
+rewrite round_UP_succ; trivial.
 apply pred_ulp; trivial.
 apply Rlt_trans with (1:=Hx).
 apply pred_lt.
@@ -897,10 +897,10 @@ apply pred_lt.
 Qed.
 
 
-Theorem rounding_DN_pred :
+Theorem round_DN_pred :
   forall x, (0 < pred x)%R -> F x ->
   forall eps, (0 < eps <= ulp (pred x))%R ->
-  rounding beta fexp ZrndDN (x - eps) = pred x.
+  round beta fexp rndDN (x - eps) = pred x.
 Proof.
 intros x Hpx Fx eps Heps.
 assert (Hx:(0 < x)%R).
@@ -910,7 +910,7 @@ replace (x-eps)%R with (pred x + (ulp (pred x)-eps))%R.
 2: pattern x at 3; rewrite <- (pred_ulp x); trivial.
 2: ring.
 2: now apply Rgt_not_eq.
-rewrite rounding_DN_succ; trivial.
+rewrite round_DN_succ; trivial.
 now apply format_pred.
 split.
 apply Rle_0_minus.
@@ -959,8 +959,8 @@ intros Hy3.
 contradict Hy2.
 
 (*
-rewrite <- rounding_DN_pred with y (Rmin y (ulp (pred y))).
-apply rounding_monotone_l; trivial.
+rewrite <- round_DN_pred with y (Rmin y (ulp (pred y))).
+apply round_monotone_l; trivial.
 apply generic_format_0.*)
 
 
@@ -978,10 +978,10 @@ apply Rlt_trans with (1:=proj1 H); easy.
 now apply Rgt_not_eq.
 (* *)
 replace x with (y-(y-x))%R by ring.
-rewrite <- rounding_DN_pred with (eps:=(y-x)%R); try easy.
+rewrite <- round_DN_pred with (eps:=(y-x)%R); try easy.
 ring_simplify (y-(y-x))%R.
 apply Req_le.
-apply sym_eq; now apply rounding_generic.
+apply sym_eq; now apply round_generic.
 split; trivial.
 now apply Rlt_Rminus.
 now apply Rlt_le.
