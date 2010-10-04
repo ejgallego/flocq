@@ -941,7 +941,6 @@ now apply Heps.
 Qed.
 
 
-
 Theorem le_pred_lt:
   forall x y,
   F x -> F y ->
@@ -949,52 +948,103 @@ Theorem le_pred_lt:
   (x  <= pred y)%R.
 Proof.
 intros x y Hx Hy H. 
+assert (Zy:(0 < y)%R).
+apply Rlt_trans with (1:=proj1 H).
+apply H.
 (* *)
 assert (Zp: (0 < pred y)%R).
 assert (Zp:(0 <= pred y)%R).
 apply pred_pos; trivial.
-apply Rlt_trans with (1:=proj1 H).
-apply H.
 destruct Zp; trivial.
 generalize H0.
 unfold pred.
-destruct (ln_beta beta y); simpl.
+destruct (ln_beta beta y) as (ey,Hey); simpl.
 case Req_bool_spec; intros Hy2.
 (* . *)
-(* intros
-y = beta^e=beta^ fexp e -> small pos
-donc x aussi (exposant <=)
-donc x est soit 0 soit y 
-donc absurde
-
-
-unfold valid_exp in prop_exp.*)
-
-admit.
-
-
 intros Hy3.
+assert (ey-1 = fexp (ey -1))%Z.
+apply bpow_eq with beta.
+rewrite <- Hy2, <- Rplus_0_l, Hy3.
+ring.
+assert (Zx: (x <> 0)%R).
+now apply Rgt_not_eq.
+destruct (ln_beta beta x) as (ex,Hex).
+specialize (Hex Zx).
+assert (ex <= ey)%Z.
+apply bpow_lt_bpow with beta.
+apply Rle_lt_trans with (1:=proj1 Hex).
+apply Rlt_trans with (Rabs y).
+rewrite 2!Rabs_right.
+apply H.
+now apply Rgt_ge.
+now apply Rgt_ge.
+apply Hey.
+now apply Rgt_not_eq.
+case (Zle_lt_or_eq _ _ H2); intros Hexy.
+assert (fexp ex = fexp (ey-1))%Z.
+apply (proj2 (prop_exp (ey-1)%Z)).
+omega.
+rewrite <- H1.
+omega.
+absurd (0 < Ztrunc (scaled_mantissa beta fexp x) < 1)%Z.
+omega.
+split.
+apply F2R_gt_0_reg with beta (canonic_exponent beta fexp x).
+now rewrite <- Hx.
+apply lt_Z2R.
+apply Rmult_lt_reg_r with (bpow (canonic_exponent beta fexp x)).
+apply bpow_gt_0.
+replace (Z2R (Ztrunc (scaled_mantissa beta fexp x)) *
+ bpow (canonic_exponent beta fexp x))%R with x.
+rewrite Rmult_1_l.
+unfold canonic_exponent.
+rewrite ln_beta_unique with beta x ex.
+rewrite H3,<-H1, <- Hy2.
+apply H.
+exact Hex.
+absurd (y <= x)%R.
+now apply Rlt_not_le.
+rewrite Rabs_right in Hex.
+apply Rle_trans with (2:=proj1 Hex).
+rewrite Hexy, Hy2.
+now apply Rle_refl.
+now apply Rgt_ge.
+(* . *)
+intros Hy3.
+assert (y = bpow (fexp ey))%R.
+apply Rminus_diag_uniq.
+rewrite Hy3.
+unfold ulp, canonic_exponent.
+rewrite (ln_beta_unique beta y ey); trivial.
+apply Hey.
+now apply Rgt_not_eq.
 contradict Hy2.
-
-(*
-rewrite <- round_DN_pred with y (Rmin y (ulp (pred y))).
-apply round_monotone_l; trivial.
-apply generic_format_0.*)
-
-
-admit.
-
+rewrite H1.
+apply f_equal.
+apply Zplus_reg_l with 1%Z.
+ring_simplify.
+apply trans_eq with (ln_beta beta y).
+apply sym_eq; apply ln_beta_unique.
+rewrite H1, Rabs_right.
+split.
+apply -> bpow_le.
+omega.
+apply -> bpow_lt.
+omega.
+apply Rle_ge; apply bpow_ge_0.
+apply ln_beta_unique.
+apply Hey.
+now apply Rgt_not_eq.
 (* *)
 case (Rle_or_lt (ulp (pred y)) (y-x)); intros H1.
-(* *)
+(* . *)
 apply Rplus_le_reg_r with (-x + ulp (pred y))%R.
 ring_simplify (x+(-x+ulp (pred y)))%R.
 apply Rle_trans with (1:=H1).
 rewrite <- (pred_ulp y) at 1; trivial.
 apply Req_le; ring.
-apply Rlt_trans with (1:=proj1 H); easy.
 now apply Rgt_not_eq.
-(* *)
+(* . *)
 replace x with (y-(y-x))%R by ring.
 rewrite <- round_DN_pred with (eps:=(y-x)%R); try easy.
 ring_simplify (y-(y-x))%R.
@@ -1004,12 +1054,6 @@ split; trivial.
 now apply Rlt_Rminus.
 now apply Rlt_le.
 Qed.
-
-
-
-
-
-
 
 
 End Fcore_ulp.
