@@ -700,7 +700,7 @@ End Zround_opp.
 
 Definition rndDN := mkZround Zfloor Zfloor_le Zfloor_Z2R.
 Definition rndUP := mkZround Zceil Zceil_le Zceil_Z2R.
-Definition ZrndTZ := mkZround Ztrunc Ztrunc_le Ztrunc_Z2R.
+Definition rndZR := mkZround Ztrunc Ztrunc_le Ztrunc_Z2R.
 
 Theorem round_DN_or_UP :
   forall rnd x,
