@@ -1,8 +1,9 @@
-(*
+(**
 This file is part of the Flocq formalization of floating-point
 arithmetic in Coq: http://flocq.gforge.inria.fr/
 
 Copyright (C) 2010 Sylvie Boldo
+#<br />#
 Copyright (C) 2010 Guillaume Melquiond
 
 This library is free software; you can redistribute it and/or
@@ -16,6 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
+(** * Floating-point format with abrupt underflow *)
 Require Import Fcore_Raux.
 Require Import Fcore_defs.
 Require Import Fcore_rnd.
@@ -43,6 +45,7 @@ Definition FTZ_RoundingModeP (rnd : R -> R):=
 
 Definition FTZ_exp e := if Zlt_bool (e - prec) emin then (emin + prec - 1)%Z else (e - prec)%Z.
 
+(** Properties of the FTZ format *)
 Theorem FTZ_exp_correct : valid_exp FTZ_exp.
 Proof.
 intros k.
@@ -235,6 +238,7 @@ Qed.
 
 Section FTZ_round.
 
+(** Rounding with FTZ *)
 Hypothesis rnd : Zround.
 
 Definition Zrnd_FTZ x :=

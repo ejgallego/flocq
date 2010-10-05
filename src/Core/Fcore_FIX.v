@@ -1,8 +1,9 @@
-(*
+(**
 This file is part of the Flocq formalization of floating-point
 arithmetic in Coq: http://flocq.gforge.inria.fr/
 
 Copyright (C) 2010 Sylvie Boldo
+#<br />#
 Copyright (C) 2010 Guillaume Melquiond
 
 This library is free software; you can redistribute it and/or
@@ -16,6 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
+(** * Fixed-point format *)
 Require Import Fcore_Raux.
 Require Import Fcore_defs.
 Require Import Fcore_rnd.
@@ -30,7 +32,7 @@ Notation bpow := (bpow beta).
 
 Variable emin : Z.
 
-(* fixed-point format *)
+(* fixed-point format with exponent emin *)
 Definition FIX_format (x : R) :=
   exists f : float beta,
   x = F2R f /\ (Fexp f = emin)%Z.
@@ -40,6 +42,7 @@ Definition FIX_RoundingModeP (rnd : R -> R):=
 
 Definition FIX_exp (e : Z) := emin.
 
+(** Properties of the FIX format *)
 Theorem FIX_exp_correct : valid_exp FIX_exp.
 Proof.
 intros k.

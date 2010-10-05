@@ -1,8 +1,9 @@
-(*
+(**
 This file is part of the Flocq formalization of floating-point
 arithmetic in Coq: http://flocq.gforge.inria.fr/
 
 Copyright (C) 2010 Sylvie Boldo
+#<br />#
 Copyright (C) 2010 Guillaume Melquiond
 
 This library is free software; you can redistribute it and/or
@@ -16,6 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
+(** * Floating-point format with gradual underflow *)
 Require Import Fcore_Raux.
 Require Import Fcore_defs.
 Require Import Fcore_rnd.
@@ -44,6 +46,7 @@ Definition FLT_RoundingModeP (rnd : R -> R):=
 
 Definition FLT_exp e := Zmax (e - prec) emin.
 
+(** Properties of the FLT format *)
 Theorem FLT_exp_correct : valid_exp FLT_exp.
 Proof.
 intros k.
@@ -148,6 +151,7 @@ apply Rle_lt_trans with (1 := Hx).
 apply He.
 Qed.
 
+(** Links between FLT and FLX *)
 Theorem FLT_generic_format_FLX :
   forall x : R,
   (bpow (emin + prec - 1) <= Rabs x)%R ->
@@ -200,7 +204,7 @@ apply bpow_gt_0.
 Qed.
 
 
-
+(** Links between FLT and FIX (underflow) *)
 Theorem FLT_canonic_FIX :
   forall x, x <> R0 ->
   (Rabs x < bpow (emin + prec))%R ->
@@ -261,6 +265,7 @@ apply iff_sym.
 now apply FIX_format_generic.
 Qed.
 
+(** FLT is a nice format which is not FTZ and that allows a rounding to nearest, ties to even *)
 Theorem FLT_not_FTZ :
   not_FTZ_prop FLT_exp.
 Proof.

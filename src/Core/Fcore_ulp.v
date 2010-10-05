@@ -1,8 +1,9 @@
-(*
+(**
 This file is part of the Flocq formalization of floating-point
 arithmetic in Coq: http://flocq.gforge.inria.fr/
 
 Copyright (C) 2010 Sylvie Boldo
+#<br />#
 Copyright (C) 2010 Guillaume Melquiond
 
 This library is free software; you can redistribute it and/or
@@ -16,6 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
+(** * Unit in the Last Place: our definition using fexp and its properties *)
 Require Import Fcore_Raux.
 Require Import Fcore_defs.
 Require Import Fcore_rnd.
@@ -122,6 +124,7 @@ rewrite H.
 now rewrite scaled_mantissa_bpow.
 Qed.
 
+(** The successor of x is x + ulp x *)
 Theorem succ_le_bpow :
   forall x e, (0 < x)%R -> F x ->
   (x < bpow e)%R ->
@@ -325,7 +328,7 @@ split; trivial.
 apply Rlt_le; now apply Rlt_Rminus.
 Qed.
 
-
+(** Error of a rounding, expressed in number of ulps *)
 Theorem ulp_error :
   forall Zrnd x,
   (Rabs (round beta fexp Zrnd x - x) < ulp x)%R.
@@ -568,6 +571,7 @@ apply ulp_half_error.
 rewrite round_DN_opp; apply Ropp_0_gt_lt_contravar; apply Rlt_gt; assumption.
 Qed.
 
+(** Predecessor *)
 Definition pred x :=
   if Req_bool x (bpow (ln_beta beta x - 1)) then
     (x - bpow (fexp (ln_beta beta x - 1)))%R

@@ -1,8 +1,9 @@
-(*
+(**
 This file is part of the Flocq formalization of floating-point
 arithmetic in Coq: http://flocq.gforge.inria.fr/
 
 Copyright (C) 2010 Sylvie Boldo
+#<br />#
 Copyright (C) 2010 Guillaume Melquiond
 
 This library is free software; you can redistribute it and/or
@@ -16,6 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
+(** * Basic properties of floating-point formats: lemmas about mantissa, exponent... *)
 Require Import Fcore_Raux.
 Require Import Fcore_defs.
 
@@ -25,6 +27,7 @@ Variable beta : radix.
 
 Notation bpow e := (bpow beta e).
 
+(** Basic facts *)
 Theorem F2R_le_reg :
   forall e m1 m2 : Z,
   (F2R (Float beta m1 e) <= F2R (Float beta m2 e))%R ->
@@ -85,6 +88,32 @@ apply Zle_antisym ;
   apply Rle_refl.
 Qed.
 
+Theorem abs_F2R :
+  forall m e : Z,
+  Rabs (F2R (Float beta m e)) = F2R (Float beta (Zabs m) e).
+Proof.
+intros m e.
+unfold F2R.
+rewrite Rabs_mult.
+rewrite <- Z2R_abs.
+simpl.
+apply f_equal.
+apply Rabs_right.
+apply Rle_ge.
+apply bpow_ge_0.
+Qed.
+
+Theorem opp_F2R :
+  forall m e : Z,
+  Ropp (F2R (Float beta m e)) = F2R (Float beta (Zopp m) e).
+Proof.
+intros m e.
+unfold F2R. simpl.
+rewrite <- Ropp_mult_distr_l_reverse.
+now rewrite Z2R_opp.
+Qed.
+
+(** Sign facts *)
 Theorem F2R_0 :
   forall e : Z,
   F2R (Float beta 0 e) = R0.
@@ -184,6 +213,7 @@ rewrite <- F2R_0 with (Fexp f).
 now apply F2R_lt_compat.
 Qed.
 
+(** Floats and bpow *)
 Theorem F2R_bpow :
   forall e : Z,
   F2R (Float beta 1 e) = bpow e.
@@ -276,54 +306,6 @@ apply Z2R_le.
 omega.
 Qed.
 
-Theorem ln_beta_F2R_bounds :
-  forall x m e, (0 < m)%Z ->
-  (F2R (Float beta m e) <= x < F2R (Float beta (m + 1) e))%R ->
-  ln_beta beta x = ln_beta beta (F2R (Float beta m e)) :> Z.
-Proof.
-intros x m e Hp (Hx,Hx2).
-destruct (ln_beta beta (F2R (Float beta m e))) as (ex, He).
-simpl.
-apply ln_beta_unique.
-assert (Hp1: (0 < F2R (Float beta m e))%R).
-now apply F2R_gt_0_compat.
-specialize (He (Rgt_not_eq _ _ Hp1)).
-rewrite Rabs_pos_eq in He. 2: now apply Rlt_le.
-destruct He as (He1, He2).
-assert (Hx1: (0 < x)%R).
-now apply Rlt_le_trans with (2 := Hx).
-rewrite Rabs_pos_eq. 2: now apply Rlt_le.
-split.
-now apply Rle_trans with (1 := He1).
-apply Rlt_le_trans with (1 := Hx2).
-now apply F2R_p1_le_bpow.
-Qed.
-
-Theorem abs_F2R :
-  forall m e : Z,
-  Rabs (F2R (Float beta m e)) = F2R (Float beta (Zabs m) e).
-Proof.
-intros m e.
-unfold F2R.
-rewrite Rabs_mult.
-rewrite <- Z2R_abs.
-simpl.
-apply f_equal.
-apply Rabs_right.
-apply Rle_ge.
-apply bpow_ge_0.
-Qed.
-
-Theorem opp_F2R :
-  forall m e : Z,
-  Ropp (F2R (Float beta m e)) = F2R (Float beta (Zopp m) e).
-Proof.
-intros m e.
-unfold F2R. simpl.
-rewrite <- Ropp_mult_distr_l_reverse.
-now rewrite Z2R_opp.
-Qed.
-
 Theorem F2R_lt_bpow :
   forall f : float beta, forall e',
   (Zabs (Fnum f) < Zpower beta (e' - Fexp f))%Z ->
@@ -383,6 +365,30 @@ apply bpow_gt_0.
 rewrite <- Z2R_Zpower.
 now apply Z2R_lt.
 exact Hp.
+Qed.
+
+(** Floats and ln_beta *)
+Theorem ln_beta_F2R_bounds :
+  forall x m e, (0 < m)%Z ->
+  (F2R (Float beta m e) <= x < F2R (Float beta (m + 1) e))%R ->
+  ln_beta beta x = ln_beta beta (F2R (Float beta m e)) :> Z.
+Proof.
+intros x m e Hp (Hx,Hx2).
+destruct (ln_beta beta (F2R (Float beta m e))) as (ex, He).
+simpl.
+apply ln_beta_unique.
+assert (Hp1: (0 < F2R (Float beta m e))%R).
+now apply F2R_gt_0_compat.
+specialize (He (Rgt_not_eq _ _ Hp1)).
+rewrite Rabs_pos_eq in He. 2: now apply Rlt_le.
+destruct He as (He1, He2).
+assert (Hx1: (0 < x)%R).
+now apply Rlt_le_trans with (2 := Hx).
+rewrite Rabs_pos_eq. 2: now apply Rlt_le.
+split.
+now apply Rle_trans with (1 := He1).
+apply Rlt_le_trans with (1 := Hx2).
+now apply F2R_p1_le_bpow.
 Qed.
 
 Theorem ln_beta_F2R :

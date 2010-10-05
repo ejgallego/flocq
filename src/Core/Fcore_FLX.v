@@ -1,8 +1,9 @@
-(*
+(**
 This file is part of the Flocq formalization of floating-point
 arithmetic in Coq: http://flocq.gforge.inria.fr/
 
 Copyright (C) 2010 Sylvie Boldo
+#<br />#
 Copyright (C) 2010 Guillaume Melquiond
 
 This library is free software; you can redistribute it and/or
@@ -16,6 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
+(** * Floating-point format without underflow *)
 Require Import Fcore_Raux.
 Require Import Fcore_defs.
 Require Import Fcore_rnd.
@@ -43,6 +45,7 @@ Definition FLX_RoundingModeP (rnd : R -> R):=
 
 Definition FLX_exp (e : Z) := (e - prec)%Z.
 
+(** Properties of the FLX format *)
 Theorem FLX_exp_correct : valid_exp FLX_exp.
 Proof.
 intros k.
@@ -142,7 +145,7 @@ apply FLX_format_generic.
 exact FLX_exp_correct.
 Qed.
 
-(* unbounded floating-point format with normal mantissas *)
+(** unbounded floating-point format with normal mantissas *)
 Definition FLXN_format (x : R) :=
   exists f : float beta,
   x = F2R f /\ (x <> R0 ->
@@ -238,6 +241,7 @@ now apply <- FLX_format_FLXN.
 exact FLX_exp_correct.
 Qed.
 
+(** FLX is a nice format which is not FTZ and that allows a rounding to nearest, ties to even *)
 Theorem FLX_not_FTZ :
   not_FTZ_prop FLX_exp.
 Proof.

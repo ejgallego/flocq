@@ -1,8 +1,9 @@
-(*
+(**
 This file is part of the Flocq formalization of floating-point
 arithmetic in Coq: http://flocq.gforge.inria.fr/
 
 Copyright (C) 2010 Sylvie Boldo
+#<br />#
 Copyright (C) 2010 Guillaume Melquiond
 
 This library is free software; you can redistribute it and/or
@@ -16,11 +17,13 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
+(** * Missing definitions/lemmas *)
 Require Export Reals.
 Require Export ZArith.
 
 Section Rmissing.
 
+(** About R *)
 Theorem Rle_0_minus :
   forall x y, (x <= y)%R -> (0 <= y - x)%R.
 Proof.
@@ -296,6 +299,7 @@ End Rmissing.
 
 Section Zmissing.
 
+(** About Z *)
 Theorem Zopp_le_cancel :
   forall x y : Z,
   (-y <= -x)%Z -> Zle x y.
@@ -327,6 +331,7 @@ End Zmissing.
 
 Section Z2R.
 
+(** Z2R function (Z -> R) *)
 Fixpoint P2R (p : positive) :=
   match p with
   | xH => 1%R
@@ -505,6 +510,7 @@ End Z2R.
 
 Section Zcompare.
 
+(** Useful comparisons *)
 Inductive Zeq_bool_prop (x y : Z) : bool -> Prop :=
   | Zeq_bool_true : x = y -> Zeq_bool_prop x y true
   | Zeq_bool_false : x <> y -> Zeq_bool_prop x y false.
@@ -910,6 +916,7 @@ Qed.
 End Req_bool.
 Section Floor_Ceil.
 
+(** Zfloor and Zceil *)
 Definition Zfloor (x : R) := (up x - 1)%Z.
 
 Theorem Zfloor_lb :
@@ -1193,6 +1200,7 @@ End Floor_Ceil.
 
 Section Even_Odd.
 
+(** Zeven, used for rounding to nearest, ties to even *)
 Definition Zeven (n : Z) :=
   match n with
   | Zpos (xO _) => true
@@ -1287,6 +1295,7 @@ End Proof_Irrelevance.
 
 Section pow.
 
+(** The radix must be greater than 1 *)
 Record radix := { radix_val :> Z ; radix_prop : Zle_bool 2 radix_val = true }.
 
 Theorem radix_val_inj :
@@ -1320,6 +1329,7 @@ easy.
 now apply Zle_bool_imp_le.
 Qed.
 
+(** Well-used function called bpow for computing the power function #&beta;#^e *)
 Definition bpow e :=
   match e with
   | Zpos p => Z2R (Zpower_pos r p)
@@ -1559,6 +1569,7 @@ rewrite <- Ropp_mult_distr_l_reverse.
 now rewrite <- Z2R_opp.
 Qed.
 
+(** Another well-used function for having the logarithm of a real number x to the base #&beta;# *) 
 Record ln_beta_prop x := {
   ln_beta_val :> Z ;
    _ : (x <> 0)%R -> (bpow (ln_beta_val - 1)%Z <= Rabs x < bpow ln_beta_val)%R

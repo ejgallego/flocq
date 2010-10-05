@@ -1,8 +1,9 @@
-(*
+(**
 This file is part of the Flocq formalization of floating-point
 arithmetic in Coq: http://flocq.gforge.inria.fr/
 
 Copyright (C) 2010 Sylvie Boldo
+#<br />#
 Copyright (C) 2010 Guillaume Melquiond
 
 This library is free software; you can redistribute it and/or
@@ -16,6 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
+(** * What is a real number belonging to a format, and many properties. *)
 Require Import Fcore_Raux.
 Require Import Fcore_defs.
 Require Import Fcore_rnd.
@@ -29,6 +31,7 @@ Notation bpow e := (bpow beta e).
 
 Variable fexp : Z -> Z.
 
+(** To be a good fexp *)
 Definition valid_exp :=
   forall k : Z,
   ( (fexp k < k)%Z -> (fexp (k + 1) <= k)%Z ) /\
@@ -50,6 +53,7 @@ Definition scaled_mantissa x :=
 Definition generic_format (x : R) :=
   x = F2R (Float beta (Ztrunc (scaled_mantissa x)) (canonic_exponent x)).
 
+(** Basic facts *)
 Theorem generic_format_0 :
   generic_format 0.
 Proof.
@@ -228,6 +232,7 @@ apply Rle_trans with (2 := proj1 Hx).
 apply bpow_ge_0.
 Qed.
 
+(** Properties when the real number is "small" (kind of subnormal) *)
 Theorem mantissa_small_pos :
   forall x ex,
   (bpow (ex - 1) <= x < bpow ex)%R ->
@@ -297,6 +302,7 @@ assert (H := mantissa_small_pos x ex Hx He).
 split ; try apply Rlt_le ; apply H.
 Qed.
 
+(** Generic facts about any format *)
 Theorem generic_format_discrete :
   forall x m,
   let e := canonic_exponent x in
@@ -386,6 +392,7 @@ Qed.
 
 Section Fcore_generic_round_pos.
 
+(** * Rounding functions: R -> Z *)
 Record Zround := mkZround {
   Zrnd : R -> Z ;
   Zrnd_monotone : forall x y, (x <= y)%R -> (Zrnd x <= Zrnd y)%Z ;
@@ -420,6 +427,7 @@ rewrite Zfloor_Z2R, Zrnd_Z2R in Hx.
 apply Zlt_irrefl with (1 := Hx).
 Qed.
 
+(** * the most useful one: R -> F *)
 Definition round x :=
   F2R (Float beta (Zrnd (scaled_mantissa x)) (canonic_exponent x)).
 
@@ -698,6 +706,7 @@ Qed.
 
 End Zround_opp.
 
+(** IEEE-754 roundings: up, down and to zero *)
 Definition rndDN := mkZround Zfloor Zfloor_le Zfloor_Z2R.
 Definition rndUP := mkZround Zceil Zceil_le Zceil_Z2R.
 Definition rndZR := mkZround Ztrunc Ztrunc_le Ztrunc_Z2R.
@@ -1066,6 +1075,7 @@ End not_FTZ.
 
 Section Znearest.
 
+(** Roundings to nearest: when in the middle, use the choice function *)
 Variable choice : R -> bool.
 
 Definition Znearest x :=
