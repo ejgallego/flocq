@@ -87,16 +87,6 @@ apply Hx1.
 now apply Rle_trans with (2 := Hxy).
 Qed.
 
-Theorem Rnd_DN_monotone :
-  forall F : R -> Prop,
-  forall rnd : R -> R,
-  Rnd_DN F rnd ->
-  MonotoneP rnd.
-Proof.
-intros F rnd Hr x y Hxy.
-now eapply Rnd_DN_pt_monotone.
-Qed.
-
 Theorem Rnd_DN_pt_unicity :
   forall F : R -> Prop,
   forall x f1 f2 : R,
@@ -126,16 +116,6 @@ intros F x y f g (Hx1,(_,Hx2)) (Hy1,(Hy2,_)) Hxy.
 apply Hx2.
 apply Hy1.
 now apply Rle_trans with (1 := Hxy).
-Qed.
-
-Theorem Rnd_UP_monotone :
-  forall F : R -> Prop,
-  forall rnd : R -> R,
-  Rnd_UP F rnd ->
-  MonotoneP rnd.
-Proof.
-intros F rnd Hr x y Hxy.
-now eapply Rnd_UP_pt_monotone.
 Qed.
 
 Theorem Rnd_UP_pt_unicity :
@@ -262,20 +242,6 @@ exact Hx.
 apply Rle_refl.
 Qed.
 
-Theorem Rnd_DN_idempotent :
-  forall F : R -> Prop,
-  forall rnd : R -> R,
-  Rnd_DN F rnd ->
-  IdempotentP F rnd.
-Proof.
-intros F rnd Hr.
-split.
-intros.
-eapply Hr.
-intros x Hx.
-now apply Rnd_DN_pt_idempotent with (2 := Hx).
-Qed.
-
 Theorem Rnd_UP_pt_refl :
   forall F : R -> Prop,
   forall x : R, F x ->
@@ -302,78 +268,6 @@ apply Rle_refl.
 exact Hx1.
 Qed.
 
-Theorem Rnd_UP_idempotent :
-  forall F : R -> Prop,
-  forall rnd : R -> R,
-  Rnd_UP F rnd ->
-  IdempotentP F rnd.
-Proof.
-intros F rnd Hr.
-split.
-intros.
-eapply Hr.
-intros x Hx.
-now apply Rnd_UP_pt_idempotent with (2 := Hx).
-Qed.
-
-Theorem Rnd_DN_pt_le_rnd :
-  forall F : R -> Prop,
-  forall rnd : R -> R,
-  Rounding_for_Format F rnd -> 
-  forall x fd : R,
-  Rnd_DN_pt F x fd ->
-  fd <= rnd x.
-Proof.
-intros F rnd (Hr1,(Hr2,Hr3)) x fd Hd.
-replace fd with (rnd fd).
-apply Hr1.
-apply Hd.
-apply Hr3.
-apply Hd.
-Qed.
-
-Theorem Rnd_DN_le_rnd :
-  forall F : R -> Prop,
-  forall rndd rnd: R -> R,
-  Rnd_DN F rndd -> 
-  Rounding_for_Format F rnd -> 
-  forall x, rndd x <= rnd x.
-Proof.
-intros F rndd rnd Hd Hr x.
-eapply Rnd_DN_pt_le_rnd.
-apply Hr.
-apply Hd.
-Qed.
-
-Theorem Rnd_UP_pt_ge_rnd :
-  forall F : R -> Prop,
-  forall rnd : R -> R,
-  Rounding_for_Format F rnd -> 
-  forall x fu : R,
-  Rnd_UP_pt F x fu ->
-  rnd x <= fu.
-Proof.
-intros F rnd (Hr1,(Hr2,Hr3)) x fu Hu.
-replace fu with (rnd fu).
-apply Hr1.
-apply Hu.
-apply Hr3.
-apply Hu.
-Qed.
-
-Theorem Rnd_UP_ge_rnd :
-  forall F : R -> Prop,
-  forall rndu rnd: R -> R,
-  Rnd_UP F rndu ->
-  Rounding_for_Format F rnd -> 
-  forall x, rnd x <= rndu x.
-Proof.
-intros F rndu rnd Hu Hr x.
-eapply Rnd_UP_pt_ge_rnd.
-apply Hr.
-apply Hu.
-Qed.
-
 Theorem Only_DN_or_UP :
   forall F : R -> Prop,
   forall x fd fu f : R,
@@ -390,36 +284,6 @@ elim Rlt_not_le with (1 := H).
 now apply Hu.
 elim Rlt_not_le with (1 := Hdf).
 apply Hd ; auto with real.
-Qed.
-
-Theorem Rnd_DN_or_UP_pt :
-  forall F : R -> Prop,
-  forall rnd : R -> R,
-  Rounding_for_Format F rnd ->
-  forall x fd fu : R,
-  Rnd_DN_pt F x fd -> Rnd_UP_pt F x fu ->
-  rnd x = fd \/ rnd x = fu.
-Proof.
-intros F rnd Hr x fd fu Hd Hu.
-eapply Only_DN_or_UP ; try eassumption.
-apply Hr.
-split.
-eapply Rnd_DN_pt_le_rnd ; eassumption.
-eapply Rnd_UP_pt_ge_rnd ; eassumption.
-Qed.
-
-Theorem Rnd_DN_or_UP :
-  forall F : R -> Prop,
-  forall rndd rndu rnd : R -> R,
-  Rnd_DN F rndd -> Rnd_UP F rndu ->
-  Rounding_for_Format F rnd ->
-  forall x, rnd x = rndd x \/ rnd x = rndu x.
-Proof.
-intros F rndd rndu rnd Hd Hu Hr x.
-eapply Rnd_DN_or_UP_pt.
-apply Hr.
-apply Hd.
-apply Hu.
 Qed.
 
 Theorem Rnd_ZR_abs :
@@ -598,18 +462,6 @@ now apply Rlt_le.
 now apply Rlt_minus.
 Qed.
 
-Theorem Rnd_N_monotone :
-  forall F : R -> Prop,
-  forall rnd : R -> R,
-  Rnd_N F rnd ->
-  MonotoneP rnd.
-Proof.
-intros F rnd Hr x y [Hxy|Hxy].
-now apply Rnd_N_pt_monotone with F x y.
-rewrite Hxy.
-apply Rle_refl.
-Qed.
-
 Theorem Rnd_N_pt_unicity :
   forall F : R -> Prop,
   forall x d u f1 f2 : R,
@@ -682,20 +534,6 @@ unfold Rminus.
 rewrite Rplus_opp_r.
 apply Rabs_R0.
 apply Rabs_pos.
-Qed.
-
-Theorem Rnd_N_idempotent :
-  forall F : R -> Prop,
-  forall rnd : R -> R,
-  Rnd_N F rnd ->
-  IdempotentP F rnd.
-Proof.
-intros F rnd Hr.
-split.
-intros x.
-eapply Hr.
-intros x Hx.
-now apply Rnd_N_pt_idempotent with F.
 Qed.
 
 Theorem Rnd_N_pt_0 :
@@ -1092,17 +930,6 @@ now apply -> Rnd_NA_NG_pt.
 exact Hxy.
 Qed.
 
-Theorem Rnd_NA_monotone :
-  forall F : R -> Prop,
-  F 0 ->
-  forall rnd : R -> R,
-  Rnd_NA F rnd ->
-  MonotoneP rnd.
-Proof.
-intros F rnd Hr x y Hxy.
-now apply Rnd_NA_pt_monotone with F.
-Qed.
-
 Theorem Rnd_NA_pt_refl :
   forall F : R -> Prop,
   forall x : R, F x ->
@@ -1125,20 +952,6 @@ Theorem Rnd_NA_pt_idempotent :
 Proof.
 intros F x f (Hf,_) Hx.
 now apply Rnd_N_pt_idempotent with F.
-Qed.
-
-Theorem Rnd_NA_idempotent :
-  forall F : R -> Prop,
-  forall rnd : R -> R,
-  Rnd_NA F rnd ->
-  IdempotentP F rnd.
-Proof.
-intros F rnd Hr.
-split.
-intros x.
-eapply Hr.
-intros x Hx.
-now apply Rnd_NA_pt_idempotent with F.
 Qed.
 
 Theorem round_pred_pos_imp_rnd :
@@ -1185,41 +998,6 @@ apply Rnot_le_lt.
 intros Hx.
 apply Rlt_not_le with (1 := Hf).
 now apply (HP 0 x).
-Qed.
-
-Theorem Rnd_0 :
-  forall F : R -> Prop,
-  forall rnd : R -> R, 
-  F 0 ->  
-  Rounding_for_Format F rnd ->
-  rnd 0 = 0.
-Proof.
-intros F rnd H0 (_,H2).
-now apply H2.
-Qed.
-
-Theorem Rnd_pos_imp_pos :
-  forall F : R -> Prop,
-  forall rnd : R -> R, 
-  F 0 ->  
-  Rounding_for_Format F rnd ->
-  forall x, 0 <= x -> 0 <= rnd x.
-Proof.
-intros F rnd H0 H x H'.
-rewrite <- Rnd_0 with (2 := H) ; trivial.
-now apply H.
-Qed.
-
-Theorem Rnd_neg_imp_neg :
-  forall F : R -> Prop,
-  forall rnd : R -> R, 
-  F 0 ->  
-  Rounding_for_Format F rnd ->
-  forall x, x <= 0 -> rnd x <= 0.
-Proof.
-intros F rnd H0 H x H'.
-rewrite <- Rnd_0 with (2 := H) ; trivial.
-now apply H.
 Qed.
 
 Theorem Rnd_DN_pt_equiv_format :

@@ -34,17 +34,6 @@ Definition F2R (f : float beta) :=
   (Z2R (Fnum f) * bpow beta (Fexp f))%R.
 
 (** Requirements on a rounding mode *)
-Definition MonotoneP (rnd : R -> R) :=
-  forall x y : R,
-  (x <= y)%R -> (rnd x <= rnd y)%R.
-
-Definition IdempotentP (F : R -> Prop) (rnd : R -> R) :=
-    (forall x : R, F (rnd x))
-        /\ (forall x : R, F x -> rnd x = x). 
-
-Definition Rounding_for_Format (F : R -> Prop) (rnd : R -> R) :=
-   MonotoneP rnd /\ IdempotentP F rnd.
-
 Definition round_pred_total (P : R -> R -> Prop) :=
   forall x, exists f, P x f.
 

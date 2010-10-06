@@ -37,9 +37,6 @@ Definition FIX_format (x : R) :=
   exists f : float beta,
   x = F2R f /\ (Fexp f = emin)%Z.
 
-Definition FIX_RoundingModeP (rnd : R -> R):=
-  Rounding_for_Format FIX_format rnd.
-
 Definition FIX_exp (e : Z) := emin.
 
 (** Properties of the FIX format *)

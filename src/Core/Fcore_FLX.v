@@ -40,9 +40,6 @@ Definition FLX_format (x : R) :=
   exists f : float beta,
   x = F2R f /\ (Zabs (Fnum f) < Zpower beta prec)%Z.
 
-Definition FLX_RoundingModeP (rnd : R -> R):=
-  Rounding_for_Format FLX_format rnd.
-
 Definition FLX_exp (e : Z) := (e - prec)%Z.
 
 (** Properties of the FLX format *)
@@ -150,9 +147,6 @@ Definition FLXN_format (x : R) :=
   exists f : float beta,
   x = F2R f /\ (x <> R0 ->
   Zpower beta (prec - 1) <= Zabs (Fnum f) < Zpower beta prec)%Z.
-
-Definition FLXN_RoundingModeP (rnd : R -> R):=
-  Rounding_for_Format FLXN_format rnd.
 
 Theorem FLX_format_FLXN :
   forall x : R, FLX_format x <-> FLXN_format x.

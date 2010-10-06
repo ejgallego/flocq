@@ -41,9 +41,6 @@ Definition FLT_format (x : R) :=
   exists f : float beta,
   x = F2R f /\ (Zabs (Fnum f) < Zpower beta prec)%Z /\ (emin <= Fexp f)%Z.
 
-Definition FLT_RoundingModeP (rnd : R -> R):=
-  Rounding_for_Format FLT_format rnd.
-
 Definition FLT_exp e := Zmax (e - prec) emin.
 
 (** Properties of the FLT format *)

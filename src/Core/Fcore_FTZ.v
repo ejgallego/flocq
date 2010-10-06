@@ -40,9 +40,6 @@ Definition FTZ_format (x : R) :=
   x = F2R f /\ (x <> R0 -> Zpower beta (prec - 1) <= Zabs (Fnum f) < Zpower beta prec)%Z /\
   (emin <= Fexp f)%Z.
 
-Definition FTZ_RoundingModeP (rnd : R -> R):=
-  Rounding_for_Format FTZ_format rnd.
-
 Definition FTZ_exp e := if Zlt_bool (e - prec) emin then (emin + prec - 1)%Z else (e - prec)%Z.
 
 (** Properties of the FTZ format *)
