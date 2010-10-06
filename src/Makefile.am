@@ -63,4 +63,8 @@ uninstall-local:
 	@$(NORMAL_UNINSTALL)
 	test -z "$(datadir)" || rm -rf "$(DESTDIR)$(datadir)/$$p"
 
+html: $(FILES:=o)
+	@mkdir -p ../html
+	$(COQDOC) -toc -g -R . Flocq -d ../html -t 'Flocq' --coqlib 'http://coq.inria.fr/library/' $(FILES)
+
 -include $(FILES:=d)

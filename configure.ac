@@ -20,6 +20,9 @@ AC_CHECK_TOOL(COQC, coqc)
 AC_ARG_VAR(COQDEP, [Coq dependency analyzer command [coqdep]])
 AC_CHECK_TOOL(COQDEP, coqdep)
 
+AC_ARG_VAR(COQDOC, [Coq documentation tool [coqdoc]])
+AC_CHECK_TOOL(COQDOC, coqdoc)
+
 if test "$libdir" = '${exec_prefix}/lib'; then
   libdir='`$(COQC) -where`/user-contrib/Flocq'
 fi
