@@ -17,7 +17,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
-(** * How to round a multi-precision float into a usable float *)
+(** * Helper function for computing the rounded value of a real number. *)
+
 Require Import Fcore.
 Require Import Fcalc_bracket.
 Require Import Fcalc_digits.
@@ -30,6 +31,10 @@ Notation bpow e := (bpow beta e).
 Variable fexp : Z -> Z.
 Hypothesis prop_exp : valid_exp fexp.
 Notation format := (generic_format beta fexp).
+
+(** Given a triple (mantissa, exponent, position), this function
+    computes a triple with a canonic exponent, assuming the
+    original triple had enough precision. *)
 
 Definition truncate t :=
   let '(m, e, l) := t in
@@ -195,6 +200,8 @@ rewrite <- H.
 now apply round_generic.
 Qed.
 
+(** Truncating a triple is sufficient to round a real number. *)
+
 Theorem round_trunc_any_correct :
   forall x m e l,
   (0 <= x)%R ->
@@ -210,6 +217,8 @@ now apply round_any_correct.
 Qed.
 
 End round_dir.
+
+(** * Instances of the theorems above, for the usual rounding modes. *)
 
 Definition round_DN_correct :=
   round_any_correct _ (fun m _ => m)

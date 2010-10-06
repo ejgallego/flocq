@@ -17,8 +17,12 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
-(** * Computing the rounded square root *)
-Require Import Fcore.
+(** * Helper functions and theorems for computing the rounded
+      square root of a floating-point number. *)
+
+Require Import Fcore_Raux.
+Require Import Fcore_defs.
+Require Import Fcore_float_prop.
 Require Import Fcalc_bracket.
 Require Import Fcalc_digits.
 
@@ -103,6 +107,10 @@ generalize (Zlt_cases (4 * r + 3 - (4 * q + 1)) 0).
 case Zlt_bool ; ( split ; [ ring | omega ] ).
 Qed.
 
+(** Computes the integer square root and its remainder, but
+    without carrying a proof, contrarily to the operation of
+    the standard libary. *)
+
 Definition Zsqrt p :=
   match p with
   | Zpos p => Zsqrt_aux p
@@ -125,17 +133,22 @@ Qed.
 Variable beta : radix.
 Notation bpow e := (bpow beta e).
 
-(*
- * 1. Shift the mantissa so that it has at least 2p-1 digits;
- *    shift it one digit more if the new exponent is not even.
- * 2. Compute the square root s (at least p digits) of the new
- *    mantissa, and its remainder r.
- * 3. Current position: r == 0  =>  Eq,
- *                      r <= s  =>  Lo,
- *                      r >= s  =>  Up.
- *
- * Complexity is fine as long as p1 <= 2p-1.
- *)
+(** Computes a mantissa of precision p, the corresponding exponent,
+    and the position with respect to the real square root of the
+    input floating-point number.
+
+The algorithm performs the following steps:
+- Shift the mantissa so that it has at least 2p-1 digits;
+  shift it one digit more if the new exponent is not even.
+- Compute the square root s (at least p digits) of the new
+  mantissa, and its remainder r.
+- Compute the position according to the remainder:
+  -- r == 0  =>  Eq,
+  -- r <= s  =>  Lo,
+  -- r >= s  =>  Up.
+
+Complexity is fine as long as p1 <= 2p-1.
+*)
 
 Definition Fsqrt_aux prec m e :=
   let d := digits beta m in

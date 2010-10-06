@@ -17,13 +17,22 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
-(** * Number of digits for "multi-precision" floats *)
-Require Import Fcore.
+(** * Function of computing the number of digits of integers
+      and related theorems. *)
+
+Require Import Fcore_Raux.
+Require Import Fcore_defs.
+Require Import Fcore_float_prop.
 
 Section Fcalc_digits.
 
 Variable beta : radix.
 Notation bpow e := (bpow beta e).
+
+(** Computes the number of bits (radix 2) of a positive integer.
+
+It serves as an upper bound on the number of digits to ensure termination.
+*)
 
 Fixpoint digits2_Pnat (n : positive) : nat :=
   match n with
@@ -205,19 +214,27 @@ apply He.
 now apply (Z2R_neq _ 0).
 Qed.
 
+Theorem ln_beta_F2R_digits :
+  forall m e, m <> Z0 ->
+  (ln_beta beta (F2R (Float beta m e)) = digits m + e :> Z)%Z.
+Proof.
+intros m e Hm.
+rewrite ln_beta_F2R with (1 := Hm).
+apply (f_equal (fun v => Zplus v e)).
+apply sym_eq.
+now apply digits_ln_beta.
+Qed.
+
 Theorem digits_shift :
   forall m e,
   m <> Z0 -> (0 <= e)%Z ->
   digits (m * Zpower beta e) = (digits m + e)%Z.
 Proof.
 intros m e Hm He.
-rewrite 2!digits_ln_beta.
+rewrite <- ln_beta_F2R_digits with (1 := Hm).
+rewrite digits_ln_beta.
 rewrite Z2R_mult.
-rewrite Z2R_Zpower with (1 := He).
-change (Z2R m * bpow e)%R with (F2R (Float beta m e)).
-apply ln_beta_F2R.
-exact Hm.
-exact Hm.
+now rewrite Z2R_Zpower with (1 := He).
 contradict Hm.
 apply Zmult_integral_l with (2 := Hm).
 apply neq_Z2R.
@@ -271,6 +288,12 @@ intros x y Hy.
 cut (y <= x -> digits y <= digits x)%Z. omega.
 now apply digits_le.
 Qed.
+
+(** Characterizes the number digits of a product.
+
+This strong version is needed for proofs of division and square root
+algorithms, since they involve operation remainders.
+*)
 
 Theorem digits_mult_strong :
   forall x y,
@@ -334,6 +357,23 @@ intros Hx'.
 rewrite (Zle_antisym _ _ Hx' Hx).
 rewrite Zmult_0_l, Zplus_0_r, 2!Zplus_0_l.
 apply Zle_refl.
+Qed.
+
+Theorem digits_mult :
+  forall x y,
+  (digits (x * y) <= digits x + digits y)%Z.
+Proof.
+intros x y.
+rewrite <- digits_abs.
+rewrite <- (digits_abs x).
+rewrite <- (digits_abs y).
+apply Zle_trans with (digits (Zabs x + Zabs y + Zabs x * Zabs y)).
+apply digits_le.
+apply Zabs_pos.
+rewrite Zabs_Zmult.
+generalize (Zabs_pos x) (Zabs_pos y).
+omega.
+apply digits_mult_strong ; apply Zabs_pos.
 Qed.
 
 End Fcalc_digits.

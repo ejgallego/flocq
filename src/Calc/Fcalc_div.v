@@ -17,8 +17,12 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
-(** * Computing the rounded division *)
-Require Import Fcore.
+(** * Helper function and theorem for computing the rounded quotient
+      of two floating-point numbers. *)
+
+Require Import Fcore_Raux.
+Require Import Fcore_defs.
+Require Import Fcore_float_prop.
 Require Import Fcalc_bracket.
 Require Import Fcalc_digits.
 
@@ -27,13 +31,17 @@ Section Fcalc_div.
 Variable beta : radix.
 Notation bpow e := (bpow beta e).
 
-(**
- - Shift dividend mantissa so that it has at least p2 + p digits.
- - Perform the euclidean division.
- - Compute position with remainder.
+(** Computes a mantissa of precision p, the corresponding exponent,
+    and the position with respect to the real quotient of the
+    input floating-point numbers.
+
+The algorithm performs the following steps:
+- Shift dividend mantissa so that it has at least p2 + p digits.
+- Perform the Euclidean division.
+- Compute the position according to the division remainder.
  
-  Complexity is fine as long as p1 <= 2p and p2 <= p.
- *)
+Complexity is fine as long as p1 <= 2p and p2 <= p.
+*)
 
 Definition Fdiv_aux prec m1 e1 m2 e2 :=
   let d1 := digits beta m1 in

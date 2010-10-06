@@ -17,7 +17,9 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
-(** * Locations: where is a real positioned compared to floats *) 
+(** * Locations: where a real number is positioned with respect to
+      its rounded-down value in an arbitrary format. *)
+
 Require Import Fcore.
 
 Section Fcalc_bracket.
@@ -34,6 +36,8 @@ Definition inbetween_loc :=
   | Gt => loc_Inexact (Rcompare x ((d + u) / 2))
   | _ => loc_Exact
   end.
+
+(** Locates a real number with respect to the middle of two other numbers. *)
 
 Inductive inbetween : location -> Prop :=
   | inbetween_Exact : x = d -> inbetween loc_Exact
@@ -326,6 +330,10 @@ simpl (Z2R 2).
 field.
 Qed.
 
+(** Computes a new location when the interval containing a real
+    number is split into nb_steps subintervals and the real is
+    in the k-th one. (Even radix.) *)
+
 Definition new_location_even k l :=
   if Zeq_bool k 0 then
     match l with loc_Exact => l | _ => loc_Inexact Lt end
@@ -378,6 +386,10 @@ apply inbetween_step_Hi with (1 := Hx).
 exact Hk1.
 apply Hk.
 Qed.
+
+(** Computes a new location when the interval containing a real
+    number is split into nb_steps subintervals and the real is
+    in the k-th one. (Odd radix.) *)
 
 Definition new_location_odd k l :=
   if Zeq_bool k 0 then
@@ -501,6 +513,8 @@ Variable fexp : Z -> Z.
 Hypothesis prop_exp : valid_exp fexp.
 Notation format := (generic_format beta fexp).
 
+(** Specialization of inbetween for two consecutive floating-point numbers. *)
+
 Definition inbetween_float m e x l :=
   inbetween (F2R (Float beta m e)) (F2R (Float beta (m + 1) e)) x l.
 
@@ -519,6 +533,8 @@ split.
 now apply Rlt_le.
 apply Hx.
 Qed.
+
+(** Specialization of inbetween for two consecutive integers. *)
 
 Definition inbetween_int m x l :=
   inbetween (Z2R m) (Z2R (m + 1)) x l.
@@ -565,6 +581,8 @@ now apply inbetween_float_new_location.
 apply Zmult_1_r.
 Qed.
 
+(** Relates location and rounding. *)
+
 Theorem inbetween_float_round :
   forall rnd choice,
   ( forall x m l, inbetween_int m x l -> Zrnd rnd x = choice m l ) ->
@@ -581,6 +599,8 @@ apply inbetween_mult_reg with (bpow e).
 apply bpow_gt_0.
 now rewrite scaled_mantissa_bpow.
 Qed.
+
+(** Gives a computable way to round a real number down. *)
 
 Theorem inbetween_float_DN :
   forall x m l,
@@ -603,6 +623,8 @@ Definition round_UP l :=
   | loc_Exact => false
   | _ => true
   end.
+
+(** Gives a computable way to round a real number up. *)
 
 Theorem inbetween_float_UP :
   forall x m l,
@@ -636,6 +658,8 @@ Definition round_NE (p : bool) l :=
   | loc_Inexact Eq => if p then false else true
   | loc_Inexact Gt => true
   end.
+
+(** Gives a computable way to round a real number to nearest even. *)
 
 Theorem inbetween_float_NE :
   forall x m l,
