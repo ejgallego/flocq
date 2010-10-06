@@ -1456,7 +1456,7 @@ split.
 now elim H.
 Qed.
 
-Theorem bpow_lt_aux :
+Theorem bpow_lt :
   forall e1 e2 : Z,
   (e1 < e2)%Z -> (bpow e1 < bpow e2)%R.
 Proof.
@@ -1492,42 +1492,43 @@ now split.
 now split.
 Qed.
 
-Theorem bpow_lt :
+Theorem lt_bpow :
   forall e1 e2 : Z,
-  (e1 < e2)%Z <-> (bpow e1 < bpow e2)%R.
+  (bpow e1 < bpow e2)%R -> (e1 < e2)%Z.
 Proof.
-intros e1 e2.
-split.
-apply bpow_lt_aux.
-intros H.
+intros e1 e2 H.
 apply Zgt_lt.
 apply Znot_le_gt.
 intros H'.
 apply Rlt_not_le with (1 := H).
 destruct (Zle_lt_or_eq _ _ H').
 apply Rlt_le.
-now apply bpow_lt_aux.
-apply Req_le.
-now apply f_equal.
+now apply bpow_lt.
+rewrite H0.
+apply Rle_refl.
 Qed.
 
 Theorem bpow_le :
   forall e1 e2 : Z,
-  (e1 <= e2)%Z <-> (bpow e1 <= bpow e2)%R.
+  (e1 <= e2)%Z -> (bpow e1 <= bpow e2)%R.
 Proof.
-intros e1 e2.
-split.
-intros H.
+intros e1 e2 H.
 apply Rnot_lt_le.
 intros H'.
 apply Zle_not_gt with (1 := H).
 apply Zlt_gt.
-now apply <- bpow_lt.
-intros H.
+now apply lt_bpow.
+Qed.
+
+Theorem le_bpow :
+  forall e1 e2 : Z,
+  (bpow e1 <= bpow e2)%R -> (e1 <= e2)%Z.
+Proof.
+intros e1 e2 H.
 apply Znot_gt_le.
 intros H'.
 apply Rle_not_lt with (1 := H).
-apply -> bpow_lt.
+apply bpow_lt.
 now apply Zgt_lt.
 Qed.
 
@@ -1537,9 +1538,9 @@ Theorem bpow_inj :
 Proof.
 intros.
 apply Zle_antisym.
-apply <- bpow_le.
+apply le_bpow.
 now apply Req_le.
-apply <- bpow_le.
+apply le_bpow.
 now apply Req_le.
 Qed.
 
@@ -1643,7 +1644,7 @@ Proof.
 intros e1 e2 He.
 rewrite (Zsucc_pred e1).
 apply Zlt_le_succ.
-now apply <- bpow_lt.
+now apply lt_bpow.
 Qed.
 
 Theorem bpow_unique :
@@ -1745,7 +1746,7 @@ rewrite Rabs_right.
 replace (e + 1 - 1)%Z with e by ring.
 split.
 apply Rle_refl.
-apply -> bpow_lt.
+apply bpow_lt.
 apply Zlt_succ.
 apply Rle_ge.
 apply bpow_ge_0.
@@ -1770,7 +1771,7 @@ Proof.
 intros.
 apply lt_Z2R.
 rewrite Z2R_Zpower.
-now apply -> (bpow_lt 0).
+now apply (bpow_lt 0).
 now apply Zlt_le_weak.
 Qed.
 

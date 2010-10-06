@@ -33,7 +33,7 @@ Notation format := (generic_format beta (FLX_exp prec)).
 Notation cexp := (canonic_exponent beta (FLX_exp prec)).
 
 (** Auxiliary result that provides the exponent *)
-Theorem mult_error_FLX_aux:
+Lemma mult_error_FLX_aux:
   forall rnd,
   forall x y,
   format x -> format y ->
@@ -42,6 +42,7 @@ Theorem mult_error_FLX_aux:
       (F2R f = round beta (FLX_exp prec) rnd (x * y) - (x * y))%R
       /\  (canonic_exponent beta (FLX_exp prec) (F2R f) <= Fexp f)%Z
       /\ (Fexp f = cexp x + cexp y)%Z.
+Proof.
 intros rnd x y Hx Hy Hz.
 set (f := (round beta (FLX_exp prec) rnd (x * y))).
 destruct (Req_dec (x * y) 0) as [Hxy0|Hxy0].
@@ -70,7 +71,7 @@ rewrite ln_beta_unique with (1 := Hex).
 rewrite ln_beta_unique with (1 := Hey).
 rewrite ln_beta_unique with (1 := Hexy).
 cut (exy - 1 < ex + ey)%Z. omega.
-apply <- (bpow_lt beta).
+apply (lt_bpow beta).
 apply Rle_lt_trans with (1 := proj1 Hexy).
 rewrite Rabs_mult.
 rewrite bpow_plus.
@@ -86,7 +87,7 @@ rewrite ln_beta_unique with (1 := Hex).
 rewrite ln_beta_unique with (1 := Hey).
 rewrite ln_beta_unique with (1 := Hexy).
 cut ((ex - 1) + (ey - 1) < exy)%Z. omega.
-apply <- (bpow_lt beta).
+apply (lt_bpow beta).
 apply Rle_lt_trans with (2 := proj2 Hexy).
 rewrite Rabs_mult.
 rewrite bpow_plus.
@@ -126,7 +127,7 @@ apply Rlt_le_trans with (ulp beta (FLX_exp prec) (x * y)).
 apply ulp_error.
 now apply FLX_exp_correct.
 unfold ulp.
-apply -> bpow_le.
+apply bpow_le.
 unfold canonic_exponent, FLX_exp.
 rewrite ln_beta_unique with (1 := Hexy).
 apply Zle_refl.
@@ -151,8 +152,8 @@ apply generic_format_canonic_exponent; simpl.
 simpl in H2; assumption.
 Qed.
 
-
 End Fprop_mult_error.
+
 Section Fprop_mult_error_FLT.
 
 Variable beta : radix.
@@ -191,11 +192,11 @@ now apply FLX_generic_format_FLT with emin.
 rewrite <- (FLT_round_FLX beta emin).
 assumption.
 apply Rle_trans with (2:=Hxy).
-apply -> bpow_le.
+apply bpow_le.
 omega.
 rewrite <- (FLT_round_FLX beta emin) in H1.
 2:apply Rle_trans with (2:=Hxy).
-2:apply -> bpow_le; omega.
+2:apply bpow_le; omega.
 unfold f; rewrite <- H1.
 apply generic_format_canonic_exponent.
 simpl in H2, H3.
@@ -225,7 +226,7 @@ destruct (ln_beta beta y) as (ey,Ey) ; simpl.
 specialize (Ey Hy0).
 assert (emin + 2 * prec -1 < ex + ey)%Z.
 2: omega.
-apply <- (bpow_lt beta).
+apply (lt_bpow beta).
 apply Rle_lt_trans with (1:=Hxy).
 rewrite Rabs_mult, bpow_plus.
 apply Rmult_le_0_lt_compat; try apply Rabs_pos.

@@ -83,7 +83,7 @@ replace (nb + (Z_of_nat k + 1) - 1)%Z with (nb + Z_of_nat k)%Z by ring.
 apply le_Z2R.
 rewrite Z2R_Zpower with (1 := Hnb).
 rewrite Z2R_Zpower.
-apply -> bpow_le.
+apply bpow_le.
 omega.
 omega.
 rewrite Zpower_exp.
@@ -130,7 +130,7 @@ clear n Hn Hn'.
 simpl.
 assert (He1: (0 <= e - 1)%Z).
 apply Zlt_0_le_0_pred.
-apply <- bpow_lt.
+apply (lt_bpow beta).
 apply Rle_lt_trans with (2 := proj2 He).
 apply (Z2R_le 1).
 now apply (Zlt_le_succ 0).
@@ -165,7 +165,7 @@ rewrite He2.
 cut (e - 1 < Z_of_nat (S (digits2_Pnat p)))%Z.
 rewrite inj_S.
 omega.
-apply <- bpow_lt.
+apply (lt_bpow beta).
 apply Rle_lt_trans with (1 := proj1 He).
 rewrite <- Z2R_Zpower_nat.
 apply Z2R_lt.
@@ -190,7 +190,7 @@ destruct (Z_eq_dec n 0) as [H|H].
 now rewrite H.
 rewrite digits_ln_beta with (1 := H).
 destruct ln_beta as (e, He). simpl.
-apply <- bpow_le.
+apply (le_bpow beta).
 apply Rlt_le.
 apply Rle_lt_trans with (Rabs (Z2R n)).
 simpl.

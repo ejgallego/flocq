@@ -250,7 +250,7 @@ apply bpow_gt_0.
 rewrite Rmult_assoc, <- bpow_plus, Zplus_opp_l.
 rewrite Rmult_1_r, Rmult_1_l.
 apply Rlt_le_trans with (1 := proj2 Hx).
-now apply -> bpow_le.
+now apply bpow_le.
 Qed.
 
 Theorem scaled_mantissa_small :
@@ -350,7 +350,7 @@ unfold canonic_exponent.
 destruct (ln_beta beta x) as (ex,Ex) ; simpl.
 specialize (Ex Hxz).
 apply Rlt_le_trans with (1 := proj2 Ex).
-apply -> bpow_le.
+apply bpow_le.
 specialize (Hp ex).
 omega.
 Qed.
@@ -383,7 +383,7 @@ split.
 apply Req_le.
 apply f_equal.
 ring.
-apply -> bpow_lt.
+apply bpow_lt.
 omega.
 now rewrite ln_beta_bpow.
 unfold scaled_mantissa.
@@ -446,7 +446,7 @@ rewrite Rabs_pos_eq in Hey.
 2: apply Rle_trans with (2:=Hxy); now apply Rlt_le.
 assert (He: (ex <= ey)%Z).
 cut (ex - 1 < ey)%Z. omega.
-apply <- bpow_lt.
+apply (lt_bpow beta).
 apply Rle_lt_trans with (1 := proj1 Hex).
 apply Rle_lt_trans with (1 := Hxy).
 apply Hey.
@@ -480,7 +480,7 @@ exact (proj2 (mantissa_small_pos _ _ Hex Hx1)).
 unfold F2R. simpl.
 rewrite Z2R_Zpower. 2: omega.
 rewrite <- bpow_plus, Rmult_1_l.
-apply -> bpow_le.
+apply bpow_le.
 omega.
 apply Rle_trans with (F2R (Float beta (Zrnd (bpow ex * bpow (- fexp ex))) (fexp ex))).
 apply F2R_le_compat.
@@ -495,7 +495,7 @@ rewrite Zrnd_Z2R.
 unfold F2R. simpl.
 rewrite 2!Z2R_Zpower ; try omega.
 rewrite <- 2!bpow_plus.
-apply -> bpow_le.
+apply bpow_le.
 omega.
 apply F2R_le_compat.
 apply Zrnd_monotone.
@@ -975,16 +975,16 @@ apply bpow_gt_0.
 specialize (He (Rgt_not_eq _ _ Hx)).
 rewrite Rabs_pos_eq in He. 2: now apply Rlt_le.
 apply Rle_trans with (bpow (ex - 1)).
-apply -> bpow_le.
+apply bpow_le.
 cut (e < ex)%Z. omega.
-apply <- bpow_lt.
+apply (lt_bpow beta).
 now apply Rle_lt_trans with (2 := proj2 He).
 destruct (Zle_or_lt ex (fexp ex)).
 destruct (round_bounded_small_pos rnd x ex H He) as [Hr|Hr].
 rewrite Hr in Hd.
 elim Rlt_irrefl with (1 := Hd).
 rewrite Hr.
-apply -> bpow_le.
+apply bpow_le.
 omega.
 apply (round_bounded_large_pos rnd x ex H He).
 Qed.

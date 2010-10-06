@@ -34,7 +34,6 @@ Notation format := (generic_format beta (FLX_exp prec)).
 Notation cexp := (canonic_exponent beta (FLX_exp prec)).
 Notation ulp := (ulp beta (FLX_exp prec)).
 
-
 Theorem pred_gt_0: forall f,
   format f -> (0 < f)%R -> (0 < pred beta (FLX_exp prec) f)%R.
 intros f Hf Zf.
@@ -50,12 +49,12 @@ omega.
 intros Hp1.
 case Req_bool_spec; intros H; apply Rlt_Rminus;
     apply Rlt_le_trans with (2:=proj1 Hef);
-    apply ->bpow_lt; omega.
+    apply bpow_lt; omega.
 (* special case for p = 1 *)
 intros Hp1.
 case Req_bool_spec; intros H; apply Rlt_Rminus.
 apply Rlt_le_trans with (2:=proj1 Hef).
-apply ->bpow_lt; omega.
+apply bpow_lt; omega.
 rewrite <- Hp1.
 case (proj1 Hef); trivial.
 intros H'.

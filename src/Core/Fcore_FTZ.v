@@ -88,7 +88,7 @@ case (Zlt_bool (ex - prec) emin) ; intros H1.
 elim (Rlt_not_le _ _ (proj2 Hx6)).
 apply Rle_trans with (bpow (prec - 1) * bpow emin)%R.
 rewrite <- bpow_plus.
-apply -> bpow_le.
+apply bpow_le.
 omega.
 rewrite Hx1, abs_F2R.
 unfold F2R. simpl.
@@ -99,9 +99,9 @@ rewrite <- Z2R_Zpower.
 now apply Z2R_le.
 apply Zle_minus_le_0.
 now apply (Zlt_le_succ 0).
-now apply -> bpow_le.
+now apply bpow_le.
 cut (ex - 1 < prec + xe)%Z. omega.
-apply <- (bpow_lt beta).
+apply (lt_bpow beta).
 apply Rle_lt_trans with (1 := proj1 Hx6).
 rewrite Hx1.
 apply F2R_lt_bpow.
@@ -142,7 +142,7 @@ rewrite Rmult_0_l.
 change (0 < F2R (Float beta (Zabs (Ztrunc (x * bpow (- (emin + prec - 1))))) (emin + prec - 1)))%R.
 rewrite <- abs_F2R, <- Hx2.
 now apply Rabs_pos_lt.
-apply -> bpow_le.
+apply bpow_le.
 omega.
 rewrite Hx2.
 eexists ; repeat split ; simpl.
@@ -208,7 +208,7 @@ eexists. split. split. split.
 now rewrite <- H1 at 1.
 rewrite (Zsucc_pred emin).
 apply Zlt_le_succ.
-apply <- (bpow_lt beta).
+apply (lt_bpow beta).
 apply Rmult_lt_reg_l with (Z2R (Zabs xm)).
 apply Rmult_lt_reg_r with (bpow xe).
 apply bpow_gt_0.
@@ -320,7 +320,7 @@ rewrite bpow_plus.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 apply Rle_trans with (2 := proj1 He).
-apply -> bpow_le.
+apply bpow_le.
 unfold FLX_exp.
 omega.
 apply bpow_ge_0.
@@ -354,7 +354,7 @@ rewrite bpow_plus.
 apply Rmult_lt_compat_r.
 apply bpow_gt_0.
 apply Rlt_le_trans with (1 := Hx).
-apply -> bpow_le.
+apply bpow_le.
 unfold FTZ_exp.
 generalize (Zlt_cases (ex - prec) emin).
 case Zlt_bool.
@@ -363,7 +363,7 @@ apply Zle_refl.
 intros He'.
 elim Rlt_not_le with (1 := Hx).
 apply Rle_trans with (2 := proj1 He).
-apply -> bpow_le.
+apply bpow_le.
 omega.
 apply bpow_ge_0.
 Qed.

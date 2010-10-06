@@ -435,7 +435,7 @@ Theorem ulp_monotone :
   (ulp x <= ulp y)%R.
 Proof.
 intros Hm x y Hx Hxy.
-apply -> bpow_le.
+apply bpow_le.
 apply Hm.
 now apply ln_beta_monotone.
 Qed.
@@ -450,7 +450,7 @@ rewrite Rabs_pos_eq.
 split.
 ring_simplify (e + 1 - 1)%Z.
 apply Rle_refl.
-apply -> bpow_lt.
+apply bpow_lt.
 apply Zlt_succ.
 apply bpow_ge_0.
 Qed.
@@ -612,7 +612,6 @@ unfold ulp, F2R; simpl.
 now rewrite Rmult_1_l.
 Qed.
 
-
 Theorem format_pred_1:
   forall x, (0 < x)%R -> F x -> 
   x <> bpow (ln_beta beta x - 1) ->
@@ -648,7 +647,7 @@ split.
 apply pred_ge_bpow; trivial.
 unfold ulp; intro H.
 assert (ex-1 < canonic_exponent beta fexp x  < ex)%Z.
-split; apply <- (bpow_lt beta); rewrite <- H; easy.
+split ; apply (lt_bpow beta) ; rewrite <- H ; easy.
 clear -H0. omega.
 apply Ex'.
 apply Rle_lt_trans with (2 := proj2 Ex').
@@ -705,7 +704,7 @@ split.
 apply Rplus_le_reg_l with (bpow (fexp (e-1))).
 ring_simplify.
 apply Rle_trans with (bpow (e - 2) + bpow (e - 2))%R.
-apply Rplus_le_compat; apply -> bpow_le; omega.
+apply Rplus_le_compat ; apply bpow_le ; omega.
 apply Rle_trans with (2*bpow (e - 2))%R;[right; ring|idtac].
 apply Rle_trans with (bpow 1*bpow (e - 2))%R.
 apply Rmult_le_compat_r.
@@ -727,7 +726,7 @@ rewrite <- Ropp_0.
 apply Ropp_lt_contravar.
 apply bpow_gt_0.
 apply Rle_ge; apply Rle_0_minus.
-apply -> bpow_le.
+apply bpow_le.
 omega.
 replace f with 0%R.
 apply generic_format_0.
@@ -771,7 +770,7 @@ destruct Hex as ([H1|H1],H2).
 apply pred_ge_bpow; trivial.
 unfold ulp; intros H3.
 assert (ex-1 < canonic_exponent beta fexp x  < ex)%Z.
-split; apply <- (bpow_lt beta); rewrite <- H3; easy.
+split ; apply (lt_bpow beta) ; rewrite <- H3 ; easy.
 omega.
 contradict Hx; auto with real.
 apply Rle_lt_trans with (2:=proj2 Hex).
@@ -794,8 +793,7 @@ apply F2R_gt_0_reg with beta (canonic_exponent beta fexp x).
 now rewrite <- Fx.
 Qed.
 
-
-Theorem pred_ulp_2:
+Theorem pred_ulp_2 :
   forall x, (0 < x)%R -> F x -> 
   let e := ln_beta_val beta x (ln_beta beta x) in
   x =  bpow (e - 1) ->
@@ -819,7 +817,7 @@ split.
 apply Rplus_le_reg_l with (bpow (fexp (e-1))).
 ring_simplify.
 apply Rle_trans with (bpow (e - 2) + bpow (e - 2))%R.
-apply Rplus_le_compat; apply -> bpow_le; omega.
+apply Rplus_le_compat; apply bpow_le; omega.
 apply Rle_trans with (2*bpow (e - 2))%R;[right; ring|idtac].
 apply Rle_trans with (bpow 1*bpow (e - 2))%R.
 apply Rmult_le_compat_r.
@@ -842,7 +840,7 @@ apply Ropp_lt_contravar.
 apply bpow_gt_0.
 apply Rle_ge; apply Rle_0_minus.
 rewrite Hxe.
-apply -> bpow_le.
+apply bpow_le.
 omega.
 (* *)
 contradict Zp.
@@ -882,7 +880,7 @@ apply Ropp_lt_contravar.
 apply bpow_gt_0.
 Qed.
 
-Theorem  pred_pos:
+Theorem pred_ge_0 :
   forall x, 
   (0 < x)%R -> F x -> (0 <= pred x)%R.
 intros x Zx Fx.
@@ -891,7 +889,7 @@ case Req_bool_spec; intros H.
 (* *)
 apply Rle_0_minus.
 rewrite H.
-apply -> bpow_le.
+apply bpow_le.
 destruct (ln_beta beta x) as (ex,Ex) ; simpl.
 rewrite ln_beta_bpow.
 ring_simplify (ex - 1 + 1 - 1)%Z.
@@ -918,7 +916,6 @@ apply Rlt_trans with (1:=Hx).
 apply pred_lt.
 Qed.
 
-
 Theorem round_DN_pred :
   forall x, (0 < pred x)%R -> F x ->
   forall eps, (0 < eps <= ulp (pred x))%R ->
@@ -944,12 +941,11 @@ apply Ropp_lt_contravar.
 now apply Heps.
 Qed.
 
-
 Theorem le_pred_lt:
   forall x y,
   F x -> F y ->
   (0 < x < y)%R ->
-  (x  <= pred y)%R.
+  (x <= pred y)%R.
 Proof.
 intros x y Hx Hy H. 
 assert (Zy:(0 < y)%R).
@@ -958,7 +954,7 @@ apply H.
 (* *)
 assert (Zp: (0 < pred y)%R).
 assert (Zp:(0 <= pred y)%R).
-apply pred_pos; trivial.
+apply pred_ge_0 ; trivial.
 destruct Zp; trivial.
 generalize H0.
 unfold pred.
@@ -1031,9 +1027,9 @@ apply trans_eq with (ln_beta beta y).
 apply sym_eq; apply ln_beta_unique.
 rewrite H1, Rabs_right.
 split.
-apply -> bpow_le.
+apply bpow_le.
 omega.
-apply -> bpow_lt.
+apply bpow_lt.
 omega.
 apply Rle_ge; apply bpow_ge_0.
 apply ln_beta_unique.
@@ -1058,6 +1054,5 @@ split; trivial.
 now apply Rlt_Rminus.
 now apply Rlt_le.
 Qed.
-
 
 End Fcore_ulp.

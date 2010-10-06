@@ -106,9 +106,9 @@ simpl.
 specialize (He Hx').
 apply Rle_trans with (bpow (-p + 1) * bpow (ex - 1))%R.
 rewrite <- bpow_plus.
-apply -> bpow_le.
+apply bpow_le.
 assert (emin < ex)%Z.
-apply <- bpow_lt.
+apply (lt_bpow beta).
 apply Rle_lt_trans with (2 := proj2 He).
 exact Hx.
 generalize (Hmin ex).
@@ -177,12 +177,12 @@ destruct (ln_beta beta x) as (ex, He).
 simpl.
 specialize (He Hx').
 assert (He': (emin < ex)%Z).
-apply <- bpow_lt.
+apply (lt_bpow beta).
 apply Rle_lt_trans with (2 := proj2 He).
 exact Hx.
 apply Rle_trans with (bpow (-p + 1) * bpow (ex - 1))%R.
 rewrite <- bpow_plus.
-apply -> bpow_le.
+apply bpow_le.
 generalize (Hmin ex).
 omega.
 apply Rmult_le_compat_l.
@@ -243,9 +243,9 @@ simpl.
 specialize (He Hx').
 apply Rle_trans with (bpow (-p + 1) * bpow (ex - 1))%R.
 rewrite <- bpow_plus.
-apply -> bpow_le.
+apply bpow_le.
 assert (emin < ex)%Z.
-apply <- bpow_lt.
+apply (lt_bpow beta).
 apply Rle_lt_trans with (2 := proj2 He).
 exact Hx.
 generalize (Hmin ex).
@@ -333,12 +333,12 @@ destruct (ln_beta beta x) as (ex, He).
 simpl.
 specialize (He Hx').
 assert (He': (emin < ex)%Z).
-apply <- bpow_lt.
+apply (lt_bpow beta).
 apply Rle_lt_trans with (2 := proj2 He).
 exact Hx.
 apply Rle_trans with (bpow (-p + 1) * bpow (ex - 1))%R.
 rewrite <- bpow_plus.
-apply -> bpow_le.
+apply bpow_le.
 generalize (Hmin ex).
 omega.
 apply Rmult_le_compat_l.
@@ -535,8 +535,7 @@ omega.
 exact Hp.
 Qed.
 
-
-Theorem error_N_FLT_aux :
+Lemma error_N_FLT_aux :
   forall x,
   (0 < x)%R ->
   exists eps, exists  eta,
@@ -572,13 +571,14 @@ apply Rle_trans with (/2*ulp beta (FLT_exp emin prec) x)%R.
 apply ulp_half_error.
 now apply FLT_exp_correct.
 apply Rmult_le_compat_l; auto with real.
-unfold ulp; apply ->bpow_le.
+unfold ulp.
+apply bpow_le.
 unfold FLT_exp, canonic_exponent.
 rewrite Zmax_right.
 omega.
 destruct (ln_beta beta x) as (e,He); simpl.
 assert (e-1 < emin+prec)%Z.
-apply <- (bpow_lt beta).
+apply (lt_bpow beta).
 apply Rle_lt_trans with (2:=Hx).
 rewrite <- (Rabs_right x).
 apply He; auto with real.
@@ -586,7 +586,6 @@ apply Rle_ge; now left.
 omega.
 split;ring.
 Qed.
-
 
 End Fprop_relative_FLT.
 

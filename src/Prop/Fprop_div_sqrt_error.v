@@ -105,7 +105,7 @@ apply Rmult_lt_compat_l.
 now apply Rabs_pos_lt.
 apply Rlt_le_trans with (1 := Heps1).
 change R1 with (bpow 0).
-apply -> bpow_le.
+apply bpow_le.
 clear -Hp. omega.
 rewrite Rmult_1_r.
 rewrite Hx2.
@@ -115,7 +115,7 @@ simpl.
 specialize (Hex Zx).
 apply Rlt_le.
 apply Rlt_le_trans with (1 := proj2 Hex).
-apply -> bpow_le.
+apply bpow_le.
 unfold FLX_exp.
 ring_simplify.
 apply Zle_refl.
@@ -198,7 +198,7 @@ apply Rmult_le_reg_l with 2%R.
 now apply (Z2R_lt 0 2).
 rewrite <- Rmult_assoc, Rinv_r, Rmult_1_l.
 apply Rle_trans with (bpow (-1)).
-apply -> bpow_le.
+apply bpow_le.
 omega.
 replace (2 * (-1 + 5 / 4))%R with (/2)%R by field.
 apply Rinv_le.
@@ -282,7 +282,7 @@ destruct (ln_beta beta (sqrt x)) as (es,Es).
 specialize (Es H0).
 apply Rle_trans with (bpow es).
 now apply Rlt_le.
-apply ->bpow_le.
+apply bpow_le.
 case (Zle_or_lt es (prec + Fexp fr)) ; trivial.
 intros H1.
 absurd (Rabs (F2R fr) < bpow (es - 1))%R.
@@ -294,7 +294,8 @@ apply generic_format_bpow.
 unfold FLX_exp; omega.
 apply Es.
 apply Rlt_le_trans with (1:=H).
-apply ->bpow_le; omega.
+apply bpow_le.
+omega.
 now apply Rlt_le.
 Qed.
 

@@ -85,7 +85,7 @@ rewrite canonic_exponent_fexp with (1 := Hx5).
 unfold FLT_exp.
 apply Zmax_lub. 2: exact Hx3.
 cut (ex -1 < prec + xe)%Z. omega.
-apply <- bpow_lt.
+apply (lt_bpow beta).
 apply Rle_lt_trans with (1 := proj1 Hx5).
 rewrite Hx1.
 apply F2R_lt_bpow.
@@ -114,7 +114,7 @@ destruct (ln_beta beta x) as (ex', He).
 simpl in ex.
 specialize (He Hx0).
 apply Rlt_le_trans with (1 := proj2 He).
-apply -> bpow_le.
+apply bpow_le.
 cut (ex' - prec <= ex)%Z. omega.
 unfold ex, FLT_exp.
 apply Zle_max_l.
@@ -143,7 +143,7 @@ destruct (ln_beta beta x) as (ex, He).
 unfold FLX_exp. simpl.
 specialize (He Hx0).
 cut (emin + prec - 1 < ex)%Z. omega.
-apply <- (bpow_lt beta).
+apply (lt_bpow beta).
 apply Rle_lt_trans with (1 := Hx).
 apply He.
 Qed.
@@ -214,7 +214,7 @@ unfold FIX_exp.
 destruct (ln_beta beta x) as (ex, Hex).
 simpl.
 cut (ex - 1 < emin + prec)%Z. omega.
-apply <- (bpow_lt beta).
+apply (lt_bpow beta).
 apply Rle_lt_trans with (2 := Hx).
 now apply Hex.
 Qed.

@@ -168,7 +168,7 @@ destruct (ln_beta beta (Z2R xm)) as (d,H4).
 specialize (H4 (Z2R_neq _ _ H3)).
 assert (H5: (0 <= prec - d)%Z).
 cut (d - 1 < prec)%Z. omega.
-apply <- (bpow_lt beta).
+apply (lt_bpow beta).
 apply Rle_lt_trans with (Rabs (Z2R xm)).
 apply H4.
 rewrite <- Z2R_Zpower, <- Z2R_abs.

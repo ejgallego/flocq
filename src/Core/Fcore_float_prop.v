@@ -244,7 +244,7 @@ intros m e1 e2 Hm.
 intros H.
 assert (He : (e1 <= e2)%Z).
 (* . *)
-apply <- (bpow_le beta).
+apply (le_bpow beta).
 apply Rle_trans with (F2R (Float beta m e1)).
 unfold F2R. simpl.
 rewrite <- (Rmult_1_l (bpow e1)) at 1.
@@ -296,7 +296,7 @@ now apply Zle_minus_le_0.
 intros H.
 apply Rle_trans with (1*bpow e1)%R.
 rewrite Rmult_1_l.
-apply -> bpow_le.
+apply bpow_le.
 now apply Zlt_le_weak.
 unfold F2R. simpl.
 apply Rmult_le_compat_r.
@@ -357,7 +357,7 @@ now elim (Zle_not_lt _ _ (Zabs_pos m)).
 replace (e - e' + p)%Z with (e - (e' - p))%Z by ring.
 apply F2R_change_exp.
 cut (e' - 1 < e + p)%Z. omega.
-apply <- bpow_lt.
+apply (lt_bpow beta).
 apply Rle_lt_trans with (1 := Hf).
 rewrite abs_F2R, Zplus_comm, bpow_plus.
 apply Rmult_lt_compat_r.
