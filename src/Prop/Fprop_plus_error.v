@@ -136,7 +136,7 @@ Variable fexp : Z -> Z.
 Hypothesis prop_exp : valid_exp fexp.
 Notation format := (generic_format beta fexp).
 
-Hypothesis not_FTZ : forall e, (fexp (fexp e + 1) <= fexp e)%Z.
+Hypothesis not_FTZ : not_FTZ_prop fexp.
 
 Theorem round_plus_eq_zero_aux :
   forall rnd x y,
