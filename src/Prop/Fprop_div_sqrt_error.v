@@ -1,8 +1,9 @@
-(*
+(**
 This file is part of the Flocq formalization of floating-point
 arithmetic in Coq: http://flocq.gforge.inria.fr/
 
 Copyright (C) 2010 Sylvie Boldo
+#<br />#
 Copyright (C) 2010 Guillaume Melquiond
 
 This library is free software; you can redistribute it and/or
@@ -16,6 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
+(** * Remainder of the division and square root are in the FLX format *)
 Require Import Fcore.
 Require Import Fcalc_ops.
 Require Import Fprop_relative.
@@ -66,6 +68,7 @@ exists (Float beta (Ztrunc (scaled_mantissa beta (FLX_exp prec) x)) (cexp x)).
 split; auto.
 Qed.
 
+(** Remainder of the division in FLX *)
 Theorem div_error_FLX :
   forall Zrnd x y,
   format x -> format y ->
@@ -145,9 +148,10 @@ destruct (ln_beta beta y); simpl.
 left; now apply a.
 Qed.
 
+(** Remainder of the square in FLX (with p>1) and rounding to nearest *)
 Variable Hp1 : Zlt 1 prec.
 
-Theorem sqrt_error_N :
+Theorem sqrt_error_FLX_N :
   forall x, format x ->
   format (x - Rsqr (round beta (FLX_exp prec) (rndN choice) (sqrt x)))%R.
 Proof.

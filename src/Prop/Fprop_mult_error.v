@@ -1,8 +1,9 @@
-(*
+(**
 This file is part of the Flocq formalization of floating-point
 arithmetic in Coq: http://flocq.gforge.inria.fr/
 
 Copyright (C) 2010 Sylvie Boldo
+#<br />#
 Copyright (C) 2010 Guillaume Melquiond
 
 This library is free software; you can redistribute it and/or
@@ -16,6 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
+(** * Error of the multiplication is in the FLX/FLT format *)
 Require Import Fcore.
 Require Import Fcalc_ops.
 
@@ -30,6 +32,7 @@ Variable Hp : Zlt 0 prec.
 Notation format := (generic_format beta (FLX_exp prec)).
 Notation cexp := (canonic_exponent beta (FLX_exp prec)).
 
+(** Auxiliary result that provides the exponent *)
 Theorem mult_error_FLX_aux:
   forall rnd,
   forall x y,
@@ -131,7 +134,7 @@ apply Hc1.
 reflexivity.
 Qed.
 
-
+(** Error of the multiplication in FLX *)
 Theorem mult_error_FLX :
   forall rnd,
   forall x y,
@@ -162,7 +165,7 @@ Variable Hpemin: (emin <= prec)%Z.
 Notation format := (generic_format beta (FLT_exp emin prec)).
 Notation cexp := (canonic_exponent beta (FLT_exp emin prec)).
 
-
+(** Error of the multiplication in FLT with underflow requirements *)
 Theorem mult_error_FLT :
   forall rnd,
   forall x y,

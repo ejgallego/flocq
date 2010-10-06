@@ -1,8 +1,9 @@
-(*
+(**
 This file is part of the Flocq formalization of floating-point
 arithmetic in Coq: http://flocq.gforge.inria.fr/
 
 Copyright (C) 2010 Sylvie Boldo
+#<br />#
 Copyright (C) 2010 Guillaume Melquiond
 
 This library is free software; you can redistribute it and/or
@@ -16,6 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
+(** * Error of the multiplication is in generic format and rounding to nearest *)
 Require Import Fcore.
 Require Import Fcalc_ops.
 
@@ -109,6 +111,7 @@ rewrite Rabs_Ropp.
 now apply (generic_N_pt beta _ prop_exp choice (x + y)).
 Qed.
 
+(** Error of the addition *)
 Theorem plus_error :
   forall x y,
   format x -> format y ->
@@ -177,6 +180,7 @@ ring_simplify (exy - 1 + 1)%Z.
 omega.
 Qed.
 
+(** rnd(x+y)=0 -> x+y = 0 provided this is not a FTZ format *)
 Theorem round_plus_eq_zero :
   forall rnd x y,
   format x -> format y ->
