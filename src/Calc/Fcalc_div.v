@@ -113,7 +113,7 @@ assert (Hq': (0 < q)%Z).
 apply Zmult_lt_reg_r with m2.
 exact Hm2'.
 assert (m2 < m')%Z.
-apply digits_lt with beta.
+apply lt_digits with beta.
 now apply Zlt_le_weak.
 unfold d2 in Hs3.
 omega.

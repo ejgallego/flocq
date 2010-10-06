@@ -1516,7 +1516,7 @@ apply -> bpow_lt.
 now apply Zgt_lt.
 Qed.
 
-Theorem bpow_eq :
+Theorem bpow_inj :
   forall e1 e2 : Z,
   bpow e1 = bpow e2 -> e1 = e2.
 Proof.

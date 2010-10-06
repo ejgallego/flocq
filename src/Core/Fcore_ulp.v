@@ -967,7 +967,7 @@ case Req_bool_spec; intros Hy2.
 (* . *)
 intros Hy3.
 assert (ey-1 = fexp (ey -1))%Z.
-apply bpow_eq with beta.
+apply bpow_inj with beta.
 rewrite <- Hy2, <- Rplus_0_l, Hy3.
 ring.
 assert (Zx: (x <> 0)%R).

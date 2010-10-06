@@ -261,7 +261,7 @@ rewrite (Zle_antisym _ _ Hx' Hx).
 apply digits_ge_0.
 Qed.
 
-Theorem digits_lt :
+Theorem lt_digits :
   forall x y,
   (0 <= y)%Z ->
   (digits x < digits y)%Z ->
