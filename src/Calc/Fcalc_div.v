@@ -1,8 +1,9 @@
-(*
+(**
 This file is part of the Flocq formalization of floating-point
 arithmetic in Coq: http://flocq.gforge.inria.fr/
 
 Copyright (C) 2010 Sylvie Boldo
+#<br />#
 Copyright (C) 2010 Guillaume Melquiond
 
 This library is free software; you can redistribute it and/or
@@ -16,6 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
+(** * Computing the rounded division *)
 Require Import Fcore.
 Require Import Fcalc_bracket.
 Require Import Fcalc_digits.
@@ -25,12 +27,12 @@ Section Fcalc_div.
 Variable beta : radix.
 Notation bpow e := (bpow beta e).
 
-(*
- * 1. Shift dividend mantissa so that it has at least p2 + p digits.
- * 2. Perform the euclidean division.
- * 3. Compute position with remainder.
- *
- * Complexity is fine as long as p1 <= 2p and p2 <= p.
+(**
+ - Shift dividend mantissa so that it has at least p2 + p digits.
+ - Perform the euclidean division.
+ - Compute position with remainder.
+ 
+  Complexity is fine as long as p1 <= 2p and p2 <= p.
  *)
 
 Definition Fdiv_aux prec m1 e1 m2 e2 :=

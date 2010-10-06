@@ -1,8 +1,9 @@
-(*
+(**
 This file is part of the Flocq formalization of floating-point
 arithmetic in Coq: http://flocq.gforge.inria.fr/
 
 Copyright (C) 2010 Sylvie Boldo
+#<br />#
 Copyright (C) 2010 Guillaume Melquiond
 
 This library is free software; you can redistribute it and/or
@@ -16,6 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
+(** * Computing the rounded square root *)
 Require Import Fcore.
 Require Import Fcalc_bracket.
 Require Import Fcalc_digits.
