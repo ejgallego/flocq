@@ -819,6 +819,20 @@ apply Rcompare_Gt.
 now apply Rsqr_incrst_1.
 Qed.
 
+Theorem Rmin_compare :
+  forall x y,
+  Rmin x y = match Rcompare x y with Lt => x | Eq => x | Gt => y end.
+Proof.
+intros x y.
+unfold Rmin.
+destruct (Rle_dec x y) as [[Hx|Hx]|Hx].
+now rewrite Rcompare_Lt.
+now rewrite Rcompare_Eq.
+rewrite Rcompare_Gt.
+easy.
+now apply Rnot_le_lt.
+Qed.
+
 End Rcompare.
 
 Section Rle_bool.
@@ -914,6 +928,7 @@ apply refl_equal.
 Qed.
 
 End Req_bool.
+
 Section Floor_Ceil.
 
 (** Zfloor and Zceil *)

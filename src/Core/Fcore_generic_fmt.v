@@ -1324,20 +1324,6 @@ apply Rlt_le.
 now apply Znearest_N_strict.
 Qed.
 
-Theorem Rmin_compare :
-  forall x y,
-  Rmin x y = match Rcompare x y with Lt => x | Eq => x | Gt => y end.
-Proof.
-intros x y.
-unfold Rmin.
-destruct (Rle_dec x y) as [[Hx|Hx]|Hx].
-now rewrite Rcompare_Lt.
-now rewrite Rcompare_Eq.
-rewrite Rcompare_Gt.
-easy.
-now apply Rnot_le_lt.
-Qed.
-
 Theorem generic_N_pt :
   forall x,
   Rnd_N_pt generic_format x (round rndN x).
