@@ -1282,7 +1282,7 @@ apply Rle_lt_trans with (2 := H).
 now apply H3.
 Qed.
 
-(* ensures a real number can always be rounded *)
+(** ensures a real number can always be rounded *)
 Inductive satisfies_any (F : R -> Prop) :=
   Satisfies_any :
     F 0 -> ( forall x : R, F x -> F (-x) ) ->

@@ -17,7 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
-(** * Unit in the Last Place: our definition using fexp and its properties *)
+(** * Unit in the Last Place: our definition using fexp and its properties, successor and predecessor *)
 Require Import Fcore_Raux.
 Require Import Fcore_defs.
 Require Import Fcore_rnd.

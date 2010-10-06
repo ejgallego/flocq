@@ -33,7 +33,7 @@ Variable beta : radix.
 Definition F2R (f : float beta) :=
   (Z2R (Fnum f) * bpow beta (Fexp f))%R.
 
-(** Requirements on a rounding mode property *)
+(** Requirements on a rounding mode *)
 Definition MonotoneP (rnd : R -> R) :=
   forall x y : R,
   (x <= y)%R -> (rnd x <= rnd y)%R.
