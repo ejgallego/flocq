@@ -17,8 +17,12 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
-(** * Error of the multiplication is in generic format and rounding to nearest *)
-Require Import Fcore.
+(** * Error of the rounded-to-nearest addition is representable. *)
+
+Require Import Fcore_Raux.
+Require Import Fcore_defs.
+Require Import Fcore_float_prop.
+Require Import Fcore_generic_fmt.
 Require Import Fcalc_ops.
 
 Section Fprop_plus_error.
@@ -65,7 +69,7 @@ Notation format := (generic_format beta fexp).
 
 Variable choice : R -> bool.
 
-Theorem plus_error_aux :
+Lemma plus_error_aux :
   forall x y,
   (canonic_exponent beta fexp x <= canonic_exponent beta fexp y)%Z ->
   format x -> format y ->
@@ -138,7 +142,7 @@ Notation format := (generic_format beta fexp).
 
 Hypothesis not_FTZ : not_FTZ_prop fexp.
 
-Theorem round_plus_eq_zero_aux :
+Lemma round_plus_eq_zero_aux :
   forall rnd x y,
   (canonic_exponent beta fexp x <= canonic_exponent beta fexp y)%Z ->
   format x -> format y ->
