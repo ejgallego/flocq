@@ -63,7 +63,7 @@ Definition DN_UP_parity_prop :=
   F2R xu = round beta fexp rndUP x ->
   Zeven (Fnum xu) = negb (Zeven (Fnum xd)).
 
-Theorem DN_UP_parity_aux :
+Lemma DN_UP_parity_aux :
   DN_UP_parity_pos_prop ->
   DN_UP_parity_prop.
 Proof.

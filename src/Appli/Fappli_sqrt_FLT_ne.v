@@ -32,7 +32,7 @@ Definition Fsqrt_FLT_ne (f : float beta) :=
   let '(Float m e) := f in
   if Zle_bool m 0 then Float beta 0 0
   else
-    let '(m', e', l) := truncate beta (FLT_exp emin prec) (Fsqrt_aux beta prec m e) in
+    let '(m', e', l) := truncate beta (FLT_exp emin prec) (Fsqrt_core beta prec m e) in
     Float beta (cond_incr (round_NE (Zeven m') l) m') e'.
 
 Theorem Fsqrt_FLT_ne_correct :
@@ -61,8 +61,8 @@ now apply F2R_lt_0_compat.
 rewrite Hm', F2R_0.
 now rewrite sqrt_0.
 (* 0 < mx *)
-generalize (Fsqrt_aux_correct beta prec mx ex (Zgt_lt _ _ Hm)).
-destruct (Fsqrt_aux beta prec mx ex) as ((ms, es), ls).
+generalize (Fsqrt_core_correct beta prec mx ex (Zgt_lt _ _ Hm)).
+destruct (Fsqrt_core beta prec mx ex) as ((ms, es), ls).
 intros (H1, H2).
 assert (Hp : (0 < prec)%Z) by omega.
 generalize (round_trunc_NE_correct beta _ (FLT_exp_correct emin prec Hp) (sqrt (F2R (Float beta mx ex))) ms es ls).

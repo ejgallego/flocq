@@ -43,7 +43,7 @@ The algorithm performs the following steps:
 Complexity is fine as long as p1 <= 2p and p2 <= p.
 *)
 
-Definition Fdiv_aux prec m1 e1 m2 e2 :=
+Definition Fdiv_core prec m1 e1 m2 e2 :=
   let d1 := digits beta m1 in
   let d2 := digits beta m2 in
   let e := (e1 - e2)%Z in
@@ -55,16 +55,16 @@ Definition Fdiv_aux prec m1 e1 m2 e2 :=
   let '(q, r) :=  Zdiv_eucl m m2 in
   (q, e', new_location m2 r loc_Exact).
 
-Theorem Fdiv_aux_correct :
+Theorem Fdiv_core_correct :
   forall prec m1 e1 m2 e2,
   (0 < prec)%Z ->
   (0 < m1)%Z -> (1 < m2)%Z ->
-  let '(m, e, l) := Fdiv_aux prec m1 e1 m2 e2 in
+  let '(m, e, l) := Fdiv_core prec m1 e1 m2 e2 in
   (prec <= digits beta m)%Z /\
   inbetween_float beta m e (F2R (Float beta m1 e1) / F2R (Float beta m2 e2)) l.
 Proof.
 intros prec m1 e1 m2 e2 Hprec Hm1 Hm2.
-unfold Fdiv_aux.
+unfold Fdiv_core.
 set (d1 := digits beta m1).
 set (d2 := digits beta m2).
 case_eq

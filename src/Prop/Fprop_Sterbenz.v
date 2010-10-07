@@ -118,7 +118,7 @@ apply Rlt_le.
 now apply Rnot_le_lt.
 Qed.
 
-Theorem sterbenz_aux :
+Lemma sterbenz_aux :
   forall x y, format x -> format y ->
   (y <= x <= 2 * y)%R ->
   format (x - y)%R.

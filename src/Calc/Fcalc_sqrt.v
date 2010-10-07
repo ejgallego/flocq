@@ -150,7 +150,7 @@ The algorithm performs the following steps:
 Complexity is fine as long as p1 <= 2p-1.
 *)
 
-Definition Fsqrt_aux prec m e :=
+Definition Fsqrt_core prec m e :=
   let d := digits beta m in
   let s := Zmax (2 * prec - d) 0 in
   let e' := (e - s)%Z in
@@ -166,15 +166,15 @@ Definition Fsqrt_aux prec m e :=
     else loc_Inexact (if Zle_bool r q then Lt else Gt) in
   (q, Zdiv2 e'', l).
 
-Theorem Fsqrt_aux_correct :
+Theorem Fsqrt_core_correct :
   forall prec m e,
   (0 < m)%Z ->
-  let '(m', e', l) := Fsqrt_aux prec m e in
+  let '(m', e', l) := Fsqrt_core prec m e in
   (prec <= digits beta m')%Z /\
   inbetween_float beta m' e' (sqrt (F2R (Float beta m e))) l.
 Proof.
 intros prec m e Hm.
-unfold Fsqrt_aux.
+unfold Fsqrt_core.
 set (d := digits beta m).
 set (s := Zmax (2 * prec - d) 0).
 (* . exponent *)
