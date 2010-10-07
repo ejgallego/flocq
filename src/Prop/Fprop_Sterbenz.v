@@ -18,7 +18,10 @@ COPYING file for more details.
 *)
 
 (** * Sterbenz conditions for exact subtraction *)
-Require Import Fcore.
+
+Require Import Fcore_Raux.
+Require Import Fcore_defs.
+Require Import Fcore_generic_fmt.
 Require Import Fcalc_ops.
 
 Section Fprop_Sterbenz.
