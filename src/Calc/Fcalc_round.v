@@ -28,6 +28,8 @@ Section Fcalc_round.
 Variable beta : radix.
 Notation bpow e := (bpow beta e).
 
+Section Fcalc_round_fexp.
+
 Variable fexp : Z -> Z.
 Hypothesis prop_exp : valid_exp fexp.
 Notation format := (generic_format beta fexp).
@@ -354,5 +356,59 @@ Definition round_NE_correct :=
 Definition round_trunc_NE_correct :=
   round_trunc_any_correct _ (fun m l => cond_incr (round_NE (Zeven m) l) m)
     (fun _ => refl_equal _) inbetween_float_NE.
+
+End Fcalc_round_fexp.
+
+(** Specialization of truncate for FIX formats. *)
+
+Variable emin : Z.
+
+Definition truncate_FIX t :=
+  let '(m, e, l) := t in
+  let k := (emin - e)%Z in
+  if Zlt_bool 0 k then
+    let p := Zpower beta k in
+    (Zdiv m p, (e + k)%Z, new_location p (Zmod m p) l)
+  else t.
+
+Theorem truncate_FIX_correct :
+  forall x m e l,
+  inbetween_float beta m e x l ->
+  (e <= emin)%Z \/ l = loc_Exact ->
+  let '(m', e', l') := truncate_FIX (m, e, l) in
+  inbetween_float beta m' e' x l' /\
+  (e' = canonic_exponent beta (FIX_exp emin) x \/ (l' = loc_Exact /\ generic_format beta (FIX_exp emin) x)).
+Proof.
+intros x m e l H1 H2.
+unfold truncate_FIX.
+set (k := (emin - e)%Z).
+set (p := Zpower beta k).
+unfold canonic_exponent, FIX_exp.
+generalize (Zlt_cases 0 k).
+case (Zlt_bool 0 k) ; intros Hk.
+(* shift *)
+split.
+now apply inbetween_float_new_location.
+clear H2.
+left.
+unfold k.
+ring.
+(* no shift *)
+split.
+exact H1.
+unfold k in Hk.
+destruct H2 as [H2|H2].
+left.
+omega.
+right.
+split.
+exact H2.
+rewrite H2 in H1.
+inversion_clear H1.
+rewrite H.
+apply generic_format_canonic_exponent.
+unfold canonic_exponent.
+omega.
+Qed.
 
 End Fcalc_round.

@@ -16,7 +16,6 @@ FILES = \
 	Calc/Fcalc_div.v \
 	Calc/Fcalc_ops.v \
 	Calc/Fcalc_round.v \
-	Calc/Fcalc_round_FIX.v \
 	Calc/Fcalc_sqrt.v \
 	Prop/Fprop_mult_error.v \
 	Prop/Fprop_plus_error.v \
