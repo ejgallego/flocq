@@ -54,7 +54,6 @@ unfold ulp.
 now rewrite canonic_exponent_abs.
 Qed.
 
-
 Theorem ulp_le_pos:
   forall x, 
     (0 < x)%R ->
@@ -74,7 +73,6 @@ apply F2R_gt_0_reg with beta (canonic_exponent beta fexp x).
 now rewrite <- Fx.
 Qed.
 
-
 Theorem ulp_le_abs:
   forall x, 
     (x <> 0)%R ->
@@ -82,27 +80,11 @@ Theorem ulp_le_abs:
     (ulp x <= Rabs x)%R.
 Proof.
 intros x Zx Fx.
-case (Rdichotomy _ _ Zx); intros Sx.
-(* *)
-rewrite <- (Rmult_1_l (ulp x)).
-pattern x at 2; rewrite Fx.
-rewrite abs_F2R.
-unfold F2R, ulp; simpl.
-apply Rmult_le_compat_r.
-apply bpow_ge_0.
-replace 1%R with (Z2R (Zsucc 0)) by reflexivity.
-apply Z2R_le.
-apply Zlt_le_succ.
-apply F2R_gt_0_reg with beta (canonic_exponent beta fexp x).
-rewrite <- abs_F2R, <- Fx.
-rewrite Rabs_left1; auto with real.
-(* *)
-rewrite Rabs_right.
-now apply ulp_le_pos .
-now apply Rgt_ge.
+rewrite <- ulp_abs.
+apply ulp_le_pos.
+now apply Rabs_pos_lt.
+now apply generic_format_abs.
 Qed.
-
-
 
 Theorem ulp_DN_UP :
   forall x, ~ F x ->

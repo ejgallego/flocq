@@ -209,6 +209,17 @@ rewrite <- opp_F2R.
 now apply f_equal.
 Qed.
 
+Theorem generic_format_abs :
+  forall x, generic_format x -> generic_format (Rabs x).
+Proof.
+intros x Hx.
+unfold generic_format.
+rewrite scaled_mantissa_abs, canonic_exponent_abs.
+rewrite Ztrunc_abs.
+rewrite <- abs_F2R.
+now apply f_equal.
+Qed.
+
 Theorem canonic_exponent_fexp :
   forall x ex,
   (bpow (ex - 1) <= Rabs x < bpow ex)%R ->
