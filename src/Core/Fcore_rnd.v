@@ -907,6 +907,59 @@ now apply -> Rnd_NA_NG_pt.
 now apply -> Rnd_NA_NG_pt.
 Qed.
 
+Theorem Rnd_NA_N_pt :
+  forall F : R -> Prop,
+  F 0 ->
+  forall x f : R,
+  Rnd_N_pt F x f ->
+  (Rabs x <= Rabs f)%R ->
+  Rnd_NA_pt F x f.
+Proof.
+intros F HF x f Rxf Hxf.
+split.
+apply Rxf.
+intros g Rxg.
+destruct (Rabs_eq_Rabs (f - x) (g - x)) as [H|H].
+apply Rle_antisym.
+apply Rxf.
+apply Rxg.
+apply Rxg.
+apply Rxf.
+(* *)
+replace g with f.
+apply Rle_refl.
+apply Rplus_eq_reg_r with (1 := H).
+(* *)
+assert (g = 2 * x - f)%R.
+replace (2 * x - f)%R with (x - (f - x))%R by ring.
+rewrite H.
+ring.
+destruct (Rle_lt_dec 0 x) as [Hx|Hx].
+(* . *)
+revert Hxf.
+rewrite Rabs_pos_eq with (1 := Hx).
+rewrite 2!Rabs_pos_eq ; try ( apply (Rnd_N_pt_pos F HF x) ; assumption ).
+intros Hxf.
+rewrite H0.
+apply Rplus_le_reg_r with f.
+ring_simplify.
+apply Rmult_le_compat_l with (2 := Hxf).
+now apply (Z2R_le 0 2).
+(* . *)
+revert Hxf.
+apply Rlt_le in Hx.
+rewrite Rabs_left1 with (1 := Hx).
+rewrite 2!Rabs_left1 ; try ( apply (Rnd_N_pt_neg F HF x) ; assumption ).
+intros Hxf.
+rewrite H0.
+apply Ropp_le_contravar.
+apply Rplus_le_reg_r with f.
+ring_simplify.
+apply Rmult_le_compat_l.
+now apply (Z2R_le 0 2).
+now apply Ropp_le_cancel.
+Qed.
+
 Theorem Rnd_NA_unicity :
   forall (F : R -> Prop),
   F 0 ->
