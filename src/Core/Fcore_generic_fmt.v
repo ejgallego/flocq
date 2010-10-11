@@ -1429,6 +1429,62 @@ Qed.
 
 End Znearest.
 
+Section rndNA.
+
+Definition rndNA := rndN (Rle_bool 0).
+
+Theorem generic_NA_pt :
+  forall x,
+  Rnd_NA_pt generic_format x (round rndNA x).
+Proof.
+intros x.
+generalize (generic_N_pt (Rle_bool 0) x).
+fold rndNA.
+set (f := round rndNA x).
+intros Rxf.
+destruct (Req_dec (x - round rndDN x) (round rndUP x - x)) as [Hm|Hm].
+(* *)
+apply Rnd_NA_N_pt.
+exact generic_format_0.
+exact Rxf.
+destruct (Rle_or_lt 0 x) as [Hx|Hx].
+(* . *)
+rewrite Rabs_pos_eq with (1 := Hx).
+rewrite Rabs_pos_eq.
+unfold f, rndNA.
+rewrite round_N_middle with (1 := Hm).
+rewrite Rle_bool_true.
+apply (generic_UP_pt x).
+apply Rmult_le_pos with (1 := Hx).
+apply bpow_ge_0.
+apply Rnd_N_pt_pos with (2 := Hx) (3 := Rxf).
+exact generic_format_0.
+(* . *)
+rewrite Rabs_left with (1 := Hx).
+rewrite Rabs_left1.
+apply Ropp_le_contravar.
+unfold f, rndNA.
+rewrite round_N_middle with (1 := Hm).
+rewrite Rle_bool_false.
+apply (generic_DN_pt x).
+rewrite <- (Rmult_0_l (bpow (- canonic_exponent x))).
+apply Rmult_lt_compat_r with (2 := Hx).
+apply bpow_gt_0.
+apply Rnd_N_pt_neg with (3 := Rxf).
+exact generic_format_0.
+now apply Rlt_le.
+(* *)
+split.
+apply Rxf.
+intros g Rxg.
+rewrite Rnd_N_pt_unicity with (3 := Hm) (4 := Rxf) (5 := Rxg).
+apply Rle_refl.
+apply generic_DN_pt.
+apply generic_UP_pt.
+Qed.
+
+End rndNA.
+
 Section rndN_opp.
 
 Theorem Znearest_opp :
