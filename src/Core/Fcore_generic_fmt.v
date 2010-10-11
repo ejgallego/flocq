@@ -1401,6 +1401,32 @@ apply Rle_trans with (1 := H).
 apply Rmin_r.
 Qed.
 
+Theorem round_N_middle :
+  forall x,
+  (x - round rndDN x = round rndUP x - x)%R ->
+  round rndN x = if choice (scaled_mantissa x) then round rndUP x else round rndDN x.
+Proof.
+intros x.
+pattern x at 1 4 ; rewrite <- scaled_mantissa_bpow.
+unfold round, rndN, Znearest, F2R. simpl.
+destruct (Req_dec (Z2R (Zfloor (scaled_mantissa x))) (scaled_mantissa x)) as [Fx|Fx].
+(* *)
+intros _.
+rewrite <- Fx.
+rewrite Zceil_Z2R, Zfloor_Z2R.
+set (m := Zfloor (scaled_mantissa x)).
+now case (Rcompare (Z2R m - Z2R m) (/ 2)) ; case (choice (Z2R m)).
+(* *)
+intros H.
+rewrite Rcompare_floor_ceil_mid with (1 := Fx).
+rewrite Rcompare_Eq.
+now case (choice (scaled_mantissa x)).
+apply Rmult_eq_reg_r with (bpow (canonic_exponent x)).
+now rewrite 2!Rmult_minus_distr_r.
+apply Rgt_not_eq.
+apply bpow_gt_0.
+Qed.
+
 End Znearest.
 
 Section rndN_opp.
