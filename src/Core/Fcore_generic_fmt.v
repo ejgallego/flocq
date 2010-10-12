@@ -929,7 +929,7 @@ intros x.
 rewrite <- (Ropp_involutive x).
 rewrite round_UP_opp.
 apply Rnd_DN_UP_pt_sym.
-apply generic_format_satisfies_any.
+apply generic_format_opp.
 apply generic_DN_pt.
 Qed.
 
