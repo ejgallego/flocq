@@ -933,6 +933,32 @@ apply generic_format_satisfies_any.
 apply generic_DN_pt.
 Qed.
 
+Theorem generic_ZR_pt :
+  forall x,
+  Rnd_ZR_pt generic_format x (round rndZR x).
+Proof.
+intros x.
+split ; intros Hx.
+(* *)
+replace (round rndZR x) with (round rndDN x).
+apply generic_DN_pt.
+apply (f_equal (fun v => F2R (Float beta v _))).
+apply sym_eq.
+apply Ztrunc_floor.
+rewrite <- (Rmult_0_l (bpow (- canonic_exponent x))).
+apply Rmult_le_compat_r with (2 := Hx).
+apply bpow_ge_0.
+(* *)
+replace (round rndZR x) with (round rndUP x).
+apply generic_UP_pt.
+apply (f_equal (fun v => F2R (Float beta v _))).
+apply sym_eq.
+apply Ztrunc_ceil.
+rewrite <- (Rmult_0_l (bpow (- canonic_exponent x))).
+apply Rmult_le_compat_r with (2 := Hx).
+apply bpow_ge_0.
+Qed.
+
 Theorem round_DN_small_pos :
   forall x ex,
   (bpow (ex - 1) <= x < bpow ex)%R ->
