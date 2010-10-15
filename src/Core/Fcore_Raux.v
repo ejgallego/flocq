@@ -1147,24 +1147,24 @@ rewrite Zceil_Z2R.
 apply Zfloor_Z2R.
 Qed.
 
-Theorem Ztrunc_le : 
- forall x y, (x <= y)%R ->
+Theorem Ztrunc_le :
+  forall x y, (x <= y)%R ->
   (Ztrunc x <= Ztrunc y)%Z.
 Proof.
-intros x y Hxy; unfold Ztrunc at 1.
+intros x y Hxy.
+unfold Ztrunc at 1.
 destruct Rlt_le_dec as [Hx|Hx].
-unfold Ztrunc; destruct Rlt_le_dec as [Hy|Hy].
+unfold Ztrunc.
+destruct Rlt_le_dec as [Hy|Hy].
 now apply Zceil_le.
 apply Zle_trans with 0%Z.
 apply Zceil_glb.
-simpl; auto with real.
-apply Zfloor_lub.
-now simpl.
+now apply Rlt_le.
+now apply Zfloor_lub.
 rewrite Ztrunc_floor.
 now apply Zfloor_le.
-now apply Rle_trans with (1:=Hx). 
+now apply Rle_trans with x.
 Qed.
-
 
 Theorem Ztrunc_opp :
   forall x,
@@ -1217,6 +1217,111 @@ intros n x H.
 rewrite <- Ztrunc_abs.
 rewrite Ztrunc_floor. 2: apply Rabs_pos.
 now apply Zfloor_lub.
+Qed.
+
+Definition Zaway x := if Rlt_le_dec x 0 then Zfloor x else Zceil x.
+
+Theorem Zaway_Z2R :
+  forall n,
+  Zaway (Z2R n) = n.
+Proof.
+intros n.
+unfold Zaway.
+destruct Rlt_le_dec as [H|H].
+apply Zfloor_Z2R.
+apply Zceil_Z2R.
+Qed.
+
+Theorem Zaway_ceil :
+  forall x,
+  (0 <= x)%R ->
+  Zaway x = Zceil x.
+Proof.
+intros x Hx.
+unfold Zaway.
+destruct Rlt_le_dec as [H|_].
+elim Rlt_irrefl with (1 := Rle_lt_trans _ _ _ Hx H).
+easy.
+Qed.
+
+Theorem Zaway_floor :
+  forall x,
+  (x <= 0)%R ->
+  Zaway x = Zfloor x.
+Proof.
+intros x Hx.
+unfold Zaway.
+destruct Rlt_le_dec as [_|H].
+easy.
+rewrite (Rle_antisym _ _ Hx H).
+fold (Z2R 0).
+rewrite Zfloor_Z2R.
+apply Zceil_Z2R.
+Qed.
+
+Theorem Zaway_le :
+  forall x y, (x <= y)%R ->
+  (Zaway x <= Zaway y)%Z.
+Proof.
+intros x y Hxy.
+unfold Zaway at 1.
+destruct Rlt_le_dec as [Hx|Hx].
+unfold Zaway.
+destruct Rlt_le_dec as [Hy|Hy].
+now apply Zfloor_le.
+apply le_Z2R.
+apply Rle_trans with 0%R.
+apply Rlt_le.
+apply Rle_lt_trans with (2 := Hx).
+apply Zfloor_lb.
+apply Rle_trans with (1 := Hy).
+apply Zceil_ub.
+rewrite Zaway_ceil.
+now apply Zceil_le.
+now apply Rle_trans with x.
+Qed.
+
+Theorem Zaway_opp :
+  forall x,
+  Zaway (- x) = Zopp (Zaway x).
+Proof.
+intros x.
+unfold Zaway at 2.
+destruct Rlt_le_dec as [H|H].
+rewrite Zaway_ceil.
+unfold Zceil.
+now rewrite Ropp_involutive.
+apply Rlt_le.
+now apply Ropp_0_gt_lt_contravar.
+rewrite Zaway_floor.
+unfold Zceil.
+now rewrite Zopp_involutive.
+rewrite <- Ropp_0.
+now apply Ropp_le_contravar.
+Qed.
+
+Theorem Zaway_abs :
+  forall x,
+  Zaway (Rabs x) = Zabs (Zaway x).
+Proof.
+intros x.
+rewrite Zaway_ceil. 2: apply Rabs_pos.
+unfold Zaway.
+destruct Rlt_le_dec as [H|H].
+rewrite Rabs_left with (1 := H).
+rewrite Zabs_non_eq.
+apply (f_equal (fun v => - Zfloor v)%Z).
+apply Ropp_involutive.
+apply le_Z2R.
+apply Rlt_le.
+apply Rle_lt_trans with (2 := H).
+apply Zfloor_lb.
+rewrite Rabs_pos_eq with (1 := H).
+apply sym_eq.
+apply Zabs_eq.
+apply le_Z2R.
+apply Rle_trans with (1 := H).
+apply Zceil_ub.
 Qed.
 
 End Floor_Ceil.
