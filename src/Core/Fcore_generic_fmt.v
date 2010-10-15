@@ -1113,12 +1113,12 @@ End not_FTZ.
 Section Znearest.
 
 (** Roundings to nearest: when in the middle, use the choice function *)
-Variable choice : R -> bool.
+Variable choice : Z -> bool.
 
 Definition Znearest x :=
   match Rcompare (x - Z2R (Zfloor x)) (/2) with
   | Lt => Zfloor x
-  | Eq => if choice x then Zceil x else Zfloor x
+  | Eq => if choice (Zfloor x) then Zceil x else Zfloor x
   | Gt => Zceil x
   end.
 
@@ -1144,7 +1144,7 @@ intros x.
 unfold Znearest.
 case Rcompare_spec ; intros _.
 now left.
-case (choice x).
+case choice.
 now right.
 now left.
 now right.
@@ -1218,7 +1218,7 @@ rewrite 2!(Rplus_comm (- (Z2R (Zfloor x)))).
 change (x - Z2R (Zfloor x) = y - Z2R (Zfloor x))%R.
 now rewrite Hy.
 apply Zle_trans with (Zceil x).
-case (choice x).
+case choice.
 apply Zle_refl.
 apply le_Z2R.
 apply Rle_trans with x.
@@ -1408,7 +1408,7 @@ apply Rle_0_minus.
 apply Zfloor_lb.
 case Rcompare_spec ; intros Hm'.
 now rewrite Rabs_minus_sym.
-case (choice mx).
+case choice.
 rewrite <- Hm'.
 exact H.
 now rewrite Rabs_minus_sym.
@@ -1430,7 +1430,7 @@ Qed.
 Theorem round_N_middle :
   forall x,
   (x - round rndDN x = round rndUP x - x)%R ->
-  round rndN x = if choice (scaled_mantissa x) then round rndUP x else round rndDN x.
+  round rndN x = if choice (Zfloor (scaled_mantissa x)) then round rndUP x else round rndDN x.
 Proof.
 intros x.
 pattern x at 1 4 ; rewrite <- scaled_mantissa_bpow.
@@ -1441,12 +1441,12 @@ intros _.
 rewrite <- Fx.
 rewrite Zceil_Z2R, Zfloor_Z2R.
 set (m := Zfloor (scaled_mantissa x)).
-now case (Rcompare (Z2R m - Z2R m) (/ 2)) ; case (choice (Z2R m)).
+now case (Rcompare (Z2R m - Z2R m) (/ 2)) ; case (choice m).
 (* *)
 intros H.
 rewrite Rcompare_floor_ceil_mid with (1 := Fx).
 rewrite Rcompare_Eq.
-now case (choice (scaled_mantissa x)).
+now case choice.
 apply Rmult_eq_reg_r with (bpow (canonic_exponent x)).
 now rewrite 2!Rmult_minus_distr_r.
 apply Rgt_not_eq.
@@ -1457,14 +1457,14 @@ End Znearest.
 
 Section rndNA.
 
-Definition rndNA := rndN (Rle_bool 0).
+Definition rndNA := rndN (Zle_bool 0).
 
 Theorem generic_NA_pt :
   forall x,
   Rnd_NA_pt generic_format x (round rndNA x).
 Proof.
 intros x.
-generalize (generic_N_pt (Rle_bool 0) x).
+generalize (generic_N_pt (Zle_bool 0) x).
 fold rndNA.
 set (f := round rndNA x).
 intros Rxf.
@@ -1479,8 +1479,9 @@ rewrite Rabs_pos_eq with (1 := Hx).
 rewrite Rabs_pos_eq.
 unfold f, rndNA.
 rewrite round_N_middle with (1 := Hm).
-rewrite Rle_bool_true.
+rewrite Zle_bool_true.
 apply (generic_UP_pt x).
+apply Zfloor_lub.
 apply Rmult_le_pos with (1 := Hx).
 apply bpow_ge_0.
 apply Rnd_N_pt_pos with (2 := Hx) (3 := Rxf).
@@ -1491,8 +1492,12 @@ rewrite Rabs_left1.
 apply Ropp_le_contravar.
 unfold f, rndNA.
 rewrite round_N_middle with (1 := Hm).
-rewrite Rle_bool_false.
+rewrite Zle_bool_false.
 apply (generic_DN_pt x).
+apply lt_Z2R.
+apply Rle_lt_trans with (scaled_mantissa x).
+apply Zfloor_lb.
+simpl.
 rewrite <- (Rmult_0_l (bpow (- canonic_exponent x))).
 apply Rmult_lt_compat_r with (2 := Hx).
 apply bpow_gt_0.
@@ -1515,7 +1520,7 @@ Section rndN_opp.
 
 Theorem Znearest_opp :
   forall choice x,
-  Znearest choice (- x) = (- Znearest (fun t => negb (choice (-t)%R)) x)%Z.
+  Znearest choice (- x) = (- Znearest (fun t => negb (choice (- (t + 1))%Z)) x)%Z.
 Proof.
 intros choice x.
 destruct (Req_dec (Z2R (Zfloor x)) x) as [Hx|Hx].
@@ -1527,13 +1532,13 @@ replace (- x - Z2R (Zfloor (-x)))%R with (Z2R (Zceil x) - x)%R.
 rewrite Rcompare_ceil_floor_mid with (1 := Hx).
 rewrite Rcompare_floor_ceil_mid with (1 := Hx).
 rewrite Rcompare_sym.
+rewrite <- Zceil_floor_neq with (1 := Hx).
 unfold Zceil.
 rewrite Ropp_involutive.
-case Rcompare_spec ; simpl ; trivial.
-intros H.
-case (choice (-x)%R); simpl; trivial.
+case Rcompare ; simpl ; trivial.
+rewrite Zopp_involutive.
+case (choice (Zfloor (- x))) ; simpl ; trivial.
 now rewrite Zopp_involutive.
-intros _.
 now rewrite Zopp_involutive.
 unfold Zceil.
 rewrite Z2R_opp.
@@ -1543,7 +1548,7 @@ Qed.
 Theorem round_N_opp :
   forall choice,
   forall x,
-  round (rndN choice) (-x) = (- round (rndN (fun t => negb (choice (-t)%R))) x)%R.
+  round (rndN choice) (-x) = (- round (rndN (fun t => negb (choice (- (t + 1))%Z))) x)%R.
 Proof.
 intros choice x.
 unfold round, F2R. simpl.

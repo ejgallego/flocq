@@ -217,7 +217,7 @@ rewrite F2R_0, <- abs_F2R.
 now apply Rabs_pos_lt.
 Qed.
 
-Variable choice : R -> bool.
+Variable choice : Z -> bool.
 
 Theorem generic_relative_error_N :
   forall x,
@@ -443,7 +443,7 @@ apply bpow_gt_0.
 now apply relative_error_FLT.
 Qed.
 
-Variable choice : R -> bool.
+Variable choice : Z -> bool.
 
 Theorem relative_error_N_FLT :
   forall x,
@@ -642,7 +642,7 @@ exact Hp.
 apply He.
 Qed.
 
-Variable choice : R -> bool.
+Variable choice : Z -> bool.
 
 Theorem relative_error_N_FLX :
   forall x,

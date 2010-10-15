@@ -33,7 +33,7 @@ Variable Hp : Zlt 0 prec.
 Notation format := (generic_format beta (FLX_exp prec)).
 Notation cexp := (canonic_exponent beta (FLX_exp prec)).
 
-Variable choice : R -> bool.
+Variable choice : Z -> bool.
 
 Theorem format_add: forall x y (fx fy: float beta),
   (x = F2R fx)%R -> (y = F2R fy)%R -> (Rabs (x+y) < bpow (prec+Fexp fx))%R -> (Rabs (x+y) < bpow (prec+Fexp fy))%R

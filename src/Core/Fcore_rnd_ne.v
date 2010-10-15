@@ -332,7 +332,7 @@ apply Rnd_NE_pt_total.
 apply Rnd_NE_pt_monotone.
 Qed.
 
-Definition rndNE := rndN (fun x => negb (Zeven (Zfloor x))).
+Definition rndNE := rndN (fun x => negb (Zeven x)).
 
 Theorem generic_NE_pt_pos :
   forall x,
@@ -483,24 +483,20 @@ Theorem round_NE_opp :
   forall x,
   round beta fexp rndNE (-x) = (- round beta fexp rndNE x)%R.
 Proof.
-intros x; unfold rndNE.
-rewrite round_N_opp.
-unfold round.
-apply f_equal; apply f_equal; apply f_equal2; trivial.
-unfold Zrnd; simpl.
-generalize ((scaled_mantissa beta fexp x)); clear x; intros x.
-unfold Znearest; case Rcompare_spec ; simpl ; trivial.
-intros.
-replace (negb (Zeven (Zfloor (- x)))) with (Zeven (Zfloor x)); trivial.
-rewrite <- (Zopp_involutive (Zfloor (- x))).
-fold (Zceil x).
+intros x.
+unfold rndNE, round. simpl.
+rewrite scaled_mantissa_opp, canonic_exponent_opp.
+rewrite Znearest_opp.
+rewrite opp_F2R.
+apply (f_equal (fun v => F2R (Float beta (-v) _))).
+set (m := scaled_mantissa beta fexp x).
+unfold Znearest.
+case Rcompare ; trivial.
+apply (f_equal (fun (b : bool) => if b then Zceil m else Zfloor m)).
+rewrite Bool.negb_involutive.
 rewrite Zeven_opp.
-rewrite Zceil_floor_neq.
 rewrite Zeven_plus.
-now case (Zeven (Zfloor x)).
-intros H1; contradict H.
-rewrite H1; ring_simplify (x-x)%R.
-apply sym_not_eq; apply Rinv_neq_0_compat; replace 2%R with (INR 2); auto with real.
+now rewrite eqb_sym.
 Qed.
 
 Theorem generic_NE_pt :

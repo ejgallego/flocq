@@ -67,7 +67,7 @@ Qed.
 Hypothesis monotone_exp : forall ex ey, (ex <= ey)%Z -> (fexp ex <= fexp ey)%Z.
 Notation format := (generic_format beta fexp).
 
-Variable choice : R -> bool.
+Variable choice : Z -> bool.
 
 Lemma plus_error_aux :
   forall x y,

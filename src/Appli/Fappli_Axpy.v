@@ -152,7 +152,7 @@ Admitted.
 
 
 
-Variable choice : R -> bool.
+Variable choice : Z -> bool.
 
 Variable a1 x1 y1 a x y:R.
 
