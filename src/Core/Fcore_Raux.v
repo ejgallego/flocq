@@ -335,6 +335,26 @@ generalize (Zmin_spec x y).
 omega.
 Qed.
 
+Theorem Zle_bool_true :
+  forall x y : Z,
+  (x <= y)%Z -> Zle_bool x y = true.
+Proof.
+intros x y.
+apply (proj1 (Zle_is_le_bool x y)).
+Qed.
+
+Theorem Zle_bool_false :
+  forall x y : Z,
+  (y < x)%Z -> Zle_bool x y = false.
+Proof.
+intros x y Hxy.
+generalize (Zle_cases x y).
+case Zle_bool ; intros H.
+elim (Zlt_irrefl x).
+now apply Zle_lt_trans with y.
+apply refl_equal.
+Qed.
+
 End Zmissing.
 
 Section Z2R.
@@ -890,6 +910,7 @@ apply refl_equal.
 Qed.
 
 End Rle_bool.
+
 Section Req_bool.
 
 Definition Req_bool x y :=
