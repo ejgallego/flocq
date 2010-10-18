@@ -296,12 +296,12 @@ generalize (Zmax_spec (emin + 1 - prec) emin).
 omega.
 Qed.
 
-Theorem generic_NE_pt_FLT :
+Theorem round_NE_pt_FLT :
   forall x,
   Rnd_NE_pt beta FLT_exp x (round beta FLT_exp rndNE x).
 Proof.
 intros x.
-apply generic_NE_pt.
+apply round_NE_pt.
 apply FLT_exp_correct.
 apply NE_ex_prop_FLT.
 Qed.

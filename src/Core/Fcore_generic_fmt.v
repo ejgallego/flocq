@@ -890,7 +890,7 @@ apply generic_format_0.
 now apply generic_format_round_pos.
 Qed.
 
-Theorem generic_DN_pt :
+Theorem round_DN_pt :
   forall x,
   Rnd_DN_pt generic_format x (round rndDN x).
 Proof.
@@ -918,10 +918,10 @@ exact generic_format_opp.
 (* round down *)
 intros x.
 exists (round rndDN x).
-apply generic_DN_pt.
+apply round_DN_pt.
 Qed.
 
-Theorem generic_UP_pt :
+Theorem round_UP_pt :
   forall x,
   Rnd_UP_pt generic_format x (round rndUP x).
 Proof.
@@ -930,10 +930,10 @@ rewrite <- (Ropp_involutive x).
 rewrite round_UP_opp.
 apply Rnd_DN_UP_pt_sym.
 apply generic_format_opp.
-apply generic_DN_pt.
+apply round_DN_pt.
 Qed.
 
-Theorem generic_ZR_pt :
+Theorem round_ZR_pt :
   forall x,
   Rnd_ZR_pt generic_format x (round rndZR x).
 Proof.
@@ -941,7 +941,7 @@ intros x.
 split ; intros Hx.
 (* *)
 replace (round rndZR x) with (round rndDN x).
-apply generic_DN_pt.
+apply round_DN_pt.
 apply (f_equal (fun v => F2R (Float beta v _))).
 apply sym_eq.
 apply Ztrunc_floor.
@@ -950,7 +950,7 @@ apply Rmult_le_compat_r with (2 := Hx).
 apply bpow_ge_0.
 (* *)
 replace (round rndZR x) with (round rndUP x).
-apply generic_UP_pt.
+apply round_UP_pt.
 apply (f_equal (fun v => F2R (Float beta v _))).
 apply sym_eq.
 apply Ztrunc_ceil.
@@ -1040,14 +1040,14 @@ destruct (ln_beta beta x) as (ex, He).
 simpl.
 assert (Hx: (0 < x)%R).
 apply Rlt_le_trans with (1 := Hd).
-apply (generic_DN_pt x).
+apply (round_DN_pt x).
 specialize (He (Rgt_not_eq _ _ Hx)).
 rewrite Rabs_pos_eq in He. 2: now apply Rlt_le.
 split.
 apply round_large_pos_ge_pow with (1 := Hd).
 apply He.
 apply Rle_lt_trans with (2 := proj2 He).
-apply (generic_DN_pt x).
+apply (round_DN_pt x).
 Qed.
 
 Theorem scaled_mantissa_DN :
@@ -1071,10 +1071,10 @@ intros x f Hxf.
 destruct (Rnd_N_pt_DN_or_UP _ _ _ Hxf).
 left.
 apply Rnd_DN_pt_unicity with (1 := H).
-apply generic_DN_pt.
+apply round_DN_pt.
 right.
 apply Rnd_UP_pt_unicity with (1 := H).
-apply generic_UP_pt.
+apply round_UP_pt.
 Qed.
 
 Section not_FTZ.
@@ -1419,8 +1419,8 @@ apply Zceil_ub.
 (* . *)
 apply Rnd_DN_UP_pt_N with d u.
 now apply generic_format_round.
-now apply generic_DN_pt.
-now apply generic_UP_pt.
+now apply round_DN_pt.
+now apply round_UP_pt.
 apply Rle_trans with (1 := H).
 apply Rmin_l.
 apply Rle_trans with (1 := H).
@@ -1459,7 +1459,7 @@ Section rndNA.
 
 Definition rndNA := rndN (Zle_bool 0).
 
-Theorem generic_NA_pt :
+Theorem round_NA_pt :
   forall x,
   Rnd_NA_pt generic_format x (round rndNA x).
 Proof.
@@ -1480,7 +1480,7 @@ rewrite Rabs_pos_eq.
 unfold f, rndNA.
 rewrite round_N_middle with (1 := Hm).
 rewrite Zle_bool_true.
-apply (generic_UP_pt x).
+apply (round_UP_pt x).
 apply Zfloor_lub.
 apply Rmult_le_pos with (1 := Hx).
 apply bpow_ge_0.
@@ -1493,7 +1493,7 @@ apply Ropp_le_contravar.
 unfold f, rndNA.
 rewrite round_N_middle with (1 := Hm).
 rewrite Zle_bool_false.
-apply (generic_DN_pt x).
+apply (round_DN_pt x).
 apply lt_Z2R.
 apply Rle_lt_trans with (scaled_mantissa x).
 apply Zfloor_lb.
@@ -1510,8 +1510,8 @@ apply Rxf.
 intros g Rxg.
 rewrite Rnd_N_pt_unicity with (3 := Hm) (4 := Rxf) (5 := Rxg).
 apply Rle_refl.
-apply generic_DN_pt.
-apply generic_UP_pt.
+apply round_DN_pt.
+apply round_UP_pt.
 Qed.
 
 End rndNA.

@@ -256,12 +256,12 @@ unfold FLX_exp.
 split ; omega.
 Qed.
 
-Theorem generic_NE_pt_FLX :
+Theorem round_NE_pt_FLX :
   forall x,
   Rnd_NE_pt beta FLX_exp x (round beta FLX_exp rndNE x).
 Proof.
 intros x.
-apply generic_NE_pt.
+apply round_NE_pt.
 apply FLX_exp_correct.
 apply NE_ex_prop_FLX.
 Qed.

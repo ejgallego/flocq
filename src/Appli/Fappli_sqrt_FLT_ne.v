@@ -41,7 +41,7 @@ Theorem Fsqrt_FLT_ne_correct :
 Proof.
 intros x.
 replace (F2R (Fsqrt_FLT_ne x)) with (round beta (FLT_exp emin prec) rndNE (sqrt (F2R x))).
-apply generic_NE_pt_FLT.
+apply round_NE_pt_FLT.
 omega.
 now right.
 unfold Fsqrt_FLT_ne.

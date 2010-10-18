@@ -147,15 +147,15 @@ assert (Hd4: (bpow (ex - 1) <= Rabs (F2R xd) < bpow ex)%R).
 rewrite Rabs_pos_eq.
 rewrite Hxd.
 split.
-apply (generic_DN_pt beta fexp prop_exp x).
+apply (round_DN_pt beta fexp prop_exp x).
 apply generic_format_bpow.
 ring_simplify (ex - 1 + 1)%Z.
 omega.
 apply Hex.
 apply Rle_lt_trans with (2 := proj2 Hex).
-apply (generic_DN_pt beta fexp prop_exp x).
+apply (round_DN_pt beta fexp prop_exp x).
 rewrite Hxd.
-apply (generic_DN_pt beta fexp prop_exp x).
+apply (round_DN_pt beta fexp prop_exp x).
 apply generic_format_0.
 now apply Rlt_le.
 assert (Hxe2 : (fexp (ex + 1) <= ex)%Z) by now eapply prop_exp.
@@ -242,12 +242,12 @@ rewrite Rabs_pos_eq.
 split.
 apply Rle_trans with (1 := proj1 Hex).
 rewrite Hxu.
-apply (generic_UP_pt beta fexp prop_exp x).
+apply (round_UP_pt beta fexp prop_exp x).
 exact Hu2.
 apply Rlt_le.
 apply Rlt_le_trans with (1 := H0x).
 rewrite Hxu.
-apply (generic_UP_pt beta fexp prop_exp x).
+apply (round_UP_pt beta fexp prop_exp x).
 Qed.
 
 Theorem DN_UP_parity_generic :
@@ -294,10 +294,10 @@ unfold Fcore_generic_fmt.canonic.
 now rewrite <- Hu1.
 rewrite <- Hd1.
 apply Rnd_DN_pt_unicity with (1 := Hd).
-now apply generic_DN_pt.
+now apply round_DN_pt.
 rewrite <- Hu1.
 apply Rnd_UP_pt_unicity with (1 := Hu).
-now apply generic_UP_pt.
+now apply round_UP_pt.
 Qed.
 
 Theorem Rnd_NE_pt_monotone :
@@ -319,10 +319,10 @@ apply sym_eq.
 now apply Rnd_DN_pt_idempotent with (1 := Hd).
 rewrite <- Hd1.
 apply Rnd_DN_pt_unicity with (1 := Hd).
-now apply generic_DN_pt.
+now apply round_DN_pt.
 rewrite <- Hu1.
 apply Rnd_UP_pt_unicity with (1 := Hu).
-now apply generic_UP_pt.
+now apply round_UP_pt.
 Qed.
 
 Theorem Rnd_NE_pt_round :
@@ -334,7 +334,7 @@ Qed.
 
 Definition rndNE := rndN (fun x => negb (Zeven x)).
 
-Theorem generic_NE_pt_pos :
+Theorem round_NE_pt_pos :
   forall x,
   (0 < x)%R ->
   Rnd_NE_pt x (round beta fexp rndNE x).
@@ -455,8 +455,8 @@ apply Hg.
 set (d := round beta fexp rndDN x).
 set (u := round beta fexp rndUP x).
 apply Rnd_N_pt_unicity with (d := d) (u := u) (4 := Hg).
-now apply generic_DN_pt.
-now apply generic_UP_pt.
+now apply round_DN_pt.
+now apply round_UP_pt.
 2: now apply generic_N_pt.
 rewrite <- (scaled_mantissa_bpow beta fexp x).
 unfold d, u, round, F2R. simpl. fold mx.
@@ -474,7 +474,7 @@ rewrite <- (scaled_mantissa_bpow beta fexp x).
 fold mx.
 rewrite <- Hxg.
 change (Z2R (Zfloor mx) * bpow (canonic_exponent beta fexp x))%R with d.
-now eapply generic_DN_pt.
+now eapply round_DN_pt.
 apply Rgt_not_eq.
 apply bpow_gt_0.
 Qed.
@@ -499,7 +499,7 @@ rewrite Zeven_plus.
 now rewrite eqb_sym.
 Qed.
 
-Theorem generic_NE_pt :
+Theorem round_NE_pt :
   forall x,
   Rnd_NE_pt x (round beta fexp rndNE x).
 Proof.
@@ -517,12 +517,12 @@ now apply canonic_opp.
 simpl.
 now rewrite Zeven_opp.
 rewrite <- round_NE_opp.
-apply generic_NE_pt_pos.
+apply round_NE_pt_pos.
 now apply Ropp_0_gt_lt_contravar.
 rewrite Hx, round_0.
 apply Rnd_NG_pt_refl.
 apply generic_format_0.
-now apply generic_NE_pt_pos.
+now apply round_NE_pt_pos.
 Qed.
 
 End Fcore_rnd_NE.
