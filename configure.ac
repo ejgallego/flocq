@@ -1,4 +1,4 @@
-AC_INIT([Flocq], [0.1],
+AC_INIT([Flocq], [1.0],
         [Sylvie Boldo <sylvie.boldo@inria.fr>, Guillaume Melquiond <guillaume.melquiond@inria.fr>],
         [flocq])
 AM_INIT_AUTOMAKE
