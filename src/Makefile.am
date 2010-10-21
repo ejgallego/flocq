@@ -38,7 +38,7 @@ all: $(FILES:=o)
 
 .v.vd:
 	@echo COQDEP $<
-	@$(COQDEP) -I Core -I Calc $< > $@
+	@$(COQDEP) -I Core -I Calc -I Prop -I Appli $< > $@
 
 SUFFIXES = .v .vo .vd
 
