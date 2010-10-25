@@ -134,7 +134,7 @@ replace (bpow (Fexp fr)) with (ulp beta (FLX_exp prec) (F2R fr)).
 rewrite <- Hr1.
 apply ulp_error_f.
 now apply FLX_exp_correct.
-clear; intros; unfold FLX_exp; omega.
+clear; unfold monotone_exp_prop; intros; unfold FLX_exp; omega.
 exact Hr.
 unfold ulp; apply f_equal.
 now rewrite Hr2, <- Hr1.
@@ -248,7 +248,7 @@ apply Rle_trans with (/2*ulp beta  (FLX_exp prec) (F2R fr))%R.
 rewrite <- Hr1.
 apply ulp_half_error_f; trivial.
 now apply FLX_exp_correct.
-clear; intros; unfold FLX_exp; omega.
+clear; unfold monotone_exp_prop; intros; unfold FLX_exp; omega.
 right; unfold ulp; apply f_equal.
 rewrite Hr2, <- Hr1; trivial. 
 rewrite Rmult_assoc, Rmult_comm.

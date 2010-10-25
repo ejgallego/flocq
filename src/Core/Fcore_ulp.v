@@ -411,7 +411,7 @@ apply (round_UP_pt beta fexp prop_exp x).
 Qed.
 
 Theorem ulp_monotone :
-  ( forall m n, (m <= n)%Z -> (fexp m <= fexp n)%Z ) ->
+  monotone_exp_prop fexp ->
   forall x y: R,
   (0 < x)%R -> (x <= y)%R ->
   (ulp x <= ulp y)%R.
@@ -447,9 +447,8 @@ unfold ulp.
 now rewrite canonic_exponent_DN with (2 := Hd).
 Qed.
 
-
 Theorem ulp_error_f :
-  (forall m n, (m <= n)%Z -> (fexp m <= fexp n)%Z ) ->
+  monotone_exp_prop fexp ->
   forall Zrnd x,
   (round beta fexp Zrnd x <> 0)%R ->
   (Rabs (round beta fexp Zrnd x - x) < ulp (round beta fexp Zrnd x))%R.
@@ -499,7 +498,7 @@ rewrite round_DN_opp; apply Ropp_0_gt_lt_contravar; apply Rlt_gt; assumption.
 Qed.
 
 Theorem ulp_half_error_f : 
-  (forall m n, (m <= n)%Z -> (fexp m <= fexp n)%Z ) ->
+  monotone_exp_prop fexp ->
   forall choice x,
   (round beta fexp (rndN choice) x <> 0)%R ->
   (Rabs (round beta fexp (rndN choice) x - x) <= /2 * ulp (round beta fexp (rndN choice) x))%R.

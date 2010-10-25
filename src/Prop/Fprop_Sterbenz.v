@@ -31,7 +31,7 @@ Notation bpow e := (bpow beta e).
 
 Variable fexp : Z -> Z.
 Hypothesis prop_exp : valid_exp fexp.
-Hypothesis monotone_exp : forall ex ey, (ex <= ey)%Z -> (fexp ex <= fexp ey)%Z.
+Hypothesis monotone_exp : monotone_exp_prop fexp.
 Notation format := (generic_format beta fexp).
 
 Theorem generic_format_plus :

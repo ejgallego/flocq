@@ -1110,6 +1110,23 @@ Qed.
 
 End not_FTZ.
 
+Section monotone_exp.
+
+Definition monotone_exp_prop := forall ex ey, (ex <= ey)%Z -> (fexp ex <= fexp ey)%Z.
+
+Theorem monotone_not_FTZ :
+  monotone_exp_prop ->
+  not_FTZ_prop.
+Proof.
+intros Hm e.
+destruct (Z_lt_le_dec (fexp e) e) as [He|He].
+apply Hm.
+now apply Zlt_le_succ.
+apply (proj2 (prop_exp e) He).
+Qed.
+
+End monotone_exp.
+
 Section Znearest.
 
 (** Roundings to nearest: when in the middle, use the choice function *)

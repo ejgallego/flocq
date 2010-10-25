@@ -64,7 +64,7 @@ apply (f_equal (fun v => _ * bpow v)%R).
 ring.
 Qed.
 
-Hypothesis monotone_exp : forall ex ey, (ex <= ey)%Z -> (fexp ex <= fexp ey)%Z.
+Hypothesis monotone_exp : monotone_exp_prop fexp.
 Notation format := (generic_format beta fexp).
 
 Variable choice : Z -> bool.
