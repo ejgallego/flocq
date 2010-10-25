@@ -262,20 +262,27 @@ apply iff_sym.
 now apply FIX_format_generic.
 Qed.
 
-(** FLT is a nice format which is not FTZ and that allows a rounding to nearest, ties to even *)
-Theorem FLT_not_FTZ :
-  not_FTZ_prop FLT_exp.
+(** FLT is a nice format: it has a monotone exponent... *)
+Theorem FLT_exp_monotone :
+  monotone_exp_prop FLT_exp.
 Proof.
-intros e.
+intros ex ey.
+clear Hp.
 unfold FLT_exp.
-destruct (Zmax_spec (e - prec) emin) as [(H1,H2)|(H1,H2)] ;
-  rewrite H2 ; clear H2.
-generalize (Zmax_spec (e - prec + 1 - prec) emin).
-omega.
-generalize (Zmax_spec (emin + 1 - prec) emin).
+generalize (Zmax_spec (ex - prec) emin) (Zmax_spec (ey - prec) emin).
 omega.
 Qed.
 
+(** it has subnormal numbers... *)
+Theorem FLT_not_FTZ :
+  not_FTZ_prop FLT_exp.
+Proof.
+apply monotone_exp_not_FTZ.
+apply FLT_exp_correct.
+apply FLT_exp_monotone.
+Qed.
+
+(** and it allows a rounding to nearest, ties to even. *)
 Hypothesis NE_prop : Zeven beta = false \/ (1 < prec)%Z.
 
 Theorem NE_ex_prop_FLT :

@@ -1114,7 +1114,7 @@ Section monotone_exp.
 
 Definition monotone_exp_prop := forall ex ey, (ex <= ey)%Z -> (fexp ex <= fexp ey)%Z.
 
-Theorem monotone_not_FTZ :
+Theorem monotone_exp_not_FTZ :
   monotone_exp_prop ->
   not_FTZ_prop.
 Proof.
