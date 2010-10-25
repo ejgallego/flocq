@@ -235,15 +235,24 @@ now apply <- FLX_format_FLXN.
 exact FLX_exp_correct.
 Qed.
 
-(** FLX is a nice format which is not FTZ and that allows a rounding to nearest, ties to even *)
+(** FLX is a nice format: it has a monotone exponent... *)
+Theorem FLX_exp_monotone :
+  monotone_exp_prop FLX_exp.
+Proof.
+intros ex ey Hxy.
+now apply Zplus_le_compat_r.
+Qed.
+
+(** it has normal numbers infinitely close to zero... *)
 Theorem FLX_not_FTZ :
   not_FTZ_prop FLX_exp.
 Proof.
-intros e.
-unfold FLX_exp.
-omega.
+apply monotone_exp_not_FTZ.
+apply FLX_exp_correct.
+apply FLX_exp_monotone.
 Qed.
 
+(** and it allows a rounding to nearest, ties to even. *)
 Hypothesis NE_prop : Zeven beta = false \/ (1 < prec)%Z.
 
 Theorem NE_ex_prop_FLX :
