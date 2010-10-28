@@ -104,6 +104,51 @@ refine (let H := _ in conj (proj1 H) (Rlt_le _ _ (proj2 H))).
 apply inbetween_bounds_not_Eq with (2 := Hl1) (1 := Hl).
 Qed.
 
+(** Relates location and rounding toward zero. *)
+
+Definition round_ZR (s : bool) l :=
+  match l with
+  | loc_Exact => false
+  | _ => s
+  end.
+
+Theorem inbetween_float_ZR :
+  forall x m l,
+  let e := canonic_exponent beta fexp x in
+  inbetween_float beta m e x l ->
+  round beta fexp rndZR x = F2R (Float beta (cond_incr (round_ZR (Zlt_bool m 0) l) m) e).
+Proof.
+apply inbetween_float_round with (choice := fun m l => cond_incr (round_ZR (Zlt_bool m 0) l) m).
+intros x m l Hl.
+inversion_clear Hl as [Hx|l' Hx Hl'].
+(* Exact *)
+rewrite Hx.
+now rewrite Zrnd_Z2R.
+(* not Exact *)
+unfold Zrnd, rndZR, Ztrunc.
+assert (Hm: Zfloor x = m).
+apply Zfloor_imp.
+exact (conj (Rlt_le _ _ (proj1 Hx)) (proj2 Hx)).
+rewrite Zceil_floor_neq.
+rewrite Hm.
+unfold cond_incr.
+simpl.
+generalize (Zlt_cases m 0).
+destruct (Rlt_le_dec x 0) as [Hx'|Hx'] ;
+  case (Zlt_bool m 0) ; try easy ; intros Hm'.
+elim Rlt_not_le with (1 := Hx').
+apply Rlt_le.
+apply Rle_lt_trans with (2 := proj1 Hx).
+apply (Z2R_le 0).
+now apply Zge_le.
+elim Rle_not_lt with (1 := Hx').
+apply Rlt_le_trans with (1 := proj2 Hx).
+apply (Z2R_le _ 0).
+now apply Zlt_le_succ.
+rewrite Hm.
+now apply Rlt_not_eq.
+Qed.
+
 (** Relates location and rounding to nearest even. *)
 
 Definition round_NE (p : bool) l :=
@@ -348,6 +393,14 @@ Definition round_UP_correct :=
 Definition round_trunc_UP_correct :=
   round_trunc_any_correct _ (fun m l => cond_incr (round_UP l) m)
     (fun _ => refl_equal _) inbetween_float_UP.
+
+Definition round_ZR_correct :=
+  round_any_correct _ (fun m l => cond_incr (round_ZR (Zlt_bool m 0) l) m)
+    (fun _ => refl_equal _) inbetween_float_ZR.
+
+Definition round_trunc_ZR_correct :=
+  round_trunc_any_correct _ (fun m l => cond_incr (round_ZR (Zlt_bool m 0) l) m)
+    (fun _ => refl_equal _) inbetween_float_ZR.
 
 Definition round_NE_correct :=
   round_any_correct _ (fun m l => cond_incr (round_NE (Zeven m) l) m)
