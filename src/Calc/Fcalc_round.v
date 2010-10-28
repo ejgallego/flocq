@@ -55,6 +55,18 @@ Qed.
 
 (** Relates location and rounding down. *)
 
+Theorem inbetween_int_DN :
+  forall x m l,
+  inbetween_int m x l ->
+  Zrnd rndDN x = m.
+Proof.
+intros x m l Hl.
+refine (Zfloor_imp m _ _).
+apply inbetween_bounds with (2 := Hl).
+apply Z2R_lt.
+apply Zlt_succ.
+Qed.
+
 Theorem inbetween_float_DN :
   forall x m l,
   let e := canonic_exponent beta fexp x in
@@ -62,11 +74,7 @@ Theorem inbetween_float_DN :
   round beta fexp rndDN x = F2R (Float beta m e).
 Proof.
 apply inbetween_float_round with (choice := fun m l => m).
-intros x m l Hl.
-refine (Zfloor_imp m _ _).
-apply inbetween_bounds with (2 := Hl).
-apply Z2R_lt.
-apply Zlt_succ.
+exact inbetween_int_DN.
 Qed.
 
 (** Relates location and rounding up. *)
@@ -79,13 +87,11 @@ Definition round_UP l :=
   | _ => true
   end.
 
-Theorem inbetween_float_UP :
+Theorem inbetween_int_UP :
   forall x m l,
-  let e := canonic_exponent beta fexp x in
-  inbetween_float beta m e x l ->
-  round beta fexp rndUP x = F2R (Float beta (cond_incr (round_UP l) m) e).
+  inbetween_int m x l ->
+  Zrnd rndUP x = cond_incr (round_UP l) m.
 Proof.
-apply inbetween_float_round with (choice := fun m l => cond_incr (round_UP l) m).
 intros x m l Hl.
 assert (Hl': l = loc_Exact \/ (l <> loc_Exact /\ round_UP l = true)).
 case l ; try (now left) ; now right ; split.
@@ -104,6 +110,16 @@ refine (let H := _ in conj (proj1 H) (Rlt_le _ _ (proj2 H))).
 apply inbetween_bounds_not_Eq with (2 := Hl1) (1 := Hl).
 Qed.
 
+Theorem inbetween_float_UP :
+  forall x m l,
+  let e := canonic_exponent beta fexp x in
+  inbetween_float beta m e x l ->
+  round beta fexp rndUP x = F2R (Float beta (cond_incr (round_UP l) m) e).
+Proof.
+apply inbetween_float_round with (choice := fun m l => cond_incr (round_UP l) m).
+exact inbetween_int_UP.
+Qed.
+
 (** Relates location and rounding toward zero. *)
 
 Definition round_ZR (s : bool) l :=
@@ -112,13 +128,11 @@ Definition round_ZR (s : bool) l :=
   | _ => s
   end.
 
-Theorem inbetween_float_ZR :
+Theorem inbetween_int_ZR :
   forall x m l,
-  let e := canonic_exponent beta fexp x in
-  inbetween_float beta m e x l ->
-  round beta fexp rndZR x = F2R (Float beta (cond_incr (round_ZR (Zlt_bool m 0) l) m) e).
+  inbetween_int m x l ->
+  Zrnd rndZR x = cond_incr (round_ZR (Zlt_bool m 0) l) m.
 Proof.
-apply inbetween_float_round with (choice := fun m l => cond_incr (round_ZR (Zlt_bool m 0) l) m).
 intros x m l Hl.
 inversion_clear Hl as [Hx|l' Hx Hl'].
 (* Exact *)
@@ -149,6 +163,16 @@ rewrite Hm.
 now apply Rlt_not_eq.
 Qed.
 
+Theorem inbetween_float_ZR :
+  forall x m l,
+  let e := canonic_exponent beta fexp x in
+  inbetween_float beta m e x l ->
+  round beta fexp rndZR x = F2R (Float beta (cond_incr (round_ZR (Zlt_bool m 0) l) m) e).
+Proof.
+apply inbetween_float_round with (choice := fun m l => cond_incr (round_ZR (Zlt_bool m 0) l) m).
+exact inbetween_int_ZR.
+Qed.
+
 (** Relates location and rounding to nearest even. *)
 
 Definition round_NE (p : bool) l :=
@@ -159,13 +183,11 @@ Definition round_NE (p : bool) l :=
   | loc_Inexact Gt => true
   end.
 
-Theorem inbetween_float_NE :
+Theorem inbetween_int_NE :
   forall x m l,
-  let e := canonic_exponent beta fexp x in
-  inbetween_float beta m e x l ->
-  round beta fexp rndNE x = F2R (Float beta (cond_incr (round_NE (Zeven m) l) m) e).
+  inbetween_int m x l ->
+  Zrnd rndNE x = cond_incr (round_NE (Zeven m) l) m.
 Proof.
-apply inbetween_float_round with (choice := fun m l => cond_incr (round_NE (Zeven m) l) m).
 intros x m l Hl.
 inversion_clear Hl as [Hx|l' Hx Hl'].
 (* Exact *)
@@ -188,6 +210,16 @@ simpl (Z2R 1).
 field.
 rewrite Hm.
 now apply Rlt_not_eq.
+Qed.
+
+Theorem inbetween_float_NE :
+  forall x m l,
+  let e := canonic_exponent beta fexp x in
+  inbetween_float beta m e x l ->
+  round beta fexp rndNE x = F2R (Float beta (cond_incr (round_NE (Zeven m) l) m) e).
+Proof.
+apply inbetween_float_round with (choice := fun m l => cond_incr (round_NE (Zeven m) l) m).
+exact inbetween_int_NE.
 Qed.
 
 (** Given a triple (mantissa, exponent, position), this function
@@ -335,12 +367,10 @@ Section round_dir.
 
 Variable rnd: Zround.
 Variable choice : Z -> location -> Z.
-Hypothesis choice_valid : forall m, choice m loc_Exact = m.
-Hypothesis inbetween_float_valid :
+Hypothesis inbetween_int_valid :
   forall x m l,
-  let e := canonic_exponent beta fexp x in
-  inbetween_float beta m e x l ->
-  round beta fexp rnd x = F2R (Float beta (choice m l) e).
+  inbetween_int m x l ->
+  Zrnd rnd x = choice m l.
 
 Theorem round_any_correct :
   forall x m e l,
@@ -350,12 +380,17 @@ Theorem round_any_correct :
 Proof.
 intros x m e l Hin [He|(Hl,Hf)].
 rewrite He in Hin |- *.
-apply inbetween_float_valid with (1 := Hin).
+apply inbetween_float_round with (2 := Hin).
+exact inbetween_int_valid.
 rewrite Hl in Hin.
 inversion_clear Hin.
-rewrite Hl, choice_valid.
+rewrite Hl.
+replace (choice m loc_Exact) with m.
 rewrite <- H.
 now apply round_generic.
+rewrite <- (Zrnd_Z2R rnd m) at 1.
+apply inbetween_int_valid.
+now constructor.
 Qed.
 
 (** Truncating a triple is sufficient to round a real number. *)
@@ -379,36 +414,28 @@ End round_dir.
 (** * Instances of the theorems above, for the usual rounding modes. *)
 
 Definition round_DN_correct :=
-  round_any_correct _ (fun m _ => m)
-    (fun _ => refl_equal _) inbetween_float_DN.
+  round_any_correct _ (fun m _ => m) inbetween_int_DN.
 
 Definition round_trunc_DN_correct :=
-  round_trunc_any_correct _ (fun m _ => m)
-    (fun _ => refl_equal _) inbetween_float_DN.
+  round_trunc_any_correct _ (fun m _ => m) inbetween_int_DN.
 
 Definition round_UP_correct :=
-  round_any_correct _ (fun m l => cond_incr (round_UP l) m)
-    (fun _ => refl_equal _) inbetween_float_UP.
+  round_any_correct _ (fun m l => cond_incr (round_UP l) m) inbetween_int_UP.
 
 Definition round_trunc_UP_correct :=
-  round_trunc_any_correct _ (fun m l => cond_incr (round_UP l) m)
-    (fun _ => refl_equal _) inbetween_float_UP.
+  round_trunc_any_correct _ (fun m l => cond_incr (round_UP l) m) inbetween_int_UP.
 
 Definition round_ZR_correct :=
-  round_any_correct _ (fun m l => cond_incr (round_ZR (Zlt_bool m 0) l) m)
-    (fun _ => refl_equal _) inbetween_float_ZR.
+  round_any_correct _ (fun m l => cond_incr (round_ZR (Zlt_bool m 0) l) m) inbetween_int_ZR.
 
 Definition round_trunc_ZR_correct :=
-  round_trunc_any_correct _ (fun m l => cond_incr (round_ZR (Zlt_bool m 0) l) m)
-    (fun _ => refl_equal _) inbetween_float_ZR.
+  round_trunc_any_correct _ (fun m l => cond_incr (round_ZR (Zlt_bool m 0) l) m) inbetween_int_ZR.
 
 Definition round_NE_correct :=
-  round_any_correct _ (fun m l => cond_incr (round_NE (Zeven m) l) m)
-    (fun _ => refl_equal _) inbetween_float_NE.
+  round_any_correct _ (fun m l => cond_incr (round_NE (Zeven m) l) m) inbetween_int_NE.
 
 Definition round_trunc_NE_correct :=
-  round_trunc_any_correct _ (fun m l => cond_incr (round_NE (Zeven m) l) m)
-    (fun _ => refl_equal _) inbetween_float_NE.
+  round_trunc_any_correct _ (fun m l => cond_incr (round_NE (Zeven m) l) m) inbetween_int_NE.
 
 End Fcalc_round_fexp.
 
