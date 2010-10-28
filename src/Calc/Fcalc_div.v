@@ -58,7 +58,7 @@ Definition Fdiv_core prec m1 e1 m2 e2 :=
 Theorem Fdiv_core_correct :
   forall prec m1 e1 m2 e2,
   (0 < prec)%Z ->
-  (0 < m1)%Z -> (1 < m2)%Z ->
+  (0 < m1)%Z -> (0 < m2)%Z ->
   let '(m, e, l) := Fdiv_core prec m1 e1 m2 e2 in
   (prec <= digits beta m)%Z /\
   inbetween_float beta m e (F2R (Float beta m1 e1) / F2R (Float beta m2 e2)) l.
@@ -108,8 +108,7 @@ omega.
 (* . *)
 destruct Hs as (Hs1, (Hs2, Hs3)).
 rewrite <- Hs1.
-assert (Hm2': (0 < m2)%Z) by omega.
-generalize (Z_div_mod m' m2 (Zlt_gt _ _ Hm2')).
+generalize (Z_div_mod m' m2 (Zlt_gt _ _ Hm2)).
 destruct (Zdiv_eucl m' m2) as (q, r).
 intros (Hq, Hr).
 split.
@@ -118,24 +117,23 @@ cut (digits beta m' <= d2 + digits beta q)%Z. omega.
 unfold d2.
 rewrite Hq.
 assert (Hq': (0 < q)%Z).
-apply Zmult_lt_reg_r with m2.
-exact Hm2'.
+apply Zmult_lt_reg_r with (1 := Hm2).
 assert (m2 < m')%Z.
 apply lt_digits with beta.
 now apply Zlt_le_weak.
 unfold d2 in Hs3.
-omega.
-cut (q * m2 = m' - r)%Z. omega.
+clear -Hprec Hs3 ; omega.
+cut (q * m2 = m' - r)%Z. clear -Hr H ; omega.
 rewrite Hq.
 ring.
 apply Zle_trans with (digits beta (m2 + q + m2 * q)).
 apply digits_le.
 rewrite <- Hq.
 now apply Zlt_le_weak.
-omega.
-apply digits_mult_strong.
-omega.
-now apply Zlt_le_weak.
+clear -Hr Hq'. omega.
+apply digits_mult_strong ; apply Zlt_le_weak.
+now apply Zle_lt_trans with r.
+exact Hq'.
 (* . the location is correctly computed *)
 unfold inbetween_float, F2R. simpl.
 rewrite bpow_plus, Z2R_plus.
@@ -144,6 +142,7 @@ replace ((Z2R m2 * Z2R q + Z2R r) * (bpow e' * bpow e2) / (Z2R m2 * bpow e2))%R
   with ((Z2R q + Z2R r / Z2R m2) * bpow e')%R.
 apply inbetween_mult_compat.
 apply bpow_gt_0.
+destruct (Z_lt_le_dec 1 m2) as [Hm2''|Hm2''].
 replace (Z2R 1) with (Z2R m2 * /Z2R m2)%R.
 apply new_location_correct ; try easy.
 apply Rinv_0_lt_compat.
@@ -152,6 +151,11 @@ now constructor.
 apply Rinv_r.
 apply Rgt_not_eq.
 now apply (Z2R_lt 0).
+assert (r = 0 /\ m2 = 1)%Z by (clear -Hr Hm2'' ; omega).
+rewrite (proj1 H), (proj2 H).
+unfold Rdiv.
+rewrite Rmult_0_l, Rplus_0_r.
+now constructor.
 field.
 split ; apply Rgt_not_eq.
 apply bpow_gt_0.
