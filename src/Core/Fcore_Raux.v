@@ -911,6 +911,70 @@ Qed.
 
 End Rle_bool.
 
+Section Rlt_bool.
+
+Definition Rlt_bool x y :=
+  match Rcompare x y with
+  | Lt => true
+  | _ => false
+  end.
+
+Inductive Rlt_bool_prop (x y : R) : bool -> Prop :=
+  | Rlt_bool_true_ : (x < y)%R -> Rlt_bool_prop x y true
+  | Rlt_bool_false_ : (y <= x)%R -> Rlt_bool_prop x y false.
+
+Theorem Rlt_bool_spec :
+  forall x y, Rlt_bool_prop x y (Rlt_bool x y).
+Proof.
+intros x y.
+unfold Rlt_bool.
+case Rcompare_spec ; constructor.
+exact H.
+rewrite H.
+apply Rle_refl.
+now apply Rlt_le.
+Qed.
+
+Theorem negb_Rlt_bool :
+  forall x y,
+  negb (Rle_bool x y) = Rlt_bool y x.
+Proof.
+intros x y.
+unfold Rlt_bool, Rle_bool.
+rewrite Rcompare_sym.
+now case Rcompare.
+Qed.
+
+Theorem negb_Rle_bool :
+  forall x y,
+  negb (Rlt_bool x y) = Rle_bool y x.
+Proof.
+intros x y.
+unfold Rlt_bool, Rle_bool.
+rewrite Rcompare_sym.
+now case Rcompare.
+Qed.
+
+Theorem Rlt_bool_true :
+  forall x y,
+  (x < y)%R -> Rlt_bool x y = true.
+Proof.
+intros x y Hxy.
+rewrite <- negb_Rlt_bool.
+now rewrite Rle_bool_false.
+Qed.
+
+Theorem Rlt_bool_false :
+  forall x y,
+  (y <= x)%R -> Rlt_bool x y = false.
+Proof.
+intros x y Hxy.
+rewrite <- negb_Rlt_bool.
+now rewrite Rle_bool_true.
+Qed.
+
+End Rlt_bool.
+
 Section Req_bool.
 
 Definition Req_bool x y :=
