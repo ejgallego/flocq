@@ -180,8 +180,8 @@ rewrite Hxy.
 rewrite round_generic.
 apply bpow_gt_0.
 apply generic_format_bpow.
-ring_simplify (exy - 1 + 1)%Z.
-omega.
+apply Zlt_succ_le.
+now rewrite (Zsucc_pred exy) in He'.
 Qed.
 
 (** rnd(x+y)=0 -> x+y = 0 provided this is not a FTZ format *)
