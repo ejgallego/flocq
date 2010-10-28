@@ -386,6 +386,15 @@ Section Fprop_relative_FLT.
 Variable emin prec : Z.
 Variable Hp : Zlt 0 prec.
 
+Lemma relative_error_FLT_aux :
+  forall k, (emin + prec - 1 < k)%Z -> (prec <= k - FLT_exp emin prec k)%Z.
+Proof.
+intros k Hk.
+unfold FLT_exp.
+generalize (Zmax_spec (k - prec) emin).
+omega.
+Qed.
+
 Variable rnd : Zround.
 
 Theorem relative_error_FLT_F2R :
@@ -396,10 +405,7 @@ Proof.
 intros m x Hx.
 apply generic_relative_error_F2R.
 now apply FLT_exp_correct.
-intros k Hk.
-unfold FLT_exp.
-generalize (Zmax_spec (k - prec) emin).
-omega.
+apply relative_error_FLT_aux.
 exact Hx.
 Qed.
 
@@ -411,10 +417,7 @@ Proof.
 intros x Hx.
 apply generic_relative_error with (emin + prec - 1)%Z.
 now apply FLT_exp_correct.
-intros k Hk.
-unfold FLT_exp.
-generalize (Zmax_spec (k - prec) emin).
-omega.
+apply relative_error_FLT_aux.
 exact Hx.
 Qed.
 
@@ -453,10 +456,7 @@ Proof.
 intros x Hx.
 apply generic_relative_error_N with (emin + prec - 1)%Z.
 now apply FLT_exp_correct.
-intros k Hk.
-unfold FLT_exp.
-generalize (Zmax_spec (k - prec) emin).
-omega.
+apply relative_error_FLT_aux.
 exact Hx.
 Qed.
 
@@ -485,10 +485,7 @@ Proof.
 intros x Hx.
 apply generic_relative_error_N_2 with (emin + prec - 1)%Z.
 now apply FLT_exp_correct.
-intros k Hk.
-unfold FLT_exp.
-generalize (Zmax_spec (k - prec) emin).
-omega.
+apply relative_error_FLT_aux.
 exact Hp.
 exact Hx.
 Qed.
@@ -500,10 +497,7 @@ Proof.
 intros m x.
 apply generic_relative_error_N_F2R.
 now apply FLT_exp_correct.
-intros k Hk.
-unfold FLT_exp.
-generalize (Zmax_spec (k - prec) emin).
-omega.
+apply relative_error_FLT_aux.
 Qed.
 
 Theorem relative_error_N_FLT_F2R_ex :
@@ -528,10 +522,7 @@ Proof.
 intros m x.
 apply generic_relative_error_N_F2R_2.
 now apply FLT_exp_correct.
-intros k Hk.
-unfold FLT_exp.
-generalize (Zmax_spec (k - prec) emin).
-omega.
+apply relative_error_FLT_aux.
 exact Hp.
 Qed.
 
@@ -594,6 +585,14 @@ Section Fprop_relative_FLX.
 Variable prec : Z.
 Variable Hp : Zlt 0 prec.
 
+Lemma relative_error_FLX_aux :
+  forall k, (prec <= k - FLX_exp prec k)%Z.
+Proof.
+intros k.
+unfold FLX_exp.
+omega.
+Qed.
+
 Variable rnd : Zround.
 
 Theorem relative_error_FLX :
@@ -607,8 +606,7 @@ specialize (He Hx).
 apply generic_relative_error with (ex - 1)%Z.
 now apply FLX_exp_correct.
 intros k _.
-unfold FLX_exp.
-omega.
+apply relative_error_FLX_aux.
 apply He.
 Qed.
 
@@ -636,8 +634,7 @@ specialize (He Hx).
 apply generic_relative_error_2 with (ex - 1)%Z.
 now apply FLX_exp_correct.
 intros k _.
-unfold FLX_exp.
-omega.
+apply relative_error_FLX_aux.
 exact Hp.
 apply He.
 Qed.
@@ -662,8 +659,7 @@ specialize (He Hx).
 apply generic_relative_error_N with (ex - 1)%Z.
 now apply FLX_exp_correct.
 intros k _.
-unfold FLX_exp.
-omega.
+apply relative_error_FLX_aux.
 apply He.
 Qed.
 
@@ -701,8 +697,7 @@ specialize (He Hx).
 apply generic_relative_error_N_2 with (ex - 1)%Z.
 now apply FLX_exp_correct.
 intros k _.
-unfold FLX_exp.
-omega.
+apply relative_error_FLX_aux.
 exact Hp.
 apply He.
 Qed.
