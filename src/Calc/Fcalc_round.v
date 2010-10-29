@@ -657,6 +657,105 @@ Qed.
 
 End round_dir.
 
+Section round_dir_sign.
+
+Variable rnd: Zround.
+Variable choice : bool -> Z -> location -> Z.
+Hypothesis inbetween_int_valid :
+  forall x m l,
+  inbetween_int m (Rabs x) l ->
+  Zrnd rnd x = cond_Zopp (Rlt_bool x 0) (choice (Rlt_bool x 0) m l).
+
+Theorem round_sign_any_correct :
+  forall x m e l,
+  inbetween_float beta m e (Rabs x) l ->
+  (e = canonic_exponent beta fexp x \/ (l = loc_Exact /\ format x)) ->
+  round beta fexp rnd x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (choice (Rlt_bool x 0) m l)) e).
+Proof.
+intros x m e l Hin [He|(Hl,Hf)].
+rewrite He in Hin |- *.
+apply inbetween_float_round_sign with (2 := Hin).
+exact inbetween_int_valid.
+rewrite Hl in Hin.
+inversion_clear Hin.
+rewrite Hl.
+replace (choice (Rlt_bool x 0) m loc_Exact) with m.
+(* *)
+unfold Rabs in H.
+destruct (Rcase_abs x) as [Zx|Zx].
+rewrite Rlt_bool_true with (1 := Zx).
+simpl.
+rewrite <- opp_F2R.
+rewrite <- H, Ropp_involutive.
+now apply round_generic.
+rewrite Rlt_bool_false.
+simpl.
+rewrite <- H.
+now apply round_generic.
+now apply Rge_le.
+(* *)
+destruct (Rlt_bool_spec x 0) as [Zx|Zx].
+(* . *)
+apply Zopp_inj.
+change (- m = cond_Zopp true (choice true m loc_Exact))%Z.
+rewrite <- (Zrnd_Z2R rnd (-m)) at 1.
+assert (Z2R (-m) < 0)%R.
+rewrite Z2R_opp.
+apply Ropp_lt_gt_0_contravar.
+apply (Z2R_lt 0).
+apply F2R_gt_0_reg with beta e.
+rewrite <- H.
+apply Rabs_pos_lt.
+now apply Rlt_not_eq.
+rewrite <- Rlt_bool_true with (1 := H0).
+apply inbetween_int_valid.
+constructor.
+rewrite Rabs_left with (1 := H0).
+rewrite Z2R_opp.
+apply Ropp_involutive.
+(* . *)
+change (m = cond_Zopp false (choice false m loc_Exact))%Z.
+rewrite <- (Zrnd_Z2R rnd m) at 1.
+assert (0 <= Z2R m)%R.
+apply (Z2R_le 0).
+apply F2R_ge_0_reg with beta e.
+rewrite <- H.
+apply Rabs_pos.
+rewrite <- Rlt_bool_false with (1 := H0).
+apply inbetween_int_valid.
+constructor.
+now apply Rabs_pos_eq.
+Qed.
+
+(** Truncating a triple is sufficient to round a real number. *)
+
+Theorem round_trunc_sign_any_correct :
+  forall x m e l,
+  inbetween_float beta m e (Rabs x) l ->
+  (e <= fexp (digits beta m + e))%Z \/ l = loc_Exact ->
+  round beta fexp rnd x = let '(m', e', l') := truncate (m, e, l) in F2R (Float beta (cond_Zopp (Rlt_bool x 0) (choice (Rlt_bool x 0) m' l')) e').
+Proof.
+intros x m e l Hl He.
+generalize (truncate_correct (Rabs x) m e l (Rabs_pos _) Hl He).
+destruct (truncate (m, e, l)) as ((m', e'), l').
+intros (H1, H2).
+apply round_sign_any_correct.
+exact H1.
+destruct H2 as [H2|(H2,H3)].
+left.
+now rewrite <- canonic_exponent_abs.
+right.
+split.
+exact H2.
+unfold Rabs in H3.
+destruct (Rcase_abs x) in H3.
+rewrite <- Ropp_involutive.
+now apply generic_format_opp.
+exact H3.
+Qed.
+
+End round_dir_sign.
+
 (** * Instances of the theorems above, for the usual rounding modes. *)
 
 Definition round_DN_correct :=
@@ -665,11 +764,23 @@ Definition round_DN_correct :=
 Definition round_trunc_DN_correct :=
   round_trunc_any_correct _ (fun m _ => m) inbetween_int_DN.
 
+Definition round_sign_DN_correct :=
+  round_sign_any_correct _ (fun s m l => cond_incr (round_sign_DN s l) m) inbetween_int_DN_sign.
+
+Definition round_trunc_sign_DN_correct :=
+  round_trunc_sign_any_correct _ (fun s m l => cond_incr (round_sign_DN s l) m) inbetween_int_DN_sign.
+
 Definition round_UP_correct :=
   round_any_correct _ (fun m l => cond_incr (round_UP l) m) inbetween_int_UP.
 
 Definition round_trunc_UP_correct :=
   round_trunc_any_correct _ (fun m l => cond_incr (round_UP l) m) inbetween_int_UP.
+
+Definition round_sign_UP_correct :=
+  round_sign_any_correct _ (fun s m l => cond_incr (round_sign_UP s l) m) inbetween_int_UP_sign.
+
+Definition round_trunc_sign_UP_correct :=
+  round_trunc_sign_any_correct _ (fun s m l => cond_incr (round_sign_UP s l) m) inbetween_int_UP_sign.
 
 Definition round_ZR_correct :=
   round_any_correct _ (fun m l => cond_incr (round_ZR (Zlt_bool m 0) l) m) inbetween_int_ZR.
@@ -677,11 +788,23 @@ Definition round_ZR_correct :=
 Definition round_trunc_ZR_correct :=
   round_trunc_any_correct _ (fun m l => cond_incr (round_ZR (Zlt_bool m 0) l) m) inbetween_int_ZR.
 
+Definition round_sign_ZR_correct :=
+  round_sign_any_correct _ (fun s m l => m) inbetween_int_ZR_sign.
+
+Definition round_trunc_sign_ZR_correct :=
+  round_trunc_sign_any_correct _ (fun s m l => m) inbetween_int_ZR_sign.
+
 Definition round_NE_correct :=
   round_any_correct _ (fun m l => cond_incr (round_NE (Zeven m) l) m) inbetween_int_NE.
 
 Definition round_trunc_NE_correct :=
   round_trunc_any_correct _ (fun m l => cond_incr (round_NE (Zeven m) l) m) inbetween_int_NE.
+
+Definition round_sign_NE_correct :=
+  round_sign_any_correct _ (fun s m l => cond_incr (round_NE (Zeven m) l) m) inbetween_int_NE_sign.
+
+Definition round_trunc_sign_NE_correct :=
+  round_trunc_sign_any_correct _ (fun s m l => cond_incr (round_NE (Zeven m) l) m) inbetween_int_NE_sign.
 
 End Fcalc_round_fexp.
 
