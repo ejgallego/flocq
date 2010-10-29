@@ -53,6 +53,42 @@ apply bpow_gt_0.
 now rewrite scaled_mantissa_bpow.
 Qed.
 
+Definition cond_Zopp (b : bool) m := if b then Zopp m else m.
+Definition cond_incr (b : bool) m := if b then (m + 1)%Z else m.
+
+Theorem inbetween_float_round_sign :
+  forall rnd choice,
+  ( forall x m l, inbetween_int m (Rabs x) l ->
+    Zrnd rnd x = cond_Zopp (Rlt_bool x 0) (choice (Rlt_bool x 0) m l) ) ->
+  forall x m l,
+  let e := canonic_exponent beta fexp x in
+  inbetween_float beta m e (Rabs x) l ->
+  round beta fexp rnd x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (choice (Rlt_bool x 0) m l)) e).
+Proof.
+intros rnd choice Hc x m l e Hx.
+apply (f_equal (fun m => (Z2R m * bpow e)%R)).
+simpl.
+replace (Rlt_bool x 0) with (Rlt_bool (scaled_mantissa beta fexp x) 0).
+(* *)
+apply Hc.
+apply inbetween_mult_reg with (bpow e).
+apply bpow_gt_0.
+rewrite <- (Rabs_right (bpow e)) at 3.
+rewrite <- Rabs_mult.
+now rewrite scaled_mantissa_bpow.
+apply Rle_ge.
+apply bpow_ge_0.
+(* *)
+destruct (Rlt_bool_spec x 0) as [Zx|Zx] ; simpl.
+apply Rlt_bool_true.
+rewrite <- (Rmult_0_l (bpow (-e))).
+apply Rmult_lt_compat_r with (2 := Zx).
+apply bpow_gt_0.
+apply Rlt_bool_false.
+apply Rmult_le_pos with (1 := Zx).
+apply bpow_ge_0.
+Qed.
+
 (** Relates location and rounding down. *)
 
 Theorem inbetween_int_DN :
@@ -77,9 +113,59 @@ apply inbetween_float_round with (choice := fun m l => m).
 exact inbetween_int_DN.
 Qed.
 
-(** Relates location and rounding up. *)
+Definition round_sign_DN s l :=
+  match l with
+  | loc_Exact => false
+  | _ => s
+  end.
 
-Definition cond_incr (b : bool) m := if b then (m + 1)%Z else m.
+Theorem inbetween_int_DN_sign :
+  forall x m l,
+  inbetween_int m (Rabs x) l ->
+  Zrnd rndDN x = cond_Zopp (Rlt_bool x 0) (cond_incr (round_sign_DN (Rlt_bool x 0) l) m).
+Proof.
+intros x m l Hl.
+unfold Rabs in Hl.
+destruct (Rcase_abs x) as [Zx|Zx] .
+(* *)
+rewrite Rlt_bool_true with (1 := Zx).
+inversion_clear Hl ; simpl.
+rewrite <- (Ropp_involutive x).
+rewrite H, <- Z2R_opp.
+apply Zfloor_Z2R.
+apply Zfloor_imp.
+split.
+apply Rlt_le.
+rewrite Z2R_opp.
+apply Ropp_lt_cancel.
+now rewrite Ropp_involutive.
+ring_simplify (- (m + 1) + 1)%Z.
+rewrite Z2R_opp.
+apply Ropp_lt_cancel.
+now rewrite Ropp_involutive.
+(* *)
+rewrite Rlt_bool_false.
+inversion_clear Hl ; simpl.
+rewrite H.
+apply Zfloor_Z2R.
+apply Zfloor_imp.
+split.
+now apply Rlt_le.
+apply H.
+now apply Rge_le.
+Qed.
+
+Theorem inbetween_float_DN_sign :
+  forall x m l,
+  let e := canonic_exponent beta fexp x in
+  inbetween_float beta m e (Rabs x) l ->
+  round beta fexp rndDN x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (cond_incr (round_sign_DN (Rlt_bool x 0) l) m)) e).
+Proof.
+apply inbetween_float_round_sign with (choice := fun s m l => cond_incr (round_sign_DN s l) m).
+exact inbetween_int_DN_sign.
+Qed.
+
+(** Relates location and rounding up. *)
 
 Definition round_UP l :=
   match l with
@@ -118,6 +204,56 @@ Theorem inbetween_float_UP :
 Proof.
 apply inbetween_float_round with (choice := fun m l => cond_incr (round_UP l) m).
 exact inbetween_int_UP.
+Qed.
+
+Definition round_sign_UP s l :=
+  match l with
+  | loc_Exact => false
+  | _ => negb s
+  end.
+
+Theorem inbetween_int_UP_sign :
+  forall x m l,
+  inbetween_int m (Rabs x) l ->
+  Zrnd rndUP x = cond_Zopp (Rlt_bool x 0) (cond_incr (round_sign_UP (Rlt_bool x 0) l) m).
+Proof.
+intros x m l Hl.
+unfold Rabs in Hl.
+destruct (Rcase_abs x) as [Zx|Zx] .
+(* *)
+rewrite Rlt_bool_true with (1 := Zx).
+simpl.
+unfold Zceil.
+apply f_equal.
+inversion_clear Hl ; simpl.
+rewrite H.
+apply Zfloor_Z2R.
+apply Zfloor_imp.
+split.
+now apply Rlt_le.
+apply H.
+(* *)
+rewrite Rlt_bool_false.
+simpl.
+inversion_clear Hl ; simpl.
+rewrite H.
+apply Zceil_Z2R.
+apply Zceil_imp.
+split.
+change (m + 1 - 1)%Z with (Zpred (Zsucc m)).
+now rewrite <- Zpred_succ.
+now apply Rlt_le.
+now apply Rge_le.
+Qed.
+
+Theorem inbetween_float_UP_sign :
+  forall x m l,
+  let e := canonic_exponent beta fexp x in
+  inbetween_float beta m e (Rabs x) l ->
+  round beta fexp rndUP x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (cond_incr (round_sign_UP (Rlt_bool x 0) l) m)) e).
+Proof.
+apply inbetween_float_round_sign with (choice := fun s m l => cond_incr (round_sign_UP s l) m).
+exact inbetween_int_UP_sign.
 Qed.
 
 (** Relates location and rounding toward zero. *)
@@ -173,6 +309,45 @@ apply inbetween_float_round with (choice := fun m l => cond_incr (round_ZR (Zlt_
 exact inbetween_int_ZR.
 Qed.
 
+Theorem inbetween_int_ZR_sign :
+  forall x m l,
+  inbetween_int m (Rabs x) l ->
+  Zrnd rndZR x = cond_Zopp (Rlt_bool x 0) m.
+Proof.
+intros x m l Hl.
+simpl.
+unfold Ztrunc.
+destruct (Rlt_le_dec x 0) as [Zx|Zx].
+(* *)
+rewrite Rlt_bool_true with (1 := Zx).
+simpl.
+unfold Zceil.
+apply f_equal.
+apply Zfloor_imp.
+rewrite <- Rabs_left with (1 := Zx).
+apply inbetween_bounds with (2 := Hl).
+apply Z2R_lt.
+apply Zlt_succ.
+(* *)
+rewrite Rlt_bool_false with (1 := Zx).
+simpl.
+apply Zfloor_imp.
+rewrite <- Rabs_pos_eq with (1 := Zx).
+apply inbetween_bounds with (2 := Hl).
+apply Z2R_lt.
+apply Zlt_succ.
+Qed.
+
+Theorem inbetween_float_ZR_sign :
+  forall x m l,
+  let e := canonic_exponent beta fexp x in
+  inbetween_float beta m e (Rabs x) l ->
+  round beta fexp rndZR x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) m) e).
+Proof.
+apply inbetween_float_round_sign with (choice := fun s m l => m).
+exact inbetween_int_ZR_sign.
+Qed.
+
 (** Relates location and rounding to nearest even. *)
 
 Definition round_NE (p : bool) l :=
@@ -220,6 +395,77 @@ Theorem inbetween_float_NE :
 Proof.
 apply inbetween_float_round with (choice := fun m l => cond_incr (round_NE (Zeven m) l) m).
 exact inbetween_int_NE.
+Qed.
+
+Theorem inbetween_int_NE_sign :
+  forall x m l,
+  inbetween_int m (Rabs x) l ->
+  Zrnd rndNE x = cond_Zopp (Rlt_bool x 0) (cond_incr (round_NE (Zeven m) l) m).
+Proof.
+intros x m l Hl.
+simpl.
+unfold Rabs in Hl.
+destruct (Rcase_abs x) as [Zx|Zx].
+(* *)
+rewrite Rlt_bool_true with (1 := Zx).
+simpl.
+rewrite <- (Ropp_involutive x).
+rewrite Znearest_opp.
+apply f_equal.
+inversion_clear Hl as [Hx|l' Hx Hl'].
+rewrite Hx.
+apply Znearest_Z2R.
+assert (Hm: Zfloor (-x) = m).
+apply Zfloor_imp.
+exact (conj (Rlt_le _ _ (proj1 Hx)) (proj2 Hx)).
+unfold Znearest.
+rewrite Zceil_floor_neq.
+rewrite Hm.
+replace (Rcompare (- x - Z2R m) (/2)) with l'.
+case l' ; try easy.
+rewrite Bool.negb_involutive, Zeven_opp, Zeven_plus.
+now case (Zeven m).
+rewrite <- Hl'.
+rewrite Z2R_plus.
+rewrite <- (Rcompare_plus_r (- Z2R m) (-x)).
+apply f_equal.
+simpl (Z2R 1).
+field.
+rewrite Hm.
+now apply Rlt_not_eq.
+(* *)
+rewrite Rlt_bool_false.
+simpl.
+inversion_clear Hl as [Hx|l' Hx Hl'].
+rewrite Hx.
+apply Znearest_Z2R.
+assert (Hm: Zfloor x = m).
+apply Zfloor_imp.
+exact (conj (Rlt_le _ _ (proj1 Hx)) (proj2 Hx)).
+unfold Znearest.
+rewrite Zceil_floor_neq.
+rewrite Hm.
+replace (Rcompare (x - Z2R m) (/2)) with l'.
+now case l'.
+rewrite <- Hl'.
+rewrite Z2R_plus.
+rewrite <- (Rcompare_plus_r (- Z2R m) x).
+apply f_equal.
+simpl (Z2R 1).
+field.
+rewrite Hm.
+now apply Rlt_not_eq.
+now apply Rge_le.
+Qed.
+
+Theorem inbetween_float_NE_sign :
+  forall x m l,
+  let e := canonic_exponent beta fexp x in
+  inbetween_float beta m e (Rabs x) l ->
+  round beta fexp rndNE x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (cond_incr (round_NE (Zeven m) l) m)) e).
+Proof.
+apply inbetween_float_round_sign with (choice := fun s m l => cond_incr (round_NE (Zeven m) l) m).
+exact inbetween_int_NE_sign.
 Qed.
 
 (** Given a triple (mantissa, exponent, position), this function
