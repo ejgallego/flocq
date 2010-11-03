@@ -17,7 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
-(** * Function of computing the number of digits of integers
+(** * Functions for computing the number of digits of integers
       and related theorems. *)
 
 Require Import Fcore_Raux.
@@ -243,6 +243,17 @@ apply Rgt_not_eq.
 apply bpow_gt_0.
 Qed.
 
+Theorem digits_Zpower :
+  forall e,
+  (0 <= e)%Z ->
+  digits (Zpower beta e) = (e + 1)%Z.
+Proof.
+intros e He.
+rewrite <- (Zmult_1_l (Zpower beta e)).
+rewrite digits_shift ; try easy.
+apply Zplus_comm.
+Qed.
+
 Theorem digits_le :
   forall x y,
   (0 <= x)%Z -> (x <= y)%Z ->
@@ -287,6 +298,86 @@ Proof.
 intros x y Hy.
 cut (y <= x -> digits y <= digits x)%Z. omega.
 now apply digits_le.
+Qed.
+
+Theorem Zpower_le_digits :
+  forall e x,
+  (e < digits x)%Z ->
+  (Zpower beta e <= Zabs x)%Z.
+Proof.
+intros [|e|e] x Hex.
+(* *)
+apply (Zlt_le_succ 0).
+apply lt_digits.
+apply Zabs_pos.
+now rewrite digits_abs.
+2: apply Zabs_pos.
+(* *)
+apply le_Z2R.
+rewrite Z2R_Zpower. 2: easy.
+assert (Zx: x <> Z0).
+intros H.
+apply Zlt_not_le with (1 := Hex).
+now rewrite H.
+revert Hex.
+rewrite digits_ln_beta with (1 := Zx).
+destruct (ln_beta beta (Z2R x)) as (ex, Ex).
+unfold ln_beta_val.
+specialize (Ex (Z2R_neq _ 0 Zx)).
+intros Hex.
+rewrite <- Z2R_abs in Ex.
+apply Rle_trans with (2 := proj1 Ex).
+apply bpow_le.
+omega.
+Qed.
+
+Theorem digits_le_Zpower :
+  forall e x,
+  (Zabs x < Zpower beta e)%Z ->
+  (digits x <= e)%Z.
+Proof.
+intros e x.
+generalize (Zpower_le_digits e x).
+omega.
+Qed.
+
+Theorem digits_gt_Zpower :
+  forall e x,
+  (Zpower beta e <= Zabs x)%Z ->
+  (e < digits x)%Z.
+Proof.
+intros [|e|e] x Hex.
+(* *)
+apply Zlt_le_trans with 1%Z.
+apply refl_equal.
+rewrite <- digits_abs.
+change 1%Z with (digits 1).
+now apply digits_le.
+(* *)
+rewrite (Zpred_succ (Zpos e)).
+apply Zlt_le_trans with (1 := Zlt_pred _).
+unfold Zsucc.
+rewrite <- digits_Zpower. 2: easy.
+rewrite <- (digits_abs x).
+apply digits_le with (2 := Hex).
+apply le_Z2R.
+rewrite Z2R_Zpower.
+apply bpow_ge_0.
+easy.
+(* *)
+apply Zlt_le_trans with Z0.
+apply refl_equal.
+apply digits_ge_0.
+Qed.
+
+Theorem Zpower_gt_digits :
+  forall e x,
+  (digits x <= e)%Z ->
+  (Zabs x < Zpower beta e)%Z.
+Proof.
+intros e x Hex.
+generalize (digits_gt_Zpower e x).
+omega.
 Qed.
 
 (** Characterizes the number digits of a product.
