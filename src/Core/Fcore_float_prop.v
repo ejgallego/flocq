@@ -27,6 +27,17 @@ Variable beta : radix.
 
 Notation bpow e := (bpow beta e).
 
+Theorem Rcompare_F2R :
+  forall e m1 m2 : Z,
+  Rcompare (F2R (Float beta m1 e)) (F2R (Float beta m2 e)) = Zcompare m1 m2.
+Proof.
+intros e m1 m2.
+unfold F2R. simpl.
+rewrite Rcompare_mult_r.
+apply Rcompare_Z2R.
+apply bpow_gt_0.
+Qed.
+
 (** Basic facts *)
 Theorem F2R_le_reg :
   forall e m1 m2 : Z,
