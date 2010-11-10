@@ -1,0 +1,6 @@
+Version 1.1:
+ - simplified effective rounding for negative reals
+ - proved monotonicity of exponent functions for common formats
+
+Version 1.0:
+ - initial release
