@@ -468,3 +468,26 @@ apply digits_mult_strong ; apply Zabs_pos.
 Qed.
 
 End Fcalc_digits.
+
+Definition radix2 := Build_radix 2 (refl_equal _).
+
+Theorem Z_of_nat_S_digits2_Pnat :
+  forall m : positive,
+  Z_of_nat (S (digits2_Pnat m)) = digits radix2 (Zpos m).
+Proof.
+intros m.
+rewrite digits_ln_beta. 2: easy.
+apply sym_eq.
+apply ln_beta_unique.
+generalize (digits2_Pnat m) (digits2_Pnat_correct m).
+intros d H.
+simpl in H.
+replace (Z_of_nat (S d) - 1)%Z with (Z_of_nat d).
+rewrite <- Z2R_abs.
+rewrite <- 2!Z2R_Zpower_nat.
+split.
+now apply Z2R_le.
+now apply Z2R_lt.
+rewrite inj_S.
+apply Zpred_succ.
+Qed.
