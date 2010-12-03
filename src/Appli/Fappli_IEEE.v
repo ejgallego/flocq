@@ -1,9 +1,13 @@
 Require Import Fcore.
 Require Import Fcalc_digits.
+Require Import Fcalc_round.
+Require Import Fcalc_bracket.
+Require Import Fcalc_ops.
 
 Section Binary.
 
 Variable prec emax : Z.
+Hypothesis Hprec : (0 < prec)%Z.
 
 Let fexp := FLT_exp (1 - (emax + prec)) prec.
 
@@ -24,14 +28,14 @@ Definition radix2 := Build_radix 2 (refl_equal true).
 
 Definition B2R f :=
   match f with
-  | B754_finite s m e _ => F2R (Float radix2 ((if s then Zneg else Zpos) m) e)
+  | B754_finite s m e _ => F2R (Float radix2 (cond_Zopp s (Zpos m)) e)
   | _ => R0
   end.
 
 Theorem canonic_bounded_prec :
   forall (sx : bool) mx ex,
   bounded_prec mx ex = true ->
-  canonic radix2 fexp (Float radix2 ((if sx then Zneg else Zpos) mx) ex).
+  canonic radix2 fexp (Float radix2 (cond_Zopp sx (Zpos mx)) ex).
 Proof.
 intros sx mx ex H.
 assert (Hx := Zeq_bool_eq _ _ H). clear H.
@@ -110,6 +114,30 @@ Definition is_finite f :=
   | _ => false
   end.
 
+Definition Bopp x :=
+  match x with
+  | B754_nan => x
+  | B754_infinity sx => B754_infinity (negb sx)
+  | B754_finite sx mx ex Hx => B754_finite (negb sx) mx ex Hx
+  | B754_zero sx => B754_zero (negb sx)
+  end.
+
+Theorem Bopp_involutive :
+  forall x, Bopp (Bopp x) = x.
+Proof.
+now intros [sx|sx| |sx mx ex Hx] ; simpl ; try rewrite Bool.negb_involutive.
+Qed.
+
+Theorem B2R_Bopp :
+  forall x,
+  B2R (Bopp x) = (- B2R x)%R.
+Proof.
+intros [sx|sx| |sx mx ex Hx] ; apply sym_eq ; try apply Ropp_0.
+simpl.
+rewrite opp_F2R.
+now case sx.
+Qed.
+
 Inductive mode := mode_NE | mode_ZR | mode_DN | mode_UP | mode_NA.
 
 Definition round_mode m :=
@@ -138,7 +166,7 @@ Definition Bplus m x y :=
     B754_nan
   end.
 
-Theorem Bplus_finite :
+Theorem B2R_Bplus :
   forall m x y,
   is_finite x = true ->
   is_finite y = true ->
