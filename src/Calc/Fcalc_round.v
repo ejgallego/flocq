@@ -348,22 +348,22 @@ apply inbetween_float_round_sign with (choice := fun s m l => m).
 exact inbetween_int_ZR_sign.
 Qed.
 
-(** Relates location and rounding to nearest even. *)
+(** Relates location and rounding to nearest. *)
 
-Definition round_NE (p : bool) l :=
+Definition round_N (p : bool) l :=
   match l with
   | loc_Exact => false
   | loc_Inexact Lt => false
-  | loc_Inexact Eq => if p then false else true
+  | loc_Inexact Eq => p
   | loc_Inexact Gt => true
   end.
 
-Theorem inbetween_int_NE :
-  forall x m l,
+Theorem inbetween_int_N :
+  forall choice x m l,
   inbetween_int m x l ->
-  Zrnd rndNE x = cond_incr (round_NE (Zeven m) l) m.
+  Zrnd (rndN choice) x = cond_incr (round_N (choice m) l) m.
 Proof.
-intros x m l Hl.
+intros choice x m l Hl.
 inversion_clear Hl as [Hx|l' Hx Hl'].
 (* Exact *)
 rewrite Hx.
@@ -387,22 +387,12 @@ rewrite Hm.
 now apply Rlt_not_eq.
 Qed.
 
-Theorem inbetween_float_NE :
-  forall x m l,
-  let e := canonic_exponent beta fexp x in
-  inbetween_float beta m e x l ->
-  round beta fexp rndNE x = F2R (Float beta (cond_incr (round_NE (Zeven m) l) m) e).
-Proof.
-apply inbetween_float_round with (choice := fun m l => cond_incr (round_NE (Zeven m) l) m).
-exact inbetween_int_NE.
-Qed.
-
-Theorem inbetween_int_NE_sign :
-  forall x m l,
+Theorem inbetween_int_N_sign :
+  forall choice x m l,
   inbetween_int m (Rabs x) l ->
-  Zrnd rndNE x = cond_Zopp (Rlt_bool x 0) (cond_incr (round_NE (Zeven m) l) m).
+  Zrnd (rndN choice) x = cond_Zopp (Rlt_bool x 0) (cond_incr (round_N (if Rlt_bool x 0 then negb (choice (-(m + 1))%Z) else choice m) l) m).
 Proof.
-intros x m l Hl.
+intros choice x m l Hl.
 simpl.
 unfold Rabs in Hl.
 destruct (Rcase_abs x) as [Zx|Zx].
@@ -422,9 +412,7 @@ unfold Znearest.
 rewrite Zceil_floor_neq.
 rewrite Hm.
 replace (Rcompare (- x - Z2R m) (/2)) with l'.
-case l' ; try easy.
-rewrite Bool.negb_involutive, Zeven_opp, Zeven_plus.
-now case (Zeven m).
+now case l'.
 rewrite <- Hl'.
 rewrite Z2R_plus.
 rewrite <- (Rcompare_plus_r (- Z2R m) (-x)).
@@ -434,7 +422,9 @@ field.
 rewrite Hm.
 now apply Rlt_not_eq.
 (* *)
-rewrite Rlt_bool_false.
+generalize (Rge_le _ _ Zx).
+clear Zx. intros Zx.
+rewrite Rlt_bool_false with (1 := Zx).
 simpl.
 inversion_clear Hl as [Hx|l' Hx Hl'].
 rewrite Hx.
@@ -455,17 +445,96 @@ simpl (Z2R 1).
 field.
 rewrite Hm.
 now apply Rlt_not_eq.
-now apply Rge_le.
+Qed.
+
+(** Relates location and rounding to nearest even. *)
+
+Theorem inbetween_int_NE :
+  forall x m l,
+  inbetween_int m x l ->
+  Zrnd rndNE x = cond_incr (round_N (negb (Zeven m)) l) m.
+Proof.
+intros x m l Hl.
+now apply inbetween_int_N with (choice := fun x => negb (Zeven x)).
+Qed.
+
+Theorem inbetween_float_NE :
+  forall x m l,
+  let e := canonic_exponent beta fexp x in
+  inbetween_float beta m e x l ->
+  round beta fexp rndNE x = F2R (Float beta (cond_incr (round_N (negb (Zeven m)) l) m) e).
+Proof.
+apply inbetween_float_round with (choice := fun m l => cond_incr (round_N (negb (Zeven m)) l) m).
+exact inbetween_int_NE.
+Qed.
+
+Theorem inbetween_int_NE_sign :
+  forall x m l,
+  inbetween_int m (Rabs x) l ->
+  Zrnd rndNE x = cond_Zopp (Rlt_bool x 0) (cond_incr (round_N (negb (Zeven m)) l) m).
+Proof.
+intros x m l Hl.
+erewrite inbetween_int_N_sign with (choice := fun x => negb (Zeven x)).
+2: eexact Hl.
+apply f_equal.
+case Rlt_bool.
+rewrite Zeven_opp, Zeven_plus.
+now case (Zeven m).
+apply refl_equal.
 Qed.
 
 Theorem inbetween_float_NE_sign :
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float beta m e (Rabs x) l ->
-  round beta fexp rndNE x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (cond_incr (round_NE (Zeven m) l) m)) e).
+  round beta fexp rndNE x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (cond_incr (round_N (negb (Zeven m)) l) m)) e).
 Proof.
-apply inbetween_float_round_sign with (choice := fun s m l => cond_incr (round_NE (Zeven m) l) m).
+apply inbetween_float_round_sign with (choice := fun s m l => cond_incr (round_N (negb (Zeven m)) l) m).
 exact inbetween_int_NE_sign.
+Qed.
+
+(** Relates location and rounding to nearest away. *)
+
+Theorem inbetween_int_NA :
+  forall x m l,
+  inbetween_int m x l ->
+  Zrnd rndNA x = cond_incr (round_N (Zle_bool 0 m) l) m.
+Proof.
+intros x m l Hl.
+now apply inbetween_int_N with (choice := fun x => Zle_bool 0 x).
+Qed.
+
+Theorem inbetween_float_NA :
+  forall x m l,
+  let e := canonic_exponent beta fexp x in
+  inbetween_float beta m e x l ->
+  round beta fexp rndNA x = F2R (Float beta (cond_incr (round_N (Zle_bool 0 m) l) m) e).
+Proof.
+apply inbetween_float_round with (choice := fun m l => cond_incr (round_N (Zle_bool 0 m) l) m).
+exact inbetween_int_NA.
+Qed.
+
+Theorem inbetween_int_NA_sign :
+  forall x m l,
+  inbetween_int m (Rabs x) l ->
+  Zrnd rndNA x = cond_Zopp (Rlt_bool x 0) (cond_incr (round_N true l) m).
+Proof.
+intros x m l Hl.
+erewrite inbetween_int_N_sign with (choice := Zle_bool 0).
+2: eexact Hl.
+apply f_equal.
+assert (Hm: (0 <= m)%Z).
+apply Zlt_succ_le.
+apply lt_Z2R.
+apply Rle_lt_trans with (Rabs x).
+apply Rabs_pos.
+refine (proj2 (inbetween_bounds _ _ _ _ _ Hl)).
+apply Z2R_lt.
+apply Zlt_succ.
+rewrite Zle_bool_true with (1 := Hm).
+rewrite Zle_bool_false.
+now case Rlt_bool.
+omega.
 Qed.
 
 (** Given a triple (mantissa, exponent, position), this function
@@ -823,16 +892,28 @@ Definition round_trunc_sign_ZR_correct :=
   round_trunc_sign_any_correct _ (fun s m l => m) inbetween_int_ZR_sign.
 
 Definition round_NE_correct :=
-  round_any_correct _ (fun m l => cond_incr (round_NE (Zeven m) l) m) inbetween_int_NE.
+  round_any_correct _ (fun m l => cond_incr (round_N (negb (Zeven m)) l) m) inbetween_int_NE.
 
 Definition round_trunc_NE_correct :=
-  round_trunc_any_correct _ (fun m l => cond_incr (round_NE (Zeven m) l) m) inbetween_int_NE.
+  round_trunc_any_correct _ (fun m l => cond_incr (round_N (negb (Zeven m)) l) m) inbetween_int_NE.
 
 Definition round_sign_NE_correct :=
-  round_sign_any_correct _ (fun s m l => cond_incr (round_NE (Zeven m) l) m) inbetween_int_NE_sign.
+  round_sign_any_correct _ (fun s m l => cond_incr (round_N (negb (Zeven m)) l) m) inbetween_int_NE_sign.
 
 Definition round_trunc_sign_NE_correct :=
-  round_trunc_sign_any_correct _ (fun s m l => cond_incr (round_NE (Zeven m) l) m) inbetween_int_NE_sign.
+  round_trunc_sign_any_correct _ (fun s m l => cond_incr (round_N (negb (Zeven m)) l) m) inbetween_int_NE_sign.
+
+Definition round_NA_correct :=
+  round_any_correct _ (fun m l => cond_incr (round_N (Zle_bool 0 m) l) m) inbetween_int_NA.
+
+Definition round_trunc_NA_correct :=
+  round_trunc_any_correct _ (fun m l => cond_incr (round_N (Zle_bool 0 m) l) m) inbetween_int_NA.
+
+Definition round_sign_NA_correct :=
+  round_sign_any_correct _ (fun s m l => cond_incr (round_N true l) m) inbetween_int_NA_sign.
+
+Definition round_trunc_sign_NA_correct :=
+  round_trunc_sign_any_correct _ (fun s m l => cond_incr (round_N true l) m) inbetween_int_NA_sign.
 
 End Fcalc_round_fexp.
 

@@ -33,7 +33,7 @@ Definition Fsqrt_FLT_ne (f : float beta) :=
   if Zle_bool m 0 then Float beta 0 0
   else
     let '(m', e', l) := truncate beta (FLT_exp emin prec) (Fsqrt_core beta prec m e) in
-    Float beta (cond_incr (round_NE (Zeven m') l) m') e'.
+    Float beta (cond_incr (round_N (negb (Zeven m')) l) m') e'.
 
 Theorem Fsqrt_FLT_ne_correct :
   forall x,
