@@ -480,14 +480,13 @@ Definition truncate t :=
     (Zdiv m p, (e + k)%Z, new_location p (Zmod m p) l)
   else t.
 
-Theorem truncate_correct :
+Theorem truncate_correct_partial :
   forall x m e l,
-  (0 <= x)%R ->
+  (0 < x)%R ->
   inbetween_float beta m e x l ->
-  (e <= fexp (digits beta m + e))%Z \/ l = loc_Exact ->
+  (e <= fexp (digits beta m + e))%Z ->
   let '(m', e', l') := truncate (m, e, l) in
-  inbetween_float beta m' e' x l' /\
-  (e' = canonic_exponent beta fexp x \/ (l' = loc_Exact /\ format x)).
+  inbetween_float beta m' e' x l' /\ e' = canonic_exponent beta fexp x.
 Proof.
 intros x m e l Hx H1 H2.
 unfold truncate.
@@ -503,15 +502,13 @@ assert (Hm: (0 <= m)%Z).
 cut (0 < m + 1)%Z. omega.
 apply F2R_lt_reg with beta e.
 rewrite F2R_0.
-apply Rle_lt_trans with  (1 := Hx).
+apply Rlt_trans with  (1 := Hx).
 apply Hx'.
-destruct Hx as [Hx|Hx].
-(* . 0 < x *)
 assert (He: (e + k = canonic_exponent beta fexp x)%Z).
-(* .. *)
+(* . *)
 unfold canonic_exponent.
 destruct (Zle_lt_or_eq _ _ Hm) as [Hm'|Hm'].
-(* ... 0 < m *)
+(* .. 0 < m *)
 rewrite ln_beta_F2R_bounds with (1 := Hm') (2 := Hx').
 assert (H: m <> Z0).
 apply sym_not_eq.
@@ -520,8 +517,7 @@ rewrite ln_beta_F2R with (1 := H).
 rewrite <- digits_ln_beta with (1 := H).
 unfold k.
 ring.
-destruct H2 as [H2|H2].
-(* ... m = 0 and enough digits *)
+(* .. m = 0 *)
 rewrite <- Hm' in H2.
 destruct (ln_beta beta x) as (ex, Hex).
 simpl.
@@ -542,71 +538,103 @@ rewrite <- Hm' in Hx'.
 apply Hx'.
 now apply Rlt_le.
 exact H2.
-(* ... m = 0 and exact location *)
-rewrite H2 in H1.
-inversion_clear H1.
-rewrite <- Hm', F2R_0 in H.
-rewrite H in Hx.
-elim Rlt_irrefl with (1 := Hx).
-(* .. *)
+(* . *)
 generalize (Zlt_cases 0 k).
 case (Zlt_bool 0 k) ; intros Hk ; unfold k in Hk.
-(* ... shift *)
 split.
 now apply inbetween_float_new_location.
-now left.
+exact He.
 split.
 exact H1.
-destruct H2 as [H2|H2].
-left.
 rewrite <- He.
 unfold k.
 omega.
-(* ... no shift *)
+Qed.
+
+Theorem truncate_correct :
+  forall x m e l,
+  (0 <= x)%R ->
+  inbetween_float beta m e x l ->
+  (e <= fexp (digits beta m + e))%Z \/ l = loc_Exact ->
+  let '(m', e', l') := truncate (m, e, l) in
+  inbetween_float beta m' e' x l' /\
+  (e' = canonic_exponent beta fexp x \/ (l' = loc_Exact /\ format x)).
+Proof.
+intros x m e l [Hx|Hx] H1 H2.
+(* 0 < x *)
+destruct (Zle_or_lt e (fexp (digits beta m + e))) as [H3|H3].
+(* . enough digits *)
+generalize (truncate_correct_partial x m e l Hx H1 H3).
+destruct (truncate (m, e, l)) as ((m', e'), l').
+intros (H4, H5).
+split.
+exact H4.
+now left.
+(* . not enough digits but loc_Exact *)
+destruct H2 as [H2|H2].
+elim (Zlt_irrefl e).
+now apply Zle_lt_trans with (1 := H2).
+rewrite H2 in H1 |- *.
+unfold truncate.
+generalize (Zlt_cases 0 (fexp (digits beta m + e) - e)).
+case Zlt_bool.
+intros H.
+apply False_ind.
+omega.
+intros _.
+split.
+exact H1.
 right.
 split.
-exact H2.
-rewrite H2 in H1.
+apply refl_equal.
 inversion_clear H1.
 rewrite H.
 apply generic_format_canonic_exponent.
-rewrite <- H, <- He.
-unfold k.
-omega.
-(* . x = 0 *)
-destruct H1 as [H1|l' H1 _].
-(* .. exact location *)
-case (Zlt_bool 0 k).
-(* ... shift *)
-assert (Hm': m = Z0).
-apply F2R_eq_0_reg with beta e.
-rewrite <- H1.
-now apply sym_eq.
-rewrite Hm'.
+unfold canonic_exponent.
+rewrite ln_beta_F2R_digits.
+now apply Zlt_le_weak.
+apply sym_not_eq.
+apply Zlt_not_eq.
+rewrite H in Hx.
+apply F2R_gt_0_reg with (1 := Hx).
+(* x = 0 *)
+assert (Hm: m = Z0).
+cut (m <= 0 < m + 1)%Z. omega.
+assert (Hx': (F2R (Float beta m e) <= x < F2R (Float beta (m + 1) e))%R).
+apply inbetween_bounds with (2 := H1).
+apply F2R_lt_compat.
+apply Zlt_succ.
+rewrite <- Hx in Hx'.
+split.
+apply F2R_le_0_reg with (1 := proj1 Hx').
+apply F2R_gt_0_reg with (1 := proj2 Hx').
+rewrite Hm, <- Hx in H1 |- *.
+clear -H1.
+case H1.
+(* . *)
+intros _.
+assert (exists e', truncate (Z0, e, loc_Exact) = (Z0, e', loc_Exact)).
+unfold truncate.
+case Zlt_bool.
 rewrite Zdiv_0_l, Zmod_0_l.
-replace (new_location p 0 loc_Exact) with loc_Exact.
+eexists.
+apply f_equal.
+unfold new_location.
+now case Zeven.
+now eexists.
+destruct H as (e', H).
+rewrite H.
 split.
 constructor.
-rewrite F2R_0.
-now apply sym_eq.
+apply sym_eq.
+apply F2R_0.
 right.
 repeat split.
-rewrite <- Hx.
 apply generic_format_0.
-unfold new_location.
-case (Zeven p) ; [ unfold new_location_even | unfold new_location_odd ] ;
-  ( case Zeq_bool_spec ; [ easy | intros H ; now elim H ] ).
-(* ... no shift *)
-split.
-now constructor.
-right.
-repeat split.
-rewrite <- Hx.
-apply generic_format_0.
-(* .. inexact location *)
-elim Rlt_not_le with (1 := proj1 H1).
-rewrite <- Hx.
-now apply F2R_ge_0_compat.
+(* . *)
+intros l' (H, _) _.
+rewrite F2R_0 in H.
+elim Rlt_irrefl with (1 := H).
 Qed.
 
 Section round_dir.
