@@ -6,10 +6,10 @@ Require Import Fcalc_ops.
 
 Section Binary.
 
-Variable prec emax : Z.
+Variable prec emin emax : Z.
 Hypothesis Hprec : (0 < prec)%Z.
 
-Let fexp := FLT_exp (1 - (emax + prec)) prec.
+Let fexp := FLT_exp emin prec.
 
 Definition bounded_prec m e :=
   Zeq_bool (fexp (Z_of_nat (S (digits2_Pnat m)) + e)) e.
@@ -136,6 +136,69 @@ intros [sx|sx| |sx mx ex Hx] ; apply sym_eq ; try apply Ropp_0.
 simpl.
 rewrite opp_F2R.
 now case sx.
+Qed.
+
+Theorem abs_B2R_lt_emax :
+  forall x,
+  (Rabs (B2R x) < bpow radix2 (emax + prec))%R.
+Proof.
+intros [sx|sx| |sx mx ex Hx] ; simpl ; try ( rewrite Rabs_R0 ; apply bpow_gt_0 ).
+destruct (andb_prop _ _ Hx) as (H1,H2).
+generalize (Zeq_bool_eq _ _ H1). clear H1. intro H1.
+generalize (Zle_bool_imp_le _ _ H2). clear H2. intro H2.
+replace (Rabs (F2R (Float radix2 (cond_Zopp sx (Zpos mx)) ex))) with (Rabs (F2R (Float radix2 (Zpos mx) ex))).
+2: rewrite 2!abs_F2R ; now case sx.
+generalize (ln_beta_F2R_digits radix2 (Zpos mx) ex).
+destruct (ln_beta radix2 (F2R (Float radix2 (Zpos mx) ex))) as (e',Ex).
+unfold ln_beta_val.
+intros H.
+apply Rlt_le_trans with (bpow radix2 e').
+apply Ex.
+apply Rgt_not_eq.
+now apply F2R_gt_0_compat.
+apply bpow_le.
+rewrite H. 2: discriminate.
+revert H1. clear -H2.
+rewrite Z_of_nat_S_digits2_Pnat.
+change Fcalc_digits.radix2 with radix2.
+unfold fexp, FLT_exp.
+generalize (Zmax_spec (digits radix2 (Zpos mx) + ex - prec) emin).
+intros.
+omega.
+Qed.
+
+Theorem bounded_canonic_lt_emax :
+  forall mx ex,
+  (emin <= emax)%Z ->
+  canonic radix2 fexp (Float radix2 (Zpos mx) ex) ->
+  (F2R (Float radix2 (Zpos mx) ex) < bpow radix2 (emax + prec))%R ->
+  bounded mx ex = true.
+Proof.
+intros mx ex He Cx Bx.
+apply andb_true_intro.
+split.
+unfold bounded_prec.
+unfold canonic, Fexp in Cx.
+rewrite Cx at 2.
+rewrite Z_of_nat_S_digits2_Pnat.
+change Fcalc_digits.radix2 with radix2.
+unfold canonic_exponent.
+rewrite ln_beta_F2R_digits. 2: discriminate.
+now apply -> Zeq_is_eq_bool.
+apply Zle_bool_true.
+unfold canonic, Fexp in Cx.
+rewrite Cx.
+unfold canonic_exponent, fexp, FLT_exp.
+destruct (ln_beta radix2 (F2R (Float radix2 (Zpos mx) ex))) as (e',Ex). simpl.
+apply Zmax_lub with (2 := He).
+cut (e' - 1 < emax + prec)%Z. omega.
+apply lt_bpow with radix2.
+apply Rle_lt_trans with (2 := Bx).
+change (Zpos mx) with (Zabs (Zpos mx)).
+rewrite <- abs_F2R.
+apply Ex.
+apply Rgt_not_eq.
+now apply F2R_gt_0_compat.
 Qed.
 
 Inductive mode := mode_NE | mode_ZR | mode_DN | mode_UP | mode_NA.
