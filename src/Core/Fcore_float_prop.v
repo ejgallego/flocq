@@ -87,6 +87,15 @@ apply bpow_gt_0.
 now apply Z2R_lt.
 Qed.
 
+Theorem F2R_eq_compat :
+  forall e m1 m2 : Z,
+  (m1 = m2)%Z ->
+  (F2R (Float beta m1 e) = F2R (Float beta m2 e))%R.
+Proof.
+intros e m1 m2 H.
+now apply (f_equal (fun m => F2R (Float beta m e))).
+Qed.
+
 Theorem F2R_eq_reg :
   forall e m1 m2 : Z,
   F2R (Float beta m1 e) = F2R (Float beta m2 e) ->

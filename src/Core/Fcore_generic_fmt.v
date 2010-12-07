@@ -341,7 +341,7 @@ intros (m, e) Hf.
 unfold canonic in Hf. simpl in Hf.
 unfold generic_format, scaled_mantissa.
 rewrite <- Hf.
-apply (f_equal (fun m => F2R (Float beta m e))).
+apply F2R_eq_compat.
 unfold F2R. simpl.
 rewrite Rmult_assoc, <- bpow_plus, Zplus_opp_r, Rmult_1_r.
 now rewrite Ztrunc_Z2R.
@@ -710,7 +710,7 @@ Proof.
 intros x.
 unfold round.
 rewrite opp_F2R, canonic_exponent_opp, scaled_mantissa_opp.
-apply (f_equal (fun m => F2R (Float beta m _))).
+apply F2R_eq_compat.
 apply sym_eq.
 exact (Zopp_involutive _).
 Qed.
@@ -942,7 +942,7 @@ split ; intros Hx.
 (* *)
 replace (round rndZR x) with (round rndDN x).
 apply round_DN_pt.
-apply (f_equal (fun v => F2R (Float beta v _))).
+apply F2R_eq_compat.
 apply sym_eq.
 apply Ztrunc_floor.
 rewrite <- (Rmult_0_l (bpow (- canonic_exponent x))).
@@ -951,7 +951,7 @@ apply bpow_ge_0.
 (* *)
 replace (round rndZR x) with (round rndUP x).
 apply round_UP_pt.
-apply (f_equal (fun v => F2R (Float beta v _))).
+apply F2R_eq_compat.
 apply sym_eq.
 apply Ztrunc_ceil.
 rewrite <- (Rmult_0_l (bpow (- canonic_exponent x))).
