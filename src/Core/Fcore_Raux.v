@@ -335,26 +335,6 @@ generalize (Zmin_spec x y).
 omega.
 Qed.
 
-Theorem Zle_bool_true :
-  forall x y : Z,
-  (x <= y)%Z -> Zle_bool x y = true.
-Proof.
-intros x y.
-apply (proj1 (Zle_is_le_bool x y)).
-Qed.
-
-Theorem Zle_bool_false :
-  forall x y : Z,
-  (y < x)%Z -> Zle_bool x y = false.
-Proof.
-intros x y Hxy.
-generalize (Zle_cases x y).
-case Zle_bool ; intros H.
-elim (Zlt_irrefl x).
-now apply Zle_lt_trans with y.
-apply refl_equal.
-Qed.
-
 End Zmissing.
 
 Section Z2R.
@@ -536,12 +516,13 @@ Qed.
 
 End Z2R.
 
-Section Zcompare.
-
 (** Useful comparisons *)
+
+Section Zeq_bool.
+
 Inductive Zeq_bool_prop (x y : Z) : bool -> Prop :=
-  | Zeq_bool_true : x = y -> Zeq_bool_prop x y true
-  | Zeq_bool_false : x <> y -> Zeq_bool_prop x y false.
+  | Zeq_bool_true_ : x = y -> Zeq_bool_prop x y true
+  | Zeq_bool_false_ : x <> y -> Zeq_bool_prop x y false.
 
 Theorem Zeq_bool_spec :
   forall x y, Zeq_bool_prop x y (Zeq_bool x y).
@@ -554,6 +535,129 @@ intros H.
 specialize (H1 H).
 discriminate H1.
 Qed.
+
+Theorem Zeq_bool_true :
+  forall x y, x = y -> Zeq_bool x y = true.
+Proof.
+intros x y.
+apply -> Zeq_is_eq_bool.
+Qed.
+
+Theorem Zeq_bool_false :
+  forall x y, x <> y -> Zeq_bool x y = false.
+Proof.
+intros x y.
+generalize (proj2 (Zeq_is_eq_bool x y)).
+case Zeq_bool.
+intros He Hn.
+elim Hn.
+now apply He.
+now intros _ _.
+Qed.
+
+End Zeq_bool.
+
+Section Zle_bool.
+
+Inductive Zle_bool_prop (x y : Z) : bool -> Prop :=
+  | Zle_bool_true_ : (x <= y)%Z -> Zle_bool_prop x y true
+  | Zle_bool_false_ : (y < x)%Z -> Zle_bool_prop x y false.
+
+Theorem Zle_bool_spec :
+  forall x y, Zle_bool_prop x y (Zle_bool x y).
+Proof.
+intros x y.
+generalize (Zle_is_le_bool x y).
+case Zle_bool ; intros (H1, H2) ; constructor.
+now apply H2.
+destruct (Zle_or_lt x y) as [H|H].
+now specialize (H1 H).
+exact H.
+Qed.
+
+Theorem Zle_bool_true :
+  forall x y : Z,
+  (x <= y)%Z -> Zle_bool x y = true.
+Proof.
+intros x y.
+apply (proj1 (Zle_is_le_bool x y)).
+Qed.
+
+Theorem Zle_bool_false :
+  forall x y : Z,
+  (y < x)%Z -> Zle_bool x y = false.
+Proof.
+intros x y Hxy.
+generalize (Zle_cases x y).
+case Zle_bool ; intros H.
+elim (Zlt_irrefl x).
+now apply Zle_lt_trans with y.
+apply refl_equal.
+Qed.
+
+End Zle_bool.
+
+Section Zlt_bool.
+
+Inductive Zlt_bool_prop (x y : Z) : bool -> Prop :=
+  | Zlt_bool_true_ : (x < y)%Z -> Zlt_bool_prop x y true
+  | Zlt_bool_false_ : (y <= x)%Z -> Zlt_bool_prop x y false.
+
+Theorem Zlt_bool_spec :
+  forall x y, Zlt_bool_prop x y (Zlt_bool x y).
+Proof.
+intros x y.
+generalize (Zlt_is_lt_bool x y).
+case Zlt_bool ; intros (H1, H2) ; constructor.
+now apply H2.
+destruct (Zle_or_lt y x) as [H|H].
+exact H.
+now specialize (H1 H).
+Qed.
+
+Theorem Zlt_bool_true :
+  forall x y : Z,
+  (x < y)%Z -> Zlt_bool x y = true.
+Proof.
+intros x y.
+apply (proj1 (Zlt_is_lt_bool x y)).
+Qed.
+
+Theorem Zlt_bool_false :
+  forall x y : Z,
+  (y <= x)%Z -> Zlt_bool x y = false.
+Proof.
+intros x y Hxy.
+generalize (Zlt_cases x y).
+case Zlt_bool ; intros H.
+elim (Zlt_irrefl x).
+now apply Zlt_le_trans with y.
+apply refl_equal.
+Qed.
+
+Theorem negb_Zle_bool :
+  forall x y : Z,
+  negb (Zle_bool x y) = Zlt_bool y x.
+Proof.
+intros x y.
+case Zle_bool_spec ; intros H.
+now rewrite Zlt_bool_false.
+now rewrite Zlt_bool_true.
+Qed.
+
+Theorem negb_Zlt_bool :
+  forall x y : Z,
+  negb (Zlt_bool x y) = Zle_bool y x.
+Proof.
+intros x y.
+case Zlt_bool_spec ; intros H.
+now rewrite Zle_bool_false.
+now rewrite Zle_bool_true.
+Qed.
+
+End Zlt_bool.
+
+Section Zcompare.
 
 Inductive Zcompare_prop (x y : Z) : comparison -> Prop :=
   | Zcompare_Lt_ : (x < y)%Z -> Zcompare_prop x y Lt
