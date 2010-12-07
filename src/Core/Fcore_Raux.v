@@ -1296,7 +1296,7 @@ rewrite Z2R_plus.
 apply Zfloor_ub.
 Qed.
 
-Definition Ztrunc x := if Rlt_le_dec x 0 then Zceil x else Zfloor x.
+Definition Ztrunc x := if Rlt_bool x 0 then Zceil x else Zfloor x.
 
 Theorem Ztrunc_Z2R :
   forall n,
@@ -1304,7 +1304,7 @@ Theorem Ztrunc_Z2R :
 Proof.
 intros n.
 unfold Ztrunc.
-destruct Rlt_le_dec as [H|H].
+case Rlt_bool_spec ; intro H.
 apply Zceil_Z2R.
 apply Zfloor_Z2R.
 Qed.
@@ -1316,9 +1316,10 @@ Theorem Ztrunc_floor :
 Proof.
 intros x Hx.
 unfold Ztrunc.
-destruct Rlt_le_dec as [H|_].
-elim Rlt_irrefl with (1 := Rle_lt_trans _ _ _ Hx H).
-easy.
+case Rlt_bool_spec ; intro H.
+elim Rlt_irrefl with x.
+now apply Rlt_le_trans with R0.
+apply refl_equal.
 Qed.
 
 Theorem Ztrunc_ceil :
@@ -1328,8 +1329,8 @@ Theorem Ztrunc_ceil :
 Proof.
 intros x Hx.
 unfold Ztrunc.
-destruct Rlt_le_dec as [_|H].
-easy.
+case Rlt_bool_spec ; intro H.
+apply refl_equal.
 rewrite (Rle_antisym _ _ Hx H).
 fold (Z2R 0).
 rewrite Zceil_Z2R.
@@ -1342,9 +1343,9 @@ Theorem Ztrunc_le :
 Proof.
 intros x y Hxy.
 unfold Ztrunc at 1.
-destruct Rlt_le_dec as [Hx|Hx].
+case Rlt_bool_spec ; intro Hx.
 unfold Ztrunc.
-destruct Rlt_le_dec as [Hy|Hy].
+case Rlt_bool_spec ; intro Hy.
 now apply Zceil_le.
 apply Zle_trans with 0%Z.
 apply Zceil_glb.
@@ -1360,19 +1361,17 @@ Theorem Ztrunc_opp :
   Ztrunc (- x) = Zopp (Ztrunc x).
 Proof.
 intros x.
-destruct (Rlt_le_dec x 0) as [H|H].
+unfold Ztrunc at 2.
+case Rlt_bool_spec ; intros Hx.
 rewrite Ztrunc_floor.
-rewrite Ztrunc_ceil.
 apply sym_eq.
 apply Zopp_involutive.
-now apply Rlt_le.
 rewrite <- Ropp_0.
 apply Ropp_le_contravar.
 now apply Rlt_le.
 rewrite Ztrunc_ceil.
 unfold Zceil.
-rewrite Ropp_involutive.
-now rewrite Ztrunc_floor.
+now rewrite Ropp_involutive.
 rewrite <- Ropp_0.
 now apply Ropp_le_contravar.
 Qed.
@@ -1384,7 +1383,7 @@ Proof.
 intros x.
 rewrite Ztrunc_floor. 2: apply Rabs_pos.
 unfold Ztrunc.
-destruct Rlt_le_dec as [H|H].
+case Rlt_bool_spec ; intro H.
 rewrite Rabs_left with (1 := H).
 rewrite Zabs_non_eq.
 apply sym_eq.
@@ -1408,7 +1407,7 @@ rewrite Ztrunc_floor. 2: apply Rabs_pos.
 now apply Zfloor_lub.
 Qed.
 
-Definition Zaway x := if Rlt_le_dec x 0 then Zfloor x else Zceil x.
+Definition Zaway x := if Rlt_bool x 0 then Zfloor x else Zceil x.
 
 Theorem Zaway_Z2R :
   forall n,
@@ -1416,7 +1415,7 @@ Theorem Zaway_Z2R :
 Proof.
 intros n.
 unfold Zaway.
-destruct Rlt_le_dec as [H|H].
+case Rlt_bool_spec ; intro H.
 apply Zfloor_Z2R.
 apply Zceil_Z2R.
 Qed.
@@ -1428,9 +1427,10 @@ Theorem Zaway_ceil :
 Proof.
 intros x Hx.
 unfold Zaway.
-destruct Rlt_le_dec as [H|_].
-elim Rlt_irrefl with (1 := Rle_lt_trans _ _ _ Hx H).
-easy.
+case Rlt_bool_spec ; intro H.
+elim Rlt_irrefl with x.
+now apply Rlt_le_trans with R0.
+apply refl_equal.
 Qed.
 
 Theorem Zaway_floor :
@@ -1440,8 +1440,8 @@ Theorem Zaway_floor :
 Proof.
 intros x Hx.
 unfold Zaway.
-destruct Rlt_le_dec as [_|H].
-easy.
+case Rlt_bool_spec ; intro H.
+apply refl_equal.
 rewrite (Rle_antisym _ _ Hx H).
 fold (Z2R 0).
 rewrite Zfloor_Z2R.
@@ -1454,9 +1454,9 @@ Theorem Zaway_le :
 Proof.
 intros x y Hxy.
 unfold Zaway at 1.
-destruct Rlt_le_dec as [Hx|Hx].
+case Rlt_bool_spec ; intro Hx.
 unfold Zaway.
-destruct Rlt_le_dec as [Hy|Hy].
+case Rlt_bool_spec ; intro Hy.
 now apply Zfloor_le.
 apply le_Z2R.
 apply Rle_trans with 0%R.
@@ -1476,15 +1476,15 @@ Theorem Zaway_opp :
 Proof.
 intros x.
 unfold Zaway at 2.
-destruct Rlt_le_dec as [H|H].
+case Rlt_bool_spec ; intro H.
 rewrite Zaway_ceil.
 unfold Zceil.
 now rewrite Ropp_involutive.
 apply Rlt_le.
 now apply Ropp_0_gt_lt_contravar.
 rewrite Zaway_floor.
-unfold Zceil.
-now rewrite Zopp_involutive.
+apply sym_eq.
+apply Zopp_involutive.
 rewrite <- Ropp_0.
 now apply Ropp_le_contravar.
 Qed.
@@ -1496,7 +1496,7 @@ Proof.
 intros x.
 rewrite Zaway_ceil. 2: apply Rabs_pos.
 unfold Zaway.
-destruct Rlt_le_dec as [H|H].
+case Rlt_bool_spec ; intro H.
 rewrite Rabs_left with (1 := H).
 rewrite Zabs_non_eq.
 apply (f_equal (fun v => - Zfloor v)%Z).

@@ -283,14 +283,12 @@ rewrite Zceil_floor_neq.
 rewrite Hm.
 unfold cond_incr.
 simpl.
-generalize (Zlt_cases m 0).
-destruct (Rlt_le_dec x 0) as [Hx'|Hx'] ;
-  case (Zlt_bool m 0) ; try easy ; intros Hm'.
+case Rlt_bool_spec ; intros Hx' ;
+  case Zlt_bool_spec ; intros Hm' ; try apply refl_equal.
 elim Rlt_not_le with (1 := Hx').
 apply Rlt_le.
 apply Rle_lt_trans with (2 := proj1 Hx).
-apply (Z2R_le 0).
-now apply Zge_le.
+now apply (Z2R_le 0).
 elim Rle_not_lt with (1 := Hx').
 apply Rlt_le_trans with (1 := proj2 Hx).
 apply (Z2R_le _ 0).
