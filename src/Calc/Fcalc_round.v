@@ -547,6 +547,52 @@ Definition truncate t :=
     (Zdiv m p, (e + k)%Z, new_location p (Zmod m p) l)
   else t.
 
+Theorem truncate_correct_format :
+  forall m e,
+  m <> Z0 ->
+  let x := F2R (Float beta m e) in
+  generic_format beta fexp x ->
+  (e <= fexp (digits beta m + e))%Z ->
+  let '(m', e', l') := truncate (m, e, loc_Exact) in
+  x = F2R (Float beta m' e') /\ e' = canonic_exponent beta fexp x.
+Proof.
+intros m e Hm x Fx He.
+assert (Hc: canonic_exponent beta fexp x = fexp (digits beta m + e)).
+unfold canonic_exponent, x.
+now rewrite ln_beta_F2R_digits.
+unfold truncate.
+rewrite <- Hc.
+set (k := (canonic_exponent beta fexp x - e)%Z).
+case Zlt_bool_spec ; intros Hk.
+(* *)
+rewrite Fx at 1.
+refine (let H := _ in conj _ H).
+unfold k. ring.
+rewrite <- H.
+apply F2R_eq_compat.
+replace (scaled_mantissa beta fexp x) with (Z2R (Zfloor (scaled_mantissa beta fexp x))).
+rewrite Ztrunc_Z2R.
+unfold scaled_mantissa.
+rewrite <- H.
+unfold x, F2R. simpl.
+rewrite Rmult_assoc, <- bpow_plus.
+ring_simplify (e + - (e + k))%Z.
+clear -Hm Hk.
+destruct k as [|k|k] ; try easy.
+simpl.
+apply Zfloor_div.
+intros H.
+generalize (Zpower_pos_gt_0 beta k) (Zle_bool_imp_le _ _ (radix_prop beta)).
+omega.
+rewrite scaled_mantissa_generic with (1 := Fx).
+now rewrite Zfloor_Z2R.
+(* *)
+split.
+apply refl_equal.
+unfold k in Hk.
+omega.
+Qed.
+
 Theorem truncate_correct_partial :
   forall x m e l,
   (0 < x)%R ->
