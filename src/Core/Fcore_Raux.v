@@ -1586,6 +1586,68 @@ Qed.
 
 End Even_Odd.
 
+Section Zdiv_Rdiv.
+
+Theorem Zfloor_div :
+  forall x y,
+  y <> Z0 ->
+  Zfloor (Z2R x / Z2R y) = (x / y)%Z.
+Proof.
+intros x y Zy.
+generalize (Z_div_mod_eq_full x y Zy).
+intros Hx.
+rewrite Hx at 1.
+assert (Zy': Z2R y <> R0).
+contradict Zy.
+now apply eq_Z2R.
+unfold Rdiv.
+rewrite Z2R_plus, Rmult_plus_distr_r, Z2R_mult.
+replace (Z2R y * Z2R (x / y) * / Z2R y)%R with (Z2R (x / y)) by now field.
+apply Zfloor_imp.
+rewrite Z2R_plus.
+assert (0 <= Z2R (x mod y) * / Z2R y < 1)%R.
+(* *)
+assert (forall x' y', (0 < y')%Z -> 0 <= Z2R (x' mod y') * / Z2R y' < 1)%R.
+(* . *)
+clear.
+intros x y Hy.
+split.
+apply Rmult_le_pos.
+apply (Z2R_le 0).
+refine (proj1 (Z_mod_lt _ _ _)).
+now apply Zlt_gt.
+apply Rlt_le.
+apply Rinv_0_lt_compat.
+now apply (Z2R_lt 0).
+apply Rmult_lt_reg_r with (Z2R y).
+now apply (Z2R_lt 0).
+rewrite Rmult_1_l, Rmult_assoc, Rinv_l, Rmult_1_r.
+apply Z2R_lt.
+eapply Z_mod_lt.
+now apply Zlt_gt.
+apply Rgt_not_eq.
+now apply (Z2R_lt 0).
+(* . *)
+destruct (Z_lt_le_dec y 0) as [Hy|Hy].
+rewrite <- Rmult_opp_opp.
+rewrite Ropp_inv_permute with (1 := Zy').
+rewrite <- 2!Z2R_opp.
+rewrite <- Zmod_opp_opp.
+apply H.
+clear -Hy. omega.
+apply H.
+clear -Zy Hy. omega.
+(* *)
+split.
+pattern (Z2R (x / y)) at 1 ; rewrite <- Rplus_0_r.
+apply Rplus_le_compat_l.
+apply H.
+apply Rplus_lt_compat_l.
+apply H.
+Qed.
+
+End Zdiv_Rdiv.
+
 Section Proof_Irrelevance.
 
 Scheme eq_dep_elim := Induction for eq Sort Type.
