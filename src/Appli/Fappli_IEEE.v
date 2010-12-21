@@ -8,8 +8,11 @@ Section Binary.
 
 Variable prec emin emax : Z.
 Hypothesis Hprec : (0 < prec)%Z.
+Hypothesis Hminmax: (emin <= emax)%Z.
 
 Let fexp := FLT_exp emin prec.
+
+Let fexp_correct : valid_exp fexp := FLT_exp_correct _ _ Hprec.
 
 Definition bounded_prec m e :=
   Zeq_bool (fexp (Z_of_nat (S (digits2_Pnat m)) + e)) e.
@@ -169,12 +172,11 @@ Qed.
 
 Theorem bounded_canonic_lt_emax :
   forall mx ex,
-  (emin <= emax)%Z ->
   canonic radix2 fexp (Float radix2 (Zpos mx) ex) ->
   (F2R (Float radix2 (Zpos mx) ex) < bpow radix2 (emax + prec))%R ->
   bounded mx ex = true.
 Proof.
-intros mx ex He Cx Bx.
+intros mx ex Cx Bx.
 apply andb_true_intro.
 split.
 unfold bounded_prec.
@@ -190,7 +192,7 @@ unfold canonic, Fexp in Cx.
 rewrite Cx.
 unfold canonic_exponent, fexp, FLT_exp.
 destruct (ln_beta radix2 (F2R (Float radix2 (Zpos mx) ex))) as (e',Ex). simpl.
-apply Zmax_lub with (2 := He).
+apply Zmax_lub with (2 := Hminmax).
 cut (e' - 1 < emax + prec)%Z. omega.
 apply lt_bpow with radix2.
 apply Rle_lt_trans with (2 := Bx).
@@ -211,6 +213,132 @@ Definition round_mode m :=
   | mode_UP => rndUP
   | mode_NA => rndNA
   end.
+
+Definition choice_mode m sx mx lx :=
+  match m with
+  | mode_NE => cond_incr (round_N (negb (Zeven mx)) lx) mx
+  | mode_ZR => mx
+  | mode_DN => cond_incr (round_sign_DN sx lx) mx
+  | mode_UP => cond_incr (round_sign_UP sx lx) mx
+  | mode_NA => cond_incr (round_N true lx) mx
+  end.
+
+Definition binary_round_sign mode sx mx ex lx :=
+  let '(m', e', l') := truncate radix2 fexp (Zpos mx, ex, lx) in
+  let '(m'', e'', l'') := truncate radix2 fexp (choice_mode mode sx m' l', e', loc_Exact) in
+  match m'' with
+  | Z0 => B754_zero sx
+  | Zpos m =>
+    match Sumbool.sumbool_of_bool (bounded m e'') with
+    | left H => B754_finite sx m e'' H
+    | right _ => B754_infinity sx
+    end
+  | _ => B754_nan (* dummy *)
+  end.
+
+Theorem binary_round_sign_correct :
+  forall mode x mx ex lx,
+  inbetween_float radix2 (Zpos mx) ex (Rabs x) lx ->
+  (ex <= fexp (digits radix2 (Zpos mx) + ex))%Z ->
+  (Rabs (round radix2 fexp (round_mode mode) x) < bpow radix2 (emax + prec))%R ->
+  B2R (binary_round_sign mode (Rlt_bool x 0) mx ex lx) = round radix2 fexp (round_mode mode) x.
+Proof.
+intros m x mx ex lx Bx Ex Hx.
+unfold binary_round_sign.
+refine (_ (round_trunc_sign_any_correct _ _ fexp_correct (round_mode m) (choice_mode m) _ x (Zpos mx) ex lx Bx (or_introl _ Ex))).
+refine (_ (truncate_correct_partial _ _ fexp_correct _ _ _ _ _ Bx Ex)).
+destruct (truncate radix2 fexp (Zpos mx, ex, lx)) as ((m1, e1), l1).
+set (m1' := choice_mode m (Rlt_bool x 0) m1 l1).
+intros (H1a,H1b) H1c.
+rewrite H1c.
+assert (Hm: (m1 <= m1')%Z).
+(* . *)
+unfold m1', choice_mode, cond_incr.
+case m ;
+  try apply Zle_refl ;
+  match goal with |- (m1 <= if ?b then _ else _)%Z =>
+    case b ; [ apply Zle_succ | apply Zle_refl ] end.
+assert (Hr: Rabs (round radix2 fexp (round_mode m) x) = F2R (Float radix2 m1' e1)).
+(* . *)
+rewrite <- (Zabs_eq m1').
+replace (Zabs m1') with (Zabs (cond_Zopp (Rlt_bool x 0) m1')).
+rewrite <- abs_F2R.
+now apply f_equal.
+apply abs_cond_Zopp.
+apply Zle_trans with (2 := Hm).
+apply Zlt_succ_le.
+apply F2R_gt_0_reg with radix2 e1.
+apply Rle_lt_trans with (1 := Rabs_pos x).
+exact (proj2 (inbetween_float_bounds _ _ _ _ _ H1a)).
+(* . *)
+assert (Br: inbetween_float radix2 m1' e1 (Rabs (round radix2 fexp (round_mode m) x)) loc_Exact).
+now apply inbetween_Exact.
+destruct m1' as [|m1'|m1'].
+(* . m1' = 0 *)
+generalize (truncate_0 radix2 fexp e1 loc_Exact).
+destruct (truncate radix2 fexp (Z0, e1, loc_Exact)) as ((m2, e2), l2).
+intros Hm2.
+rewrite Hm2. simpl.
+apply sym_eq.
+case Rlt_bool ; apply F2R_0.
+(* . 0 < m1' *)
+assert (He: (e1 <= fexp (digits radix2 (Zpos m1') + e1))%Z).
+rewrite <- ln_beta_F2R_digits, <- Hr, ln_beta_abs.
+2: discriminate.
+rewrite H1b.
+rewrite canonic_exponent_abs.
+fold (canonic_exponent radix2 fexp (round radix2 fexp (round_mode m) x)).
+apply canonic_exponent_round.
+apply fexp_correct.
+apply FLT_exp_monotone.
+rewrite H1c.
+case (Rlt_bool x 0).
+apply Rlt_not_eq.
+now apply F2R_lt_0_compat.
+apply Rgt_not_eq.
+now apply F2R_gt_0_compat.
+refine (_ (truncate_correct_partial _ _ fexp_correct _ _ _ _ _ Br He)).
+2: now rewrite Hr ; apply F2R_gt_0_compat.
+refine (_ (truncate_correct_format radix2 fexp (Zpos m1') e1 _ _ He)).
+2: discriminate.
+destruct (truncate radix2 fexp (Zpos m1', e1, loc_Exact)) as ((m2, e2), l2).
+intros (H3,H4) (H2,_).
+destruct m2 as [|m2|m2].
+elim Rgt_not_eq with (2 := H3).
+rewrite F2R_0.
+now apply F2R_gt_0_compat.
+case (Sumbool.sumbool_of_bool (bounded m2 e2)) ; intros Hb.
+simpl.
+now rewrite 2!F2R_cond_Zopp, H3.
+rewrite bounded_canonic_lt_emax in Hb.
+discriminate Hb.
+unfold canonic.
+now rewrite <- H3.
+now rewrite <- H3, <- Hr.
+elim Rgt_not_eq with (2 := H3).
+apply Rlt_trans with R0.
+now apply F2R_lt_0_compat.
+now apply F2R_gt_0_compat.
+rewrite <- Hr.
+apply generic_format_abs.
+apply generic_format_round.
+apply fexp_correct.
+(* . not m1' < 0 *)
+elim Rgt_not_eq with (2 := Hr).
+apply Rlt_le_trans with R0.
+now apply F2R_lt_0_compat.
+apply Rabs_pos.
+(* *)
+apply Rlt_le_trans with (2 := proj1 (inbetween_float_bounds _ _ _ _ _ Bx)).
+now apply F2R_gt_0_compat.
+(* all the modes are valid *)
+clear. case m.
+exact inbetween_int_NE_sign.
+exact inbetween_int_ZR_sign.
+exact inbetween_int_DN_sign.
+exact inbetween_int_UP_sign.
+exact inbetween_int_NA_sign.
+Qed.
 
 Definition Bplus m x y :=
   match x, y with
