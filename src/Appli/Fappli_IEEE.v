@@ -8,7 +8,8 @@ Section Binary.
 
 Variable prec emin emax : Z.
 Hypothesis Hprec : (0 < prec)%Z.
-Hypothesis Hminmax: (emin <= emax)%Z.
+Hypothesis Hmin : (emin <= 0)%Z.
+Hypothesis Hminmax : (emin <= emax)%Z.
 
 Let fexp := FLT_exp emin prec.
 
@@ -338,6 +339,68 @@ exact inbetween_int_ZR_sign.
 exact inbetween_int_DN_sign.
 exact inbetween_int_UP_sign.
 exact inbetween_int_NA_sign.
+Qed.
+
+Definition Bmult m x y :=
+  match x, y with
+  | B754_nan, _ => x
+  | _, B754_nan => y
+  | B754_infinity sx, B754_infinity sy => B754_infinity (xorb sx sy)
+  | B754_infinity sx, B754_finite sy _ _ _ => B754_infinity (xorb sx sy)
+  | B754_finite sx _ _ _, B754_infinity sy => B754_infinity (xorb sx sy)
+  | B754_infinity _, B754_zero _ => B754_nan
+  | B754_zero _, B754_infinity _ => B754_nan
+  | B754_finite sx _ _ _, B754_zero sy => B754_zero (xorb sx sy)
+  | B754_zero sx, B754_finite sy _ _ _ => B754_zero (xorb sx sy)
+  | B754_zero sx, B754_zero sy => B754_zero (xorb sx sy)
+  | B754_finite sx mx ex Hx, B754_finite sy my ey Hy =>
+    binary_round_sign m (xorb sx sy) (Pmult mx my) (ex + ey) loc_Exact
+  end.
+
+Theorem B2R_mult :
+  forall m x y,
+  (Rabs (round radix2 fexp (round_mode m) (B2R x * B2R y)%R) < bpow radix2 (emax + prec))%R ->
+  B2R (Bmult m x y) = round radix2 fexp (round_mode m) (B2R x * B2R y)%R.
+Proof.
+intros m [sx|sx| |sx mx ex Hx] [sy|sy| |sy my ey Hy] ;
+  try ( intros ; apply sym_eq ; try rewrite Rmult_0_r ; try rewrite Rmult_0_l ; apply round_0 ).
+simpl.
+rewrite <- mult_F2R.
+simpl Fmult.
+replace (xorb sx sy) with (Rlt_bool (F2R (Float radix2 (cond_Zopp sx (Zpos mx) * cond_Zopp sy (Zpos my)) (ex + ey))) 0).
+apply binary_round_sign_correct.
+constructor.
+rewrite abs_F2R.
+apply F2R_eq_compat.
+rewrite Zabs_Zmult.
+now rewrite 2!abs_cond_Zopp.
+(* *)
+change (Zpos (mx * my)) with (Zpos mx * Zpos my)%Z.
+assert (forall m e, bounded m e = true -> fexp (digits radix2 (Zpos m) + e) = e)%Z.
+clear. intros m e Hb.
+destruct (andb_prop _ _ Hb) as (H,_).
+apply Zeq_bool_eq.
+now rewrite <- Z_of_nat_S_digits2_Pnat.
+generalize (H _ _ Hx) (H _ _ Hy).
+clear sx sy Hx Hy H.
+unfold fexp, FLT_exp.
+refine (_ (digits_mult_ge radix2 (Zpos mx) (Zpos my) _ _)) ; try discriminate.
+refine (_ (digits_gt_0 radix2 (Zpos mx) _) (digits_gt_0 radix2 (Zpos my) _)) ; try discriminate.
+generalize (digits radix2 (Zpos mx)) (digits radix2 (Zpos my)) (digits radix2 (Zpos mx * Zpos my)).
+clear -Hprec Hmin.
+intros dx dy dxy Hx Hy Hxy.
+zify ; intros ; subst.
+omega.
+(* *)
+case sx ; case sy.
+apply Rlt_bool_false.
+now apply F2R_ge_0_compat.
+apply Rlt_bool_true.
+now apply F2R_lt_0_compat.
+apply Rlt_bool_true.
+now apply F2R_lt_0_compat.
+apply Rlt_bool_false.
+now apply F2R_ge_0_compat.
 Qed.
 
 Definition Bplus m x y :=
