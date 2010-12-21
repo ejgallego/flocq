@@ -467,6 +467,92 @@ omega.
 apply digits_mult_strong ; apply Zabs_pos.
 Qed.
 
+Theorem digits_shr :
+  forall m e,
+  (0 <= m)%Z ->
+  (0 <= e <= digits m)%Z ->
+  digits (m / Zpower beta e) = (digits m - e)%Z.
+Proof.
+intros m e Hm He.
+destruct (Zle_lt_or_eq 0 m Hm) as [Hm'|Hm'].
+(* *)
+destruct (Zle_lt_or_eq _ _ (proj2 He)) as [He'|He'].
+(* . *)
+unfold Zminus.
+rewrite <- ln_beta_F2R_digits.
+2: now apply Zgt_not_eq.
+assert (Hp: (0 < Zpower beta e)%Z).
+apply lt_Z2R.
+rewrite Z2R_Zpower with (1 := proj1 He).
+apply bpow_gt_0.
+rewrite digits_ln_beta.
+rewrite <- Zfloor_div with (1 := Zgt_not_eq _ _ Hp).
+rewrite Z2R_Zpower with (1 := proj1 He).
+unfold Rdiv.
+rewrite <- bpow_opp.
+change (Z2R m * bpow (-e))%R with (F2R (Float beta m (-e))).
+destruct (ln_beta beta (F2R (Float beta m (-e)))) as (e', E').
+simpl.
+specialize (E' (Rgt_not_eq _ _ (F2R_gt_0_compat beta (Float beta m (-e)) Hm'))).
+apply ln_beta_unique.
+rewrite Rabs_pos_eq in E'.
+2: now apply F2R_ge_0_compat.
+rewrite Rabs_pos_eq.
+split.
+assert (H': (0 <= e' - 1)%Z).
+(* .. *)
+cut (1 <= e')%Z. omega.
+apply bpow_lt_bpow with beta.
+apply Rle_lt_trans with (2 := proj2 E').
+simpl.
+rewrite <- (Rinv_r (bpow e)).
+rewrite <- bpow_opp.
+unfold F2R. simpl.
+apply Rmult_le_compat_r.
+apply bpow_ge_0.
+rewrite <- Z2R_Zpower with (1 := proj1 He).
+apply Z2R_le.
+rewrite <- Zabs_eq with (1 := Hm).
+now apply Zpower_le_digits.
+apply Rgt_not_eq.
+apply bpow_gt_0.
+(* .. *)
+rewrite <- Z2R_Zpower with (1 := H').
+apply Z2R_le.
+apply Zfloor_lub.
+rewrite Z2R_Zpower with (1 := H').
+apply E'.
+apply Rle_lt_trans with (2 := proj2 E').
+apply Zfloor_lb.
+apply (Z2R_le 0).
+apply Zfloor_lub.
+now apply F2R_ge_0_compat.
+apply Zgt_not_eq.
+apply Zlt_le_trans with (beta^e / beta^e)%Z.
+rewrite Z_div_same_full.
+apply refl_equal.
+now apply Zgt_not_eq.
+apply Z_div_le.
+now apply Zlt_gt.
+rewrite <- Zabs_eq with (1 := Hm).
+now apply Zpower_le_digits.
+(* . *)
+unfold Zminus.
+rewrite He', Zplus_opp_r.
+rewrite Zdiv_small.
+apply refl_equal.
+apply conj with (1 := Hm).
+pattern m at 1 ; rewrite <- Zabs_eq with (1 := Hm).
+apply Zpower_gt_digits.
+apply Zle_refl.
+(* *)
+revert He.
+rewrite <- Hm'.
+intros (H1, H2).
+simpl.
+now rewrite (Zle_antisym _ _ H2 H1).
+Qed.
+
 End Fcalc_digits.
 
 Definition radix2 := Build_radix 2 (refl_equal _).
