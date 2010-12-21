@@ -1125,6 +1125,66 @@ now apply Zlt_le_succ.
 apply (proj2 (prop_exp e) He).
 Qed.
 
+Theorem canonic_exponent_round :
+  forall rnd x,
+  monotone_exp_prop ->
+  round rnd x <> R0 ->
+  (canonic_exponent x <= canonic_exponent (round rnd x))%Z.
+Proof.
+intros rnd x Hm Zr.
+destruct (total_order_T x 0) as [[Hx|Hx]|Hx].
+(* x < 0 *)
+destruct (round_DN_or_UP rnd x) as [Hd|Hu].
+apply Hm.
+apply ln_beta_monotone_abs.
+apply Rlt_not_eq with (1 := Hx).
+rewrite Hd.
+rewrite Rabs_left with (1 := Hx).
+rewrite Rabs_left1.
+apply Ropp_le_contravar.
+eapply round_DN_pt.
+apply Rlt_le.
+apply Rle_lt_trans with (2 := Hx).
+eapply round_DN_pt.
+replace (canonic_exponent x) with (canonic_exponent (round rnd x)).
+apply Zle_refl.
+rewrite Hu.
+pattern x at 1 ; rewrite <- Ropp_involutive.
+rewrite round_UP_opp.
+rewrite canonic_exponent_opp.
+rewrite <- (canonic_exponent_opp x).
+apply canonic_exponent_DN.
+rewrite round_DN_opp, <- Hu.
+rewrite <- Ropp_0.
+apply Ropp_lt_contravar.
+apply Rnot_le_lt.
+contradict Zr.
+apply Rle_antisym with (2 := Zr).
+apply round_monotone_r.
+apply generic_format_0.
+now apply Rlt_le.
+(* x = 0 *)
+rewrite Hx, round_0.
+apply Zle_refl.
+(* x > 0 *)
+destruct (round_DN_or_UP rnd x) as [Hd|Hu].
+rewrite Hd.
+rewrite canonic_exponent_DN.
+apply Zle_refl.
+rewrite <- Hd.
+apply Rnot_ge_lt.
+contradict Zr.
+apply Rge_le in Zr.
+apply Rle_antisym with (1 := Zr).
+apply round_monotone_l.
+apply generic_format_0.
+now apply Rlt_le.
+apply Hm.
+apply ln_beta_monotone with (1 := Hx).
+rewrite Hu.
+eapply round_UP_pt.
+Qed.
+
 End monotone_exp.
 
 Section Znearest.
