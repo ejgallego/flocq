@@ -317,6 +317,15 @@ apply Zplus_le_reg_r with (-x - y)%Z.
 now ring_simplify.
 Qed.
 
+Theorem Zgt_not_eq :
+  forall x y : Z,
+  (y < x)%Z -> (x <> y)%Z.
+Proof.
+intros x y H Hn.
+apply Zlt_irrefl with x.
+now rewrite Hn at 1.
+Qed.
+
 Theorem Zmin_left :
   forall x y : Z,
   (x <= y)%Z -> Zmin x y = x.
