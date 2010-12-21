@@ -490,4 +490,13 @@ apply sym_not_eq.
 now apply Zlt_not_eq.
 Qed.
 
+Theorem F2R_cond_Zopp :
+  forall b m e,
+  F2R (Float beta (cond_Zopp b m) e) = cond_Ropp b (F2R (Float beta m e)).
+Proof.
+intros [|] m e ; unfold F2R ; simpl.
+now rewrite Z2R_opp, Ropp_mult_distr_l_reverse.
+apply refl_equal.
+Qed.
+
 End Float_prop.

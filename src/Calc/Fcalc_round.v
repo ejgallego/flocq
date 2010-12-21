@@ -53,7 +53,6 @@ apply bpow_gt_0.
 now rewrite scaled_mantissa_bpow.
 Qed.
 
-Definition cond_Zopp (b : bool) m := if b then Zopp m else m.
 Definition cond_incr (b : bool) m := if b then (m + 1)%Z else m.
 
 Theorem inbetween_float_round_sign :
