@@ -436,6 +436,18 @@ apply Rlt_bool_false.
 now apply F2R_ge_0_compat.
 Qed.
 
+Theorem Bmult_correct_finite :
+  forall m x y,
+  is_finite (Bmult m x y) = true ->
+  B2R (Bmult m x y) = round radix2 fexp (round_mode m) (B2R x * B2R y)%R.
+Proof.
+intros m x y.
+generalize (Bmult_correct m x y).
+destruct (Bmult m x y) as [sz|sz| |sz mz ez Hz] ; try easy.
+now case Rlt_bool.
+now case Rlt_bool.
+Qed.
+
 Definition Bplus m x y :=
   match x, y with
   | B754_nan, _ => x
