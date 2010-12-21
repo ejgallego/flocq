@@ -474,6 +474,27 @@ omega.
 apply digits_mult_strong ; apply Zabs_pos.
 Qed.
 
+Theorem digits_mult_ge :
+  forall x y,
+  (x <> 0)%Z -> (y <> 0)%Z ->
+  (digits x + digits y - 1 <= digits (x * y))%Z.
+Proof.
+intros x y Zx Zy.
+cut ((digits x - 1) + (digits y - 1) < digits (x * y))%Z. omega.
+apply digits_gt_Zpower.
+rewrite Zabs_Zmult.
+rewrite Zpower_exp.
+apply Zmult_le_compat.
+apply Zpower_le_digits.
+apply Zlt_pred.
+apply Zpower_le_digits.
+apply Zlt_pred.
+apply Zpower_ge_0.
+apply Zpower_ge_0.
+generalize (digits_gt_0 x). omega.
+generalize (digits_gt_0 y). omega.
+Qed.
+
 Theorem digits_shr :
   forall m e,
   (0 <= m)%Z ->
