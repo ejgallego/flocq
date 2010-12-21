@@ -547,6 +547,62 @@ Definition truncate t :=
     (Zdiv m p, (e + k)%Z, new_location p (Zmod m p) l)
   else t.
 
+Theorem truncate_0 :
+  forall e l,
+  let '(m', e', l') := truncate (0, e, l)%Z in
+  m' = Z0.
+Proof.
+intros e l.
+unfold truncate.
+case Zlt_bool_spec ; intros He.
+now rewrite Zdiv_0_l.
+apply refl_equal.
+Qed.
+
+Theorem generic_format_truncate :
+  forall m e l,
+  (0 <= m)%Z ->
+  let '(m', e', l') := truncate (m, e, l) in
+  format (F2R (Float beta m' e')).
+Proof.
+intros m e l Hm.
+unfold truncate.
+set (k := (fexp (digits beta m + e) - e)%Z).
+case Zlt_bool_spec ; intros Hk.
+(* *)
+destruct (Z_eq_dec (m / beta ^ k) 0) as [Hd|Hd].
+rewrite Hd, F2R_0.
+apply generic_format_0.
+apply generic_format_canonic_exponent.
+unfold canonic_exponent.
+rewrite ln_beta_F2R_digits with (1 := Hd).
+rewrite digits_shr with (1 := Hm).
+replace (digits beta m - k + (e + k))%Z with (digits beta m + e)%Z by ring.
+unfold k.
+ring_simplify.
+apply Zle_refl.
+split.
+now apply Zlt_le_weak.
+apply Znot_gt_le.
+contradict Hd.
+apply Zdiv_small.
+apply conj with (1 := Hm).
+rewrite <- Zabs_eq with (1 := Hm).
+apply Zpower_gt_digits.
+apply Zlt_le_weak.
+now apply Zgt_lt.
+(* *)
+destruct (Zle_lt_or_eq _ _ Hm) as [Hm'|Hm'].
+apply generic_format_canonic_exponent.
+unfold canonic_exponent.
+rewrite ln_beta_F2R_digits.
+2: now apply Zgt_not_eq.
+unfold k in Hk. clear -Hk.
+omega.
+rewrite <- Hm', F2R_0.
+apply generic_format_0.
+Qed.
+
 Theorem truncate_correct_format :
   forall m e,
   m <> Z0 ->
