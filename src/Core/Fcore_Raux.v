@@ -2159,6 +2159,19 @@ easy.
 now apply Zpower_gt_1.
 Qed.
 
+Theorem Zpower_ge_0 :
+  forall e,
+  (0 <= Zpower r e)%Z.
+Proof.
+intros [|e|e].
+apply Zle_0_1.
+apply le_Z2R.
+rewrite Z2R_Zpower.
+apply bpow_ge_0.
+discriminate.
+apply Zle_refl.
+Qed.
+
 Theorem Zpower_Zpower_nat :
   forall b e, (0 <= e)%Z ->
   Zpower b e = Zpower_nat b (Zabs_nat e).
