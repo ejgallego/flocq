@@ -191,16 +191,13 @@ now apply Zpower_NR0.
 apply Zmult_1_r.
 Qed.
 
-Theorem digits_ge_0 :
-  forall n, (0 <= digits n)%Z.
+Theorem digits_gt_0 :
+  forall n, (n <> 0)%Z -> (0 < digits n)%Z.
 Proof.
-intros n.
-destruct (Z_eq_dec n 0) as [H|H].
-now rewrite H.
+intros n H.
 rewrite digits_ln_beta with (1 := H).
 destruct ln_beta as (e, He). simpl.
-apply (le_bpow beta).
-apply Rlt_le.
+apply (lt_bpow beta).
 apply Rle_lt_trans with (Rabs (Z2R n)).
 simpl.
 rewrite <- Z2R_abs.
@@ -212,6 +209,16 @@ intros H.
 now elim H.
 apply He.
 now apply (Z2R_neq _ 0).
+Qed.
+
+Theorem digits_ge_0 :
+  forall n, (0 <= digits n)%Z.
+Proof.
+intros n.
+destruct (Z_eq_dec n 0) as [H|H].
+now rewrite H.
+apply Zlt_le_weak.
+now apply digits_gt_0.
 Qed.
 
 Theorem ln_beta_F2R_digits :
