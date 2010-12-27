@@ -3,6 +3,7 @@ Require Import Fcalc_digits.
 Require Import Fcalc_round.
 Require Import Fcalc_bracket.
 Require Import Fcalc_ops.
+Require Import Fcalc_div.
 
 Section Binary.
 
@@ -671,6 +672,118 @@ split.
 rewrite H.
 now apply f_equal.
 apply Sz.
+Qed.
+
+Definition Bminus m x y := Bplus m x (Bopp y).
+
+Definition Bdiv m x y :=
+  match x, y with
+  | B754_nan, _ => x
+  | _, B754_nan => y
+  | B754_infinity sx, B754_infinity sy => B754_nan
+  | B754_infinity sx, B754_finite sy _ _ _ => B754_infinity (xorb sx sy)
+  | B754_finite sx _ _ _, B754_infinity sy => B754_infinity (xorb sx sy)
+  | B754_infinity sx, B754_zero sy => B754_infinity (xorb sx sy)
+  | B754_zero sx, B754_infinity sy => B754_zero (xorb sx sy)
+  | B754_finite sx _ _ _, B754_zero sy => B754_infinity (xorb sx sy)
+  | B754_zero sx, B754_finite sy _ _ _ => B754_zero (xorb sx sy)
+  | B754_zero sx, B754_zero sy => B754_nan
+  | B754_finite sx mx ex Hx, B754_finite sy my ey Hy =>
+    let '(mz, ez, lz) := Fdiv_core radix2 prec (Zpos mx) ex (Zpos my) ey in
+    match mz with
+    | Zpos mz => binary_round_sign m (xorb sx sy) mz ez lz
+    | _ => B754_nan (* dummy *)
+    end
+  end.
+
+Theorem Bdiv_correct :
+  forall m x y,
+  B2R y <> R0 ->
+  if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (B2R x / B2R y))) (bpow radix2 (emax + prec)) then
+    B2R (Bdiv m x y) = round radix2 fexp (round_mode m) (B2R x / B2R y)
+  else
+    Bdiv m x y = B754_infinity (xorb (Bsign x) (Bsign y)).
+Proof.
+intros m x [sy|sy| |sy my ey Hy] Zy ; try now elim Zy.
+revert x.
+unfold Rdiv.
+intros [sx|sx| |sx mx ex Hx] ;
+  try ( rewrite ?Rmult_0_l, round_0, Rabs_R0, Rlt_bool_true ; [ apply refl_equal | apply bpow_gt_0 ] ).
+simpl.
+refine (_ (Fdiv_core_correct radix2 prec (Zpos mx) ex (Zpos my) ey _ _ _)) ; try easy.
+destruct (Fdiv_core radix2 prec (Zpos mx) ex (Zpos my) ey) as ((mz, ez), lz).
+intros (Pz, Bz).
+replace (xorb sx sy) with (Rlt_bool (F2R (Float radix2 (cond_Zopp sx (Zpos mx)) ex) *
+   / F2R (Float radix2 (cond_Zopp sy (Zpos my)) ey)) 0).
+destruct mz as [|mz|mz].
+(* . mz = 0 *)
+elim (Zlt_irrefl prec).
+now apply Zle_lt_trans with Z0.
+(* . mz > 0 *)
+apply binary_round_sign_correct.
+rewrite Rabs_mult, Rabs_Rinv.
+now rewrite 2!abs_F2R, 2!abs_cond_Zopp.
+exact Zy.
+revert Pz.
+generalize (digits radix2 (Zpos mz)).
+unfold fexp, FLT_exp.
+clear.
+intros ; zify ; subst.
+omega.
+(* . mz < 0 *)
+elim Rlt_not_le  with (1 := proj2 (inbetween_float_bounds _ _ _ _ _ Bz)).
+apply Rle_trans with R0.
+apply F2R_le_0_compat.
+now case mz.
+apply Rmult_le_pos.
+now apply F2R_ge_0_compat.
+apply Rlt_le.
+apply Rinv_0_lt_compat.
+now apply F2R_gt_0_compat.
+(* *)
+revert Zy. clear.
+case sy ; simpl.
+change (Zneg my) with (Zopp (Zpos my)).
+rewrite <- opp_F2R.
+intros Zy.
+rewrite <- Ropp_inv_permute.
+rewrite Ropp_mult_distr_r_reverse.
+case sx ; simpl.
+apply Rlt_bool_false.
+rewrite <- Ropp_mult_distr_l_reverse.
+apply Rmult_le_pos.
+rewrite opp_F2R.
+now apply F2R_ge_0_compat.
+apply Rlt_le.
+apply Rinv_0_lt_compat.
+now apply F2R_gt_0_compat.
+apply Rlt_bool_true.
+rewrite <- Ropp_0.
+apply Ropp_lt_contravar.
+apply Rmult_lt_0_compat.
+now apply F2R_gt_0_compat.
+apply Rinv_0_lt_compat.
+now apply F2R_gt_0_compat.
+contradict Zy.
+rewrite Zy.
+apply Ropp_0.
+intros Zy.
+case sx.
+apply Rlt_bool_true.
+rewrite <- opp_F2R.
+rewrite Ropp_mult_distr_l_reverse.
+rewrite <- Ropp_0.
+apply Ropp_lt_contravar.
+apply Rmult_lt_0_compat.
+now apply F2R_gt_0_compat.
+apply Rinv_0_lt_compat.
+now apply F2R_gt_0_compat.
+apply Rlt_bool_false.
+apply Rmult_le_pos.
+now apply F2R_ge_0_compat.
+apply Rlt_le.
+apply Rinv_0_lt_compat.
+now apply F2R_gt_0_compat.
 Qed.
 
 End Binary.
