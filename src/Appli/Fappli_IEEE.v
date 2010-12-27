@@ -514,32 +514,114 @@ Definition Bplus m x y :=
   | B754_zero _, _ => y
   | _, B754_zero _ => x
   | B754_finite sx mx ex Hx, B754_finite sy my ey Hy =>
-    B754_nan
+    let fx := Float radix2 (cond_Zopp sx (Zpos mx)) ex in
+    let fy := Float radix2 (cond_Zopp sy (Zpos my)) ey in
+    match Fplus radix2 fx fy with
+    | Float Z0 _ =>
+      match m with mode_DN => B754_zero true | _ => B754_zero false end
+    | Float (Zpos mz) ez => let '(m', e') := fexp_scale mz ez in binary_round_sign m false m' e' loc_Exact
+    | Float (Zneg mz) ez => let '(m', e') := fexp_scale mz ez in binary_round_sign m true m' e' loc_Exact
+    end
   end.
 
-Theorem B2R_Bplus :
+Theorem Bplus_correct :
   forall m x y,
   is_finite x = true ->
   is_finite y = true ->
-  B2R (Bplus m x y) = round radix2 fexp (round_mode m) (B2R x + B2R y)%R.
+  if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (B2R x + B2R y))) (bpow radix2 (emax + prec)) then
+    B2R (Bplus m x y) = round radix2 fexp (round_mode m) (B2R x + B2R y)
+  else
+    (Bplus m x y = B754_infinity (Bsign x) /\ Bsign x = Bsign y).
 Proof.
-intros m [sx|sx| |sx mx ex Hx] [sy|sy| |sy my ey Hy] ; try easy ; intros _ _.
+intros m [sx|sx| |sx mx ex Hx] [sy|sy| |sy my ey Hy] Fx Fy ; try easy.
 (* *)
-rewrite Rplus_0_r, round_0.
+rewrite Rplus_0_r, round_0, Rabs_R0, Rlt_bool_true.
 simpl.
 case (Bool.eqb sx sy) ; try easy.
 now case m.
+apply bpow_gt_0.
 (* *)
-rewrite Rplus_0_l.
-apply sym_eq.
-apply round_generic.
+rewrite Rplus_0_l, round_generic, Rlt_bool_true.
+apply refl_equal.
+apply B2R_lt_emax.
 apply generic_format_B2R.
 (* *)
-rewrite Rplus_0_r.
-apply sym_eq.
-apply round_generic.
+rewrite Rplus_0_r, round_generic, Rlt_bool_true.
+apply refl_equal.
+apply B2R_lt_emax.
 apply generic_format_B2R.
 (* *)
-Admitted.
+clear Fx Fy.
+simpl.
+rewrite <- plus_F2R.
+case_eq (Fplus radix2 (Float radix2 (cond_Zopp sx (Zpos mx)) ex)
+  (Float radix2 (cond_Zopp sy (Zpos my)) ey)).
+intros mz ez Hz.
+assert (Sz: (bpow radix2 (emax + prec) <= Rabs (round radix2 fexp (round_mode m) (F2R (Float radix2 mz ez))))%R -> sx = Rlt_bool (F2R (Float radix2 mz ez)) 0 /\ sx = sy).
+(* . *)
+rewrite <- Hz.
+rewrite plus_F2R.
+generalize (bounded_lt_emax _ _ Hx) (bounded_lt_emax _ _ Hy).
+clear.
+intros Hx Hy Bz.
+refine (let Hs := _ in conj _ Hs).
+(* .. *)
+admit.
+(* .. *)
+rewrite Hs.
+apply sym_eq.
+case sy.
+apply Rlt_bool_true.
+rewrite <- (Rplus_0_r 0).
+apply Rplus_lt_compat.
+now apply F2R_lt_0_compat.
+now apply F2R_lt_0_compat.
+apply Rlt_bool_false.
+rewrite <- (Rplus_0_r 0).
+apply Rplus_le_compat.
+now apply F2R_ge_0_compat.
+now apply F2R_ge_0_compat.
+destruct mz as [|mz|mz].
+(* . mz = 0 *)
+rewrite F2R_0, round_0, Rabs_R0, Rlt_bool_true.
+now case m.
+apply bpow_gt_0.
+(* . mz > 0 *)
+generalize (fexp_scale_correct mz ez).
+destruct (fexp_scale mz ez) as (m', e').
+intros (Hz', Ez).
+refine (_ (binary_round_sign_correct m (F2R (Float radix2 (Zpos mz) ez)) m' e' loc_Exact _ Ez)).
+2: constructor ; now rewrite abs_F2R.
+revert Sz.
+rewrite (Rlt_bool_false _ 0).
+2: now apply F2R_ge_0_compat.
+intros Sz.
+case Rlt_bool_spec ; intros Bz.
+easy.
+specialize (Sz Bz).
+intros H.
+split.
+rewrite H.
+now apply f_equal.
+apply Sz.
+(* . mz < 0 *)
+generalize (fexp_scale_correct mz ez).
+destruct (fexp_scale mz ez) as (m', e').
+intros (Hz', Ez).
+refine (_ (binary_round_sign_correct m (F2R (Float radix2 (Zneg mz) ez)) m' e' loc_Exact _ Ez)).
+2: constructor ; now rewrite abs_F2R.
+revert Sz.
+rewrite (Rlt_bool_true _ 0).
+intros Sz.
+2: now apply F2R_lt_0_compat.
+case Rlt_bool_spec ; intros Bz.
+easy.
+specialize (Sz Bz).
+intros H.
+split.
+rewrite H.
+now apply f_equal.
+apply Sz.
+Qed.
 
 End Binary.
