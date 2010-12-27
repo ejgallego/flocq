@@ -347,6 +347,23 @@ rewrite Rmult_assoc, <- bpow_plus, Zplus_opp_r, Rmult_1_r.
 now rewrite Ztrunc_Z2R.
 Qed.
 
+Theorem generic_format_ge_bpow :
+  forall emin,
+  ( forall e, (emin <= fexp e)%Z ) ->
+  forall x,
+  (0 < x)%R ->
+  generic_format x ->
+  (bpow emin <= x)%R.
+Proof.
+intros emin Emin x Hx Fx.
+rewrite Fx.
+apply Rle_trans with (bpow (fexp (ln_beta beta x))).
+now apply bpow_le.
+apply bpow_le_F2R.
+apply F2R_gt_0_reg with beta (canonic_exponent x).
+now rewrite <- Fx.
+Qed.
+
 Theorem canonic_exp_ge:
   forall prec,
   (forall e, (e - fexp e <= prec)%Z) ->
