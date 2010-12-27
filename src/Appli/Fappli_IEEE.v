@@ -1,3 +1,23 @@
+(**
+This file is part of the Flocq formalization of floating-point
+arithmetic in Coq: http://flocq.gforge.inria.fr/
+
+Copyright (C) 2010 Sylvie Boldo
+#<br />#
+Copyright (C) 2010 Guillaume Melquiond
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 3 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+COPYING file for more details.
+*)
+
+(** * IEEE-754 arithmetic *)
 Require Import Fcore.
 Require Import Fcalc_digits.
 Require Import Fcalc_round.
@@ -8,20 +28,19 @@ Require Import Fcalc_sqrt.
 
 Section Binary.
 
-Variable prec emin emax : Z.
+Variable prec emax : Z.
 Hypothesis Hprec : (0 < prec)%Z.
-Hypothesis Hmin : (emin <= 0)%Z.
-Hypothesis Hminmax : (emin <= emax)%Z.
+Hypothesis Hmax : (2 <= emax)%Z.
 
+Let emin := (3 - emax - prec)%Z.
 Let fexp := FLT_exp emin prec.
-
 Let fexp_correct : valid_exp fexp := FLT_exp_correct _ _ Hprec.
 
 Definition bounded_prec m e :=
   Zeq_bool (fexp (Z_of_nat (S (digits2_Pnat m)) + e)) e.
 
 Definition bounded m e :=
-  andb (bounded_prec m e) (Zle_bool e emax).
+  andb (bounded_prec m e) (Zle_bool e (emax - prec)).
 
 Inductive binary_float :=
   | B754_zero : bool -> binary_float
@@ -147,7 +166,7 @@ Qed.
 Theorem bounded_lt_emax :
   forall mx ex,
   bounded mx ex = true ->
-  (F2R (Float radix2 (Zpos mx) ex) < bpow radix2 (emax + prec))%R.
+  (F2R (Float radix2 (Zpos mx) ex) < bpow radix2 emax)%R.
 Proof.
 intros mx ex Hx.
 destruct (andb_prop _ _ Hx) as (H1,H2).
@@ -169,14 +188,15 @@ revert H1. clear -H2.
 rewrite Z_of_nat_S_digits2_Pnat.
 change Fcalc_digits.radix2 with radix2.
 unfold fexp, FLT_exp.
-generalize (Zmax_spec (digits radix2 (Zpos mx) + ex - prec) emin).
-intros.
+generalize (digits radix2 (Zpos mx)).
+intros ; zify ; subst.
+clear -H H2. clearbody emin.
 omega.
 Qed.
 
 Theorem B2R_lt_emax :
   forall x,
-  (Rabs (B2R x) < bpow radix2 (emax + prec))%R.
+  (Rabs (B2R x) < bpow radix2 emax)%R.
 Proof.
 intros [sx|sx| |sx mx ex Hx] ; simpl ; try ( rewrite Rabs_R0 ; apply bpow_gt_0 ).
 rewrite abs_F2R, abs_cond_Zopp.
@@ -186,7 +206,7 @@ Qed.
 Theorem bounded_canonic_lt_emax :
   forall mx ex,
   canonic radix2 fexp (Float radix2 (Zpos mx) ex) ->
-  (F2R (Float radix2 (Zpos mx) ex) < bpow radix2 (emax + prec))%R ->
+  (F2R (Float radix2 (Zpos mx) ex) < bpow radix2 emax)%R ->
   bounded mx ex = true.
 Proof.
 intros mx ex Cx Bx.
@@ -205,8 +225,8 @@ unfold canonic, Fexp in Cx.
 rewrite Cx.
 unfold canonic_exponent, fexp, FLT_exp.
 destruct (ln_beta radix2 (F2R (Float radix2 (Zpos mx) ex))) as (e',Ex). simpl.
-apply Zmax_lub with (2 := Hminmax).
-cut (e' - 1 < emax + prec)%Z. omega.
+apply Zmax_lub.
+cut (e' - 1 < emax)%Z. clear ; omega.
 apply lt_bpow with radix2.
 apply Rle_lt_trans with (2 := Bx).
 change (Zpos mx) with (Zabs (Zpos mx)).
@@ -214,6 +234,8 @@ rewrite <- abs_F2R.
 apply Ex.
 apply Rgt_not_eq.
 now apply F2R_gt_0_compat.
+unfold emin. clear -Hprec Hmax.
+omega.
 Qed.
 
 Inductive mode := mode_NE | mode_ZR | mode_DN | mode_UP | mode_NA.
@@ -253,7 +275,7 @@ Theorem binary_round_sign_correct :
   forall mode x mx ex lx,
   inbetween_float radix2 (Zpos mx) ex (Rabs x) lx ->
   (ex <= fexp (digits radix2 (Zpos mx) + ex))%Z ->
-  if Rlt_bool (Rabs (round radix2 fexp (round_mode mode) x)) (bpow radix2 (emax + prec)) then
+  if Rlt_bool (Rabs (round radix2 fexp (round_mode mode) x)) (bpow radix2 emax) then
     B2R (binary_round_sign mode (Rlt_bool x 0) mx ex lx) = round radix2 fexp (round_mode mode) x
   else
     binary_round_sign mode (Rlt_bool x 0) mx ex lx = B754_infinity (Rlt_bool x 0).
@@ -392,7 +414,7 @@ Definition Bmult m x y :=
 
 Theorem Bmult_correct :
   forall m x y,
-  if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (B2R x * B2R y))) (bpow radix2 (emax + prec)) then
+  if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (B2R x * B2R y))) (bpow radix2 emax) then
     B2R (Bmult m x y) = round radix2 fexp (round_mode m) (B2R x * B2R y)
   else
     Bmult m x y = B754_infinity (xorb (Bsign x) (Bsign y)).
@@ -422,7 +444,8 @@ unfold fexp, FLT_exp.
 refine (_ (digits_mult_ge radix2 (Zpos mx) (Zpos my) _ _)) ; try discriminate.
 refine (_ (digits_gt_0 radix2 (Zpos mx) _) (digits_gt_0 radix2 (Zpos my) _)) ; try discriminate.
 generalize (digits radix2 (Zpos mx)) (digits radix2 (Zpos my)) (digits radix2 (Zpos mx * Zpos my)).
-clear -Hprec Hmin.
+clear -Hprec Hmax.
+unfold emin.
 intros dx dy dxy Hx Hy Hxy.
 zify ; intros ; subst.
 omega.
@@ -530,7 +553,7 @@ Theorem Bplus_correct :
   forall m x y,
   is_finite x = true ->
   is_finite y = true ->
-  if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (B2R x + B2R y))) (bpow radix2 (emax + prec)) then
+  if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (B2R x + B2R y))) (bpow radix2 emax) then
     B2R (Bplus m x y) = round radix2 fexp (round_mode m) (B2R x + B2R y)
   else
     (Bplus m x y = B754_infinity (Bsign x) /\ Bsign x = Bsign y).
@@ -559,7 +582,7 @@ rewrite <- plus_F2R.
 case_eq (Fplus radix2 (Float radix2 (cond_Zopp sx (Zpos mx)) ex)
   (Float radix2 (cond_Zopp sy (Zpos my)) ey)).
 intros mz ez Hz.
-assert (Sz: (bpow radix2 (emax + prec) <= Rabs (round radix2 fexp (round_mode m) (F2R (Float radix2 mz ez))))%R -> sx = Rlt_bool (F2R (Float radix2 mz ez)) 0 /\ sx = sy).
+assert (Sz: (bpow radix2 emax <= Rabs (round radix2 fexp (round_mode m) (F2R (Float radix2 mz ez))))%R -> sx = Rlt_bool (F2R (Float radix2 mz ez)) 0 /\ sx = sy).
 (* . *)
 rewrite <- Hz.
 rewrite plus_F2R.
@@ -700,7 +723,7 @@ Definition Bdiv m x y :=
 Theorem Bdiv_correct :
   forall m x y,
   B2R y <> R0 ->
-  if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (B2R x / B2R y))) (bpow radix2 (emax + prec)) then
+  if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (B2R x / B2R y))) (bpow radix2 emax) then
     B2R (Bdiv m x y) = round radix2 fexp (round_mode m) (B2R x / B2R y)
   else
     Bdiv m x y = B754_infinity (xorb (Bsign x) (Bsign y)).
