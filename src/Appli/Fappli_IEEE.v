@@ -25,12 +25,13 @@ Require Import Fcalc_bracket.
 Require Import Fcalc_ops.
 Require Import Fcalc_div.
 Require Import Fcalc_sqrt.
+Require Import Fprop_relative.
 
 Section Binary.
 
 Variable prec emax : Z.
 Hypothesis Hprec : (0 < prec)%Z.
-Hypothesis Hmax : (2 <= emax)%Z.
+Hypothesis Hmax : (1 + prec <= emax)%Z.
 
 Let emin := (3 - emax - prec)%Z.
 Let fexp := FLT_exp emin prec.
@@ -854,8 +855,69 @@ rewrite Rlt_bool_true.
 rewrite Rlt_bool_false.
 easy.
 apply sqrt_ge_0.
+(* .. *)
 rewrite Rabs_pos_eq.
-admit.
+refine (_ (relative_error_FLT_ex radix2 emin prec Hprec (round_mode m) (sqrt (F2R (Float radix2 (Zpos mx) ex))) _)).
+fold fexp.
+intros (eps, (Heps, Hr)).
+rewrite Hr.
+assert (Heps': (Rabs eps < 1)%R).
+apply Rlt_le_trans with (1 := Heps).
+fold (bpow radix2 0).
+apply bpow_le.
+clear -Hprec. omega.
+apply Rsqr_incrst_0.
+3: apply bpow_ge_0.
+rewrite Rsqr_mult.
+rewrite Rsqr_sqrt.
+2: now apply F2R_ge_0_compat.
+unfold Rsqr.
+apply Rmult_ge_0_gt_0_lt_compat.
+apply Rle_ge.
+apply Rle_0_sqr.
+apply bpow_gt_0.
+now apply bounded_lt_emax.
+apply Rlt_le_trans with 4%R.
+apply Rsqr_incrst_1.
+apply Rplus_lt_compat_l.
+apply (Rabs_lt_inv _ _ Heps').
+rewrite <- (Rplus_opp_r 1).
+apply Rplus_le_compat_l.
+apply Rlt_le.
+apply (Rabs_lt_inv _ _ Heps').
+now apply (Z2R_le 0 2).
+change 4%R with (bpow radix2 2).
+apply bpow_le.
+clear -Hprec Hmax.
+omega.
+apply Rmult_le_pos.
+apply sqrt_ge_0.
+rewrite <- (Rplus_opp_r 1).
+apply Rplus_le_compat_l.
+apply Rlt_le.
+apply (Rabs_lt_inv _ _ Heps').
+rewrite Rabs_pos_eq.
+2: apply sqrt_ge_0.
+apply Rsqr_incr_0.
+2: apply bpow_ge_0.
+2: apply sqrt_ge_0.
+rewrite Rsqr_sqrt.
+2: now apply F2R_ge_0_compat.
+apply Rle_trans with (bpow radix2 emin).
+unfold Rsqr.
+rewrite <- bpow_plus.
+apply bpow_le.
+unfold emin.
+clear -Hprec Hmax.
+omega.
+apply generic_format_ge_bpow with fexp.
+intros.
+apply Zle_max_r.
+now apply F2R_gt_0_compat.
+apply generic_format_canonic.
+apply (canonic_bounded_prec false).
+apply (andb_prop _ _ Hx).
+(* .. *)
 apply round_monotone_l.
 apply fexp_correct.
 apply generic_format_0.
