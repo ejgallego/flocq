@@ -4,6 +4,7 @@ Require Import Fcalc_round.
 Require Import Fcalc_bracket.
 Require Import Fcalc_ops.
 Require Import Fcalc_div.
+Require Import Fcalc_sqrt.
 
 Section Binary.
 
@@ -708,7 +709,7 @@ intros m x [sy|sy| |sy my ey Hy] Zy ; try now elim Zy.
 revert x.
 unfold Rdiv.
 intros [sx|sx| |sx mx ex Hx] ;
-  try ( rewrite ?Rmult_0_l, round_0, Rabs_R0, Rlt_bool_true ; [ apply refl_equal | apply bpow_gt_0 ] ).
+  try ( rewrite Rmult_0_l, round_0, Rabs_R0, Rlt_bool_true ; [ apply refl_equal | apply bpow_gt_0 ] ).
 simpl.
 refine (_ (Fdiv_core_correct radix2 prec (Zpos mx) ex (Zpos my) ey _ _ _)) ; try easy.
 destruct (Fdiv_core radix2 prec (Zpos mx) ex (Zpos my) ey) as ((mz, ez), lz).
@@ -784,6 +785,73 @@ now apply F2R_ge_0_compat.
 apply Rlt_le.
 apply Rinv_0_lt_compat.
 now apply F2R_gt_0_compat.
+Qed.
+
+Definition Bsqrt m x :=
+  match x with
+  | B754_nan => x
+  | B754_infinity false => x
+  | B754_infinity true => B754_nan
+  | B754_finite true _ _ _ => B754_nan
+  | B754_zero _ => x
+  | B754_finite sx mx ex Hx =>
+    let '(mz, ez, lz) := Fsqrt_core radix2 prec (Zpos mx) ex in
+    match mz with
+    | Zpos mz => binary_round_sign m false mz ez lz
+    | _ => B754_nan (* dummy *)
+    end
+  end.
+
+Theorem Bsqrt_correct :
+  forall m x,
+  B2R (Bsqrt m x) = round radix2 fexp (round_mode m) (sqrt (B2R x)).
+Proof.
+intros m [sx|[|]| |sx mx ex Hx] ; try ( now simpl ; rewrite sqrt_0, round_0 ).
+simpl.
+refine (_ (Fsqrt_core_correct radix2 prec (Zpos mx) ex _)) ; try easy.
+destruct (Fsqrt_core radix2 prec (Zpos mx) ex) as ((mz, ez), lz).
+intros (Pz, Bz).
+case sx.
+apply sym_eq.
+unfold sqrt.
+case Rcase_abs.
+intros _.
+apply round_0.
+intros H.
+elim Rge_not_lt with (1 := H).
+now apply F2R_lt_0_compat.
+destruct mz as [|mz|mz].
+(* . mz = 0 *)
+elim (Zlt_irrefl prec).
+now apply Zle_lt_trans with Z0.
+(* . mz > 0 *)
+simpl.
+refine (_ (binary_round_sign_correct m (sqrt (F2R (Float radix2 (Zpos mx) ex))) mz ez lz _ _)).
+rewrite Rlt_bool_true.
+rewrite Rlt_bool_false.
+easy.
+apply sqrt_ge_0.
+rewrite Rabs_pos_eq.
+admit.
+apply round_monotone_l.
+apply fexp_correct.
+apply generic_format_0.
+apply sqrt_ge_0.
+rewrite Rabs_pos_eq.
+exact Bz.
+apply sqrt_ge_0.
+revert Pz.
+generalize (digits radix2 (Zpos mz)).
+unfold fexp, FLT_exp.
+clear.
+intros ; zify ; subst.
+omega.
+(* . mz < 0 *)
+elim Rlt_not_le  with (1 := proj2 (inbetween_float_bounds _ _ _ _ _ Bz)).
+apply Rle_trans with R0.
+apply F2R_le_0_compat.
+now case mz.
+apply sqrt_ge_0.
 Qed.
 
 End Binary.
