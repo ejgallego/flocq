@@ -448,6 +448,58 @@ now case Rlt_bool.
 now case Rlt_bool.
 Qed.
 
+Definition fexp_scale mx ex :=
+  let ex' := fexp (Z_of_nat (S (digits2_Pnat mx)) + ex) in
+  match (ex' - ex)%Z with
+  | Zneg d => (shift_pos d mx, ex')
+  | _ => (mx, ex)
+  end.
+
+Theorem fexp_scale_correct :
+  forall mx ex,
+  let (mx', ex') := fexp_scale mx ex in
+  F2R (Float radix2 (Zpos mx) ex) = F2R (Float radix2 (Zpos mx') ex') /\
+  (ex' <= fexp (digits radix2 (Zpos mx') + ex'))%Z.
+Proof.
+intros mx ex.
+unfold fexp_scale.
+rewrite Z_of_nat_S_digits2_Pnat.
+change (Fcalc_digits.radix2) with radix2.
+set (e' := fexp (digits radix2 (Zpos mx) + ex)).
+pattern e' at 2 ; replace e' with (e' - ex + ex)%Z by ring.
+case_eq (e' - ex)%Z ; fold e'.
+(* d = 0 *)
+intros H.
+repeat split.
+rewrite Zminus_eq with (1 := H).
+apply Zle_refl.
+(* d > 0 *)
+intros d Hd.
+repeat split.
+replace e' with (e' - ex + ex)%Z by ring.
+rewrite Hd.
+pattern ex at 1 ; rewrite <- Zplus_0_l.
+now apply Zplus_le_compat_r.
+(* d < 0 *)
+intros d Hd.
+rewrite shift_pos_correct, Zmult_comm.
+change (Zpower_pos 2 d) with (Zpower radix2 (Zpos d)).
+rewrite digits_shift ; try easy.
+change (Zpos d) with (Zopp (Zneg d)).
+rewrite <- Hd.
+split.
+replace (- (e' - ex))%Z with (ex - e')%Z by ring.
+replace (e' - ex + ex)%Z with e' by ring.
+apply F2R_change_exp.
+apply Zle_0_minus_le.
+replace (ex - e')%Z with (-(e' - ex))%Z by ring.
+now rewrite Hd.
+ring_simplify (digits radix2 (Zpos mx) + - (e' - ex) + (e' - ex + ex))%Z.
+fold e'.
+ring_simplify.
+apply Zle_refl.
+Qed.
+
 Definition Bplus m x y :=
   match x, y with
   | B754_nan, _ => x
