@@ -561,13 +561,10 @@ assert (Sz: (bpow radix2 (emax + prec) <= Rabs (round radix2 fexp (round_mode m)
 (* . *)
 rewrite <- Hz.
 rewrite plus_F2R.
-generalize (bounded_lt_emax _ _ Hx) (bounded_lt_emax _ _ Hy).
-clear.
-intros Hx Hy Bz.
-refine (let Hs := _ in conj _ Hs).
+intros Bz.
+destruct (Bool.bool_dec sx sy) as [Hs|Hs].
 (* .. *)
-admit.
-(* .. *)
+refine (conj _ Hs).
 rewrite Hs.
 apply sym_eq.
 case sy.
@@ -581,6 +578,58 @@ rewrite <- (Rplus_0_r 0).
 apply Rplus_le_compat.
 now apply F2R_ge_0_compat.
 now apply F2R_ge_0_compat.
+(* .. *)
+elim Rle_not_lt with (1 := Bz).
+generalize (bounded_lt_emax _ _ Hx) (bounded_lt_emax _ _ Hy) (andb_prop _ _ Hx) (andb_prop _ _ Hy).
+intros Bx By (Hx',_) (Hy',_).
+generalize (canonic_bounded_prec sx _ _ Hx') (canonic_bounded_prec sy _ _ Hy').
+clear -Bx By Hs fexp_correct.
+intros Cx Cy.
+destruct sx.
+(* ... *)
+destruct sy.
+now elim Hs.
+clear Hs.
+apply Rabs_lt.
+split.
+apply Rlt_le_trans with (F2R (Float radix2 (cond_Zopp true (Zpos mx)) ex)).
+rewrite <- opp_F2R.
+now apply Ropp_lt_contravar.
+apply round_monotone_l.
+apply fexp_correct.
+now apply generic_format_canonic.
+pattern (F2R (Float radix2 (cond_Zopp true (Zpos mx)) ex)) at 1 ; rewrite <- Rplus_0_r.
+apply Rplus_le_compat_l.
+now apply F2R_ge_0_compat.
+apply Rle_lt_trans with (2 := By).
+apply round_monotone_r.
+apply fexp_correct.
+now apply generic_format_canonic.
+rewrite <- (Rplus_0_l (F2R (Float radix2 (Zpos my) ey))).
+apply Rplus_le_compat_r.
+now apply F2R_le_0_compat.
+(* ... *)
+destruct sy.
+2: now elim Hs.
+clear Hs.
+apply Rabs_lt.
+split.
+apply Rlt_le_trans with (F2R (Float radix2 (cond_Zopp true (Zpos my)) ey)).
+rewrite <- opp_F2R.
+now apply Ropp_lt_contravar.
+apply round_monotone_l.
+apply fexp_correct.
+now apply generic_format_canonic.
+pattern (F2R (Float radix2 (cond_Zopp true (Zpos my)) ey)) at 1 ; rewrite <- Rplus_0_l.
+apply Rplus_le_compat_r.
+now apply F2R_ge_0_compat.
+apply Rle_lt_trans with (2 := Bx).
+apply round_monotone_r.
+apply fexp_correct.
+now apply generic_format_canonic.
+rewrite <- (Rplus_0_r (F2R (Float radix2 (Zpos mx) ex))).
+apply Rplus_le_compat_l.
+now apply F2R_le_0_compat.
 destruct mz as [|mz|mz].
 (* . mz = 0 *)
 rewrite F2R_0, round_0, Rabs_R0, Rlt_bool_true.
