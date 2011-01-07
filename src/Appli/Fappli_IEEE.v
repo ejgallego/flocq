@@ -31,7 +31,7 @@ Section Binary.
 
 Variable prec emax : Z.
 Hypothesis Hprec : (0 < prec)%Z.
-Hypothesis Hmax : (1 + prec <= emax)%Z.
+Hypothesis Hmax : (prec < emax)%Z.
 
 Let emin := (3 - emax - prec)%Z.
 Let fexp := FLT_exp emin prec.
@@ -940,3 +940,327 @@ apply sqrt_ge_0.
 Qed.
 
 End Binary.
+
+Section Binary_Bits.
+
+Variable mw ew : Z.
+Hypothesis Hmw : (0 <= mw)%Z.
+Hypothesis Hew : (0 < ew)%Z.
+
+Let emax := Zpower 2 (ew - 1).
+Let prec := (mw + 1)%Z.
+Let emin := (3 - emax - prec)%Z.
+Let binary_float := binary_float prec emax.
+
+Let Hprec : (0 < prec)%Z.
+unfold prec.
+now apply Zle_lt_succ.
+Qed.
+
+Let Hm_gt_0 : (0 < 2^mw)%Z.
+now apply (Zpower_gt_0 radix2).
+Qed.
+
+Let He_gt_0 : (0 < 2^ew)%Z.
+apply (Zpower_gt_0 radix2).
+now apply Zlt_le_weak.
+Qed.
+
+Hypothesis Hmax : (prec < emax)%Z.
+
+Definition join_bits (s : bool) m e :=
+  (((if s then Zpower 2 ew else 0) + e) * Zpower 2 mw + m)%Z.
+
+Definition split_bits x :=
+  let mm := Zpower 2 mw in
+  let em := Zpower 2 ew in
+  (Zle_bool (mm * em) x, Zmod x mm, Zmod (Zdiv x mm) em)%Z.
+
+Theorem split_join_bits :
+  forall s m e,
+  (0 <= m < Zpower 2 mw)%Z ->
+  (0 <= e < Zpower 2 ew)%Z ->
+  split_bits (join_bits s m e) = (s, m, e).
+Proof.
+intros s m e Hm He.
+unfold split_bits, join_bits.
+apply f_equal2.
+apply f_equal2.
+(* *)
+case s.
+apply Zle_bool_true.
+apply Zle_0_minus_le.
+ring_simplify.
+apply Zplus_le_0_compat.
+apply Zmult_le_0_compat.
+apply He.
+now apply Zlt_le_weak.
+apply Hm.
+apply Zle_bool_false.
+apply Zplus_lt_reg_l with (2^mw * (-e))%Z.
+replace (2 ^ mw * - e + ((0 + e) * 2 ^ mw + m))%Z with (m * 1)%Z by ring.
+rewrite <- Zmult_plus_distr_r.
+apply Zlt_le_trans with (2^mw * 1)%Z.
+now apply Zmult_lt_compat_r.
+apply Zmult_le_compat_l.
+clear -He. omega.
+now apply Zlt_le_weak.
+(* *)
+rewrite Zplus_comm.
+rewrite Z_mod_plus_full.
+now apply Zmod_small.
+(* *)
+rewrite Z_div_plus_full_l.
+rewrite Zdiv_small with (1 := Hm).
+rewrite Zplus_0_r.
+case s.
+replace (2^ew + e)%Z with (e + 1 * 2^ew)%Z by ring.
+rewrite Z_mod_plus_full.
+now apply Zmod_small.
+now apply Zmod_small.
+now apply Zgt_not_eq.
+Qed.
+
+Theorem join_split_bits :
+  forall x,
+  (0 <= x < Zpower 2 (mw + ew + 1))%Z ->
+  let '(s, m, e) := split_bits x in
+  join_bits s m e = x.
+Proof.
+intros x Hx.
+unfold split_bits, join_bits.
+pattern x at 4 ; rewrite Z_div_mod_eq_full with x (2^mw)%Z.
+apply (f_equal (fun v => (v + _)%Z)).
+rewrite Zmult_comm.
+apply f_equal.
+pattern (x / (2^mw))%Z at 2 ; rewrite Z_div_mod_eq_full with (x / (2^mw))%Z (2^ew)%Z.
+apply (f_equal (fun v => (v + _)%Z)).
+replace (x / 2 ^ mw / 2 ^ ew)%Z with (if Zle_bool (2 ^ mw * 2 ^ ew) x then 1 else 0)%Z.
+case Zle_bool.
+now rewrite Zmult_1_r.
+now rewrite Zmult_0_r.
+rewrite Zdiv_Zdiv.
+apply sym_eq.
+case Zle_bool_spec ; intros Hs.
+apply Zle_antisym.
+cut (x / (2^mw * 2^ew) < 2)%Z. clear ; omega.
+apply Zdiv_lt_upper_bound.
+apply Hx.
+now apply Zmult_lt_0_compat.
+rewrite <- Zpower_exp.
+change 2%Z at 1 with (Zpower 2 1).
+rewrite <- Zpower_exp.
+now rewrite Zplus_comm.
+discriminate.
+apply Zle_ge.
+apply Zplus_le_0_compat with (1 := Hmw).
+now apply Zlt_le_weak.
+now apply Zle_ge.
+apply Zle_ge.
+now apply Zlt_le_weak.
+apply Zdiv_le_lower_bound.
+apply Hx.
+now apply Zmult_lt_0_compat.
+now rewrite Zmult_1_l.
+apply Zdiv_small.
+now split.
+now apply Zlt_le_weak.
+now apply Zlt_le_weak.
+now apply Zgt_not_eq.
+now apply Zgt_not_eq.
+Qed.
+
+Definition bits_of_binary_float (x : binary_float) :=
+  match x with
+  | B754_zero sx => join_bits sx 0 0
+  | B754_infinity sx => join_bits sx 0 (Zpower 2 ew - 1)
+  | B754_nan => join_bits false (Zpower 2 mw - 1) (Zpower 2 ew - 1)
+  | B754_finite sx mx ex _ =>
+    if Zle_bool (Zpower 2 mw) (Zpos mx) then
+      join_bits sx (Zpos mx - Zpower 2 mw) (ex - emin + 1)
+    else
+      join_bits sx (Zpos mx) 0
+  end.
+
+Definition split_bits_of_binary_float (x : binary_float) :=
+  match x with
+  | B754_zero sx => (sx, 0, 0)%Z
+  | B754_infinity sx => (sx, 0, Zpower 2 ew - 1)%Z
+  | B754_nan => (false, Zpower 2 mw - 1, Zpower 2 ew - 1)%Z
+  | B754_finite sx mx ex _ =>
+    if Zle_bool (Zpower 2 mw) (Zpos mx) then
+      (sx, Zpos mx - Zpower 2 mw, ex - emin + 1)%Z
+    else
+      (sx, Zpos mx, 0)%Z
+  end.
+
+Theorem split_bits_of_binary_float_correct :
+  forall x,
+  split_bits (bits_of_binary_float x) = split_bits_of_binary_float x.
+Proof.
+intros [sx|sx| |sx mx ex Hx] ;
+  try ( simpl ; apply split_join_bits ; split ; try apply Zle_refl ; try apply Zlt_pred ; trivial ; omega ).
+unfold bits_of_binary_float, split_bits_of_binary_float.
+assert (Hf: (emin <= ex /\ digits radix2 (Zpos mx) <= prec)%Z).
+destruct (andb_prop _ _ Hx) as (Hx', _).
+unfold bounded_prec in Hx'.
+rewrite Z_of_nat_S_digits2_Pnat in Hx'.
+generalize (Zeq_bool_eq _ _ Hx').
+unfold FLT_exp.
+change (Fcalc_digits.radix2) with radix2.
+unfold emin.
+clear ; zify ; omega.
+destruct (Zle_bool_spec (2^mw) (Zpos mx)) as [H|H] ;
+  apply split_join_bits ; try now split.
+(* *)
+split.
+clear -He_gt_0 H ; omega.
+cut (Zpos mx < 2 * 2^mw)%Z. clear ; omega.
+replace (2 * 2^mw)%Z with (2^prec)%Z.
+apply (Zpower_gt_digits radix2 _ (Zpos mx)).
+apply Hf.
+unfold prec.
+rewrite Zplus_comm.
+now apply Zpower_exp ; apply Zle_ge.
+(* *)
+split.
+generalize (proj1 Hf).
+clear ; omega.
+destruct (andb_prop _ _ Hx) as (_, Hx').
+unfold emin.
+replace (2^ew)%Z with (2 * emax)%Z.
+generalize (Zle_bool_imp_le _ _ Hx').
+clear ; omega.
+apply sym_eq.
+rewrite (Zsucc_pred ew).
+unfold Zsucc.
+rewrite Zplus_comm.
+apply Zpower_exp ; apply Zle_ge.
+discriminate.
+now apply Zlt_0_le_0_pred.
+Qed.
+
+Program Definition binary_float_of_bits (x : Z) :=
+  let '(sx, mx, ex) := split_bits x in
+  if Sumbool.sumbool_of_bool (Zeq_bool ex 0) then
+    match mx with
+    | Z0 => B754_zero prec emax sx
+    | Zpos mx => B754_finite prec emax sx mx emin _
+    | _ => B754_nan prec emax (* dummy *)
+    end
+  else if Sumbool.sumbool_of_bool (Zeq_bool ex (Zpower 2 ew - 1)) then
+    if Zeq_bool mx 0 then B754_infinity prec emax sx else B754_nan prec emax
+  else
+    match (mx + Zpower 2 mw)%Z with
+    | Zpos mx => B754_finite prec emax sx mx (ex + emin - 1) _
+    | _ => B754_nan prec emax (* dummy *)
+    end.
+
+Next Obligation.
+revert mx0 H2 H.
+intros mx Hmx _.
+assert (digits radix2 (Zpos mx) <= mw)%Z.
+apply digits_le_Zpower.
+simpl.
+rewrite Hmx.
+eapply Z_mod_lt.
+apply Zlt_gt.
+now apply (Zpower_gt_0 radix2).
+apply bounded_canonic_lt_emax ; try assumption.
+unfold canonic, canonic_exponent.
+fold emin.
+rewrite ln_beta_F2R_digits. 2: discriminate.
+unfold Fexp, FLT_exp.
+apply sym_eq.
+apply Zmax_right.
+clear -H Hprec.
+unfold prec ; omega.
+apply Rnot_le_lt.
+intros H0.
+refine (_ (ln_beta_monotone radix2 _ _ _ H0)).
+rewrite ln_beta_bpow.
+rewrite ln_beta_F2R_digits. 2: discriminate.
+unfold emin, prec.
+apply Zlt_not_le.
+cut (0 < emax)%Z. clear -H Hew ; omega.
+apply (Zpower_gt_0 radix2).
+clear -Hew ; omega.
+apply bpow_gt_0.
+Qed.
+
+Next Obligation.
+now split.
+Qed.
+
+Next Obligation.
+revert mx0 H H0 Heq_anonymous0.
+intros mx Hex Hex' Hmx.
+assert (prec = digits radix2 (Zpos mx)).
+rewrite digits_ln_beta. 2: discriminate.
+apply sym_eq.
+apply ln_beta_unique.
+rewrite <- Z2R_abs.
+unfold Zabs.
+replace (prec - 1)%Z with mw by ( unfold prec ; ring ).
+rewrite <- Z2R_Zpower with (1 := Hmw).
+rewrite <- Z2R_Zpower. 2: now apply Zlt_le_weak.
+rewrite Hmx.
+split.
+apply Z2R_le.
+change (radix2^mw)%Z with (0 + 2^mw)%Z.
+apply Zplus_le_compat_r.
+eapply Z_mod_lt.
+apply Zlt_gt.
+now apply (Zpower_gt_0 radix2).
+apply Z2R_lt.
+unfold prec.
+rewrite Zpower_exp. 2: now apply Zle_ge. 2: discriminate.
+rewrite <- Zplus_diag_eq_mult_2.
+apply Zplus_lt_compat_r.
+eapply Z_mod_lt.
+apply Zlt_gt.
+now apply (Zpower_gt_0 radix2).
+(* *)
+apply bounded_canonic_lt_emax ; try assumption.
+unfold canonic, canonic_exponent.
+rewrite ln_beta_F2R_digits. 2: discriminate.
+unfold Fexp, FLT_exp.
+rewrite <- H.
+replace (prec + ((x / 2 ^ mw) mod 2 ^ ew + emin - 1) - prec)%Z with ((x / 2 ^ mw) mod 2 ^ ew + emin - 1)%Z by ring.
+apply sym_eq.
+apply Zmax_left.
+generalize (Zeq_bool_neq _ _ Hex).
+cut (0 <= (x / 2 ^ mw) mod 2 ^ ew)%Z.
+unfold emin.
+clear ; intros H1 H2 ; omega.
+eapply Z_mod_lt.
+apply Zlt_gt.
+apply (Zpower_gt_0 radix2).
+now apply Zlt_le_weak.
+apply Rnot_le_lt.
+intros H0.
+refine (_ (ln_beta_monotone radix2 _ _ _ H0)).
+rewrite ln_beta_bpow.
+rewrite ln_beta_F2R_digits. 2: discriminate.
+rewrite <- H.
+apply Zlt_not_le.
+unfold emin.
+apply Zplus_lt_reg_r with (emax - 1)%Z.
+ring_simplify.
+generalize (Zeq_bool_neq _ _ Hex').
+cut ((x / 2^mw) mod 2^ew < 2^ew)%Z.
+replace (2^ew)%Z with (2 * emax)%Z.
+clear ; intros H1 H2 ; omega.
+replace ew with (1 + (ew - 1))%Z by ring.
+rewrite Zpower_exp.
+apply refl_equal.
+discriminate.
+clear -Hew ; omega.
+eapply Z_mod_lt.
+apply Zlt_gt.
+apply (Zpower_gt_0 radix2).
+now apply Zlt_le_weak.
+apply bpow_gt_0.
+Qed.
+
+End Binary_Bits.
