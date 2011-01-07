@@ -553,7 +553,8 @@ ring.
 omega.
 assert (Hp: (Zpower beta k > 0)%Z).
 apply Zlt_gt.
-now apply Zpower_gt_0.
+apply Zpower_gt_0.
+now apply Zlt_le_weak.
 (* . *)
 rewrite 2!Hr.
 rewrite Zmult_plus_distr_l, Zmult_1_l.

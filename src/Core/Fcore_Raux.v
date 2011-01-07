@@ -2150,13 +2150,14 @@ Qed.
 
 Theorem Zpower_gt_0 :
   forall p,
-  (0 < p)%Z ->
+  (0 <= p)%Z ->
   (0 < Zpower r p)%Z.
 Proof.
 intros.
-apply Zlt_trans with 1%Z.
-easy.
-now apply Zpower_gt_1.
+apply lt_Z2R.
+rewrite Z2R_Zpower.
+apply bpow_gt_0.
+exact H.
 Qed.
 
 Theorem Zpower_ge_0 :
