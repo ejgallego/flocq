@@ -1140,29 +1140,18 @@ discriminate.
 now apply Zlt_0_le_0_pred.
 Qed.
 
-Program Definition binary_float_of_bits (x : Z) :=
-  let '(sx, mx, ex) := split_bits x in
-  if Sumbool.sumbool_of_bool (Zeq_bool ex 0) then
-    match mx with
-    | Z0 => B754_zero prec emax sx
-    | Zpos mx => B754_finite prec emax sx mx emin _
-    | _ => B754_nan prec emax (* dummy *)
-    end
-  else if Sumbool.sumbool_of_bool (Zeq_bool ex (Zpower 2 ew - 1)) then
-    if Zeq_bool mx 0 then B754_infinity prec emax sx else B754_nan prec emax
-  else
-    match (mx + Zpower 2 mw)%Z with
-    | Zpos mx => B754_finite prec emax sx mx (ex + emin - 1) _
-    | _ => B754_nan prec emax (* dummy *)
-    end.
-
-Next Obligation.
-revert mx0 H2 H.
-intros mx Hmx _.
+Lemma binary_float_of_bits_aux1 :
+  forall x sx mx ex,
+  split_bits x = (sx, Zpos mx, ex) ->
+  bounded prec emax mx emin = true.
+Proof.
+intros x sx mx ex Hx.
+injection Hx.
+intros Hex Hmx _.
 assert (digits radix2 (Zpos mx) <= mw)%Z.
 apply digits_le_Zpower.
 simpl.
-rewrite Hmx.
+rewrite <- Hmx.
 eapply Z_mod_lt.
 apply Zlt_gt.
 now apply (Zpower_gt_0 radix2).
@@ -1188,14 +1177,18 @@ clear -Hew ; omega.
 apply bpow_gt_0.
 Qed.
 
-Next Obligation.
-now split.
-Qed.
-
-Next Obligation.
-revert mx0 H H0 Heq_anonymous0.
-intros mx Hex Hex' Hmx.
-assert (prec = digits radix2 (Zpos mx)).
+Lemma binary_float_of_bits_aux2 :
+  forall x sx mx ex px,
+  split_bits x = (sx, mx, ex) ->
+  Zeq_bool ex 0 = false ->
+  Zeq_bool ex (Zpower 2 ew - 1) = false ->
+  (mx + Zpower 2 mw)%Z = Zpos px ->
+  bounded prec emax px (ex + emin - 1) = true.
+Proof.
+intros x sx mx ex px Hx Hex Hex' Hmx.
+injection Hx.
+intros Hex'' Hmx' _.
+assert (prec = digits radix2 (Zpos px)).
 rewrite digits_ln_beta. 2: discriminate.
 apply sym_eq.
 apply ln_beta_unique.
@@ -1204,7 +1197,8 @@ unfold Zabs.
 replace (prec - 1)%Z with mw by ( unfold prec ; ring ).
 rewrite <- Z2R_Zpower with (1 := Hmw).
 rewrite <- Z2R_Zpower. 2: now apply Zlt_le_weak.
-rewrite Hmx.
+rewrite <- Hmx.
+rewrite <- Hmx'.
 split.
 apply Z2R_le.
 change (radix2^mw)%Z with (0 + 2^mw)%Z.
@@ -1226,13 +1220,14 @@ unfold canonic, canonic_exponent.
 rewrite ln_beta_F2R_digits. 2: discriminate.
 unfold Fexp, FLT_exp.
 rewrite <- H.
-replace (prec + ((x / 2 ^ mw) mod 2 ^ ew + emin - 1) - prec)%Z with ((x / 2 ^ mw) mod 2 ^ ew + emin - 1)%Z by ring.
+replace (prec + (ex + emin - 1) - prec)%Z with (ex + emin - 1)%Z by ring.
 apply sym_eq.
 apply Zmax_left.
 generalize (Zeq_bool_neq _ _ Hex).
-cut (0 <= (x / 2 ^ mw) mod 2 ^ ew)%Z.
+cut (0 <= ex)%Z.
 unfold emin.
 clear ; intros H1 H2 ; omega.
+rewrite <- Hex''.
 eapply Z_mod_lt.
 apply Zlt_gt.
 apply (Zpower_gt_0 radix2).
@@ -1248,7 +1243,7 @@ unfold emin.
 apply Zplus_lt_reg_r with (emax - 1)%Z.
 ring_simplify.
 generalize (Zeq_bool_neq _ _ Hex').
-cut ((x / 2^mw) mod 2^ew < 2^ew)%Z.
+cut (ex < 2^ew)%Z.
 replace (2^ew)%Z with (2 * emax)%Z.
 clear ; intros H1 H2 ; omega.
 replace ew with (1 + (ew - 1))%Z by ring.
@@ -1256,11 +1251,35 @@ rewrite Zpower_exp.
 apply refl_equal.
 discriminate.
 clear -Hew ; omega.
+rewrite <- Hex''.
 eapply Z_mod_lt.
 apply Zlt_gt.
 apply (Zpower_gt_0 radix2).
 now apply Zlt_le_weak.
 apply bpow_gt_0.
 Qed.
+
+Definition binary_float_of_bits (x : Z) :=
+  match split_bits x as v1 return split_bits x = v1 -> binary_float with
+  | (sx, mx, ex) =>
+    match Zeq_bool ex 0 as v2 return _ = v2 -> _ -> binary_float with
+    | true => fun _ =>
+      match mx as v3 return split_bits x = (sx, v3, ex) -> binary_float with
+      | Zpos px => fun H1 => B754_finite prec emax sx px emin (binary_float_of_bits_aux1 x sx px ex H1)
+      | Z0 => fun _ => B754_zero prec emax sx
+      | _ => fun _ => B754_nan prec emax (* dummy *)
+      end
+    | false => fun H2 =>
+      match Zeq_bool ex (Zpower 2 ew - 1) as v3 return _ = v3 -> _ -> binary_float with
+      | true => fun _ _ =>
+        if Zeq_bool mx 0 then B754_infinity prec emax sx else B754_nan prec emax
+      | false => fun H3 H1 =>
+        match (mx + Zpower 2 mw)%Z as v4 return _ = v4 -> binary_float with
+        | Zpos px => fun H4 => B754_finite prec emax sx px _ (binary_float_of_bits_aux2 x sx mx ex px H1 H2 H3 H4)
+        | _ => fun _ => B754_nan prec emax (* dummy *)
+        end (refl_equal _)
+      end (refl_equal _)
+    end (refl_equal _)
+  end (refl_equal _).
 
 End Binary_Bits.
