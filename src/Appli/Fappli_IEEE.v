@@ -117,6 +117,24 @@ Proof.
 now intros [sx|sx| |sx mx ex] Hx.
 Qed.
 
+Theorem match_FF2B :
+  forall {T} fz fi fn ff x Hx,
+  match FF2B x Hx return T with
+  | B754_zero sx => fz sx
+  | B754_infinity sx => fi sx
+  | B754_nan => fn
+  | B754_finite sx mx ex _ => ff sx mx ex
+  end =
+  match x with
+  | F754_zero sx => fz sx
+  | F754_infinity sx => fi sx
+  | F754_nan => fn
+  | F754_finite sx mx ex => ff sx mx ex
+  end.
+Proof.
+now intros T fz fi fn ff [sx|sx| |sx mx ex] Hx.
+Qed.
+
 Theorem canonic_bounded_prec :
   forall (sx : bool) mx ex,
   bounded_prec mx ex = true ->
@@ -1252,6 +1270,23 @@ now apply Zgt_not_eq.
 now apply Zgt_not_eq.
 Qed.
 
+Theorem split_bits_inj :
+  forall x y,
+  (0 <= x < Zpower 2 (mw + ew + 1))%Z ->
+  (0 <= y < Zpower 2 (mw + ew + 1))%Z ->
+  split_bits x = split_bits y ->
+  x = y.
+Proof.
+intros x y Hx Hy.
+generalize (join_split_bits x Hx) (join_split_bits y Hy).
+destruct (split_bits x) as ((sx, mx), ex).
+destruct (split_bits y) as ((sy, my), ey).
+intros Jx Jy H. revert Jx Jy.
+inversion_clear H.
+intros Jx Jy.
+now rewrite <- Jx.
+Qed.
+
 Definition bits_of_binary_float (x : binary_float) :=
   match x with
   | B754_zero sx => join_bits sx 0 0
@@ -1521,6 +1556,60 @@ generalize (digits_le_Zpower radix2 _ (Zpos mx) Hm).
 generalize (digits radix2 (Zpos mx)).
 clear.
 intros ; zify ; omega.
+Qed.
+
+Theorem bits_of_binary_float_of_bits :
+  forall x,
+  (0 <= x < 2^(mw+ew+1))%Z ->
+  binary_float_of_bits x <> B754_nan prec emax ->
+  bits_of_binary_float (binary_float_of_bits x) = x.
+Proof.
+intros x Hx.
+unfold binary_float_of_bits, bits_of_binary_float.
+set (Cx := binary_float_of_bits_aux_correct x).
+clearbody Cx.
+rewrite match_FF2B.
+revert Cx.
+generalize (join_split_bits x Hx).
+unfold binary_float_of_bits_aux.
+case_eq (split_bits x).
+intros (sx, mx) ex Sx.
+assert (Bm: (0 <= mx < 2^mw)%Z).
+inversion_clear Sx.
+apply Z_mod_lt.
+now apply Zlt_gt.
+case Zeq_bool_spec ; intros He1.
+(* subnormal *)
+case_eq mx.
+intros Hm Jx _ _.
+now rewrite He1 in Jx.
+intros px Hm Jx _ _.
+rewrite Zle_bool_false.
+now rewrite <- He1.
+now rewrite <- Hm.
+intros px Hm _ _ _.
+apply False_ind.
+apply Zle_not_lt with (1 := proj1 Bm).
+now rewrite Hm.
+case Zeq_bool_spec ; intros He2.
+(* infinity/nan *)
+case Zeq_bool_spec ; intros Hm.
+now rewrite Hm, He2.
+intros _ Cx Nx.
+now elim Nx.
+(* normal *)
+case_eq (mx + 2 ^ mw)%Z.
+intros Hm.
+apply False_ind.
+clear -Bm Hm ; omega.
+intros p Hm Jx Cx _.
+rewrite <- Hm.
+rewrite Zle_bool_true.
+now ring_simplify (mx + 2^mw - 2^mw)%Z (ex + emin - 1 - emin + 1)%Z.
+now apply (Zplus_le_compat_r 0).
+intros p Hm.
+apply False_ind.
+clear -Bm Hm ; zify ; omega.
 Qed.
 
 End Binary_Bits.
