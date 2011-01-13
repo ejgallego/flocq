@@ -1613,3 +1613,51 @@ clear -Bm Hm ; zify ; omega.
 Qed.
 
 End Binary_Bits.
+
+Section B32_Bits.
+
+Definition binary32 := binary_float 24 128.
+
+Let Hprec : (0 < 24)%Z.
+apply refl_equal.
+Qed.
+
+Let Hprec_emax : (24 < 128)%Z.
+apply refl_equal.
+Qed.
+
+Definition b32_opp := Bopp 24 128.
+Definition b32_plus := Bplus _ _ Hprec Hprec_emax.
+Definition b32_minus := Bminus _ _ Hprec Hprec_emax.
+Definition b32_mult := Bmult _ _ Hprec Hprec_emax.
+Definition b32_div := Bdiv _ _ Hprec Hprec_emax.
+Definition b32_sqrt := Bsqrt _ _ Hprec Hprec_emax.
+
+Definition b32_of_bits : Z -> binary32 := binary_float_of_bits 23 8 (refl_equal _) (refl_equal _) (refl_equal _).
+Definition bits_of_b32 : binary32 -> Z := bits_of_binary_float 23 8.
+
+End B32_Bits.
+
+Section B64_Bits.
+
+Definition binary64 := binary_float 53 1024.
+
+Let Hprec : (0 < 53)%Z.
+apply refl_equal.
+Qed.
+
+Let Hprec_emax : (53 < 1024)%Z.
+apply refl_equal.
+Qed.
+
+Definition b64_opp := Bopp 53 1024.
+Definition b64_plus := Bplus _ _ Hprec Hprec_emax.
+Definition b64_minus := Bminus _ _ Hprec Hprec_emax.
+Definition b64_mult := Bmult _ _ Hprec Hprec_emax.
+Definition b64_div := Bdiv _ _ Hprec Hprec_emax.
+Definition b64_sqrt := Bsqrt _ _ Hprec Hprec_emax.
+
+Definition b64_of_bits : Z -> binary64 := binary_float_of_bits 52 11 (refl_equal _) (refl_equal _) (refl_equal _).
+Definition bits_of_b64 : binary64 -> Z := bits_of_binary_float 52 11.
+
+End B64_Bits.
