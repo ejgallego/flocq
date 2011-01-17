@@ -1,3 +1,6 @@
+Version 1.2:
+ - added IEEE-754 binary32 and 64 formats, including infinities and NaN
+
 Version 1.1:
  - simplified effective rounding for negative reals
  - proved monotonicity of exponent functions for common formats
