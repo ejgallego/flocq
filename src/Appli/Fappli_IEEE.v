@@ -359,12 +359,25 @@ Definition choice_mode m sx mx lx :=
   | mode_NA => cond_incr (round_N true lx) mx
   end.
 
+Definition overflow_to_inf m s :=
+  match m with
+  | mode_NE => true
+  | mode_NA => true
+  | mode_ZR => false
+  | mode_UP => negb s
+  | mode_DN => s
+  end.
+
+Definition binary_overflow m s :=
+  if overflow_to_inf m s then F754_infinity s
+  else F754_finite s (match (Zpower 2 prec - 1)%Z with Zpos p => p | _ => xH end) (emax - prec).
+
 Definition binary_round_sign mode sx mx ex lx :=
   let '(m', e', l') := truncate radix2 fexp (Zpos mx, ex, lx) in
   let '(m'', e'', l'') := truncate radix2 fexp (choice_mode mode sx m' l', e', loc_Exact) in
   match m'' with
   | Z0 => F754_zero sx
-  | Zpos m => if Zle_bool e'' (emax - prec) then F754_finite sx m e'' else F754_infinity sx
+  | Zpos m => if Zle_bool e'' (emax - prec) then F754_finite sx m e'' else binary_overflow mode sx
   | _ => F754_nan (* dummy *)
   end.
 
@@ -376,7 +389,7 @@ Theorem binary_round_sign_correct :
   if Rlt_bool (Rabs (round radix2 fexp (round_mode mode) x)) (bpow radix2 emax) then
     FF2R radix2 (binary_round_sign mode (Rlt_bool x 0) mx ex lx) = round radix2 fexp (round_mode mode) x
   else
-    binary_round_sign mode (Rlt_bool x 0) mx ex lx = F754_infinity (Rlt_bool x 0).
+    binary_round_sign mode (Rlt_bool x 0) mx ex lx = binary_overflow mode (Rlt_bool x 0).
 Proof.
 intros m x mx ex lx Bx Ex.
 unfold binary_round_sign.
@@ -464,9 +477,43 @@ apply (conj H).
 rewrite Rlt_bool_true.
 apply F2R_cond_Zopp.
 now apply bounded_lt_emax.
-apply (conj (refl_equal true)).
-rewrite Rlt_bool_false.
+rewrite (Rlt_bool_false _ (bpow radix2 emax)).
+refine (conj _ (refl_equal _)).
+unfold binary_overflow.
+case overflow_to_inf.
 apply refl_equal.
+unfold valid_binary, bounded.
+rewrite Zle_bool_refl.
+rewrite Bool.andb_true_r.
+apply Zeq_bool_true.
+rewrite Z_of_nat_S_digits2_Pnat.
+change Fcalc_digits.radix2 with radix2.
+replace (digits radix2 (Zpos (match (Zpower 2 prec - 1)%Z with Zpos p => p | _ => xH end))) with prec.
+unfold fexp, FLT_exp, emin.
+clear -Hprec Hmax.
+zify ; omega.
+change 2%Z with (radix_val radix2).
+case_eq (Zpower radix2 prec - 1)%Z.
+simpl digits.
+generalize (Zpower_gt_1 radix2 _ Hprec).
+clear ; omega.
+intros p Hp.
+apply Zle_antisym.
+cut (prec - 1 < digits radix2 (Zpos p))%Z. clear ; omega.
+apply digits_gt_Zpower.
+simpl Zabs. rewrite <- Hp.
+cut (Zpower radix2 (prec - 1) < Zpower radix2 prec)%Z. clear ; omega.
+apply lt_Z2R.
+rewrite 2!Z2R_Zpower. 2: now apply Zlt_le_weak.
+apply bpow_lt.
+apply Zlt_pred.
+now apply Zlt_0_le_0_pred.
+apply digits_le_Zpower.
+simpl Zabs. rewrite <- Hp.
+apply Zlt_pred.
+intros p Hp.
+generalize (Zpower_gt_1 radix2 _ Hprec).
+clear -Hp ; zify ; omega.
 apply Rnot_lt_le.
 intros Hx.
 generalize (refl_equal (bounded m2 e2)).
@@ -519,7 +566,7 @@ Lemma Bmult_correct_aux :
   if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (x * y))) (bpow radix2 emax) then
     FF2R radix2 z = round radix2 fexp (round_mode m) (x * y)
   else
-    z = F754_infinity (xorb sx sy).
+    z = binary_overflow m (xorb sx sy).
 Proof.
 intros m sx mx ex Hx sy my ey Hy x y.
 unfold x, y.
@@ -583,7 +630,7 @@ Theorem Bmult_correct :
   if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (B2R x * B2R y))) (bpow radix2 emax) then
     B2R (Bmult m x y) = round radix2 fexp (round_mode m) (B2R x * B2R y)
   else
-    Bmult m x y = B754_infinity (xorb (Bsign x) (Bsign y)).
+    B2FF (Bmult m x y) = binary_overflow m (xorb (Bsign x) (Bsign y)).
 Proof.
 intros m [sx|sx| |sx mx ex Hx] [sy|sy| |sy my ey Hy] ;
   try ( rewrite ?Rmult_0_r, ?Rmult_0_l, round_0, Rabs_R0, Rlt_bool_true ; [ apply refl_equal | apply bpow_gt_0 ] ).
@@ -593,20 +640,7 @@ intros H1 H2.
 revert H2.
 case Rlt_bool ; intros H2.
 now rewrite B2R_FF2B.
-apply binary_unicity.
 now rewrite B2FF_FF2B.
-Qed.
-
-Theorem Bmult_correct_finite :
-  forall m x y,
-  is_finite (Bmult m x y) = true ->
-  B2R (Bmult m x y) = round radix2 fexp (round_mode m) (B2R x * B2R y)%R.
-Proof.
-intros m x y.
-generalize (Bmult_correct m x y).
-destruct (Bmult m x y) as [sz|sz| |sz mz ez Hz] ; try easy.
-now case Rlt_bool.
-now case Rlt_bool.
 Qed.
 
 Definition fexp_scale mx ex :=
@@ -671,7 +705,7 @@ Theorem binary_round_sign_fexp_scale_correct :
   if Rlt_bool (Rabs (round radix2 fexp (round_mode m) x)) (bpow radix2 emax) then
     FF2R radix2 (binary_round_sign_fexp_scale m sx mx ex) = round radix2 fexp (round_mode m) x
   else
-    binary_round_sign_fexp_scale m sx mx ex = F754_infinity sx.
+    binary_round_sign_fexp_scale m sx mx ex = binary_overflow m sx.
 Proof.
 intros m sx mx ex.
 unfold binary_round_sign_fexp_scale.
@@ -727,7 +761,7 @@ Theorem Bplus_correct :
   if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (B2R x + B2R y))) (bpow radix2 emax) then
     B2R (Bplus m x y) = round radix2 fexp (round_mode m) (B2R x + B2R y)
   else
-    (Bplus m x y = B754_infinity (Bsign x) /\ Bsign x = Bsign y).
+    (B2FF (Bplus m x y) = binary_overflow m (Bsign x) /\ Bsign x = Bsign y).
 Proof.
 intros m [sx|sx| |sx mx ex Hx] [sy|sy| |sy my ey Hy] Fx Fy ; try easy.
 (* *)
@@ -840,7 +874,6 @@ now rewrite B2R_FF2B.
 intros Hz' (Vz, Rz).
 specialize (Sz Hz').
 refine (conj _ (proj2 Sz)).
-apply binary_unicity.
 rewrite B2FF_FF2B.
 rewrite (proj1 Sz).
 rewrite Rlt_bool_false.
@@ -855,7 +888,6 @@ now rewrite B2R_FF2B.
 intros Hz' (Vz, Rz).
 specialize (Sz Hz').
 refine (conj _ (proj2 Sz)).
-apply binary_unicity.
 rewrite B2FF_FF2B.
 rewrite (proj1 Sz).
 rewrite Rlt_bool_true.
@@ -879,7 +911,7 @@ Lemma Bdiv_correct_aux :
   if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (x / y))) (bpow radix2 emax) then
     FF2R radix2 z = round radix2 fexp (round_mode m) (x / y)
   else
-    z = F754_infinity (xorb sx sy).
+    z = binary_overflow m (xorb sx sy).
 Proof.
 intros m sx mx ex Hx sy my ey Hy.
 refine (_ (Fdiv_core_correct radix2 prec (Zpos mx) ex (Zpos my) ey _ _ _)) ; try easy.
@@ -982,7 +1014,7 @@ Theorem Bdiv_correct :
   if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (B2R x / B2R y))) (bpow radix2 emax) then
     B2R (Bdiv m x y) = round radix2 fexp (round_mode m) (B2R x / B2R y)
   else
-    Bdiv m x y = B754_infinity (xorb (Bsign x) (Bsign y)).
+    B2FF (Bdiv m x y) = binary_overflow m (xorb (Bsign x) (Bsign y)).
 Proof.
 intros m x [sy|sy| |sy my ey Hy] Zy ; try now elim Zy.
 revert x.
@@ -996,7 +1028,6 @@ revert H2.
 unfold Rdiv.
 case Rlt_bool ; intros H2.
 now rewrite B2R_FF2B.
-apply binary_unicity.
 now rewrite B2FF_FF2B.
 Qed.
 
