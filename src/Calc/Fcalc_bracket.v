@@ -58,6 +58,21 @@ now split.
 easy.
 Qed.
 
+Theorem inbetween_unique :
+  forall l l',
+  inbetween l -> inbetween l' -> l = l'.
+Proof.
+intros l l' Hl Hl'.
+inversion_clear Hl ; inversion_clear Hl'.
+apply refl_equal.
+rewrite H in H0.
+elim Rlt_irrefl with (1 := proj1 H0).
+rewrite H1 in H.
+elim Rlt_irrefl with (1 := proj1 H).
+apply f_equal.
+now rewrite <- H0.
+Qed.
+
 Section Fcalc_bracket_any.
 
 Variable l : location.
@@ -114,6 +129,70 @@ apply (inbetween_bounds _ Hl).
 Qed.
 
 End Fcalc_bracket.
+
+Theorem inbetween_ex :
+  forall d u l,
+  (d < u)%R ->
+  exists x,
+  inbetween d u x l.
+Proof.
+intros d u [|l] Hdu.
+exists d.
+now constructor.
+exists (d + match l with Lt => 1 | Eq => 2 | Gt => 3 end / 4 * (u - d))%R.
+constructor.
+(* *)
+set (v := (match l with Lt => 1 | Eq => 2 | Gt => 3 end / 4)%R).
+assert (0 < v < 1)%R.
+split.
+unfold v, Rdiv.
+apply Rmult_lt_0_compat.
+case l.
+now apply (Z2R_lt 0 2).
+now apply (Z2R_lt 0 1).
+now apply (Z2R_lt 0 3).
+apply Rinv_0_lt_compat.
+now apply (Z2R_lt 0 4).
+unfold v, Rdiv.
+apply Rmult_lt_reg_r with 4%R.
+now apply (Z2R_lt 0 4).
+rewrite Rmult_assoc, Rinv_l.
+rewrite Rmult_1_r, Rmult_1_l.
+case l.
+now apply (Z2R_lt 2 4).
+now apply (Z2R_lt 1 4).
+now apply (Z2R_lt 3 4).
+apply Rgt_not_eq.
+now apply (Z2R_lt 0 4).
+split.
+apply Rplus_lt_reg_r with (d * (v - 1))%R.
+ring_simplify.
+rewrite Rmult_comm.
+now apply Rmult_lt_compat_l.
+apply Rplus_lt_reg_r with (-u * v)%R.
+replace (- u * v + (d + v * (u - d)))%R with (d * (1 - v))%R by ring.
+replace (- u * v + u)%R with (u * (1 - v))%R by ring.
+apply Rmult_lt_compat_r.
+apply Rplus_lt_reg_r with v.
+now ring_simplify.
+exact Hdu.
+(* *)
+set (v := (match l with Lt => 1 | Eq => 2 | Gt => 3 end)%R).
+rewrite <- (Rcompare_plus_r (- (d + u) / 2)).
+rewrite <- (Rcompare_mult_r 4).
+2: now apply (Z2R_lt 0 4).
+replace (((d + u) / 2 + - (d + u) / 2) * 4)%R with ((u - d) * 0)%R by field.
+replace ((d + v / 4 * (u - d) + - (d + u) / 2) * 4)%R with ((u - d) * (v - 2))%R by field.
+rewrite Rcompare_mult_l.
+2: now apply Rlt_Rminus.
+rewrite <- (Rcompare_plus_r 2).
+ring_simplify (v - 2 + 2)%R (0 + 2)%R.
+unfold v.
+case l.
+exact (Rcompare_Z2R 2 2).
+exact (Rcompare_Z2R 1 2).
+exact (Rcompare_Z2R 3 2).
+Qed.
 
 Section Fcalc_bracket_step.
 
@@ -578,6 +657,33 @@ intros x m e l Hx.
 replace (radix_val beta) with (Zpower beta 1).
 now apply inbetween_float_new_location.
 apply Zmult_1_r.
+Qed.
+
+Theorem inbetween_float_ex :
+  forall m e l,
+  exists x,
+  inbetween_float m e x l.
+Proof.
+intros m e l.
+apply inbetween_ex.
+apply F2R_lt_compat.
+apply Zlt_succ.
+Qed.
+
+Theorem inbetween_float_unique :
+  forall x e m l m' l',
+  inbetween_float m e x l ->
+  inbetween_float m' e x l' ->
+  m = m' /\ l = l'.
+Proof.
+intros x e m l m' l' H H'.
+refine ((fun Hm => conj Hm _) _).
+rewrite <- Hm in H'. clear -H H'.
+apply inbetween_unique with (1 := H) (2 := H').
+destruct (inbetween_float_bounds x m e l H) as (H1,H2).
+destruct (inbetween_float_bounds x m' e l' H') as (H3,H4).
+cut (m < m' + 1 /\ m' < m + 1)%Z. clear ; omega.
+now split ; apply F2R_lt_reg with beta e ; apply Rle_lt_trans with x.
 Qed.
 
 End Fcalc_bracket_generic.
