@@ -869,6 +869,22 @@ now rewrite Hd.
 apply Zle_refl.
 Qed.
 
+Theorem snd_shl :
+  forall mx ex ex',
+  (ex' <= ex)%Z ->
+  snd (shl mx ex ex') = ex'.
+Proof.
+intros mx ex ex' He.
+unfold shl.
+case_eq (ex' - ex)%Z ; simpl.
+intros H.
+now rewrite Zminus_eq with (1 := H).
+intros p.
+clear -He ; zify ; omega.
+intros.
+apply refl_equal.
+Qed.
+
 Definition shl_fexp mx ex :=
   shl mx ex (fexp (Z_of_nat (S (digits2_Pnat mx)) + ex)).
 
@@ -938,14 +954,13 @@ Definition Bplus m x y :=
   | B754_zero _, _ => y
   | _, B754_zero _ => x
   | B754_finite sx mx ex Hx, B754_finite sy my ey Hy =>
-    let fx := Float radix2 (cond_Zopp sx (Zpos mx)) ex in
-    let fy := Float radix2 (cond_Zopp sy (Zpos my)) ey in
-    match Fplus radix2 fx fy with
-    | Float Z0 _ =>
+    let ez := Zmin ex ey in
+    match Zplus (cond_Zopp sx (Zpos (fst (shl mx ex ez)))) (cond_Zopp sy (Zpos (fst (shl my ey ez)))) with
+    | Z0 =>
       match m with mode_DN => B754_zero true | _ => B754_zero false end
-    | Float (Zpos mz) ez =>
+    | Zpos mz =>
       FF2B (binary_round_sign_shl m false mz ez) (proj1 (binary_round_sign_shl_correct _ _ _ _))
-    | Float (Zneg mz) ez =>
+    | Zneg mz =>
       FF2B (binary_round_sign_shl m true mz ez) (proj1 (binary_round_sign_shl_correct _ _ _ _))
     end
   end.
@@ -979,14 +994,31 @@ apply generic_format_B2R.
 (* *)
 clear Fx Fy.
 simpl.
-rewrite <- plus_F2R.
-case_eq (Fplus radix2 (Float radix2 (cond_Zopp sx (Zpos mx)) ex)
-  (Float radix2 (cond_Zopp sy (Zpos my)) ey)).
-intros mz ez Hz.
+set (ez := Zmin ex ey).
+set (mz := (cond_Zopp sx (Zpos (fst (shl mx ex ez))) + cond_Zopp sy (Zpos (fst (shl my ey ez))))%Z).
+assert (Hp: (F2R (Float radix2 (cond_Zopp sx (Zpos mx)) ex) +
+  F2R (Float radix2 (cond_Zopp sy (Zpos my)) ey))%R = F2R (Float radix2 mz ez)).
+rewrite 2!F2R_cond_Zopp.
+generalize (shl_correct mx ex ez).
+generalize (shl_correct my ey ez).
+generalize (snd_shl mx ex ez (Zle_min_l ex ey)).
+generalize (snd_shl my ey ez (Zle_min_r ex ey)).
+destruct (shl mx ex ez) as (mx', ex').
+destruct (shl my ey ez) as (my', ey').
+simpl.
+intros H1 H2.
+rewrite H1, H2.
+clear H1 H2.
+intros (H1, _) (H2, _).
+rewrite H1, H2.
+clear H1 H2.
+rewrite <- 2!F2R_cond_Zopp.
+unfold F2R. simpl.
+now rewrite <- Rmult_plus_distr_r, <- Z2R_plus.
+rewrite Hp.
 assert (Sz: (bpow radix2 emax <= Rabs (round radix2 fexp (round_mode m) (F2R (Float radix2 mz ez))))%R -> sx = Rlt_bool (F2R (Float radix2 mz ez)) 0 /\ sx = sy).
 (* . *)
-rewrite <- Hz.
-rewrite plus_F2R.
+rewrite <- Hp.
 intros Bz.
 destruct (Bool.bool_dec sx sy) as [Hs|Hs].
 (* .. *)
