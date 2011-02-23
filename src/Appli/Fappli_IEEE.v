@@ -827,26 +827,21 @@ now rewrite B2R_FF2B.
 now rewrite B2FF_FF2B.
 Qed.
 
-Definition fexp_scale mx ex :=
-  let ex' := fexp (Z_of_nat (S (digits2_Pnat mx)) + ex) in
+Definition shl mx ex ex' :=
   match (ex' - ex)%Z with
   | Zneg d => (shift_pos d mx, ex')
   | _ => (mx, ex)
   end.
 
-Theorem fexp_scale_correct :
-  forall mx ex,
-  let (mx', ex') := fexp_scale mx ex in
-  F2R (Float radix2 (Zpos mx) ex) = F2R (Float radix2 (Zpos mx') ex') /\
-  (ex' <= fexp (digits radix2 (Zpos mx') + ex'))%Z.
+Theorem shl_correct :
+  forall mx ex ex',
+  let (mx', ex'') := shl mx ex ex' in
+  F2R (Float radix2 (Zpos mx) ex) = F2R (Float radix2 (Zpos mx') ex'') /\
+  (ex'' <= ex')%Z.
 Proof.
-intros mx ex.
-unfold fexp_scale.
-rewrite Z_of_nat_S_digits2_Pnat.
-change (Fcalc_digits.radix2) with radix2.
-set (e' := fexp (digits radix2 (Zpos mx) + ex)).
-pattern e' at 2 ; replace e' with (e' - ex + ex)%Z by ring.
-case_eq (e' - ex)%Z ; fold e'.
+intros mx ex ex'.
+unfold shl.
+case_eq (ex' - ex)%Z.
 (* d = 0 *)
 intros H.
 repeat split.
@@ -855,7 +850,7 @@ apply Zle_refl.
 (* d > 0 *)
 intros d Hd.
 repeat split.
-replace e' with (e' - ex + ex)%Z by ring.
+replace ex' with (ex' - ex + ex)%Z by ring.
 rewrite Hd.
 pattern ex at 1 ; rewrite <- Zplus_0_l.
 now apply Zplus_le_compat_r.
@@ -863,38 +858,55 @@ now apply Zplus_le_compat_r.
 intros d Hd.
 rewrite shift_pos_correct, Zmult_comm.
 change (Zpower_pos 2 d) with (Zpower radix2 (Zpos d)).
-rewrite digits_shift ; try easy.
 change (Zpos d) with (Zopp (Zneg d)).
 rewrite <- Hd.
 split.
-replace (- (e' - ex))%Z with (ex - e')%Z by ring.
-replace (e' - ex + ex)%Z with e' by ring.
+replace (- (ex' - ex))%Z with (ex - ex')%Z by ring.
 apply F2R_change_exp.
 apply Zle_0_minus_le.
-replace (ex - e')%Z with (-(e' - ex))%Z by ring.
+replace (ex - ex')%Z with (- (ex' - ex))%Z by ring.
 now rewrite Hd.
-ring_simplify (digits radix2 (Zpos mx) + - (e' - ex) + (e' - ex + ex))%Z.
-fold e'.
-ring_simplify.
 apply Zle_refl.
 Qed.
 
-Definition binary_round_sign_fexp_scale m sx mx ex :=
-  let '(mz, ez) := fexp_scale mx ex in binary_round_sign m sx mz ez loc_Exact.
+Definition shl_fexp mx ex :=
+  shl mx ex (fexp (Z_of_nat (S (digits2_Pnat mx)) + ex)).
 
-Theorem binary_round_sign_fexp_scale_correct :
+Theorem shl_fexp_correct :
+  forall mx ex,
+  let (mx', ex') := shl_fexp mx ex in
+  F2R (Float radix2 (Zpos mx) ex) = F2R (Float radix2 (Zpos mx') ex') /\
+  (ex' <= fexp (digits radix2 (Zpos mx') + ex'))%Z.
+Proof.
+intros mx ex.
+unfold shl_fexp.
+generalize (shl_correct mx ex (fexp (Z_of_nat (S (digits2_Pnat mx)) + ex))).
+rewrite Z_of_nat_S_digits2_Pnat.
+case shl.
+intros mx' ex' (H1, H2).
+split.
+exact H1.
+rewrite <- ln_beta_F2R_digits. 2: easy.
+rewrite <- H1.
+now rewrite ln_beta_F2R_digits.
+Qed.
+
+Definition binary_round_sign_shl m sx mx ex :=
+  let '(mz, ez) := shl_fexp mx ex in binary_round_sign m sx mz ez loc_Exact.
+
+Theorem binary_round_sign_shl_correct :
   forall m sx mx ex,
-  valid_binary (binary_round_sign_fexp_scale m sx mx ex) = true /\
+  valid_binary (binary_round_sign_shl m sx mx ex) = true /\
   let x := F2R (Float radix2 (cond_Zopp sx (Zpos mx)) ex) in
   if Rlt_bool (Rabs (round radix2 fexp (round_mode m) x)) (bpow radix2 emax) then
-    FF2R radix2 (binary_round_sign_fexp_scale m sx mx ex) = round radix2 fexp (round_mode m) x
+    FF2R radix2 (binary_round_sign_shl m sx mx ex) = round radix2 fexp (round_mode m) x
   else
-    binary_round_sign_fexp_scale m sx mx ex = binary_overflow m sx.
+    binary_round_sign_shl m sx mx ex = binary_overflow m sx.
 Proof.
 intros m sx mx ex.
-unfold binary_round_sign_fexp_scale.
-generalize (fexp_scale_correct mx ex).
-destruct (fexp_scale mx ex) as (mz, ez).
+unfold binary_round_sign_shl.
+generalize (shl_fexp_correct mx ex).
+destruct (shl_fexp mx ex) as (mz, ez).
 intros (H1, H2).
 simpl.
 set (x := F2R (Float radix2 (cond_Zopp sx (Zpos mx)) ex)).
@@ -932,9 +944,9 @@ Definition Bplus m x y :=
     | Float Z0 _ =>
       match m with mode_DN => B754_zero true | _ => B754_zero false end
     | Float (Zpos mz) ez =>
-      FF2B (binary_round_sign_fexp_scale m false mz ez) (proj1 (binary_round_sign_fexp_scale_correct _ _ _ _))
+      FF2B (binary_round_sign_shl m false mz ez) (proj1 (binary_round_sign_shl_correct _ _ _ _))
     | Float (Zneg mz) ez =>
-      FF2B (binary_round_sign_fexp_scale m true mz ez) (proj1 (binary_round_sign_fexp_scale_correct _ _ _ _))
+      FF2B (binary_round_sign_shl m true mz ez) (proj1 (binary_round_sign_shl_correct _ _ _ _))
     end
   end.
 
@@ -1050,7 +1062,7 @@ rewrite F2R_0, round_0, Rabs_R0, Rlt_bool_true.
 now case m.
 apply bpow_gt_0.
 (* . mz > 0 *)
-generalize (binary_round_sign_fexp_scale_correct m false mz ez).
+generalize (binary_round_sign_shl_correct m false mz ez).
 simpl.
 case Rlt_bool_spec.
 intros _ (Vz, Rz).
@@ -1064,7 +1076,7 @@ rewrite Rlt_bool_false.
 exact Rz.
 now apply F2R_ge_0_compat.
 (* . mz < 0 *)
-generalize (binary_round_sign_fexp_scale_correct m true mz ez).
+generalize (binary_round_sign_shl_correct m true mz ez).
 simpl.
 case Rlt_bool_spec.
 intros _ (Vz, Rz).
