@@ -339,6 +339,184 @@ unfold emin. clear -Hprec Hmax.
 omega.
 Qed.
 
+Record shr_record := { shr_m : Z ; shr_r : bool ; shr_s : bool }.
+
+Definition shr_1 mrs :=
+  let '(Build_shr_record m r s) := mrs in
+  let s := orb r s in
+  match m with
+  | Z0 => Build_shr_record Z0 false s
+  | Zpos xH => Build_shr_record Z0 true s
+  | Zpos (xO p) => Build_shr_record (Zpos p) false s
+  | Zpos (xI p) => Build_shr_record (Zpos p) true s
+  | Zneg xH => Build_shr_record Z0 true s
+  | Zneg (xO p) => Build_shr_record (Zneg p) false s
+  | Zneg (xI p) => Build_shr_record (Zneg p) true s
+  end.
+
+Definition loc_of_shr_record mrs :=
+  match mrs with
+  | Build_shr_record _ false false => loc_Exact
+  | Build_shr_record _ false true => loc_Inexact Lt
+  | Build_shr_record _ true false => loc_Inexact Eq
+  | Build_shr_record _ true true => loc_Inexact Gt
+  end.
+
+Definition shr_record_of_loc m l :=
+  match l with
+  | loc_Exact => Build_shr_record m false false
+  | loc_Inexact Lt => Build_shr_record m false true
+  | loc_Inexact Eq => Build_shr_record m true false
+  | loc_Inexact Gt => Build_shr_record m true true
+  end.
+
+Theorem shr_m_shr_record_of_loc :
+  forall m l,
+  shr_m (shr_record_of_loc m l) = m.
+Proof.
+now intros m [|[| |]].
+Qed.
+
+Theorem loc_of_shr_record_of_loc :
+  forall m l,
+  loc_of_shr_record (shr_record_of_loc m l) = l.
+Proof.
+now intros m [|[| |]].
+Qed.
+
+Definition shr mrs e n :=
+  match n with
+  | Zpos p => (iter_pos p _ shr_1 mrs, (e + n)%Z)
+  | _ => (mrs, e)
+  end.
+
+Theorem inbetween_shr_1 :
+  forall x mrs e,
+  (0 <= shr_m mrs)%Z ->
+  inbetween_float radix2 (shr_m mrs) e x (loc_of_shr_record mrs) ->
+  inbetween_float radix2 (shr_m (shr_1 mrs)) (e + 1) x (loc_of_shr_record (shr_1 mrs)).
+Proof.
+intros x mrs e Hm Hl.
+refine (_ (new_location_even_correct (F2R (Float radix2 (shr_m (shr_1 mrs)) (e + 1))) (bpow radix2 e) 2 _ _ _ x (if shr_r (shr_1 mrs) then 1 else 0) (loc_of_shr_record mrs) _ _)) ; try easy.
+2: apply bpow_gt_0.
+2: now case (shr_r (shr_1 mrs)) ; split.
+change (Z2R 2) with (bpow radix2 1).
+rewrite <- bpow_plus.
+rewrite (Zplus_comm 1), <- (F2R_bpow radix2 (e + 1)).
+unfold inbetween_float, F2R. simpl.
+rewrite Z2R_plus, Rmult_plus_distr_r.
+replace (new_location_even 2 (if shr_r (shr_1 mrs) then 1%Z else 0%Z) (loc_of_shr_record mrs)) with (loc_of_shr_record (shr_1 mrs)).
+easy.
+clear -Hm.
+destruct mrs as (m, r, s).
+now destruct m as [|[m|m|]|m] ; try (now elim Hm) ; destruct r as [|] ; destruct s as [|].
+rewrite (F2R_change_exp radix2 e).
+2: apply Zle_succ.
+unfold F2R. simpl.
+rewrite <- 2!Rmult_plus_distr_r, <- 2!Z2R_plus.
+rewrite Zplus_assoc.
+replace (shr_m (shr_1 mrs) * 2 ^ (e + 1 - e) + (if shr_r (shr_1 mrs) then 1%Z else 0%Z))%Z with (shr_m mrs).
+exact Hl.
+ring_simplify (e + 1 - e)%Z.
+change (2^1)%Z with 2%Z.
+rewrite Zmult_comm.
+clear -Hm.
+destruct mrs as (m, r, s).
+now destruct m as [|[m|m|]|m] ; try (now elim Hm) ; destruct r as [|] ; destruct s as [|].
+Qed.
+
+Theorem inbetween_shr :
+  forall x m e l n,
+  (0 <= m)%Z ->
+  inbetween_float radix2 m e x l ->
+  let '(mrs, e') := shr (shr_record_of_loc m l) e n in
+  inbetween_float radix2 (shr_m mrs) e' x (loc_of_shr_record mrs).
+Proof.
+intros x m e l n Hm Hl.
+destruct n as [|n|n].
+now destruct l as [|[| |]].
+2: now destruct l as [|[| |]].
+unfold shr.
+rewrite iter_nat_of_P.
+rewrite Zpos_eq_Z_of_nat_o_nat_of_P.
+induction (nat_of_P n).
+simpl.
+rewrite Zplus_0_r.
+now destruct l as [|[| |]].
+simpl iter_nat.
+rewrite inj_S.
+unfold Zsucc.
+rewrite  Zplus_assoc.
+revert IHn0.
+apply inbetween_shr_1.
+clear -Hm.
+induction n0.
+now destruct l as [|[| |]].
+simpl.
+revert IHn0.
+generalize (iter_nat n0 shr_record shr_1 (shr_record_of_loc m l)).
+clear.
+intros (m, r, s) Hm.
+now destruct m as [|[m|m|]|m] ; try (now elim Hm) ; destruct r as [|] ; destruct s as [|].
+Qed.
+
+Definition shr_fexp m e l :=
+  shr (shr_record_of_loc m l) e (fexp (digits radix2 m + e) - e).
+
+Theorem shr_truncate :
+  forall m e l,
+  (0 <= m)%Z ->
+  shr_fexp m e l =
+  let '(m', e', l') := truncate radix2 fexp (m, e, l) in (shr_record_of_loc m' l', e').
+Proof.
+intros m e l Hm.
+case_eq (truncate radix2 fexp (m, e, l)).
+intros (m', e') l'.
+unfold shr_fexp.
+case_eq (fexp (digits radix2 m + e) - e)%Z.
+(* *)
+intros He.
+unfold truncate.
+rewrite He.
+simpl.
+intros H.
+now inversion H.
+(* *)
+intros p Hp.
+assert (He: (e <= fexp (digits radix2 m + e))%Z).
+clear -Hp ; zify ; omega.
+destruct (inbetween_float_ex radix2 m e l) as (x, Hx).
+generalize (inbetween_shr x m e l (fexp (digits radix2 m + e) - e) Hm Hx).
+assert (Hx0 : (0 <= x)%R).
+apply Rle_trans with (F2R (Float radix2 m e)).
+now apply F2R_ge_0_compat.
+exact (proj1 (inbetween_float_bounds _ _ _ _ _ Hx)).
+case_eq (shr (shr_record_of_loc m l) e (fexp (digits radix2 m + e) - e)).
+intros mrs e'' H3 H4 H1.
+generalize (truncate_correct radix2 _ fexp_correct x m e l Hx0 Hx (or_introl _ He)).
+rewrite H1.
+intros (H2,_).
+rewrite <- Hp, H3.
+assert (e'' = e').
+change (snd (mrs, e'') = snd (fst (m',e',l'))).
+rewrite <- H1, <- H3.
+unfold truncate.
+now rewrite Hp.
+rewrite H in H4 |- *.
+apply (f_equal (fun v => (v, _))).
+destruct (inbetween_float_unique _ _ _ _ _ _ _ H2 H4) as (H5, H6).
+rewrite H5, H6.
+case mrs.
+now intros m0 [|] [|].
+(* *)
+intros p Hp.
+unfold truncate.
+rewrite Hp.
+simpl.
+intros H.
+now inversion H.
+Qed.
+
 Inductive mode := mode_NE | mode_ZR | mode_DN | mode_UP | mode_NA.
 
 Definition round_mode m :=
@@ -373,9 +551,9 @@ Definition binary_overflow m s :=
   else F754_finite s (match (Zpower 2 prec - 1)%Z with Zpos p => p | _ => xH end) (emax - prec).
 
 Definition binary_round_sign mode sx mx ex lx :=
-  let '(m', e', l') := truncate radix2 fexp (Zpos mx, ex, lx) in
-  let '(m'', e'', l'') := truncate radix2 fexp (choice_mode mode sx m' l', e', loc_Exact) in
-  match m'' with
+  let '(mrs', e') := shr_fexp (Zpos mx) ex lx in
+  let '(mrs'', e'') := shr_fexp (choice_mode mode sx (shr_m mrs') (loc_of_shr_record mrs')) e' loc_Exact in
+  match shr_m mrs'' with
   | Z0 => F754_zero sx
   | Zpos m => if Zle_bool e'' (emax - prec) then F754_finite sx m e'' else binary_overflow mode sx
   | _ => F754_nan (* dummy *)
@@ -393,9 +571,11 @@ Theorem binary_round_sign_correct :
 Proof.
 intros m x mx ex lx Bx Ex.
 unfold binary_round_sign.
+rewrite shr_truncate. 2: easy.
 refine (_ (round_trunc_sign_any_correct _ _ fexp_correct (round_mode m) (choice_mode m) _ x (Zpos mx) ex lx Bx (or_introl _ Ex))).
 refine (_ (truncate_correct_partial _ _ fexp_correct _ _ _ _ _ Bx Ex)).
 destruct (truncate radix2 fexp (Zpos mx, ex, lx)) as ((m1, e1), l1).
+rewrite loc_of_shr_record_of_loc, shr_m_shr_record_of_loc.
 set (m1' := choice_mode m (Rlt_bool x 0) m1 l1).
 intros (H1a,H1b) H1c.
 rewrite H1c.
@@ -423,8 +603,10 @@ assert (Br: inbetween_float radix2 m1' e1 (Rabs (round radix2 fexp (round_mode m
 now apply inbetween_Exact.
 destruct m1' as [|m1'|m1'].
 (* . m1' = 0 *)
+rewrite shr_truncate. 2: apply Zle_refl.
 generalize (truncate_0 radix2 fexp e1 loc_Exact).
 destruct (truncate radix2 fexp (Z0, e1, loc_Exact)) as ((m2, e2), l2).
+rewrite shr_m_shr_record_of_loc.
 intros Hm2.
 rewrite Hm2.
 repeat split.
@@ -453,7 +635,9 @@ refine (_ (truncate_correct_partial _ _ fexp_correct _ _ _ _ _ Br He)).
 2: now rewrite Hr ; apply F2R_gt_0_compat.
 refine (_ (truncate_correct_format radix2 fexp (Zpos m1') e1 _ _ He)).
 2: discriminate.
+rewrite shr_truncate. 2: easy.
 destruct (truncate radix2 fexp (Zpos m1', e1, loc_Exact)) as ((m2, e2), l2).
+rewrite shr_m_shr_record_of_loc.
 intros (H3,H4) (H2,_).
 destruct m2 as [|m2|m2].
 elim Rgt_not_eq with (2 := H3).
