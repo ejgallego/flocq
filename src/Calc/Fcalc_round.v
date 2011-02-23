@@ -534,6 +534,31 @@ now case Rlt_bool.
 omega.
 Qed.
 
+Definition truncate_aux t k :=
+  let '(m, e, l) := t in
+  let p := Zpower beta k in
+  (Zdiv m p, (e + k)%Z, new_location p (Zmod m p) l).
+
+Theorem truncate_aux_comp :
+  forall t k1 k2,
+  (0 < k1)%Z ->
+  (0 < k2)%Z ->
+  truncate_aux t (k1 + k2) = truncate_aux (truncate_aux t k1) k2.
+Proof.
+intros ((m,e),l) k1 k2 Hk1 Hk2.
+unfold truncate_aux.
+destruct (inbetween_float_ex beta m e l) as (x,Hx).
+assert (B1 := inbetween_float_new_location _ _ _ _ _ _ Hk1 Hx).
+assert (Hk3: (0 < k1 + k2)%Z).
+change Z0 with (0 + 0)%Z.
+now apply Zplus_lt_compat.
+assert (B3 := inbetween_float_new_location _ _ _ _ _ _ Hk3 Hx).
+assert (B2 := inbetween_float_new_location _ _ _ _ _ _ Hk2 B1).
+rewrite Zplus_assoc in B3.
+destruct (inbetween_float_unique _ _ _ _ _ _ _ B2 B3).
+now rewrite H, H0, Zplus_assoc.
+Qed.
+
 (** Given a triple (mantissa, exponent, position), this function
     computes a triple with a canonic exponent, assuming the
     original triple had enough precision. *)
@@ -541,9 +566,7 @@ Qed.
 Definition truncate t :=
   let '(m, e, l) := t in
   let k := (fexp (digits beta m + e) - e)%Z in
-  if Zlt_bool 0 k then
-    let p := Zpower beta k in
-    (Zdiv m p, (e + k)%Z, new_location p (Zmod m p) l)
+  if Zlt_bool 0 k then truncate_aux t k
   else t.
 
 Theorem truncate_0 :
@@ -553,8 +576,9 @@ Theorem truncate_0 :
 Proof.
 intros e l.
 unfold truncate.
-case Zlt_bool_spec ; intros He.
-now rewrite Zdiv_0_l.
+case Zlt_bool.
+simpl.
+apply Zdiv_0_l.
 apply refl_equal.
 Qed.
 
@@ -569,6 +593,7 @@ unfold truncate.
 set (k := (fexp (digits beta m + e) - e)%Z).
 case Zlt_bool_spec ; intros Hk.
 (* *)
+unfold truncate_aux.
 destruct (Z_eq_dec (m / beta ^ k) 0) as [Hd|Hd].
 rewrite Hd, F2R_0.
 apply generic_format_0.
@@ -620,6 +645,7 @@ rewrite <- Hc.
 set (k := (canonic_exponent beta fexp x - e)%Z).
 case Zlt_bool_spec ; intros Hk.
 (* *)
+unfold truncate_aux.
 rewrite Fx at 1.
 refine (let H := _ in conj _ H).
 unfold k. ring.
@@ -662,9 +688,7 @@ set (k := (fexp (digits beta m + e) - e)%Z).
 set (p := Zpower beta k).
 (* *)
 assert (Hx': (F2R (Float beta m e) <= x < F2R (Float beta (m + 1) e))%R).
-apply inbetween_bounds with (2 := H1).
-apply F2R_lt_compat.
-apply Zlt_succ.
+apply inbetween_float_bounds with (1 := H1).
 (* *)
 assert (Hm: (0 <= m)%Z).
 cut (0 < m + 1)%Z. omega.
@@ -769,9 +793,7 @@ apply F2R_gt_0_reg with (1 := Hx).
 assert (Hm: m = Z0).
 cut (m <= 0 < m + 1)%Z. omega.
 assert (Hx': (F2R (Float beta m e) <= x < F2R (Float beta (m + 1) e))%R).
-apply inbetween_bounds with (2 := H1).
-apply F2R_lt_compat.
-apply Zlt_succ.
+apply inbetween_float_bounds with (1 := H1).
 rewrite <- Hx in Hx'.
 split.
 apply F2R_le_0_reg with (1 := proj1 Hx').
@@ -782,7 +804,7 @@ case H1.
 (* . *)
 intros _.
 assert (exists e', truncate (Z0, e, loc_Exact) = (Z0, e', loc_Exact)).
-unfold truncate.
+unfold truncate, truncate_aux.
 case Zlt_bool.
 rewrite Zdiv_0_l, Zmod_0_l.
 eexists.
