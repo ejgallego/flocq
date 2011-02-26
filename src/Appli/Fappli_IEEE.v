@@ -461,7 +461,8 @@ now destruct m as [|[m|m|]|m] ; try (now elim Hm) ; destruct r as [|] ; destruct
 Qed.
 
 Definition shr_fexp m e l :=
-  shr (shr_record_of_loc m l) e (fexp (digits radix2 m + e) - e).
+  let d := match m with Z0 => m | Zpos p => Z_of_nat (S (digits2_Pnat p)) | Zneg p => Z_of_nat (S (digits2_Pnat p)) end in
+  shr (shr_record_of_loc m l) e (fexp (d + e) - e).
 
 Theorem shr_truncate :
   forall m e l,
@@ -473,6 +474,9 @@ intros m e l Hm.
 case_eq (truncate radix2 fexp (m, e, l)).
 intros (m', e') l'.
 unfold shr_fexp.
+replace (match m with Z0 => m | Zpos p => Z_of_nat (S (digits2_Pnat p)) | Zneg p => Z_of_nat (S (digits2_Pnat p)) end)
+  with (digits radix2 m).
+2: now case m ; intros ; try rewrite Z_of_nat_S_digits2_Pnat.
 case_eq (fexp (digits radix2 m + e) - e)%Z.
 (* *)
 intros He.
