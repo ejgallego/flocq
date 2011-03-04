@@ -1512,7 +1512,6 @@ case Zle_bool_spec ; intros Hs.
 apply Zle_antisym.
 cut (x / (2^mw * 2^ew) < 2)%Z. clear ; omega.
 apply Zdiv_lt_upper_bound.
-apply Hx.
 now apply Zmult_lt_0_compat.
 rewrite <- Zpower_exp ; try ( apply Zle_ge ; apply Zlt_le_weak ; assumption ).
 change 2%Z at 1 with (Zpower 2 1).
@@ -1522,7 +1521,6 @@ discriminate.
 apply Zle_ge.
 now apply Zplus_le_0_compat ; apply Zlt_le_weak.
 apply Zdiv_le_lower_bound.
-apply Hx.
 now apply Zmult_lt_0_compat.
 now rewrite Zmult_1_l.
 apply Zdiv_small.
