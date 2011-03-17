@@ -1,3 +1,7 @@
+Version 1.4.0:
+ - improved efficiency of IEEE-754 addition
+ - fixed compilation with Coq 8.3
+
 Version 1.3:
  - fixed overflow handling in IEEE-754 formats with directed rounding
 
