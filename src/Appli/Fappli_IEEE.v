@@ -462,9 +462,20 @@ intros (m, r, s) Hm.
 now destruct m as [|[m|m|]|m] ; try (now elim Hm) ; destruct r as [|] ; destruct s as [|].
 Qed.
 
+Definition digits2 m :=
+  match m with Z0 => m | Zpos p => Z_of_nat (S (digits2_Pnat p)) | Zneg p => Z_of_nat (S (digits2_Pnat p)) end.
+
+Theorem digits2_digits :
+  forall m,
+  digits2 m = digits radix2 m.
+Proof.
+unfold digits2.
+intros [|m|m] ; try apply Z_of_nat_S_digits2_Pnat.
+easy.
+Qed.
+
 Definition shr_fexp m e l :=
-  let d := match m with Z0 => m | Zpos p => Z_of_nat (S (digits2_Pnat p)) | Zneg p => Z_of_nat (S (digits2_Pnat p)) end in
-  shr (shr_record_of_loc m l) e (fexp (d + e) - e).
+  shr (shr_record_of_loc m l) e (fexp (digits2 m + e) - e).
 
 Theorem shr_truncate :
   forall m e l,
@@ -476,9 +487,7 @@ intros m e l Hm.
 case_eq (truncate radix2 fexp (m, e, l)).
 intros (m', e') l'.
 unfold shr_fexp.
-replace (match m with Z0 => m | Zpos p => Z_of_nat (S (digits2_Pnat p)) | Zneg p => Z_of_nat (S (digits2_Pnat p)) end)
-  with (digits radix2 m).
-2: now case m ; intros ; try rewrite Z_of_nat_S_digits2_Pnat.
+rewrite digits2_digits.
 case_eq (fexp (digits radix2 m + e) - e)%Z.
 (* *)
 intros He.
@@ -1127,12 +1136,24 @@ Qed.
 
 Definition Bminus m x y := Bplus m x (Bopp y).
 
+Definition Fdiv_core_binary m1 e1 m2 e2 :=
+  let d1 := digits2 m1 in
+  let d2 := digits2 m2 in
+  let e := (e1 - e2)%Z in
+  let (m, e') :=
+    match (d2 + prec - d1)%Z with
+    | Zpos p => (m1 * Zpower_pos 2 p, e + Zneg p)%Z
+    | _ => (m1, e)
+    end in
+  let '(q, r) :=  Zdiv_eucl m m2 in
+  (q, e', new_location m2 r loc_Exact).
+
 Lemma Bdiv_correct_aux :
   forall m sx mx ex (Hx : bounded mx ex = true) sy my ey (Hy : bounded my ey = true),
   let x := F2R (Float radix2 (cond_Zopp sx (Zpos mx)) ex) in
   let y := F2R (Float radix2 (cond_Zopp sy (Zpos my)) ey) in
   let z :=
-    let '(mz, ez, lz) := Fdiv_core radix2 prec (Zpos mx) ex (Zpos my) ey in
+    let '(mz, ez, lz) := Fdiv_core_binary (Zpos mx) ex (Zpos my) ey in
     match mz with
     | Zpos mz => binary_round_sign m (xorb sx sy) mz ez lz
     | _ => F754_nan (* dummy *)
@@ -1144,6 +1165,8 @@ Lemma Bdiv_correct_aux :
     z = binary_overflow m (xorb sx sy).
 Proof.
 intros m sx mx ex Hx sy my ey Hy.
+replace (Fdiv_core_binary (Zpos mx) ex (Zpos my) ey) with (Fdiv_core radix2 prec (Zpos mx) ex (Zpos my) ey).
+2: now unfold Fdiv_core_binary ; rewrite 2!digits2_digits.
 refine (_ (Fdiv_core_correct radix2 prec (Zpos mx) ex (Zpos my) ey _ _ _)) ; try easy.
 destruct (Fdiv_core radix2 prec (Zpos mx) ex (Zpos my) ey) as ((mz, ez), lz).
 intros (Pz, Bz).
@@ -1261,11 +1284,27 @@ now rewrite B2R_FF2B.
 now rewrite B2FF_FF2B.
 Qed.
 
+Definition Fsqrt_core_binary m e :=
+  let d := digits2 m in
+  let s := Zmax (2 * prec - d) 0 in
+  let e' := (e - s)%Z in
+  let (s', e'') := if Zeven e' then (s, e') else (s + 1, e' - 1)%Z in
+  let m' :=
+    match s' with
+    | Zpos p => (m * Zpower_pos 2 p)%Z
+    | _ => m
+    end in
+  let (q, r) := Zsqrt m' in
+  let l :=
+    if Zeq_bool r 0 then loc_Exact
+    else loc_Inexact (if Zle_bool r q then Lt else Gt) in
+  (q, Zdiv2 e'', l).
+
 Lemma Bsqrt_correct_aux :
   forall m mx ex (Hx : bounded mx ex = true),
   let x := F2R (Float radix2 (Zpos mx) ex) in
   let z :=
-    let '(mz, ez, lz) := Fsqrt_core radix2 prec (Zpos mx) ex in
+    let '(mz, ez, lz) := Fsqrt_core_binary (Zpos mx) ex in
     match mz with
     | Zpos mz => binary_round_sign m false mz ez lz
     | _ => F754_nan (* dummy *)
@@ -1274,6 +1313,8 @@ Lemma Bsqrt_correct_aux :
   FF2R radix2 z = round radix2 fexp (round_mode m) (sqrt x).
 Proof with auto with typeclass_instances.
 intros m mx ex Hx.
+replace (Fsqrt_core_binary (Zpos mx) ex) with (Fsqrt_core radix2 prec (Zpos mx) ex).
+2: now unfold Fsqrt_core_binary ; rewrite digits2_digits.
 simpl.
 refine (_ (Fsqrt_core_correct radix2 prec (Zpos mx) ex _)) ; try easy.
 destruct (Fsqrt_core radix2 prec (Zpos mx) ex) as ((mz, ez), lz).
