@@ -70,14 +70,14 @@ Qed.
 
 (** Remainder of the division in FLX *)
 Theorem div_error_FLX :
-  forall Zrnd x y,
+  forall rnd { Zrnd : Valid_rnd rnd } x y,
   format x -> format y ->
-  format (x - round beta (FLX_exp prec) Zrnd (x/y) * y)%R.
-Proof.
-intros Zrnd x y Hx Hy.
+  format (x - round beta (FLX_exp prec) rnd (x/y) * y)%R.
+Proof with auto with typeclass_instances.
+intros rnd Zrnd x y Hx Hy.
 destruct (Req_dec y 0) as [Zy|Zy].
 now rewrite Zy, Rmult_0_r, Rminus_0_r.
-case (Req_dec (round beta (FLX_exp prec) Zrnd (x/y)) 0); intros Hr.
+destruct (Req_dec (round beta (FLX_exp prec) rnd (x/y)) 0) as [Hr|Hr].
 rewrite Hr; ring_simplify (x-0*y)%R; assumption.
 assert (Zx: x <> R0).
 contradict Hr.
@@ -86,13 +86,12 @@ unfold Rdiv.
 now rewrite Rmult_0_l, round_0.
 destruct (format_nx x Hx) as (fx,(Hx1,Hx2)).
 destruct (format_nx y Hy) as (fy,(Hy1,Hy2)).
-destruct (format_nx (round beta (FLX_exp prec) Zrnd (x / y))) as (fr,(Hr1,Hr2)).
-apply generic_format_round.
-now apply FLX_exp_valid.
+destruct (format_nx (round beta (FLX_exp prec) rnd (x / y))) as (fr,(Hr1,Hr2)).
+apply generic_format_round...
 unfold Rminus; apply format_add with fx (Fopp beta (Fmult beta fr fy)); trivial.
 now rewrite Fopp_F2R,mult_F2R, <- Hr1, <- Hy1.
 (* *)
-destruct (relative_error_FLX_ex beta prec (prec_gt_0 prec) Zrnd (x / y)%R) as (eps,(Heps1,Heps2)).
+destruct (relative_error_FLX_ex beta prec (prec_gt_0 prec) rnd (x / y)%R) as (eps,(Heps1,Heps2)).
 apply Rmult_integral_contrapositive_currified.
 exact Zx.
 now apply Rinv_neq_0_compat.
@@ -123,8 +122,8 @@ apply Zle_refl.
 (* *)
 replace (Fexp (Fopp beta (Fmult beta fr fy))) with (Fexp fr + Fexp fy)%Z.
 2: unfold Fopp, Fmult; destruct fr; destruct fy; now simpl.
-replace (x + - (round beta (FLX_exp prec) Zrnd (x / y) * y))%R with
-  (y * (-(round beta (FLX_exp prec) Zrnd (x / y) - x/y)))%R.
+replace (x + - (round beta (FLX_exp prec) rnd (x / y) * y))%R with
+  (y * (-(round beta (FLX_exp prec) rnd (x / y) - x/y)))%R.
 2: field; assumption.
 rewrite Rabs_mult.
 apply Rlt_le_trans with (Rabs y * bpow (Fexp fr))%R.
@@ -133,10 +132,7 @@ now apply Rabs_pos_lt.
 rewrite Rabs_Ropp.
 replace (bpow (Fexp fr)) with (ulp beta (FLX_exp prec) (F2R fr)).
 rewrite <- Hr1.
-apply ulp_error_f.
-now apply FLX_exp_valid.
-apply FLX_exp_monotone.
-exact Hr.
+apply ulp_error_f...
 unfold ulp; apply f_equal.
 now rewrite Hr2, <- Hr1.
 replace (prec+(Fexp fr+Fexp fy))%Z with ((prec+Fexp fy)+Fexp fr)%Z by ring.
@@ -154,27 +150,26 @@ Variable Hp1 : Zlt 1 prec.
 
 Theorem sqrt_error_FLX_N :
   forall x, format x ->
-  format (x - Rsqr (round beta (FLX_exp prec) (rndN choice) (sqrt x)))%R.
-Proof.
+  format (x - Rsqr (round beta (FLX_exp prec) (Znearest choice) (sqrt x)))%R.
+Proof with auto with typeclass_instances.
 intros x Hx.
 destruct (total_order_T x 0) as [[Hxz|Hxz]|Hxz].
 unfold sqrt.
 destruct (Rcase_abs x).
-rewrite round_0.
+rewrite round_0...
 unfold Rsqr.
 now rewrite Rmult_0_l, Rminus_0_r.
 elim (Rlt_irrefl 0).
 now apply Rgt_ge_trans with x.
-rewrite Hxz, sqrt_0, round_0.
+rewrite Hxz, sqrt_0, round_0...
 unfold Rsqr.
 rewrite Rmult_0_l, Rminus_0_r.
 apply generic_format_0.
-case (Req_dec (round beta (FLX_exp prec) (rndN choice) (sqrt x)) 0); intros Hr.
+case (Req_dec (round beta (FLX_exp prec) (Znearest choice) (sqrt x)) 0); intros Hr.
 rewrite Hr; unfold Rsqr; ring_simplify (x-0*0)%R; assumption.
 destruct (format_nx x Hx) as (fx,(Hx1,Hx2)).
-destruct (format_nx (round beta (FLX_exp prec) (rndN choice) (sqrt x))) as (fr,(Hr1,Hr2)).
-apply generic_format_round.
-now apply FLX_exp_valid.
+destruct (format_nx (round beta (FLX_exp prec) (Znearest choice) (sqrt x))) as (fr,(Hr1,Hr2)).
+apply generic_format_round...
 unfold Rminus; apply format_add with fx (Fopp beta (Fmult beta fr fr)); trivial.
 unfold Rsqr; now rewrite Fopp_F2R,mult_F2R, <- Hr1.
 (* *) 
@@ -247,9 +242,7 @@ apply Rmult_le_compat_r.
 apply Rabs_pos.
 apply Rle_trans with (/2*ulp beta  (FLX_exp prec) (F2R fr))%R.
 rewrite <- Hr1.
-apply ulp_half_error_f; trivial.
-now apply FLX_exp_valid.
-apply FLX_exp_monotone.
+apply ulp_half_error_f...
 right; unfold ulp; apply f_equal.
 rewrite Hr2, <- Hr1; trivial. 
 rewrite Rmult_assoc, Rmult_comm.
@@ -289,8 +282,7 @@ intros H1.
 absurd (Rabs (F2R fr) < bpow (es - 1))%R.
 apply Rle_not_lt.
 rewrite <- Hr1.
-apply round_monotone_abs_l.
-now apply FLX_exp_valid.
+apply round_monotone_abs_l...
 apply generic_format_bpow.
 unfold FLX_exp; omega.
 apply Es.

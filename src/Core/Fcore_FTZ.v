@@ -236,30 +236,16 @@ Qed.
 Section FTZ_round.
 
 (** Rounding with FTZ *)
-Hypothesis rnd : Zround.
+Variable rnd : R -> Z.
+Context { valid_rnd : Valid_rnd rnd }.
 
 Definition Zrnd_FTZ x :=
-  if Rle_bool R1 (Rabs x) then Zrnd rnd x else Z0.
+  if Rle_bool R1 (Rabs x) then rnd x else Z0.
 
-Theorem Z_FTZ_Z2R :
-  forall n, Zrnd_FTZ (Z2R n) = n.
-Proof.
-intros n.
-unfold Zrnd_FTZ.
-rewrite Zrnd_Z2R.
-case Rle_bool_spec.
-easy.
-rewrite <- Z2R_abs.
-intros H.
-generalize (lt_Z2R _ 1 H).
-clear.
-now case n ; trivial ; simpl ; intros [p|p|].
-Qed.
-
-Theorem Z_FTZ_monotone :
-  forall x y, (x <= y)%R ->
-  (Zrnd_FTZ x <= Zrnd_FTZ y)%Z.
-Proof.
+Global Instance valid_rnd_FTZ : Valid_rnd Zrnd_FTZ.
+Proof with auto with typeclass_instances.
+split.
+(* *)
 intros x y Hxy.
 unfold Zrnd_FTZ.
 case Rle_bool_spec ; intros Hx ;
@@ -268,7 +254,7 @@ case Rle_bool_spec ; intros Hx ;
 (* 1 <= |x| *)
 now apply Zrnd_monotone.
 rewrite <- (Zrnd_Z2R rnd 0).
-apply Zrnd_monotone.
+apply Zrnd_monotone...
 apply Rle_trans with (Z2R (-1)). 2: now apply Z2R_le.
 destruct (Rabs_ge_inv _ _ Hx) as [Hx1|Hx1].
 exact Hx1.
@@ -278,7 +264,7 @@ apply Rle_trans with (1 := Hxy).
 apply RRle_abs.
 (* |x| < 1 *)
 rewrite <- (Zrnd_Z2R rnd 0).
-apply Zrnd_monotone.
+apply Zrnd_monotone...
 apply Rle_trans with (Z2R 1).
 now apply Z2R_le.
 destruct (Rabs_ge_inv _ _ Hy) as [Hy1|Hy1].
@@ -286,14 +272,23 @@ elim Rle_not_lt with (1 := Hy1).
 apply Rlt_le_trans with (2 := Hxy).
 apply (Rabs_def2 _ _ Hx).
 exact Hy1.
+(* *)
+intros n.
+unfold Zrnd_FTZ.
+rewrite Zrnd_Z2R...
+case Rle_bool_spec.
+easy.
+rewrite <- Z2R_abs.
+intros H.
+generalize (lt_Z2R _ 1 H).
+clear.
+now case n ; trivial ; simpl ; intros [p|p|].
 Qed.
-
-Definition ZrFTZ := mkZround Zrnd_FTZ Z_FTZ_monotone Z_FTZ_Z2R.
 
 Theorem FTZ_round :
   forall x : R,
   (bpow (emin + prec - 1) <= Rabs x)%R ->
-  round beta FTZ_exp ZrFTZ x = round beta (FLX_exp prec) rnd x.
+  round beta FTZ_exp Zrnd_FTZ x = round beta (FLX_exp prec) rnd x.
 Proof.
 intros x Hx.
 unfold round, scaled_mantissa, canonic_exponent.
@@ -335,12 +330,12 @@ Qed.
 Theorem FTZ_round_small :
   forall x : R,
   (Rabs x < bpow (emin + prec - 1))%R ->
-  round beta FTZ_exp ZrFTZ x = R0.
-Proof.
+  round beta FTZ_exp Zrnd_FTZ x = R0.
+Proof with auto with typeclass_instances.
 intros x Hx.
 destruct (Req_dec x 0) as [Hx0|Hx0].
 rewrite Hx0.
-apply round_0.
+apply round_0...
 unfold round, scaled_mantissa, canonic_exponent.
 destruct (ln_beta beta x) as (ex, He). simpl.
 specialize (He Hx0).

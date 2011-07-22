@@ -25,6 +25,8 @@ Require Import Fcore_generic_fmt.
 Require Import Fcore_float_prop.
 Require Import Fcore_ulp.
 
+Notation ZnearestE := (Znearest (fun x => negb (Zeven x))).
+
 Section Fcore_rnd_NE.
 
 Variable beta : radix.
@@ -50,8 +52,8 @@ Definition DN_UP_parity_pos_prop :=
   ~ format x ->
   canonic xd ->
   canonic xu ->
-  F2R xd = round beta fexp rndDN x ->
-  F2R xu = round beta fexp rndUP x ->
+  F2R xd = round beta fexp Zfloor x ->
+  F2R xu = round beta fexp Zceil x ->
   Zeven (Fnum xu) = negb (Zeven (Fnum xd)).
 
 Definition DN_UP_parity_prop :=
@@ -59,8 +61,8 @@ Definition DN_UP_parity_prop :=
   ~ format x ->
   canonic xd ->
   canonic xu ->
-  F2R xd = round beta fexp rndDN x ->
-  F2R xu = round beta fexp rndUP x ->
+  F2R xd = round beta fexp Zfloor x ->
+  F2R xu = round beta fexp Zceil x ->
   Zeven (Fnum xu) = negb (Zeven (Fnum xd)).
 
 Lemma DN_UP_parity_aux :
@@ -107,7 +109,7 @@ Context { exists_NE_ : Exists_NE }.
 
 Theorem DN_UP_parity_generic_pos :
   DN_UP_parity_pos_prop.
-Proof.
+Proof with auto with typeclass_instances.
 intros x xd xu H0x Hfx Hd Hu Hxd Hxu.
 destruct (ln_beta beta x) as (ex, Hexa).
 specialize (Hexa (Rgt_not_eq _ _ H0x)).
@@ -167,7 +169,7 @@ destruct (total_order_T (bpow ex) (F2R xu)) as [[Hu2|Hu2]|Hu2].
 (* - xu > bpow ex  *)
 elim (Rlt_not_le _ _ Hu2).
 rewrite Hxu.
-now apply (round_bounded_large_pos beta fexp rndUP x ex).
+apply round_bounded_large_pos...
 (* - xu = bpow ex *)
 assert (Hu3: xu = Float beta (1 * Zpower beta (ex - fexp (ex + 1))) (fexp (ex + 1))).
 apply canonic_unicity with (1 := Hu).
@@ -333,57 +335,54 @@ apply Rnd_NE_pt_total.
 apply Rnd_NE_pt_monotone.
 Qed.
 
-Definition rndNE := rndN (fun x => negb (Zeven x)).
-
 Theorem round_NE_pt_pos :
   forall x,
   (0 < x)%R ->
-  Rnd_NE_pt x (round beta fexp rndNE x).
-Proof.
+  Rnd_NE_pt x (round beta fexp ZnearestE x).
+Proof with auto with typeclass_instances.
 intros x Hx.
 split.
 now apply generic_N_pt.
 unfold NE_prop.
 set (mx := scaled_mantissa beta fexp x).
-set (xr := round beta fexp rndNE x).
+set (xr := round beta fexp ZnearestE x).
 destruct (Req_dec (mx - Z2R (Zfloor mx)) (/2)) as [Hm|Hm].
 (* midpoint *)
 left.
 exists (Float beta (Ztrunc (scaled_mantissa beta fexp xr)) (canonic_exponent beta fexp xr)).
 split.
-apply (generic_N_pt beta fexp _ x).
+apply generic_N_pt...
 split.
 unfold Fcore_generic_fmt.canonic. simpl.
 apply f_equal.
-apply (generic_N_pt beta fexp _ x).
+apply generic_N_pt...
 simpl.
-unfold xr, round, Zrnd. simpl.
-unfold Znearest.
+unfold xr, round, Znearest.
 fold mx.
 rewrite Hm.
 rewrite Rcompare_Eq. 2: apply refl_equal.
 case_eq (Zeven (Zfloor mx)) ; intros Hmx.
 (* . even floor *)
-change (Zeven (Ztrunc (scaled_mantissa beta fexp (round beta fexp rndDN x))) = true).
-destruct (Rle_or_lt (round beta fexp rndDN x) 0) as [Hr|Hr].
+change (Zeven (Ztrunc (scaled_mantissa beta fexp (round beta fexp Zfloor x))) = true).
+destruct (Rle_or_lt (round beta fexp Zfloor x) 0) as [Hr|Hr].
 rewrite (Rle_antisym _ _ Hr).
 unfold scaled_mantissa.
 rewrite Rmult_0_l.
 change R0 with (Z2R 0).
 now rewrite (Ztrunc_Z2R 0).
-erewrite <- round_0.
-apply round_monotone ; try easy.
+rewrite <- (round_0 beta fexp Zfloor).
+apply round_monotone...
 now apply Rlt_le.
-rewrite scaled_mantissa_DN ; try easy.
+rewrite scaled_mantissa_DN...
 now rewrite Ztrunc_Z2R.
 (* . odd floor *)
-change (Zeven (Ztrunc (scaled_mantissa beta fexp (round beta fexp rndUP x))) = true).
+change (Zeven (Ztrunc (scaled_mantissa beta fexp (round beta fexp Zceil x))) = true).
 destruct (ln_beta beta x) as (ex, Hex).
 specialize (Hex (Rgt_not_eq _ _ Hx)).
 rewrite (Rabs_pos_eq _ (Rlt_le _ _ Hx)) in Hex.
 destruct (Z_lt_le_dec (fexp ex) ex) as [He|He].
 (* .. large pos *)
-assert (Hu := round_bounded_large_pos _ _ rndUP _ _ He Hex).
+assert (Hu := round_bounded_large_pos _ _ Zceil _ _ He Hex).
 assert (Hfc: Zceil mx = (Zfloor mx + 1)%Z).
 apply Zceil_floor_neq.
 intros H.
@@ -450,11 +449,11 @@ intros g Hg.
 destruct (Req_dec x g) as [Hxg|Hxg].
 rewrite <- Hxg.
 apply sym_eq.
-apply round_generic.
+apply round_generic...
 rewrite Hxg.
 apply Hg.
-set (d := round beta fexp rndDN x).
-set (u := round beta fexp rndUP x).
+set (d := round beta fexp Zfloor x).
+set (u := round beta fexp Zceil x).
 apply Rnd_N_pt_unicity with (d := d) (u := u) (4 := Hg).
 now apply round_DN_pt.
 now apply round_UP_pt.
@@ -482,10 +481,10 @@ Qed.
 
 Theorem round_NE_opp :
   forall x,
-  round beta fexp rndNE (-x) = (- round beta fexp rndNE x)%R.
+  round beta fexp ZnearestE (-x) = (- round beta fexp ZnearestE x)%R.
 Proof.
 intros x.
-unfold rndNE, round. simpl.
+unfold round. simpl.
 rewrite scaled_mantissa_opp, canonic_exponent_opp.
 rewrite Znearest_opp.
 rewrite opp_F2R.
@@ -502,8 +501,8 @@ Qed.
 
 Theorem round_NE_pt :
   forall x,
-  Rnd_NE_pt x (round beta fexp rndNE x).
-Proof.
+  Rnd_NE_pt x (round beta fexp ZnearestE x).
+Proof with auto with typeclass_instances.
 intros x.
 destruct (total_order_T x 0) as [[Hx|Hx]|Hx].
 apply Rnd_NG_pt_sym.
@@ -520,7 +519,7 @@ now rewrite Zeven_opp.
 rewrite <- round_NE_opp.
 apply round_NE_pt_pos.
 now apply Ropp_0_gt_lt_contravar.
-rewrite Hx, round_0.
+rewrite Hx, round_0...
 apply Rnd_NG_pt_refl.
 apply generic_format_0.
 now apply round_NE_pt_pos.

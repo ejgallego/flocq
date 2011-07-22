@@ -63,8 +63,8 @@ Qed.
 
 
 Definition MinOrMax x f := 
-   ((f = round beta (FLX_exp prec) rndDN x) 
-     \/ (f = round beta (FLX_exp prec) rndUP x)).
+   ((f = round beta (FLX_exp prec) Zfloor x) 
+     \/ (f = round beta (FLX_exp prec) Zceil x)).
 
 Theorem MinOrMax_opp: forall x f,
    MinOrMax x f <->  MinOrMax (-x) (-f).
@@ -85,7 +85,7 @@ Theorem implies_DN_lt_ulp:
   forall x f, format f ->
   (0 < f <= x)%R ->
   (Rabs (f-x) < ulp f)%R -> 
-  (f = round beta (FLX_exp prec) rndDN x)%R.
+  (f = round beta (FLX_exp prec) Zfloor x)%R.
 intros x f Hf Hxf1 Hxf2.
 apply sym_eq.
 replace x with (f+-(f-x))%R by ring.
@@ -160,8 +160,8 @@ Hypothesis Ha: format a.
 Hypothesis Hx: format x.
 Hypothesis Hy: format y.
 
-Notation t := (round beta (FLX_exp prec) (rndN choice) (a*x)).
-Notation u := (round beta (FLX_exp prec) (rndN choice) (t+y)).
+Notation t := (round beta (FLX_exp prec) (Znearest choice) (a*x)).
+Notation u := (round beta (FLX_exp prec) (Znearest choice) (t+y)).
 
 (*
 Axpy_aux1 : lemma Closest?(b)(a*x,t) => Closest?(b)(t+y,u) => 0 < u

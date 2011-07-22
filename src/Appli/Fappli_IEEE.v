@@ -52,6 +52,7 @@ Hypothesis Hmax : (prec < emax)%Z.
 Let emin := (3 - emax - prec)%Z.
 Let fexp := FLT_exp emin prec.
 Instance fexp_correct : Valid_exp fexp := FLT_exp_valid emin prec.
+Instance fexp_monotone : Monotone_exp fexp := FLT_exp_monotone emin prec.
 
 Definition bounded_prec m e :=
   Zeq_bool (fexp (Z_of_nat (S (digits2_Pnat m)) + e)) e.
@@ -526,11 +527,11 @@ Inductive mode := mode_NE | mode_ZR | mode_DN | mode_UP | mode_NA.
 
 Definition round_mode m :=
   match m with
-  | mode_NE => rndNE
-  | mode_ZR => rndZR
-  | mode_DN => rndDN
-  | mode_UP => rndUP
-  | mode_NA => rndNA
+  | mode_NE => ZnearestE
+  | mode_ZR => Ztrunc
+  | mode_DN => Zfloor
+  | mode_UP => Zceil
+  | mode_NA => ZnearestA
   end.
 
 Definition choice_mode m sx mx lx :=
@@ -541,6 +542,11 @@ Definition choice_mode m sx mx lx :=
   | mode_UP => cond_incr (round_sign_UP sx lx) mx
   | mode_NA => cond_incr (round_N true lx) mx
   end.
+
+Global Instance valid_rnd_round_mode : forall m, Valid_rnd (round_mode m).
+Proof.
+destruct m ; unfold round_mode ; auto with typeclass_instances.
+Qed.
 
 Definition overflow_to_inf m s :=
   match m with
@@ -573,7 +579,7 @@ Theorem binary_round_sign_correct :
     FF2R radix2 (binary_round_sign mode (Rlt_bool x 0) mx ex lx) = round radix2 fexp (round_mode mode) x
   else
     binary_round_sign mode (Rlt_bool x 0) mx ex lx = binary_overflow mode (Rlt_bool x 0).
-Proof.
+Proof with auto with typeclass_instances.
 intros m x mx ex lx Bx Ex.
 unfold binary_round_sign.
 rewrite shr_truncate. 2: easy.
@@ -627,9 +633,7 @@ rewrite <- ln_beta_F2R_digits, <- Hr, ln_beta_abs.
 rewrite H1b.
 rewrite canonic_exponent_abs.
 fold (canonic_exponent radix2 fexp (round radix2 fexp (round_mode m) x)).
-apply canonic_exponent_round.
-apply fexp_correct.
-apply FLT_exp_monotone.
+apply canonic_exponent_round...
 rewrite H1c.
 case (Rlt_bool x 0).
 apply Rlt_not_eq.
@@ -718,9 +722,8 @@ apply Rlt_trans with R0.
 now apply F2R_lt_0_compat.
 now apply F2R_gt_0_compat.
 rewrite <- Hr.
-apply generic_format_abs.
-apply generic_format_round.
-apply fexp_correct.
+apply generic_format_abs...
+apply generic_format_round...
 (* . not m1' < 0 *)
 elim Rgt_not_eq with (2 := Hr).
 apply Rlt_le_trans with R0.
@@ -822,7 +825,7 @@ Theorem Bmult_correct :
     B2FF (Bmult m x y) = binary_overflow m (xorb (Bsign x) (Bsign y)).
 Proof.
 intros m [sx|sx| |sx mx ex Hx] [sy|sy| |sy my ey Hy] ;
-  try ( rewrite ?Rmult_0_r, ?Rmult_0_l, round_0, Rabs_R0, Rlt_bool_true ; [ apply refl_equal | apply bpow_gt_0 ] ).
+  try ( rewrite ?Rmult_0_r, ?Rmult_0_l, round_0, Rabs_R0, Rlt_bool_true ; [ apply refl_equal | apply bpow_gt_0 | auto with typeclass_instances ] ).
 simpl.
 case Bmult_correct_aux.
 intros H1 H2.
@@ -978,22 +981,20 @@ Theorem Bplus_correct :
     B2R (Bplus m x y) = round radix2 fexp (round_mode m) (B2R x + B2R y)
   else
     (B2FF (Bplus m x y) = binary_overflow m (Bsign x) /\ Bsign x = Bsign y).
-Proof.
+Proof with auto with typeclass_instances.
 intros m [sx|sx| |sx mx ex Hx] [sy|sy| |sy my ey Hy] Fx Fy ; try easy.
 (* *)
-rewrite Rplus_0_r, round_0, Rabs_R0, Rlt_bool_true.
+rewrite Rplus_0_r, round_0, Rabs_R0, Rlt_bool_true...
 simpl.
 case (Bool.eqb sx sy) ; try easy.
 now case m.
 apply bpow_gt_0.
 (* *)
-rewrite Rplus_0_l, round_generic, Rlt_bool_true.
-apply refl_equal.
+rewrite Rplus_0_l, round_generic, Rlt_bool_true...
 apply B2R_lt_emax.
 apply generic_format_B2R.
 (* *)
-rewrite Rplus_0_r, round_generic, Rlt_bool_true.
-apply refl_equal.
+rewrite Rplus_0_r, round_generic, Rlt_bool_true...
 apply B2R_lt_emax.
 apply generic_format_B2R.
 (* *)
@@ -1058,15 +1059,13 @@ split.
 apply Rlt_le_trans with (F2R (Float radix2 (cond_Zopp true (Zpos mx)) ex)).
 rewrite <- opp_F2R.
 now apply Ropp_lt_contravar.
-apply round_monotone_l.
-apply fexp_correct.
+apply round_monotone_l...
 now apply generic_format_canonic.
 pattern (F2R (Float radix2 (cond_Zopp true (Zpos mx)) ex)) at 1 ; rewrite <- Rplus_0_r.
 apply Rplus_le_compat_l.
 now apply F2R_ge_0_compat.
 apply Rle_lt_trans with (2 := By).
-apply round_monotone_r.
-apply fexp_correct.
+apply round_monotone_r...
 now apply generic_format_canonic.
 rewrite <- (Rplus_0_l (F2R (Float radix2 (Zpos my) ey))).
 apply Rplus_le_compat_r.
@@ -1080,22 +1079,20 @@ split.
 apply Rlt_le_trans with (F2R (Float radix2 (cond_Zopp true (Zpos my)) ey)).
 rewrite <- opp_F2R.
 now apply Ropp_lt_contravar.
-apply round_monotone_l.
-apply fexp_correct.
+apply round_monotone_l...
 now apply generic_format_canonic.
 pattern (F2R (Float radix2 (cond_Zopp true (Zpos my)) ey)) at 1 ; rewrite <- Rplus_0_l.
 apply Rplus_le_compat_r.
 now apply F2R_ge_0_compat.
 apply Rle_lt_trans with (2 := Bx).
-apply round_monotone_r.
-apply fexp_correct.
+apply round_monotone_r...
 now apply generic_format_canonic.
 rewrite <- (Rplus_0_r (F2R (Float radix2 (Zpos mx) ex))).
 apply Rplus_le_compat_l.
 now apply F2R_le_0_compat.
 destruct mz as [|mz|mz].
 (* . mz = 0 *)
-rewrite F2R_0, round_0, Rabs_R0, Rlt_bool_true.
+rewrite F2R_0, round_0, Rabs_R0, Rlt_bool_true...
 now case m.
 apply bpow_gt_0.
 (* . mz > 0 *)
@@ -1253,7 +1250,7 @@ intros m x [sy|sy| |sy my ey Hy] Zy ; try now elim Zy.
 revert x.
 unfold Rdiv.
 intros [sx|sx| |sx mx ex Hx] ;
-  try ( rewrite Rmult_0_l, round_0, Rabs_R0, Rlt_bool_true ; [ apply refl_equal | apply bpow_gt_0 ] ).
+  try ( rewrite Rmult_0_l, round_0, Rabs_R0, Rlt_bool_true ; [ apply refl_equal | apply bpow_gt_0 | auto with typeclass_instances ] ).
 simpl.
 case Bdiv_correct_aux.
 intros H1 H2.
@@ -1275,7 +1272,7 @@ Lemma Bsqrt_correct_aux :
     end in
   valid_binary z = true /\
   FF2R radix2 z = round radix2 fexp (round_mode m) (sqrt x).
-Proof.
+Proof with auto with typeclass_instances.
 intros m mx ex Hx.
 simpl.
 refine (_ (Fsqrt_core_correct radix2 prec (Zpos mx) ex _)) ; try easy.
@@ -1353,8 +1350,7 @@ apply generic_format_canonic.
 apply (canonic_bounded_prec false).
 apply (andb_prop _ _ Hx).
 (* .. *)
-apply round_monotone_l.
-apply fexp_correct.
+apply round_monotone_l...
 apply generic_format_0.
 apply sqrt_ge_0.
 rewrite Rabs_pos_eq.
@@ -1389,7 +1385,7 @@ Theorem Bsqrt_correct :
   forall m x,
   B2R (Bsqrt m x) = round radix2 fexp (round_mode m) (sqrt (B2R x)).
 Proof.
-intros m [sx|[|]| |sx mx ex Hx] ; try ( now simpl ; rewrite sqrt_0, round_0 ).
+intros m [sx|[|]| |sx mx ex Hx] ; try ( now simpl ; rewrite sqrt_0, round_0 ; auto with typeclass_instances ).
 simpl.
 case Bsqrt_correct_aux.
 intros H1 H2.
@@ -1399,6 +1395,7 @@ unfold sqrt.
 case Rcase_abs.
 intros _.
 apply round_0.
+auto with typeclass_instances.
 intros H.
 elim Rge_not_lt with (1 := H).
 now apply F2R_lt_0_compat.

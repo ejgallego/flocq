@@ -44,7 +44,7 @@ Theorem Fsqrt_FLT_ne_correct :
   Rnd_NE_pt beta (FLT_exp emin prec) (sqrt (F2R x)) (F2R (Fsqrt_FLT_ne x)).
 Proof with auto with typeclass_instances.
 intros x.
-replace (F2R (Fsqrt_FLT_ne x)) with (round beta (FLT_exp emin prec) rndNE (sqrt (F2R x))).
+replace (F2R (Fsqrt_FLT_ne x)) with (round beta (FLT_exp emin prec) ZnearestE (sqrt (F2R x))).
 apply round_NE_pt...
 unfold Fsqrt_FLT_ne.
 destruct x as (mx, ex).
@@ -53,7 +53,7 @@ case (Zle_bool mx 0) ; intros Hm.
 (* mx = 0 *)
 rewrite F2R_0.
 replace (sqrt (F2R (Float beta mx ex))) with R0.
-apply round_0.
+apply round_0...
 destruct (Zle_lt_or_eq _ _ Hm) as [Hm'|Hm'].
 unfold sqrt.
 case Rcase_abs ; intros Hs.

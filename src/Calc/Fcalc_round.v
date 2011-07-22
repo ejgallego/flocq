@@ -38,7 +38,7 @@ Notation format := (generic_format beta fexp).
 
 Theorem inbetween_float_round :
   forall rnd choice,
-  ( forall x m l, inbetween_int m x l -> Zrnd rnd x = choice m l ) ->
+  ( forall x m l, inbetween_int m x l -> rnd x = choice m l ) ->
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float beta m e x l ->
@@ -58,7 +58,7 @@ Definition cond_incr (b : bool) m := if b then (m + 1)%Z else m.
 Theorem inbetween_float_round_sign :
   forall rnd choice,
   ( forall x m l, inbetween_int m (Rabs x) l ->
-    Zrnd rnd x = cond_Zopp (Rlt_bool x 0) (choice (Rlt_bool x 0) m l) ) ->
+    rnd x = cond_Zopp (Rlt_bool x 0) (choice (Rlt_bool x 0) m l) ) ->
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float beta m e (Rabs x) l ->
@@ -93,7 +93,7 @@ Qed.
 Theorem inbetween_int_DN :
   forall x m l,
   inbetween_int m x l ->
-  Zrnd rndDN x = m.
+  Zfloor x = m.
 Proof.
 intros x m l Hl.
 refine (Zfloor_imp m _ _).
@@ -106,7 +106,7 @@ Theorem inbetween_float_DN :
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float beta m e x l ->
-  round beta fexp rndDN x = F2R (Float beta m e).
+  round beta fexp Zfloor x = F2R (Float beta m e).
 Proof.
 apply inbetween_float_round with (choice := fun m l => m).
 exact inbetween_int_DN.
@@ -121,7 +121,7 @@ Definition round_sign_DN s l :=
 Theorem inbetween_int_DN_sign :
   forall x m l,
   inbetween_int m (Rabs x) l ->
-  Zrnd rndDN x = cond_Zopp (Rlt_bool x 0) (cond_incr (round_sign_DN (Rlt_bool x 0) l) m).
+  Zfloor x = cond_Zopp (Rlt_bool x 0) (cond_incr (round_sign_DN (Rlt_bool x 0) l) m).
 Proof.
 intros x m l Hl.
 unfold Rabs in Hl.
@@ -158,7 +158,7 @@ Theorem inbetween_float_DN_sign :
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float beta m e (Rabs x) l ->
-  round beta fexp rndDN x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (cond_incr (round_sign_DN (Rlt_bool x 0) l) m)) e).
+  round beta fexp Zfloor x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (cond_incr (round_sign_DN (Rlt_bool x 0) l) m)) e).
 Proof.
 apply inbetween_float_round_sign with (choice := fun s m l => cond_incr (round_sign_DN s l) m).
 exact inbetween_int_DN_sign.
@@ -175,7 +175,7 @@ Definition round_UP l :=
 Theorem inbetween_int_UP :
   forall x m l,
   inbetween_int m x l ->
-  Zrnd rndUP x = cond_incr (round_UP l) m.
+  Zceil x = cond_incr (round_UP l) m.
 Proof.
 intros x m l Hl.
 assert (Hl': l = loc_Exact \/ (l <> loc_Exact /\ round_UP l = true)).
@@ -199,7 +199,7 @@ Theorem inbetween_float_UP :
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float beta m e x l ->
-  round beta fexp rndUP x = F2R (Float beta (cond_incr (round_UP l) m) e).
+  round beta fexp Zceil x = F2R (Float beta (cond_incr (round_UP l) m) e).
 Proof.
 apply inbetween_float_round with (choice := fun m l => cond_incr (round_UP l) m).
 exact inbetween_int_UP.
@@ -214,7 +214,7 @@ Definition round_sign_UP s l :=
 Theorem inbetween_int_UP_sign :
   forall x m l,
   inbetween_int m (Rabs x) l ->
-  Zrnd rndUP x = cond_Zopp (Rlt_bool x 0) (cond_incr (round_sign_UP (Rlt_bool x 0) l) m).
+  Zceil x = cond_Zopp (Rlt_bool x 0) (cond_incr (round_sign_UP (Rlt_bool x 0) l) m).
 Proof.
 intros x m l Hl.
 unfold Rabs in Hl.
@@ -249,7 +249,7 @@ Theorem inbetween_float_UP_sign :
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float beta m e (Rabs x) l ->
-  round beta fexp rndUP x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (cond_incr (round_sign_UP (Rlt_bool x 0) l) m)) e).
+  round beta fexp Zceil x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (cond_incr (round_sign_UP (Rlt_bool x 0) l) m)) e).
 Proof.
 apply inbetween_float_round_sign with (choice := fun s m l => cond_incr (round_sign_UP s l) m).
 exact inbetween_int_UP_sign.
@@ -266,15 +266,15 @@ Definition round_ZR (s : bool) l :=
 Theorem inbetween_int_ZR :
   forall x m l,
   inbetween_int m x l ->
-  Zrnd rndZR x = cond_incr (round_ZR (Zlt_bool m 0) l) m.
-Proof.
+  Ztrunc x = cond_incr (round_ZR (Zlt_bool m 0) l) m.
+Proof with auto with typeclass_instances.
 intros x m l Hl.
 inversion_clear Hl as [Hx|l' Hx Hl'].
 (* Exact *)
 rewrite Hx.
-now rewrite Zrnd_Z2R.
+rewrite Zrnd_Z2R...
 (* not Exact *)
-unfold Zrnd, rndZR, Ztrunc.
+unfold Ztrunc.
 assert (Hm: Zfloor x = m).
 apply Zfloor_imp.
 exact (conj (Rlt_le _ _ (proj1 Hx)) (proj2 Hx)).
@@ -300,7 +300,7 @@ Theorem inbetween_float_ZR :
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float beta m e x l ->
-  round beta fexp rndZR x = F2R (Float beta (cond_incr (round_ZR (Zlt_bool m 0) l) m) e).
+  round beta fexp Ztrunc x = F2R (Float beta (cond_incr (round_ZR (Zlt_bool m 0) l) m) e).
 Proof.
 apply inbetween_float_round with (choice := fun m l => cond_incr (round_ZR (Zlt_bool m 0) l) m).
 exact inbetween_int_ZR.
@@ -309,7 +309,7 @@ Qed.
 Theorem inbetween_int_ZR_sign :
   forall x m l,
   inbetween_int m (Rabs x) l ->
-  Zrnd rndZR x = cond_Zopp (Rlt_bool x 0) m.
+  Ztrunc x = cond_Zopp (Rlt_bool x 0) m.
 Proof.
 intros x m l Hl.
 simpl.
@@ -339,7 +339,7 @@ Theorem inbetween_float_ZR_sign :
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float beta m e (Rabs x) l ->
-  round beta fexp rndZR x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) m) e).
+  round beta fexp Ztrunc x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) m) e).
 Proof.
 apply inbetween_float_round_sign with (choice := fun s m l => m).
 exact inbetween_int_ZR_sign.
@@ -358,15 +358,15 @@ Definition round_N (p : bool) l :=
 Theorem inbetween_int_N :
   forall choice x m l,
   inbetween_int m x l ->
-  Zrnd (rndN choice) x = cond_incr (round_N (choice m) l) m.
-Proof.
+  Znearest choice x = cond_incr (round_N (choice m) l) m.
+Proof with auto with typeclass_instances.
 intros choice x m l Hl.
 inversion_clear Hl as [Hx|l' Hx Hl'].
 (* Exact *)
 rewrite Hx.
-now rewrite Zrnd_Z2R.
+rewrite Zrnd_Z2R...
 (* not Exact *)
-unfold Zrnd, rndNE, rndN, Znearest.
+unfold Znearest.
 assert (Hm: Zfloor x = m).
 apply Zfloor_imp.
 exact (conj (Rlt_le _ _ (proj1 Hx)) (proj2 Hx)).
@@ -387,8 +387,8 @@ Qed.
 Theorem inbetween_int_N_sign :
   forall choice x m l,
   inbetween_int m (Rabs x) l ->
-  Zrnd (rndN choice) x = cond_Zopp (Rlt_bool x 0) (cond_incr (round_N (if Rlt_bool x 0 then negb (choice (-(m + 1))%Z) else choice m) l) m).
-Proof.
+  Znearest choice x = cond_Zopp (Rlt_bool x 0) (cond_incr (round_N (if Rlt_bool x 0 then negb (choice (-(m + 1))%Z) else choice m) l) m).
+Proof with auto with typeclass_instances.
 intros choice x m l Hl.
 simpl.
 unfold Rabs in Hl.
@@ -401,7 +401,7 @@ rewrite Znearest_opp.
 apply f_equal.
 inversion_clear Hl as [Hx|l' Hx Hl'].
 rewrite Hx.
-apply Znearest_Z2R.
+apply Zrnd_Z2R...
 assert (Hm: Zfloor (-x) = m).
 apply Zfloor_imp.
 exact (conj (Rlt_le _ _ (proj1 Hx)) (proj2 Hx)).
@@ -425,7 +425,7 @@ rewrite Rlt_bool_false with (1 := Zx).
 simpl.
 inversion_clear Hl as [Hx|l' Hx Hl'].
 rewrite Hx.
-apply Znearest_Z2R.
+apply Zrnd_Z2R...
 assert (Hm: Zfloor x = m).
 apply Zfloor_imp.
 exact (conj (Rlt_le _ _ (proj1 Hx)) (proj2 Hx)).
@@ -449,7 +449,7 @@ Qed.
 Theorem inbetween_int_NE :
   forall x m l,
   inbetween_int m x l ->
-  Zrnd rndNE x = cond_incr (round_N (negb (Zeven m)) l) m.
+  ZnearestE x = cond_incr (round_N (negb (Zeven m)) l) m.
 Proof.
 intros x m l Hl.
 now apply inbetween_int_N with (choice := fun x => negb (Zeven x)).
@@ -459,7 +459,7 @@ Theorem inbetween_float_NE :
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float beta m e x l ->
-  round beta fexp rndNE x = F2R (Float beta (cond_incr (round_N (negb (Zeven m)) l) m) e).
+  round beta fexp ZnearestE x = F2R (Float beta (cond_incr (round_N (negb (Zeven m)) l) m) e).
 Proof.
 apply inbetween_float_round with (choice := fun m l => cond_incr (round_N (negb (Zeven m)) l) m).
 exact inbetween_int_NE.
@@ -468,7 +468,7 @@ Qed.
 Theorem inbetween_int_NE_sign :
   forall x m l,
   inbetween_int m (Rabs x) l ->
-  Zrnd rndNE x = cond_Zopp (Rlt_bool x 0) (cond_incr (round_N (negb (Zeven m)) l) m).
+  ZnearestE x = cond_Zopp (Rlt_bool x 0) (cond_incr (round_N (negb (Zeven m)) l) m).
 Proof.
 intros x m l Hl.
 erewrite inbetween_int_N_sign with (choice := fun x => negb (Zeven x)).
@@ -484,7 +484,7 @@ Theorem inbetween_float_NE_sign :
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float beta m e (Rabs x) l ->
-  round beta fexp rndNE x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (cond_incr (round_N (negb (Zeven m)) l) m)) e).
+  round beta fexp ZnearestE x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (cond_incr (round_N (negb (Zeven m)) l) m)) e).
 Proof.
 apply inbetween_float_round_sign with (choice := fun s m l => cond_incr (round_N (negb (Zeven m)) l) m).
 exact inbetween_int_NE_sign.
@@ -495,7 +495,7 @@ Qed.
 Theorem inbetween_int_NA :
   forall x m l,
   inbetween_int m x l ->
-  Zrnd rndNA x = cond_incr (round_N (Zle_bool 0 m) l) m.
+  ZnearestA x = cond_incr (round_N (Zle_bool 0 m) l) m.
 Proof.
 intros x m l Hl.
 now apply inbetween_int_N with (choice := fun x => Zle_bool 0 x).
@@ -505,7 +505,7 @@ Theorem inbetween_float_NA :
   forall x m l,
   let e := canonic_exponent beta fexp x in
   inbetween_float beta m e x l ->
-  round beta fexp rndNA x = F2R (Float beta (cond_incr (round_N (Zle_bool 0 m) l) m) e).
+  round beta fexp ZnearestA x = F2R (Float beta (cond_incr (round_N (Zle_bool 0 m) l) m) e).
 Proof.
 apply inbetween_float_round with (choice := fun m l => cond_incr (round_N (Zle_bool 0 m) l) m).
 exact inbetween_int_NA.
@@ -514,7 +514,7 @@ Qed.
 Theorem inbetween_int_NA_sign :
   forall x m l,
   inbetween_int m (Rabs x) l ->
-  Zrnd rndNA x = cond_Zopp (Rlt_bool x 0) (cond_incr (round_N true l) m).
+  ZnearestA x = cond_Zopp (Rlt_bool x 0) (cond_incr (round_N true l) m).
 Proof.
 intros x m l Hl.
 erewrite inbetween_int_N_sign with (choice := Zle_bool 0).
@@ -829,19 +829,21 @@ Qed.
 
 Section round_dir.
 
-Variable rnd: Zround.
+Variable rnd : R -> Z.
+Context { valid_rnd : Valid_rnd rnd }.
+
 Variable choice : Z -> location -> Z.
 Hypothesis inbetween_int_valid :
   forall x m l,
   inbetween_int m x l ->
-  Zrnd rnd x = choice m l.
+  rnd x = choice m l.
 
 Theorem round_any_correct :
   forall x m e l,
   inbetween_float beta m e x l ->
   (e = canonic_exponent beta fexp x \/ (l = loc_Exact /\ format x)) ->
   round beta fexp rnd x = F2R (Float beta (choice m l) e).
-Proof.
+Proof with auto with typeclass_instances.
 intros x m e l Hin [He|(Hl,Hf)].
 rewrite He in Hin |- *.
 apply inbetween_float_round with (2 := Hin).
@@ -851,7 +853,7 @@ inversion_clear Hin.
 rewrite Hl.
 replace (choice m loc_Exact) with m.
 rewrite <- H.
-now apply round_generic.
+apply round_generic...
 rewrite <- (Zrnd_Z2R rnd m) at 1.
 apply inbetween_int_valid.
 now constructor.
@@ -877,19 +879,21 @@ End round_dir.
 
 Section round_dir_sign.
 
-Variable rnd: Zround.
+Variable rnd : R -> Z.
+Context { valid_rnd : Valid_rnd rnd }.
+
 Variable choice : bool -> Z -> location -> Z.
 Hypothesis inbetween_int_valid :
   forall x m l,
   inbetween_int m (Rabs x) l ->
-  Zrnd rnd x = cond_Zopp (Rlt_bool x 0) (choice (Rlt_bool x 0) m l).
+  rnd x = cond_Zopp (Rlt_bool x 0) (choice (Rlt_bool x 0) m l).
 
 Theorem round_sign_any_correct :
   forall x m e l,
   inbetween_float beta m e (Rabs x) l ->
   (e = canonic_exponent beta fexp x \/ (l = loc_Exact /\ format x)) ->
   round beta fexp rnd x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (choice (Rlt_bool x 0) m l)) e).
-Proof.
+Proof with auto with typeclass_instances.
 intros x m e l Hin [He|(Hl,Hf)].
 rewrite He in Hin |- *.
 apply inbetween_float_round_sign with (2 := Hin).
@@ -905,7 +909,7 @@ rewrite Rlt_bool_true with (1 := Zx).
 simpl.
 rewrite <- opp_F2R.
 rewrite <- H, Ropp_involutive.
-now apply round_generic.
+apply round_generic...
 rewrite Rlt_bool_false.
 simpl.
 rewrite <- H.

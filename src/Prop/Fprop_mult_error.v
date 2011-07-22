@@ -32,9 +32,11 @@ Context { prec_gt_0_ : Prec_gt_0 prec }.
 Notation format := (generic_format beta (FLX_exp prec)).
 Notation cexp := (canonic_exponent beta (FLX_exp prec)).
 
+Variable rnd : R -> Z.
+Context { valid_rnd : Valid_rnd rnd }.
+
 (** Auxiliary result that provides the exponent *)
 Lemma mult_error_FLX_aux:
-  forall rnd,
   forall x y,
   format x -> format y ->
   (round beta (FLX_exp prec) rnd (x * y) - (x * y) <> 0)%R ->
@@ -42,13 +44,13 @@ Lemma mult_error_FLX_aux:
       (F2R f = round beta (FLX_exp prec) rnd (x * y) - (x * y))%R
       /\  (canonic_exponent beta (FLX_exp prec) (F2R f) <= Fexp f)%Z
       /\ (Fexp f = cexp x + cexp y)%Z.
-Proof.
-intros rnd x y Hx Hy Hz.
+Proof with auto with typeclass_instances.
+intros x y Hx Hy Hz.
 set (f := (round beta (FLX_exp prec) rnd (x * y))).
 destruct (Req_dec (x * y) 0) as [Hxy0|Hxy0].
 contradict Hz.
 rewrite Hxy0.
-rewrite round_0.
+rewrite round_0...
 ring.
 destruct (ln_beta beta (x * y)) as (exy, Hexy).
 specialize (Hexy Hxy0).
@@ -100,7 +102,7 @@ apply Hex.
 apply Hey.
 (* *)
 assert (Hr: ((F2R (Float beta (- (Ztrunc (scaled_mantissa beta (FLX_exp prec) x) *
-  Ztrunc (scaled_mantissa beta (FLX_exp prec) y)) + Zrnd rnd (scaled_mantissa beta (FLX_exp prec) (x * y)) *
+  Ztrunc (scaled_mantissa beta (FLX_exp prec) y)) + rnd (scaled_mantissa beta (FLX_exp prec) (x * y)) *
   beta ^ (cexp (x * y)%R - (cexp x + cexp y))) (cexp x + cexp y))) = f - x * y)%R).
 rewrite Hx at 6.
 rewrite Hy at 6.
@@ -112,7 +114,7 @@ unfold Fplus. simpl.
 now rewrite Zle_imp_le_bool with (1 := Hc2).
 (* *)
 exists (Float beta (- (Ztrunc (scaled_mantissa beta (FLX_exp prec) x) *
-  Ztrunc (scaled_mantissa beta (FLX_exp prec) y)) + Zrnd rnd (scaled_mantissa beta (FLX_exp prec) (x * y)) *
+  Ztrunc (scaled_mantissa beta (FLX_exp prec) y)) + rnd (scaled_mantissa beta (FLX_exp prec) (x * y)) *
   beta ^ (cexp (x * y)%R - (cexp x + cexp y))) (cexp x + cexp y)).
 split;[assumption|split].
 rewrite Hr.
@@ -126,8 +128,7 @@ rewrite ln_beta_unique with (1 := Hexy).
 apply (bpow_lt_bpow beta).
 apply Rle_lt_trans with (1 := proj1 Her).
 apply Rlt_le_trans with (ulp beta (FLX_exp prec) (x * y)).
-apply ulp_error.
-now apply FLX_exp_valid.
+apply ulp_error...
 unfold ulp.
 apply bpow_le.
 unfold canonic_exponent, FLX_exp.
@@ -139,16 +140,15 @@ Qed.
 
 (** Error of the multiplication in FLX *)
 Theorem mult_error_FLX :
-  forall rnd,
   forall x y,
   format x -> format y ->
   format (round beta (FLX_exp prec) rnd (x * y) - (x * y))%R.
 Proof.
-intros rnd x y Hx Hy.
+intros x y Hx Hy.
 destruct (Req_dec (round beta (FLX_exp prec) rnd (x * y) - x * y) 0) as [Hr0|Hr0].
 rewrite Hr0.
 apply generic_format_0.
-destruct (mult_error_FLX_aux rnd x y Hx Hy Hr0) as ((m,e),(H1,(H2,H3))).
+destruct (mult_error_FLX_aux x y Hx Hy Hr0) as ((m,e),(H1,(H2,H3))).
 rewrite <- H1.
 apply generic_format_canonic_exponent; simpl.
 simpl in H2; assumption.
@@ -168,16 +168,18 @@ Variable Hpemin: (emin <= prec)%Z.
 Notation format := (generic_format beta (FLT_exp emin prec)).
 Notation cexp := (canonic_exponent beta (FLT_exp emin prec)).
 
+Variable rnd : R -> Z.
+Context { valid_rnd : Valid_rnd rnd }.
+
 (** Error of the multiplication in FLT with underflow requirements *)
 Theorem mult_error_FLT :
-  forall rnd,
   forall x y,
   format x -> format y ->
   (x*y = 0)%R \/ (bpow (emin + 2*prec - 1) <= Rabs (x * y))%R ->
   format (round beta (FLT_exp emin prec) rnd (x * y) - (x * y))%R.
-Proof.
+Proof with auto with typeclass_instances.
 clear Hpemin.
-intros rnd x y Hx Hy Hxy.
+intros x y Hx Hy Hxy.
 set (f := (round beta (FLT_exp emin prec) rnd (x * y))).
 destruct (Req_dec (f - x * y) 0) as [Hr0|Hr0].
 rewrite Hr0.
@@ -185,7 +187,7 @@ apply generic_format_0.
 destruct Hxy as [Hxy|Hxy].
 unfold f.
 rewrite Hxy.
-rewrite round_0.
+rewrite round_0...
 ring_simplify (0 - 0)%R.
 apply generic_format_0.
 destruct (mult_error_FLX_aux beta prec rnd x y) as ((m,e),(H1,(H2,H3))).
@@ -215,7 +217,7 @@ assert (Hxy0:(x*y <> 0)%R).
 contradict Hr0.
 unfold f.
 rewrite Hr0.
-rewrite round_0.
+rewrite round_0...
 ring.
 assert (Hx0: (x <> 0)%R).
 contradict Hxy0.

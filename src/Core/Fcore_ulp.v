@@ -88,10 +88,10 @@ Qed.
 
 Theorem ulp_DN_UP :
   forall x, ~ F x ->
-  round beta fexp rndUP x = (round beta fexp rndDN x + ulp x)%R.
+  round beta fexp Zceil x = (round beta fexp Zfloor x + ulp x)%R.
 Proof.
 intros x Fx.
-unfold round, Zrnd, ulp. simpl.
+unfold round, ulp. simpl.
 unfold F2R. simpl.
 rewrite Zceil_floor_neq.
 rewrite Z2R_plus. simpl.
@@ -163,12 +163,12 @@ Qed.
 Theorem round_DN_succ :
   forall x, (0 < x)%R -> F x ->
   forall eps, (0 <= eps < ulp x)%R ->
-  round beta fexp rndDN (x + eps) = x.
+  round beta fexp Zfloor (x + eps) = x.
 Proof.
 intros x Zx Fx eps Heps.
 pattern x at 2 ; rewrite Fx.
 unfold round.
-unfold scaled_mantissa, Zrnd. simpl.
+unfold scaled_mantissa. simpl.
 unfold canonic_exponent at 1 2.
 rewrite ln_beta_succ ; trivial.
 apply (f_equal (fun m => F2R (Float beta m _))).
@@ -264,8 +264,8 @@ Qed.
 Theorem round_UP_succ :
   forall x, (0 < x)%R -> F x ->
   forall eps, (0 < eps <= ulp x)%R ->
-  round beta fexp rndUP (x + eps) = (x + ulp x)%R.
-Proof.
+  round beta fexp Zceil (x + eps) = (x + ulp x)%R.
+Proof with auto with typeclass_instances.
 intros x Zx Fx eps (Heps1,[Heps2|Heps2]).
 assert (Heps: (0 <= eps < ulp x)%R).
 split.
@@ -277,13 +277,12 @@ rewrite Hd.
 unfold ulp, canonic_exponent.
 now rewrite ln_beta_succ.
 intros Fs.
-rewrite round_generic in Hd.
+rewrite round_generic in Hd...
 apply Rgt_not_eq with (2 := Hd).
 pattern x at 2 ; rewrite <- Rplus_0_r.
 now apply Rplus_lt_compat_l.
-exact Fs.
 rewrite Heps2.
-apply round_generic.
+apply round_generic...
 now apply generic_format_succ.
 Qed.
 
@@ -292,7 +291,7 @@ Theorem succ_lt_le:
   F x -> F y ->
   (0 < x < y)%R ->
   (x + ulp x <= y)%R.
-Proof.
+Proof with auto with typeclass_instances.
 intros x y Hx Hy H.
 case (Rle_or_lt (ulp x) (y-x)); intros H1.
 apply Rplus_le_reg_r with (-x)%R.
@@ -303,64 +302,65 @@ absurd (x < y)%R.
 apply Rle_not_lt; apply Req_le.
 rewrite <- round_DN_succ with (eps:=(y-x)%R); try easy.
 ring_simplify (x+(y-x))%R.
-apply sym_eq; now apply round_generic.
+apply sym_eq.
+apply round_generic...
 split; trivial.
 apply Rlt_le; now apply Rlt_Rminus.
 Qed.
 
 (** Error of a rounding, expressed in number of ulps *)
 Theorem ulp_error :
-  forall Zrnd x,
-  (Rabs (round beta fexp Zrnd x - x) < ulp x)%R.
-Proof.
-intros Zrnd x.
+  forall rnd { Zrnd : Valid_rnd rnd } x,
+  (Rabs (round beta fexp rnd x - x) < ulp x)%R.
+Proof with auto with typeclass_instances.
+intros rnd Zrnd x.
 destruct (generic_format_EM beta fexp x) as [Hx|Hx].
 (* x = rnd x *)
-rewrite round_generic with (1 := Hx).
+rewrite round_generic...
 unfold Rminus.
 rewrite Rplus_opp_r, Rabs_R0.
 apply bpow_gt_0.
 (* x <> rnd x *)
-destruct (round_DN_or_UP beta fexp Zrnd x) as [H|H] ; rewrite H ; clear H.
+destruct (round_DN_or_UP beta fexp rnd x) as [H|H] ; rewrite H ; clear H.
 (* . *)
 rewrite Rabs_left1.
 rewrite Ropp_minus_distr.
-apply Rplus_lt_reg_r with (round beta fexp rndDN x).
+apply Rplus_lt_reg_r with (round beta fexp Zfloor x).
 rewrite <- ulp_DN_UP with (1 := Hx).
 ring_simplify.
-assert (Hu: (x <= round beta fexp rndUP x)%R).
-apply (round_UP_pt beta fexp x).
+assert (Hu: (x <= round beta fexp Zceil x)%R).
+apply round_UP_pt...
 destruct Hu as [Hu|Hu].
 exact Hu.
 elim Hx.
 rewrite Hu.
-now apply generic_format_round.
+apply generic_format_round...
 apply Rle_minus.
-apply (round_DN_pt beta fexp x).
+apply round_DN_pt...
 (* . *)
 rewrite Rabs_pos_eq.
 rewrite ulp_DN_UP with (1 := Hx).
 apply Rplus_lt_reg_r with (x - ulp x)%R.
 ring_simplify.
-assert (Hd: (round beta fexp rndDN x <= x)%R).
-apply (round_DN_pt beta fexp x).
+assert (Hd: (round beta fexp Zfloor x <= x)%R).
+apply round_DN_pt...
 destruct Hd as [Hd|Hd].
 exact Hd.
 elim Hx.
 rewrite <- Hd.
-now apply generic_format_round.
+apply generic_format_round...
 apply Rle_0_minus.
-apply (round_UP_pt beta fexp x).
+apply round_UP_pt...
 Qed.
 
 Theorem ulp_half_error :
   forall choice x,
-  (Rabs (round beta fexp (rndN choice) x - x) <= /2 * ulp x)%R.
-Proof.
+  (Rabs (round beta fexp (Znearest choice) x - x) <= /2 * ulp x)%R.
+Proof with auto with typeclass_instances.
 intros choice x.
 destruct (generic_format_EM beta fexp x) as [Hx|Hx].
 (* x = rnd x *)
-rewrite round_generic.
+rewrite round_generic...
 unfold Rminus.
 rewrite Rplus_opp_r, Rabs_R0.
 apply Rmult_le_pos.
@@ -368,9 +368,8 @@ apply Rlt_le.
 apply Rinv_0_lt_compat.
 now apply (Z2R_lt 0 2).
 apply bpow_ge_0.
-exact Hx.
 (* x <> rnd x *)
-set (d := round beta fexp rndDN x).
+set (d := round beta fexp Zfloor x).
 destruct (generic_N_pt beta fexp choice x) as (Hr1, Hr2).
 destruct (Rle_or_lt (x - d) (d + ulp x - x)) as [H|H].
 (* . rnd(x) = rndd(x) *)
@@ -388,7 +387,7 @@ right. field.
 apply Rle_minus.
 apply (round_DN_pt beta fexp x).
 (* . rnd(x) = rndu(x) *)
-assert (Hu: (d + ulp x)%R = round beta fexp rndUP x).
+assert (Hu: (d + ulp x)%R = round beta fexp Zceil x).
 unfold d.
 now rewrite <- ulp_DN_UP.
 apply Rle_trans with (Rabs (d + ulp x - x)).
@@ -437,8 +436,8 @@ Qed.
 
 Theorem ulp_DN_pt_eq :
   forall x,
-  (0 < round beta fexp rndDN x)%R ->
-  ulp (round beta fexp rndDN x) = ulp x.
+  (0 < round beta fexp Zfloor x)%R ->
+  ulp (round beta fexp Zfloor x) = ulp x.
 Proof.
 intros x Hd.
 unfold ulp.
@@ -446,51 +445,50 @@ now rewrite canonic_exponent_DN with (2 := Hd).
 Qed.
 
 Theorem ulp_error_f :
-  forall { Hm : Monotone_exp fexp },
-  forall Zrnd x,
-  (round beta fexp Zrnd x <> 0)%R ->
-  (Rabs (round beta fexp Zrnd x - x) < ulp (round beta fexp Zrnd x))%R.
-Proof.
-intros Hm Zrnd x Hfx.
-case (round_DN_or_UP beta fexp Zrnd x); intros Hx.
+  forall { Hm : Monotone_exp fexp } rnd { Zrnd : Valid_rnd rnd } x,
+  (round beta fexp rnd x <> 0)%R ->
+  (Rabs (round beta fexp rnd x - x) < ulp (round beta fexp rnd x))%R.
+Proof with auto with typeclass_instances.
+intros Hm rnd Zrnd x Hfx.
+case (round_DN_or_UP beta fexp rnd x); intros Hx.
 (* *)
-case (Rle_or_lt 0 (round beta fexp rndDN x)).
+case (Rle_or_lt 0 (round beta fexp Zfloor x)).
 intros H; destruct H.
 rewrite Hx at 2.
 rewrite ulp_DN_pt_eq; trivial.
-apply ulp_error.
+apply ulp_error...
 rewrite Hx in Hfx; contradict Hfx; auto with real.
 intros H.
 apply Rlt_le_trans with (1:=ulp_error _ _).
-rewrite <- (ulp_opp x), <- (ulp_opp (round beta fexp Zrnd x)).
+rewrite <- (ulp_opp x), <- (ulp_opp (round beta fexp rnd x)).
 apply ulp_monotone; trivial.
 apply Ropp_0_gt_lt_contravar; apply Rlt_gt.
 case (Rle_or_lt 0 x); trivial.
 intros H1; contradict H.
 apply Rle_not_lt.
-apply round_monotone_l; trivial.
+apply round_monotone_l...
 apply generic_format_0.
 apply Ropp_le_contravar; rewrite Hx.
 apply (round_DN_pt beta fexp x).
 (* *)
-rewrite Hx; case (Rle_or_lt 0 (round beta fexp rndUP x)).
+rewrite Hx; case (Rle_or_lt 0 (round beta fexp Zceil x)).
 intros H; destruct H.
 apply Rlt_le_trans with (1:=ulp_error _ _).
 apply ulp_monotone; trivial.
 case (Rle_or_lt x 0); trivial.
 intros H1; contradict H.
 apply Rle_not_lt.
-apply round_monotone_r; trivial.
+apply round_monotone_r...
 apply generic_format_0.
-apply (round_UP_pt beta fexp x).
+apply round_UP_pt...
 rewrite Hx in Hfx; contradict Hfx; auto with real.
 intros H.
-rewrite <- (ulp_opp (round beta fexp rndUP x)).
+rewrite <- (ulp_opp (round beta fexp Zceil x)).
 rewrite <- round_DN_opp.
 rewrite ulp_DN_pt_eq; trivial.
-replace (round beta fexp rndUP x - x)%R with (-((round beta fexp rndDN (-x) - (-x))))%R.
+replace (round beta fexp Zceil x - x)%R with (-((round beta fexp Zfloor (-x) - (-x))))%R.
 rewrite Rabs_Ropp.
-apply ulp_error.
+apply ulp_error...
 rewrite round_DN_opp; ring.
 rewrite round_DN_opp; apply Ropp_0_gt_lt_contravar; apply Rlt_gt; assumption.
 Qed.
@@ -498,13 +496,13 @@ Qed.
 Theorem ulp_half_error_f : 
   forall { Hm : Monotone_exp fexp },
   forall choice x,
-  (round beta fexp (rndN choice) x <> 0)%R ->
-  (Rabs (round beta fexp (rndN choice) x - x) <= /2 * ulp (round beta fexp (rndN choice) x))%R.
-Proof.
+  (round beta fexp (Znearest choice) x <> 0)%R ->
+  (Rabs (round beta fexp (Znearest choice) x - x) <= /2 * ulp (round beta fexp (Znearest choice) x))%R.
+Proof with auto with typeclass_instances.
 intros Hm choice x Hfx.
-case (round_DN_or_UP beta fexp (rndN choice) x); intros Hx.
+case (round_DN_or_UP beta fexp (Znearest choice) x); intros Hx.
 (* *)
-case (Rle_or_lt 0 (round beta fexp rndDN x)).
+case (Rle_or_lt 0 (round beta fexp Zfloor x)).
 intros H; destruct H.
 rewrite Hx at 2.
 rewrite ulp_DN_pt_eq; trivial.
@@ -514,18 +512,18 @@ intros H.
 apply Rle_trans with (1:=ulp_half_error _ _).
 apply Rmult_le_compat_l.
 auto with real.
-rewrite <- (ulp_opp x), <- (ulp_opp (round beta fexp (rndN choice) x)).
+rewrite <- (ulp_opp x), <- (ulp_opp (round beta fexp (Znearest choice) x)).
 apply ulp_monotone; trivial.
 apply Ropp_0_gt_lt_contravar; apply Rlt_gt.
 case (Rle_or_lt 0 x); trivial.
 intros H1; contradict H.
 apply Rle_not_lt.
-apply round_monotone_l; trivial.
+apply round_monotone_l...
 apply generic_format_0.
 apply Ropp_le_contravar; rewrite Hx.
 apply (round_DN_pt beta fexp x).
 (* *)
-case (Rle_or_lt 0 (round beta fexp rndUP x)).
+case (Rle_or_lt 0 (round beta fexp Zceil x)).
 intros H; destruct H.
 apply Rle_trans with (1:=ulp_half_error _ _).
 apply Rmult_le_compat_l.
@@ -534,12 +532,12 @@ apply ulp_monotone; trivial.
 case (Rle_or_lt x 0); trivial.
 intros H1; contradict H.
 apply Rle_not_lt.
-apply round_monotone_r; trivial.
+apply round_monotone_r...
 apply generic_format_0.
 rewrite Hx; apply (round_UP_pt beta fexp x).
 rewrite Hx in Hfx; contradict Hfx; auto with real.
 intros H.
-rewrite Hx at 2; rewrite <- (ulp_opp (round beta fexp rndUP x)).
+rewrite Hx at 2; rewrite <- (ulp_opp (round beta fexp Zceil x)).
 rewrite <- round_DN_opp.
 rewrite ulp_DN_pt_eq; trivial.
 pattern x at 1 2; rewrite <- Ropp_involutive.
@@ -881,7 +879,7 @@ Qed.
 Theorem round_UP_pred :
   forall x, (0 < pred x)%R -> F x ->
   forall eps, (0 < eps <= ulp (pred x) )%R ->
-  round beta fexp rndUP (pred x + eps) = x.
+  round beta fexp Zceil (pred x + eps) = x.
 Proof.
 intros x Hx Fx eps Heps.
 rewrite round_UP_succ; trivial.
@@ -897,7 +895,7 @@ Qed.
 Theorem round_DN_pred :
   forall x, (0 < pred x)%R -> F x ->
   forall eps, (0 < eps <= ulp (pred x))%R ->
-  round beta fexp rndDN (x - eps) = pred x.
+  round beta fexp Zfloor (x - eps) = pred x.
 Proof.
 intros x Hpx Fx eps Heps.
 assert (Hx:(0 < x)%R).
@@ -924,7 +922,7 @@ Theorem le_pred_lt:
   F x -> F y ->
   (0 < x < y)%R ->
   (x <= pred y)%R.
-Proof.
+Proof with auto with typeclass_instances.
 intros x y Hx Hy H. 
 assert (Zy:(0 < y)%R).
 apply Rlt_trans with (1:=proj1 H).
@@ -1027,7 +1025,8 @@ replace x with (y-(y-x))%R by ring.
 rewrite <- round_DN_pred with (eps:=(y-x)%R); try easy.
 ring_simplify (y-(y-x))%R.
 apply Req_le.
-apply sym_eq; now apply round_generic.
+apply sym_eq.
+apply round_generic...
 split; trivial.
 now apply Rlt_Rminus.
 now apply Rlt_le.
