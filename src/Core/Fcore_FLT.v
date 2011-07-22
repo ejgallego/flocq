@@ -274,8 +274,7 @@ Qed.
 (** and it allows a rounding to nearest, ties to even. *)
 Hypothesis NE_prop : Zeven beta = false \/ (1 < prec)%Z.
 
-Theorem NE_ex_prop_FLT :
-  NE_ex_prop beta FLT_exp.
+Global Instance exists_NE_FLT : Exists_NE beta FLT_exp.
 Proof.
 destruct NE_prop as [H|H].
 now left.
@@ -290,24 +289,6 @@ omega.
 generalize (Zmax_spec (e + 1 - prec) emin).
 generalize (Zmax_spec (emin + 1 - prec) emin).
 omega.
-Qed.
-
-Theorem round_NE_pt_FLT :
-  forall x,
-  Rnd_NE_pt beta FLT_exp x (round beta FLT_exp rndNE x).
-Proof.
-intros x.
-apply round_NE_pt.
-apply FLT_exp_valid.
-apply NE_ex_prop_FLT.
-Qed.
-
-Theorem Rnd_NE_pt_FLT :
-  round_pred (Rnd_NE_pt beta FLT_exp).
-Proof.
-apply Rnd_NE_pt_round.
-apply FLT_exp_valid.
-apply NE_ex_prop_FLT.
 Qed.
 
 End RND_FLT.

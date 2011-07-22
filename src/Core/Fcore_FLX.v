@@ -245,32 +245,13 @@ Qed.
 (** and it allows a rounding to nearest, ties to even. *)
 Hypothesis NE_prop : Zeven beta = false \/ (1 < prec)%Z.
 
-Theorem NE_ex_prop_FLX :
-  NE_ex_prop beta FLX_exp.
+Global Instance exists_NE_FLX : Exists_NE beta FLX_exp.
 Proof.
 destruct NE_prop as [H|H].
 now left.
 right.
 unfold FLX_exp.
 split ; omega.
-Qed.
-
-Theorem round_NE_pt_FLX :
-  forall x,
-  Rnd_NE_pt beta FLX_exp x (round beta FLX_exp rndNE x).
-Proof.
-intros x.
-apply round_NE_pt.
-apply FLX_exp_valid.
-apply NE_ex_prop_FLX.
-Qed.
-
-Theorem Rnd_NE_pt_FLX :
-  round_pred (Rnd_NE_pt beta FLX_exp).
-Proof.
-apply Rnd_NE_pt_round.
-apply FLX_exp_valid.
-apply NE_ex_prop_FLX.
 Qed.
 
 End RND_FLX.

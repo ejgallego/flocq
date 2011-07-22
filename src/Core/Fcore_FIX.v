@@ -75,15 +75,6 @@ apply iff_sym.
 apply FIX_format_generic.
 Qed.
 
-Theorem Rnd_NE_pt_FIX :
-  round_pred (Rnd_NE_pt beta FIX_exp).
-Proof.
-apply Rnd_NE_pt_round.
-apply FIX_exp_valid.
-right.
-split ; easy.
-Qed.
-
 Global Instance FIX_exp_monotone : Monotone_exp FIX_exp.
 Proof.
 intros ex ey H.

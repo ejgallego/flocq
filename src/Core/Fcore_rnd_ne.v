@@ -99,10 +99,11 @@ rewrite round_UP_opp, <- opp_F2R.
 now apply f_equal.
 Qed.
 
-Definition NE_ex_prop := Zeven beta = false \/ forall e,
+Class Exists_NE :=
+  exists_NE : Zeven beta = false \/ forall e,
   ((fexp e < e)%Z -> (fexp (e + 1) < e)%Z) /\ ((e <= fexp e)%Z -> fexp (fexp e + 1) = fexp e).
 
-Hypothesis strong_fexp : NE_ex_prop.
+Context { exists_NE_ : Exists_NE }.
 
 Theorem DN_UP_parity_generic_pos :
   DN_UP_parity_pos_prop.
@@ -135,7 +136,7 @@ now apply valid_exp.
 rewrite Hd3, Hu3.
 rewrite Zmult_1_l.
 simpl.
-destruct strong_fexp as [H|H].
+destruct exists_NE_ as [H|H].
 apply Zeven_Zpower_odd with (2 := H).
 apply Zle_minus_le_0.
 now apply valid_exp.
@@ -211,7 +212,7 @@ rewrite eqb_sym. simpl.
 fold (negb (Zeven (beta ^ (ex - fexp ex)))).
 rewrite Bool.negb_involutive.
 rewrite (Zeven_Zpower beta (ex - fexp ex)). 2: omega.
-destruct strong_fexp.
+destruct exists_NE_.
 rewrite H.
 apply Zeven_Zpower_odd with (2 := H).
 now apply Zle_minus_le_0.
@@ -411,7 +412,7 @@ rewrite ln_beta_bpow.
 rewrite <- bpow_plus, <- Z2R_Zpower.
 rewrite Ztrunc_Z2R.
 case_eq (Zeven beta) ; intros Hr.
-destruct strong_fexp as [Hs|Hs].
+destruct exists_NE_ as [Hs|Hs].
 now rewrite Hs in Hr.
 destruct (Hs ex) as (H,_).
 rewrite Zeven_Zpower.

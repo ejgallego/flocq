@@ -41,8 +41,10 @@ Theorem Fsqrt_FLT_ne_correct :
 Proof.
 intros x.
 replace (F2R (Fsqrt_FLT_ne x)) with (round beta (FLT_exp emin prec) rndNE (sqrt (F2R x))).
-apply round_NE_pt_FLT.
+apply round_NE_pt.
+apply FLT_exp_valid.
 omega.
+apply exists_NE_FLT.
 now right.
 unfold Fsqrt_FLT_ne.
 destruct x as (mx, ex).
@@ -78,8 +80,10 @@ Qed.
 
 End test.
 
+(*
 Definition radix10 : radix.
 now refine (Build_radix 10 _).
 Defined.
 
-(* Time Eval vm_compute in (Fsqrt radix10 20 (-15) (Float radix10 2 0)). *)
+Time Eval vm_compute in (Fsqrt radix10 20 (-15) (Float radix10 2 0)).
+*)
