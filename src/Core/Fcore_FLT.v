@@ -44,7 +44,7 @@ Definition FLT_format (x : R) :=
 Definition FLT_exp e := Zmax (e - prec) emin.
 
 (** Properties of the FLT format *)
-Theorem FLT_exp_correct : valid_exp FLT_exp.
+Global Instance FLT_exp_valid : Valid_exp FLT_exp.
 Proof.
 intros k.
 unfold FLT_exp.
@@ -124,11 +124,10 @@ Qed.
 Theorem FLT_format_satisfies_any :
   satisfies_any FLT_format.
 Proof.
-refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FLT_exp _)).
+refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FLT_exp)).
 intros x.
 apply iff_sym.
 apply FLT_format_generic.
-exact FLT_exp_correct.
 Qed.
 
 Theorem FLT_canonic_FLX :
@@ -278,7 +277,7 @@ Theorem FLT_not_FTZ :
   not_FTZ_prop FLT_exp.
 Proof.
 apply monotone_exp_not_FTZ.
-apply FLT_exp_correct.
+apply FLT_exp_valid.
 apply FLT_exp_monotone.
 Qed.
 
@@ -309,7 +308,7 @@ Theorem round_NE_pt_FLT :
 Proof.
 intros x.
 apply round_NE_pt.
-apply FLT_exp_correct.
+apply FLT_exp_valid.
 apply NE_ex_prop_FLT.
 Qed.
 
@@ -317,7 +316,7 @@ Theorem Rnd_NE_pt_FLT :
   round_pred (Rnd_NE_pt beta FLT_exp).
 Proof.
 apply Rnd_NE_pt_round.
-apply FLT_exp_correct.
+apply FLT_exp_valid.
 apply NE_ex_prop_FLT.
 Qed.
 

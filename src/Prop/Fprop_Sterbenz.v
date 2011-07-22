@@ -30,7 +30,7 @@ Variable beta : radix.
 Notation bpow e := (bpow beta e).
 
 Variable fexp : Z -> Z.
-Hypothesis prop_exp : valid_exp fexp.
+Context { valid_exp : Valid_exp fexp }.
 Hypothesis monotone_exp : monotone_exp_prop fexp.
 Notation format := (generic_format beta fexp).
 

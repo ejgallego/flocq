@@ -40,7 +40,8 @@ Definition FIX_format (x : R) :=
 Definition FIX_exp (e : Z) := emin.
 
 (** Properties of the FIX format *)
-Theorem FIX_exp_correct : valid_exp FIX_exp.
+
+Global Instance FIX_exp_valid : Valid_exp FIX_exp.
 Proof.
 intros k.
 unfold FIX_exp.
@@ -68,18 +69,17 @@ Qed.
 Theorem FIX_format_satisfies_any :
   satisfies_any FIX_format.
 Proof.
-refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FIX_exp _)).
+refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FIX_exp)).
 intros x.
 apply iff_sym.
 apply FIX_format_generic.
-exact FIX_exp_correct.
 Qed.
 
 Theorem Rnd_NE_pt_FIX :
   round_pred (Rnd_NE_pt beta FIX_exp).
 Proof.
 apply Rnd_NE_pt_round.
-apply FIX_exp_correct.
+apply FIX_exp_valid.
 right.
 split ; easy.
 Qed.

@@ -43,7 +43,7 @@ Definition FTZ_format (x : R) :=
 Definition FTZ_exp e := if Zlt_bool (e - prec) emin then (emin + prec - 1)%Z else (e - prec)%Z.
 
 (** Properties of the FTZ format *)
-Theorem FTZ_exp_correct : valid_exp FTZ_exp.
+Global Instance FTZ_exp_valid : Valid_exp FTZ_exp.
 Proof.
 intros k.
 unfold FTZ_exp.
@@ -173,11 +173,10 @@ Qed.
 Theorem FTZ_format_satisfies_any :
   satisfies_any FTZ_format.
 Proof.
-refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FTZ_exp _)).
+refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FTZ_exp)).
 intros x.
 apply iff_sym.
 apply FTZ_format_generic.
-exact FTZ_exp_correct.
 Qed.
 
 Theorem FTZ_format_FLXN :

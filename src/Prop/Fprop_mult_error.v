@@ -125,7 +125,7 @@ apply (bpow_lt_bpow beta).
 apply Rle_lt_trans with (1 := proj1 Her).
 apply Rlt_le_trans with (ulp beta (FLX_exp prec) (x * y)).
 apply ulp_error.
-now apply FLX_exp_correct.
+now apply FLX_exp_valid.
 unfold ulp.
 apply bpow_le.
 unfold canonic_exponent, FLX_exp.

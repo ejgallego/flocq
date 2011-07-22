@@ -65,7 +65,7 @@ generalize (Fsqrt_core_correct beta prec mx ex (Zgt_lt _ _ Hm)).
 destruct (Fsqrt_core beta prec mx ex) as ((ms, es), ls).
 intros (H1, H2).
 assert (Hp : (0 < prec)%Z) by omega.
-generalize (round_trunc_NE_correct beta _ (FLT_exp_correct emin prec Hp) (sqrt (F2R (Float beta mx ex))) ms es ls).
+generalize (@round_trunc_NE_correct beta _  (FLT_exp_valid emin prec Hp) (sqrt (F2R (Float beta mx ex))) ms es ls).
 destruct (truncate beta (FLT_exp emin prec) (ms, es, ls)) as ((mr, er), lr).
 intros Hr. apply Hr. clear Hr.
 apply sqrt_ge_0.

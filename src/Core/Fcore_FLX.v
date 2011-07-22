@@ -43,7 +43,8 @@ Definition FLX_format (x : R) :=
 Definition FLX_exp (e : Z) := (e - prec)%Z.
 
 (** Properties of the FLX format *)
-Theorem FLX_exp_correct : valid_exp FLX_exp.
+
+Global Instance FLX_exp_valid : Valid_exp FLX_exp.
 Proof.
 intros k.
 unfold FLX_exp.
@@ -136,11 +137,10 @@ Qed.
 Theorem FLX_format_satisfies_any :
   satisfies_any FLX_format.
 Proof.
-refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FLX_exp _)).
+refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FLX_exp)).
 intros x.
 apply iff_sym.
 apply FLX_format_generic.
-exact FLX_exp_correct.
 Qed.
 
 (** unbounded floating-point format with normal mantissas *)
@@ -227,13 +227,12 @@ Qed.
 Theorem FLXN_format_satisfies_any :
   satisfies_any FLXN_format.
 Proof.
-refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FLX_exp _)).
+refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FLX_exp)).
 split ; intros H.
 apply -> FLX_format_FLXN.
 now apply <- FLX_format_generic.
 apply -> FLX_format_generic.
 now apply <- FLX_format_FLXN.
-exact FLX_exp_correct.
 Qed.
 
 (** FLX is a nice format: it has a monotone exponent... *)
@@ -249,7 +248,7 @@ Theorem FLX_not_FTZ :
   not_FTZ_prop FLX_exp.
 Proof.
 apply monotone_exp_not_FTZ.
-apply FLX_exp_correct.
+apply FLX_exp_valid.
 apply FLX_exp_monotone.
 Qed.
 
@@ -272,7 +271,7 @@ Theorem round_NE_pt_FLX :
 Proof.
 intros x.
 apply round_NE_pt.
-apply FLX_exp_correct.
+apply FLX_exp_valid.
 apply NE_ex_prop_FLX.
 Qed.
 
@@ -280,7 +279,7 @@ Theorem Rnd_NE_pt_FLX :
   round_pred (Rnd_NE_pt beta FLX_exp).
 Proof.
 apply Rnd_NE_pt_round.
-apply FLX_exp_correct.
+apply FLX_exp_valid.
 apply NE_ex_prop_FLX.
 Qed.
 

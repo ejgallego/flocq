@@ -88,7 +88,7 @@ destruct (format_nx x Hx) as (fx,(Hx1,Hx2)).
 destruct (format_nx y Hy) as (fy,(Hy1,Hy2)).
 destruct (format_nx (round beta (FLX_exp prec) Zrnd (x / y))) as (fr,(Hr1,Hr2)).
 apply generic_format_round.
-now apply FLX_exp_correct.
+now apply FLX_exp_valid.
 unfold Rminus; apply format_add with fx (Fopp beta (Fmult beta fr fy)); trivial.
 now rewrite Fopp_F2R,mult_F2R, <- Hr1, <- Hy1.
 (* *)
@@ -133,7 +133,7 @@ rewrite Rabs_Ropp.
 replace (bpow (Fexp fr)) with (ulp beta (FLX_exp prec) (F2R fr)).
 rewrite <- Hr1.
 apply ulp_error_f.
-now apply FLX_exp_correct.
+now apply FLX_exp_valid.
 apply FLX_exp_monotone.
 exact Hr.
 unfold ulp; apply f_equal.
@@ -173,7 +173,7 @@ rewrite Hr; unfold Rsqr; ring_simplify (x-0*0)%R; assumption.
 destruct (format_nx x Hx) as (fx,(Hx1,Hx2)).
 destruct (format_nx (round beta (FLX_exp prec) (rndN choice) (sqrt x))) as (fr,(Hr1,Hr2)).
 apply generic_format_round.
-now apply FLX_exp_correct.
+now apply FLX_exp_valid.
 unfold Rminus; apply format_add with fx (Fopp beta (Fmult beta fr fr)); trivial.
 unfold Rsqr; now rewrite Fopp_F2R,mult_F2R, <- Hr1.
 (* *) 
@@ -247,7 +247,7 @@ apply Rabs_pos.
 apply Rle_trans with (/2*ulp beta  (FLX_exp prec) (F2R fr))%R.
 rewrite <- Hr1.
 apply ulp_half_error_f; trivial.
-now apply FLX_exp_correct.
+now apply FLX_exp_valid.
 apply FLX_exp_monotone.
 right; unfold ulp; apply f_equal.
 rewrite Hr2, <- Hr1; trivial. 
@@ -289,7 +289,7 @@ absurd (Rabs (F2R fr) < bpow (es - 1))%R.
 apply Rle_not_lt.
 rewrite <- Hr1.
 apply round_monotone_abs_l.
-now apply FLX_exp_correct.
+now apply FLX_exp_valid.
 apply generic_format_bpow.
 unfold FLX_exp; omega.
 apply Es.

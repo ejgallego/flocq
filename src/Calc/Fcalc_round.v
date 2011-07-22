@@ -31,7 +31,7 @@ Notation bpow e := (bpow beta e).
 Section Fcalc_round_fexp.
 
 Variable fexp : Z -> Z.
-Hypothesis prop_exp : valid_exp fexp.
+Context { valid_exp : Valid_exp fexp }.
 Notation format := (generic_format beta fexp).
 
 (** Relates location and rounding. *)
@@ -719,7 +719,7 @@ ring_simplify.
 rewrite <- Hm'.
 simpl.
 apply sym_eq.
-apply (proj2 (prop_exp e)).
+apply valid_exp.
 exact H2.
 apply Zle_trans with e.
 eapply bpow_lt_bpow.

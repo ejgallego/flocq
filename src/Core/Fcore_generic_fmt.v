@@ -32,14 +32,16 @@ Notation bpow e := (bpow beta e).
 Variable fexp : Z -> Z.
 
 (** To be a good fexp *)
-Definition valid_exp :=
+
+Class Valid_exp :=
+  valid_exp :
   forall k : Z,
   ( (fexp k < k)%Z -> (fexp (k + 1) <= k)%Z ) /\
   ( (k <= fexp k)%Z ->
     (fexp (fexp k + 1) <= fexp k)%Z /\
     forall l : Z, (l <= fexp k)%Z -> fexp l = fexp k ).
 
-Variable prop_exp : valid_exp.
+Context { valid_exp_ : Valid_exp }.
 
 Definition canonic_exponent x :=
   fexp (ln_beta beta x).
@@ -286,7 +288,7 @@ assert (ex' <= fexp ex)%Z.
 apply Zle_trans with (2 := He).
 apply bpow_lt_bpow with beta.
 now apply Rle_lt_trans with (2 := Ex).
-now rewrite (proj2 (proj2 (prop_exp _) He)).
+now rewrite (proj2 (proj2 (valid_exp _) He)).
 Qed.
 
 Theorem mantissa_DN_small_pos :
@@ -390,11 +392,10 @@ Theorem generic_format_bpow_inv :
 Proof.
 intros e He.
 apply Znot_gt_le; intros He2.
-unfold valid_exp in prop_exp.
 assert (e+1 <= fexp (e+1))%Z.
 replace (fexp (e+1)) with (fexp e).
 omega.
-destruct (prop_exp e) as (Y1,Y2).
+destruct (valid_exp e) as (Y1,Y2).
 apply sym_eq; apply Y2; omega.
 absurd (bpow e=0)%R.
 apply sym_not_eq; apply Rlt_not_eq.
@@ -479,7 +480,7 @@ apply Rle_lt_trans with (1 := proj1 Hex).
 apply Rle_lt_trans with (1 := Hxy).
 apply Hey.
 destruct (Zle_or_lt ey (fexp ey)) as [Hy1|Hy1].
-rewrite (proj2 (proj2 (prop_exp ey) Hy1) ex).
+rewrite (proj2 (proj2 (valid_exp ey) Hy1) ex).
 apply F2R_le_compat.
 apply Zrnd_monotone.
 apply Rmult_le_compat_r.
@@ -488,7 +489,7 @@ exact Hxy.
 now apply Zle_trans with ey.
 destruct (Zle_lt_or_eq _ _ He) as [He'|He'].
 destruct (Zle_or_lt ey (fexp ex)) as [Hx2|Hx2].
-rewrite (proj2 (proj2 (prop_exp ex) (Zle_trans _ _ _ He Hx2)) ey Hx2).
+rewrite (proj2 (proj2 (valid_exp ex) (Zle_trans _ _ _ He Hx2)) ey Hx2).
 apply F2R_le_compat.
 apply Zrnd_monotone.
 apply Rmult_le_compat_r.
@@ -661,14 +662,14 @@ destruct (Zle_or_lt ex (fexp ex)) as [He|He].
 destruct (round_bounded_small_pos _ _ He Hex) as [Hr|Hr] ; rewrite Hr.
 apply generic_format_0.
 apply generic_format_bpow.
-now apply (proj2 (prop_exp ex)).
+now apply valid_exp.
 (* large *)
 generalize (round_bounded_large_pos _ _ He Hex).
 intros (Hr1, Hr2).
 destruct (Rle_or_lt (bpow ex) (round x)) as [Hr|Hr].
 rewrite <- (Rle_antisym _ _ Hr Hr2).
 apply generic_format_bpow.
-now apply (proj1 (prop_exp ex)).
+now apply valid_exp.
 assert (Hr' := conj Hr1 Hr).
 unfold generic_format, scaled_mantissa.
 rewrite (canonic_exponent_fexp_pos _ _ Hr').
@@ -1114,7 +1115,7 @@ apply Z2R_Zpower.
 unfold canonic_exponent.
 set (ex := ln_beta beta x).
 generalize (not_FTZ ex).
-generalize (proj2 (proj2 (prop_exp _) He) (fexp ex + 1)%Z).
+generalize (proj2 (proj2 (valid_exp _) He) (fexp ex + 1)%Z).
 omega.
 rewrite <- H.
 rewrite <- Z2R_mult, Ztrunc_Z2R.
@@ -1139,7 +1140,7 @@ intros Hm e.
 destruct (Z_lt_le_dec (fexp e) e) as [He|He].
 apply Hm.
 now apply Zlt_le_succ.
-apply (proj2 (prop_exp e) He).
+now apply valid_exp.
 Qed.
 
 Theorem canonic_exponent_round :

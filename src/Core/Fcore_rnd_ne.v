@@ -33,7 +33,7 @@ Notation bpow e := (bpow beta e).
 
 Variable fexp : Z -> Z.
 
-Variable prop_exp : valid_exp fexp.
+Context { valid_exp : Valid_exp fexp }.
 
 Notation format := (generic_format beta fexp).
 Notation canonic := (canonic beta fexp).
@@ -124,21 +124,21 @@ apply canonic_unicity with (1 := Hu).
 apply (f_equal fexp).
 rewrite <- F2R_change_exp.
 now rewrite F2R_bpow, ln_beta_bpow.
-now eapply prop_exp.
+now apply valid_exp.
 rewrite <- F2R_change_exp.
 rewrite F2R_bpow.
 apply sym_eq.
 rewrite Hxu.
 apply sym_eq.
 apply round_UP_small_pos with (1 := Hex) (2 := Hxe).
-now eapply prop_exp.
+now apply valid_exp.
 rewrite Hd3, Hu3.
 rewrite Zmult_1_l.
 simpl.
 destruct strong_fexp as [H|H].
 apply Zeven_Zpower_odd with (2 := H).
 apply Zle_minus_le_0.
-now eapply prop_exp.
+now apply valid_exp.
 rewrite (proj2 (H ex)).
 now rewrite Zminus_diag.
 exact Hxe.
@@ -147,18 +147,18 @@ assert (Hd4: (bpow (ex - 1) <= Rabs (F2R xd) < bpow ex)%R).
 rewrite Rabs_pos_eq.
 rewrite Hxd.
 split.
-apply (round_DN_pt beta fexp prop_exp x).
+apply (round_DN_pt beta fexp x).
 apply generic_format_bpow.
 ring_simplify (ex - 1 + 1)%Z.
 omega.
 apply Hex.
 apply Rle_lt_trans with (2 := proj2 Hex).
-apply (round_DN_pt beta fexp prop_exp x).
+apply (round_DN_pt beta fexp x).
 rewrite Hxd.
-apply (round_DN_pt beta fexp prop_exp x).
+apply (round_DN_pt beta fexp x).
 apply generic_format_0.
 now apply Rlt_le.
-assert (Hxe2 : (fexp (ex + 1) <= ex)%Z) by now eapply prop_exp.
+assert (Hxe2 : (fexp (ex + 1) <= ex)%Z) by now apply valid_exp.
 assert (Hud: (F2R xu = F2R xd + ulp beta fexp x)%R).
 rewrite Hxu, Hxd.
 now apply ulp_DN_UP.
@@ -173,7 +173,7 @@ apply canonic_unicity with (1 := Hu).
 apply (f_equal fexp).
 rewrite <- F2R_change_exp.
 now rewrite F2R_bpow, ln_beta_bpow.
-now eapply prop_exp.
+now apply valid_exp.
 rewrite <- Hu2.
 apply sym_eq.
 rewrite <- F2R_change_exp.
@@ -242,12 +242,12 @@ rewrite Rabs_pos_eq.
 split.
 apply Rle_trans with (1 := proj1 Hex).
 rewrite Hxu.
-apply (round_UP_pt beta fexp prop_exp x).
+apply (round_UP_pt beta fexp x).
 exact Hu2.
 apply Rlt_le.
 apply Rlt_le_trans with (1 := H0x).
 rewrite Hxu.
-apply (round_UP_pt beta fexp prop_exp x).
+apply (round_UP_pt beta fexp x).
 Qed.
 
 Theorem DN_UP_parity_generic :
@@ -350,11 +350,11 @@ destruct (Req_dec (mx - Z2R (Zfloor mx)) (/2)) as [Hm|Hm].
 left.
 exists (Float beta (Ztrunc (scaled_mantissa beta fexp xr)) (canonic_exponent beta fexp xr)).
 split.
-apply (generic_N_pt beta fexp prop_exp _ x).
+apply (generic_N_pt beta fexp _ x).
 split.
 unfold Fcore_generic_fmt.canonic. simpl.
 apply f_equal.
-apply (generic_N_pt beta fexp prop_exp _ x).
+apply (generic_N_pt beta fexp _ x).
 simpl.
 unfold xr, round, Zrnd. simpl.
 unfold Znearest.
@@ -436,7 +436,7 @@ pattern (fexp ex) ; rewrite <- canonic_exponent_fexp_pos with (1 := Hex).
 now apply sym_eq.
 apply Rgt_not_eq.
 apply bpow_gt_0.
-generalize (proj1 (prop_exp ex) He).
+generalize (proj1 (valid_exp ex) He).
 omega.
 (* .. small pos *)
 assert (Zeven (Zfloor mx) = true). 2: now rewrite H in Hmx.

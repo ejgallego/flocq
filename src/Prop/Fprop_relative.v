@@ -28,7 +28,7 @@ Notation bpow e := (bpow beta e).
 Section Fprop_relative_generic.
 
 Variable fexp : Z -> Z.
-Hypothesis prop_exp : valid_exp fexp.
+Context { prop_exp : Valid_exp fexp }.
 
 Theorem generic_relative_error_lt_conversion :
   forall rnd x b, (0 < b)%R ->
@@ -404,7 +404,7 @@ Theorem relative_error_FLT_F2R :
 Proof.
 intros m x Hx.
 apply generic_relative_error_F2R.
-now apply FLT_exp_correct.
+now apply FLT_exp_valid.
 apply relative_error_FLT_aux.
 exact Hx.
 Qed.
@@ -416,7 +416,7 @@ Theorem relative_error_FLT :
 Proof.
 intros x Hx.
 apply generic_relative_error with (emin + prec - 1)%Z.
-now apply FLT_exp_correct.
+now apply FLT_exp_valid.
 apply relative_error_FLT_aux.
 exact Hx.
 Qed.
@@ -455,7 +455,7 @@ Theorem relative_error_N_FLT :
 Proof.
 intros x Hx.
 apply generic_relative_error_N with (emin + prec - 1)%Z.
-now apply FLT_exp_correct.
+now apply FLT_exp_valid.
 apply relative_error_FLT_aux.
 exact Hx.
 Qed.
@@ -484,7 +484,7 @@ Theorem relative_error_N_FLT_2 :
 Proof.
 intros x Hx.
 apply generic_relative_error_N_2 with (emin + prec - 1)%Z.
-now apply FLT_exp_correct.
+now apply FLT_exp_valid.
 apply relative_error_FLT_aux.
 exact Hp.
 exact Hx.
@@ -496,7 +496,7 @@ Theorem relative_error_N_FLT_F2R :
 Proof.
 intros m x.
 apply generic_relative_error_N_F2R.
-now apply FLT_exp_correct.
+now apply FLT_exp_valid.
 apply relative_error_FLT_aux.
 Qed.
 
@@ -521,7 +521,7 @@ Theorem relative_error_N_FLT_F2R_2 :
 Proof.
 intros m x.
 apply generic_relative_error_N_F2R_2.
-now apply FLT_exp_correct.
+now apply FLT_exp_valid.
 apply relative_error_FLT_aux.
 exact Hp.
 Qed.
@@ -540,7 +540,7 @@ case (Rle_or_lt (bpow (emin+prec)) x); intros Hx.
 (* *)
 destruct generic_relative_error_N_ex with (FLT_exp emin prec) (emin+prec)%Z prec choice x 
   as (eps,(Heps1,Heps2)).
-now apply FLT_exp_correct.
+now apply FLT_exp_valid.
 intros; unfold FLT_exp.
 rewrite Zmax_left; omega.
 rewrite Rabs_right;[assumption|apply Rle_ge; now left].
@@ -560,7 +560,7 @@ apply bpow_ge_0.
 split.
 apply Rle_trans with (/2*ulp beta (FLT_exp emin prec) x)%R.
 apply ulp_half_error.
-now apply FLT_exp_correct.
+now apply FLT_exp_valid.
 apply Rmult_le_compat_l; auto with real.
 unfold ulp.
 apply bpow_le.
@@ -604,7 +604,7 @@ intros x Hx.
 destruct (ln_beta beta x) as (ex, He).
 specialize (He Hx).
 apply generic_relative_error with (ex - 1)%Z.
-now apply FLX_exp_correct.
+now apply FLX_exp_valid.
 intros k _.
 apply relative_error_FLX_aux.
 apply He.
@@ -632,7 +632,7 @@ intros x Hx.
 destruct (ln_beta beta x) as (ex, He).
 specialize (He Hx).
 apply generic_relative_error_2 with (ex - 1)%Z.
-now apply FLX_exp_correct.
+now apply FLX_exp_valid.
 intros k _.
 apply relative_error_FLX_aux.
 exact Hp.
@@ -657,7 +657,7 @@ apply Rle_refl.
 destruct (ln_beta beta x) as (ex, He).
 specialize (He Hx).
 apply generic_relative_error_N with (ex - 1)%Z.
-now apply FLX_exp_correct.
+now apply FLX_exp_valid.
 intros k _.
 apply relative_error_FLX_aux.
 apply He.
@@ -695,7 +695,7 @@ apply Rle_refl.
 destruct (ln_beta beta x) as (ex, He).
 specialize (He Hx).
 apply generic_relative_error_N_2 with (ex - 1)%Z.
-now apply FLX_exp_correct.
+now apply FLX_exp_valid.
 intros k _.
 apply relative_error_FLX_aux.
 exact Hp.

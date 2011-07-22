@@ -31,7 +31,7 @@ Variable beta : radix.
 Notation bpow e := (bpow beta e).
 
 Variable fexp : Z -> Z.
-Hypothesis prop_exp : valid_exp fexp.
+Context { valid_exp : Valid_exp fexp }.
 
 Theorem round_repr_same_exp :
   forall rnd m e,
@@ -112,7 +112,7 @@ apply ln_beta_monotone_abs.
 exact H0.
 pattern x at 3 ; replace x with (-(y - (x + y)))%R by ring.
 rewrite Rabs_Ropp.
-now apply (generic_N_pt beta _ prop_exp choice (x + y)).
+now apply (generic_N_pt beta _ choice (x + y)).
 Qed.
 
 (** Error of the addition *)
@@ -137,7 +137,7 @@ Variable beta : radix.
 Notation bpow e := (bpow beta e).
 
 Variable fexp : Z -> Z.
-Hypothesis prop_exp : valid_exp fexp.
+Context { valid_exp : Valid_exp fexp }.
 Notation format := (generic_format beta fexp).
 
 Hypothesis not_FTZ : not_FTZ_prop fexp.
@@ -160,8 +160,8 @@ destruct (Zle_or_lt exy (fexp exy)) as [He'|He'].
 (* . *)
 assert (H: (x + y)%R = F2R (Float beta (Ztrunc (x * bpow (- fexp exy)) +
   Ztrunc (y * bpow (- fexp exy)) * Zpower beta (fexp exy - fexp exy)) (fexp exy))).
-rewrite (subnormal_exponent beta fexp prop_exp not_FTZ exy x He' Hx) at 1.
-rewrite (subnormal_exponent beta fexp prop_exp not_FTZ exy y He' Hy) at 1.
+rewrite (subnormal_exponent beta fexp not_FTZ exy x He' Hx) at 1.
+rewrite (subnormal_exponent beta fexp not_FTZ exy y He' Hy) at 1.
 rewrite <- plus_F2R.
 unfold Fplus. simpl.
 now rewrite Zle_bool_refl.
@@ -174,7 +174,7 @@ unfold canonic_exponent.
 rewrite ln_beta_unique with (1 := Hexy).
 apply Zle_refl.
 (* . *)
-elim Rle_not_lt with (1 := round_monotone beta _ prop_exp rnd _ _ (proj1 Hexy)).
+elim Rle_not_lt with (1 := round_monotone beta _ rnd _ _ (proj1 Hexy)).
 rewrite (Rabs_pos_eq _ Hp).
 rewrite Hxy.
 rewrite round_generic.

@@ -51,7 +51,7 @@ Hypothesis Hmax : (prec < emax)%Z.
 
 Let emin := (3 - emax - prec)%Z.
 Let fexp := FLT_exp emin prec.
-Let fexp_correct : valid_exp fexp := FLT_exp_correct _ _ Hprec.
+Instance fexp_correct : Valid_exp fexp := FLT_exp_valid _ _ Hprec.
 
 Definition bounded_prec m e :=
   Zeq_bool (fexp (Z_of_nat (S (digits2_Pnat m)) + e)) e.
@@ -497,7 +497,7 @@ now apply F2R_ge_0_compat.
 exact (proj1 (inbetween_float_bounds _ _ _ _ _ Hx)).
 case_eq (shr (shr_record_of_loc m l) e (fexp (digits radix2 m + e) - e)).
 intros mrs e'' H3 H4 H1.
-generalize (truncate_correct radix2 _ fexp_correct x m e l Hx0 Hx (or_introl _ He)).
+generalize (truncate_correct radix2 _ x m e l Hx0 Hx (or_introl _ He)).
 rewrite H1.
 intros (H2,_).
 rewrite <- Hp, H3.
@@ -576,8 +576,8 @@ Proof.
 intros m x mx ex lx Bx Ex.
 unfold binary_round_sign.
 rewrite shr_truncate. 2: easy.
-refine (_ (round_trunc_sign_any_correct _ _ fexp_correct (round_mode m) (choice_mode m) _ x (Zpos mx) ex lx Bx (or_introl _ Ex))).
-refine (_ (truncate_correct_partial _ _ fexp_correct _ _ _ _ _ Bx Ex)).
+refine (_ (round_trunc_sign_any_correct _ _ (round_mode m) (choice_mode m) _ x (Zpos mx) ex lx Bx (or_introl _ Ex))).
+refine (_ (truncate_correct_partial _ _ _ _ _ _ _ Bx Ex)).
 destruct (truncate radix2 fexp (Zpos mx, ex, lx)) as ((m1, e1), l1).
 rewrite loc_of_shr_record_of_loc, shr_m_shr_record_of_loc.
 set (m1' := choice_mode m (Rlt_bool x 0) m1 l1).
@@ -635,7 +635,7 @@ apply Rlt_not_eq.
 now apply F2R_lt_0_compat.
 apply Rgt_not_eq.
 now apply F2R_gt_0_compat.
-refine (_ (truncate_correct_partial _ _ fexp_correct _ _ _ _ _ Br He)).
+refine (_ (truncate_correct_partial _ _ _ _ _ _ _ Br He)).
 2: now rewrite Hr ; apply F2R_gt_0_compat.
 refine (_ (truncate_correct_format radix2 fexp (Zpos m1') e1 _ _ He)).
 2: discriminate.
@@ -1045,7 +1045,7 @@ elim Rle_not_lt with (1 := Bz).
 generalize (bounded_lt_emax _ _ Hx) (bounded_lt_emax _ _ Hy) (andb_prop _ _ Hx) (andb_prop _ _ Hy).
 intros Bx By (Hx',_) (Hy',_).
 generalize (canonic_bounded_prec sx _ _ Hx') (canonic_bounded_prec sy _ _ Hy').
-clear -Bx By Hs fexp_correct.
+clear -Bx By Hs.
 intros Cx Cy.
 destruct sx.
 (* ... *)
