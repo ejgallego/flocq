@@ -32,7 +32,8 @@ Variable beta : radix.
 Notation bpow e := (bpow beta e).
 
 Variable emin prec : Z.
-Variable Hp : Zlt 0 prec.
+
+Context { prec_gt_0_ : Prec_gt_0 prec }.
 
 (* floating-point format with abrupt underflow *)
 Definition FTZ_format (x : R) :=
@@ -56,6 +57,7 @@ generalize (Zlt_cases (emin + prec + 1 - prec) emin).
 case (Zlt_bool (emin + prec + 1 - prec) emin) ; intros H3.
 omega.
 generalize (Zlt_cases (emin + prec - 1 + 1 - prec) emin).
+generalize (prec_gt_0 prec).
 case (Zlt_bool (emin + prec - 1 + 1 - prec) emin) ; omega.
 intros l H3.
 generalize (Zlt_cases (l - prec) emin).
@@ -63,6 +65,7 @@ case (Zlt_bool (l - prec) emin) ; omega.
 split ; intros H2.
 generalize (Zlt_cases (k + 1 - prec) emin).
 case (Zlt_bool (k + 1 - prec) emin) ; omega.
+generalize (prec_gt_0 prec).
 split ; intros ; omega.
 Qed.
 
@@ -183,18 +186,16 @@ Theorem FTZ_format_FLXN :
   forall x : R,
   (bpow (emin + prec - 1) <= Rabs x)%R ->
   ( FTZ_format x <-> FLXN_format beta prec x ).
-Proof.
+Proof with auto with typeclass_instances.
 intros x Hx.
 split.
 (* . *)
 destruct (Req_dec x 0) as [H4|H4].
 intros _.
 rewrite H4.
-apply -> FLX_format_FLXN.
-apply <- FLX_format_generic.
+apply -> FLX_format_FLXN...
+apply <- FLX_format_generic...
 apply generic_format_0.
-exact Hp.
-exact Hp.
 intros ((xm,xe),(H1,(H2,H3))).
 specialize (H2 H4).
 rewrite H1.
@@ -321,7 +322,8 @@ apply bpow_ge_0.
 apply Rle_trans with (2 := proj1 He).
 apply bpow_le.
 unfold FLX_exp.
-omega.
+generalize (prec_gt_0 prec).
+clear -He' ; omega.
 apply bpow_ge_0.
 unfold FLX_exp, FTZ_exp.
 generalize (Zlt_cases (ex - prec) emin).

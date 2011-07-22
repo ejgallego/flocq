@@ -27,6 +27,10 @@ Section test.
 Variable beta : radix.
 Variable prec emin : Z.
 Variable Hprec : (1 < prec)%Z.
+Instance prec_gt_0_ : Prec_gt_0 prec.
+unfold Prec_gt_0.
+omega.
+Qed.
 
 Definition Fsqrt_FLT_ne (f : float beta) :=
   let '(Float m e) := f in
@@ -38,14 +42,10 @@ Definition Fsqrt_FLT_ne (f : float beta) :=
 Theorem Fsqrt_FLT_ne_correct :
   forall x,
   Rnd_NE_pt beta (FLT_exp emin prec) (sqrt (F2R x)) (F2R (Fsqrt_FLT_ne x)).
-Proof.
+Proof with auto with typeclass_instances.
 intros x.
 replace (F2R (Fsqrt_FLT_ne x)) with (round beta (FLT_exp emin prec) rndNE (sqrt (F2R x))).
-apply round_NE_pt.
-apply FLT_exp_valid.
-omega.
-apply exists_NE_FLT.
-now right.
+apply round_NE_pt...
 unfold Fsqrt_FLT_ne.
 destruct x as (mx, ex).
 generalize (Zle_cases mx 0).
@@ -66,8 +66,7 @@ now rewrite sqrt_0.
 generalize (Fsqrt_core_correct beta prec mx ex (Zgt_lt _ _ Hm)).
 destruct (Fsqrt_core beta prec mx ex) as ((ms, es), ls).
 intros (H1, H2).
-assert (Hp : (0 < prec)%Z) by omega.
-generalize (@round_trunc_NE_correct beta _  (FLT_exp_valid emin prec Hp) (sqrt (F2R (Float beta mx ex))) ms es ls).
+generalize (round_trunc_NE_correct beta (FLT_exp emin prec) (sqrt (F2R (Float beta mx ex))) ms es ls).
 destruct (truncate beta (FLT_exp emin prec) (ms, es, ls)) as ((mr, er), lr).
 intros Hr. apply Hr. clear Hr.
 apply sqrt_ge_0.

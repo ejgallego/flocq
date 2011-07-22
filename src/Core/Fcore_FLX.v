@@ -33,7 +33,11 @@ Variable beta : radix.
 Notation bpow e := (bpow beta e).
 
 Variable prec : Z.
-Variable Hp : Zlt 0 prec.
+
+Class Prec_gt_0 :=
+  prec_gt_0 : (0 < prec)%Z.
+
+Context { prec_gt_0_ : Prec_gt_0 }.
 
 (* unbounded floating-point format *)
 Definition FLX_format (x : R) :=
@@ -48,6 +52,7 @@ Global Instance FLX_exp_valid : Valid_exp FLX_exp.
 Proof.
 intros k.
 unfold FLX_exp.
+generalize prec_gt_0.
 repeat split ; intros ; omega.
 Qed.
 
@@ -198,7 +203,8 @@ ring_simplify (prec - d + (d - prec))%Z.
 now rewrite Rmult_1_r, Z2R_abs.
 apply bpow_ge_0.
 exact H5.
-omega.
+generalize prec_gt_0.
+clear ; omega.
 apply lt_Z2R.
 rewrite Z2R_abs, Z2R_mult, Rabs_mult.
 rewrite 2!Z2R_Zpower.

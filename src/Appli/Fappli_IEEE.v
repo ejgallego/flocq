@@ -46,12 +46,12 @@ End AnyRadix.
 Section Binary.
 
 Variable prec emax : Z.
-Hypothesis Hprec : (0 < prec)%Z.
+Context (prec_gt_0_ : Prec_gt_0 prec).
 Hypothesis Hmax : (prec < emax)%Z.
 
 Let emin := (3 - emax - prec)%Z.
 Let fexp := FLT_exp emin prec.
-Instance fexp_correct : Valid_exp fexp := FLT_exp_valid _ _ Hprec.
+Instance fexp_correct : Valid_exp fexp := FLT_exp_valid emin prec.
 
 Definition bounded_prec m e :=
   Zeq_bool (fexp (Z_of_nat (S (digits2_Pnat m)) + e)) e.
@@ -335,8 +335,9 @@ rewrite <- abs_F2R.
 apply Ex.
 apply Rgt_not_eq.
 now apply F2R_gt_0_compat.
-unfold emin. clear -Hprec Hmax.
-omega.
+unfold emin.
+generalize (prec_gt_0 prec).
+clear -Hmax ; omega.
 Qed.
 
 Record shr_record := { shr_m : Z ; shr_r : bool ; shr_s : bool }.
@@ -678,12 +679,12 @@ rewrite Z_of_nat_S_digits2_Pnat.
 change Fcalc_digits.radix2 with radix2.
 replace (digits radix2 (Zpos (match (Zpower 2 prec - 1)%Z with Zpos p => p | _ => xH end))) with prec.
 unfold fexp, FLT_exp, emin.
-clear -Hprec Hmax.
-zify ; omega.
+generalize (prec_gt_0 prec).
+clear -Hmax ; zify ; omega.
 change 2%Z with (radix_val radix2).
 case_eq (Zpower radix2 prec - 1)%Z.
 simpl digits.
-generalize (Zpower_gt_1 radix2 _ Hprec).
+generalize (Zpower_gt_1 radix2 prec (prec_gt_0 prec)).
 clear ; omega.
 intros p Hp.
 apply Zle_antisym.
@@ -700,7 +701,7 @@ apply digits_le_Zpower.
 simpl Zabs. rewrite <- Hp.
 apply Zlt_pred.
 intros p Hp.
-generalize (Zpower_gt_1 radix2 _ Hprec).
+generalize (Zpower_gt_1 radix2 _ (prec_gt_0 prec)).
 clear -Hp ; zify ; omega.
 apply Rnot_lt_le.
 intros Hx.
@@ -780,7 +781,7 @@ unfold fexp, FLT_exp.
 refine (_ (digits_mult_ge radix2 (Zpos mx) (Zpos my) _ _)) ; try discriminate.
 refine (_ (digits_gt_0 radix2 (Zpos mx) _) (digits_gt_0 radix2 (Zpos my) _)) ; try discriminate.
 generalize (digits radix2 (Zpos mx)) (digits radix2 (Zpos my)) (digits radix2 (Zpos mx * Zpos my)).
-clear -Hprec Hmax.
+clear -Hmax.
 unfold emin.
 intros dx dy dxy Hx Hy Hxy.
 zify ; intros ; subst.
@@ -1291,7 +1292,7 @@ rewrite Rlt_bool_true.
 easy.
 (* .. *)
 rewrite Rabs_pos_eq.
-refine (_ (relative_error_FLT_ex radix2 emin prec Hprec (round_mode m) (sqrt (F2R (Float radix2 (Zpos mx) ex))) _)).
+refine (_ (relative_error_FLT_ex radix2 emin prec (prec_gt_0 prec) (round_mode m) (sqrt (F2R (Float radix2 (Zpos mx) ex))) _)).
 fold fexp.
 intros (eps, (Heps, Hr)).
 rewrite Hr.
@@ -1299,7 +1300,8 @@ assert (Heps': (Rabs eps < 1)%R).
 apply Rlt_le_trans with (1 := Heps).
 fold (bpow radix2 0).
 apply bpow_le.
-clear -Hprec. omega.
+generalize (prec_gt_0 prec).
+clear ; omega.
 apply Rsqr_incrst_0.
 3: apply bpow_ge_0.
 rewrite Rsqr_mult.
@@ -1322,8 +1324,8 @@ apply (Rabs_lt_inv _ _ Heps').
 now apply (Z2R_le 0 2).
 change 4%R with (bpow radix2 2).
 apply bpow_le.
-clear -Hprec Hmax.
-omega.
+generalize (prec_gt_0 prec).
+clear -Hmax ; omega.
 apply Rmult_le_pos.
 apply sqrt_ge_0.
 rewrite <- (Rplus_opp_r 1).
@@ -1342,8 +1344,7 @@ unfold Rsqr.
 rewrite <- bpow_plus.
 apply bpow_le.
 unfold emin.
-clear -Hprec Hmax.
-omega.
+clear -Hmax ; omega.
 apply generic_format_ge_bpow with fexp.
 intros.
 apply Zle_max_r.

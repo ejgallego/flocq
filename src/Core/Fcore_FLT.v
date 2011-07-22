@@ -34,7 +34,8 @@ Variable beta : radix.
 Notation bpow e := (bpow beta e).
 
 Variable emin prec : Z.
-Variable Hp : Zlt 0 prec.
+
+Context { prec_gt_0_ : Prec_gt_0 prec }.
 
 (* floating-point format with gradual underflow *)
 Definition FLT_format (x : R) :=
@@ -48,23 +49,9 @@ Global Instance FLT_exp_valid : Valid_exp FLT_exp.
 Proof.
 intros k.
 unfold FLT_exp.
-destruct (Zmax_spec (k - prec) emin) as [(H1,H2)|(H1,H2)] ;
-  rewrite H2 ; clear H2.
-split.
-generalize (Zmax_spec (k + 1 - prec) emin).
-omega.
-intros H0.
-apply False_ind.
-omega.
-split.
-generalize (Zmax_spec (k + 1 - prec) emin).
-omega.
-split.
-generalize (Zmax_spec (emin + 1 - prec) emin).
-omega.
-intros l H0.
-generalize (Zmax_spec (l - prec) emin).
-omega.
+generalize (prec_gt_0 prec).
+repeat split ;
+  intros ; zify ; omega.
 Qed.
 
 Theorem FLT_format_generic :
@@ -237,12 +224,14 @@ rewrite <- F2R_bpow.
 apply generic_format_canonic_exponent.
 unfold generic_format, canonic_exponent, FLT_exp.
 rewrite F2R_bpow, ln_beta_bpow.
+assert (Hp := prec_gt_0 prec).
 apply Zmax_lub ; omega.
 assert (H2: generic_format beta (FIX_exp emin) (bpow (emin + prec))).
 rewrite <- F2R_bpow.
 apply generic_format_canonic_exponent.
 unfold generic_format, canonic_exponent, FIX_exp.
-omega.
+generalize (prec_gt_0 prec).
+clear ; omega.
 destruct Rabs_eq_Rabs with (1 := Hx) as [H|H] ;
   rewrite H ; clear H ;
   split ; intros _ ;
@@ -265,10 +254,8 @@ Qed.
 Global Instance FLT_exp_monotone : Monotone_exp FLT_exp.
 Proof.
 intros ex ey.
-clear Hp.
 unfold FLT_exp.
-generalize (Zmax_spec (ex - prec) emin) (Zmax_spec (ey - prec) emin).
-omega.
+zify ; omega.
 Qed.
 
 (** and it allows a rounding to nearest, ties to even. *)

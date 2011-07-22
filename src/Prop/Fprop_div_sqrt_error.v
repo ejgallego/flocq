@@ -28,7 +28,7 @@ Variable beta : radix.
 Notation bpow e := (bpow beta e).
 
 Variable prec : Z.
-Variable Hp : Zlt 0 prec.
+Context { prec_gt_0_ : Prec_gt_0 prec }.
 
 Notation format := (generic_format beta (FLX_exp prec)).
 Notation cexp := (canonic_exponent beta (FLX_exp prec)).
@@ -92,7 +92,7 @@ now apply FLX_exp_valid.
 unfold Rminus; apply format_add with fx (Fopp beta (Fmult beta fr fy)); trivial.
 now rewrite Fopp_F2R,mult_F2R, <- Hr1, <- Hy1.
 (* *)
-destruct (relative_error_FLX_ex beta prec Hp Zrnd (x / y)%R) as (eps,(Heps1,Heps2)).
+destruct (relative_error_FLX_ex beta prec (prec_gt_0 prec) Zrnd (x / y)%R) as (eps,(Heps1,Heps2)).
 apply Rmult_integral_contrapositive_currified.
 exact Zx.
 now apply Rinv_neq_0_compat.
@@ -106,7 +106,8 @@ now apply Rabs_pos_lt.
 apply Rlt_le_trans with (1 := Heps1).
 change R1 with (bpow 0).
 apply bpow_le.
-clear -Hp. omega.
+generalize (prec_gt_0 prec).
+clear ; omega.
 rewrite Rmult_1_r.
 rewrite Hx2.
 unfold canonic_exponent.
@@ -180,7 +181,7 @@ unfold Rsqr; now rewrite Fopp_F2R,mult_F2R, <- Hr1.
 apply Rle_lt_trans with x.
 apply Rabs_Rminus_pos.
 apply Rle_0_sqr.
-destruct (relative_error_N_FLX_ex beta prec Hp choice (sqrt x)) as (eps,(Heps1,Heps2)).
+destruct (relative_error_N_FLX_ex beta prec (prec_gt_0 prec) choice (sqrt x)) as (eps,(Heps1,Heps2)).
 rewrite Heps2.
 rewrite Rsqr_mult, Rsqr_sqrt, Rmult_comm. 2: now apply Rlt_le.
 apply Rmult_le_compat_r.

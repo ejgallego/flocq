@@ -27,7 +27,7 @@ Variable beta : radix.
 Notation bpow e := (bpow beta e).
 
 Variable prec : Z.
-Variable Hp : Zlt 0 prec.
+Context { prec_gt_0_ : Prec_gt_0 prec }.
 
 Notation format := (generic_format beta (FLX_exp prec)).
 Notation cexp := (canonic_exponent beta (FLX_exp prec)).
@@ -86,7 +86,9 @@ unfold canonic_exponent, FLX_exp.
 rewrite ln_beta_unique with (1 := Hex).
 rewrite ln_beta_unique with (1 := Hey).
 rewrite ln_beta_unique with (1 := Hexy).
-cut ((ex - 1) + (ey - 1) < exy)%Z. omega.
+cut ((ex - 1) + (ey - 1) < exy)%Z.
+generalize (prec_gt_0 prec).
+clear ; omega.
 apply (lt_bpow beta).
 apply Rle_lt_trans with (2 := proj2 Hexy).
 rewrite Rabs_mult.
@@ -160,7 +162,7 @@ Variable beta : radix.
 Notation bpow e := (bpow beta e).
 
 Variable emin prec : Z.
-Variable Hp : Zlt 0 prec.
+Context { prec_gt_0_ : Prec_gt_0 prec }.
 Variable Hpemin: (emin <= prec)%Z.
 
 Notation format := (generic_format beta (FLT_exp emin prec)).
@@ -186,17 +188,18 @@ rewrite Hxy.
 rewrite round_0.
 ring_simplify (0 - 0)%R.
 apply generic_format_0.
-destruct (mult_error_FLX_aux beta prec Hp rnd x y) as ((m,e),(H1,(H2,H3))).
+destruct (mult_error_FLX_aux beta prec rnd x y) as ((m,e),(H1,(H2,H3))).
 now apply FLX_generic_format_FLT with emin.
 now apply FLX_generic_format_FLT with emin.
 rewrite <- (FLT_round_FLX beta emin).
 assumption.
 apply Rle_trans with (2:=Hxy).
 apply bpow_le.
-omega.
+generalize (prec_gt_0 prec).
+clear ; omega.
 rewrite <- (FLT_round_FLX beta emin) in H1.
 2:apply Rle_trans with (2:=Hxy).
-2:apply bpow_le; omega.
+2:apply bpow_le ; generalize (prec_gt_0 prec) ; clear ; omega.
 unfold f; rewrite <- H1.
 apply generic_format_canonic_exponent.
 simpl in H2, H3.
