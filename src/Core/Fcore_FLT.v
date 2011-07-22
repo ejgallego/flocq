@@ -262,23 +262,13 @@ now apply FIX_format_generic.
 Qed.
 
 (** FLT is a nice format: it has a monotone exponent... *)
-Theorem FLT_exp_monotone :
-  monotone_exp_prop FLT_exp.
+Global Instance FLT_exp_monotone : Monotone_exp FLT_exp.
 Proof.
 intros ex ey.
 clear Hp.
 unfold FLT_exp.
 generalize (Zmax_spec (ex - prec) emin) (Zmax_spec (ey - prec) emin).
 omega.
-Qed.
-
-(** it has subnormal numbers... *)
-Theorem FLT_not_FTZ :
-  not_FTZ_prop FLT_exp.
-Proof.
-apply monotone_exp_not_FTZ.
-apply FLT_exp_valid.
-apply FLT_exp_monotone.
 Qed.
 
 (** and it allows a rounding to nearest, ties to even. *)

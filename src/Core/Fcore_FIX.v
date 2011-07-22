@@ -84,10 +84,9 @@ right.
 split ; easy.
 Qed.
 
-Theorem FIX_not_FTZ :
-  not_FTZ_prop FIX_exp.
+Global Instance FIX_exp_monotone : Monotone_exp FIX_exp.
 Proof.
-intros e.
+intros ex ey H.
 apply Zle_refl.
 Qed.
 

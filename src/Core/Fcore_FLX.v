@@ -236,20 +236,10 @@ now apply <- FLX_format_FLXN.
 Qed.
 
 (** FLX is a nice format: it has a monotone exponent... *)
-Theorem FLX_exp_monotone :
-  monotone_exp_prop FLX_exp.
+Global Instance FLX_exp_monotone : Monotone_exp FLX_exp.
 Proof.
 intros ex ey Hxy.
 now apply Zplus_le_compat_r.
-Qed.
-
-(** it has normal numbers infinitely close to zero... *)
-Theorem FLX_not_FTZ :
-  not_FTZ_prop FLX_exp.
-Proof.
-apply monotone_exp_not_FTZ.
-apply FLX_exp_valid.
-apply FLX_exp_monotone.
 Qed.
 
 (** and it allows a rounding to nearest, ties to even. *)

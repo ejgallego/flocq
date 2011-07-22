@@ -64,7 +64,7 @@ apply (f_equal (fun v => _ * bpow v)%R).
 ring.
 Qed.
 
-Hypothesis monotone_exp : monotone_exp_prop fexp.
+Context { monotone_exp : Monotone_exp fexp }.
 Notation format := (generic_format beta fexp).
 
 Variable choice : Z -> bool.
@@ -138,9 +138,8 @@ Notation bpow e := (bpow beta e).
 
 Variable fexp : Z -> Z.
 Context { valid_exp : Valid_exp fexp }.
+Context { exp_not_FTZ : Exp_not_FTZ fexp }.
 Notation format := (generic_format beta fexp).
-
-Hypothesis not_FTZ : not_FTZ_prop fexp.
 
 Lemma round_plus_eq_zero_aux :
   forall rnd x y,
@@ -160,8 +159,8 @@ destruct (Zle_or_lt exy (fexp exy)) as [He'|He'].
 (* . *)
 assert (H: (x + y)%R = F2R (Float beta (Ztrunc (x * bpow (- fexp exy)) +
   Ztrunc (y * bpow (- fexp exy)) * Zpower beta (fexp exy - fexp exy)) (fexp exy))).
-rewrite (subnormal_exponent beta fexp not_FTZ exy x He' Hx) at 1.
-rewrite (subnormal_exponent beta fexp not_FTZ exy y He' Hy) at 1.
+rewrite (subnormal_exponent beta fexp exy x He' Hx) at 1.
+rewrite (subnormal_exponent beta fexp exy y He' Hy) at 1.
 rewrite <- plus_F2R.
 unfold Fplus. simpl.
 now rewrite Zle_bool_refl.

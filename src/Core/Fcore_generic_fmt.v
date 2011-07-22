@@ -1097,8 +1097,10 @@ Qed.
 
 Section not_FTZ.
 
-Definition not_FTZ_prop := forall e, (fexp (fexp e + 1) <= fexp e)%Z.
-Hypothesis not_FTZ : not_FTZ_prop.
+Class Exp_not_FTZ :=
+  exp_not_FTZ : forall e, (fexp (fexp e + 1) <= fexp e)%Z.
+
+Context { exp_not_FTZ_ : Exp_not_FTZ }.
 
 Theorem subnormal_exponent :
   forall e x,
@@ -1114,7 +1116,7 @@ assert (H: Z2R (Zpower beta (canonic_exponent x + - fexp e)) = bpow (canonic_exp
 apply Z2R_Zpower.
 unfold canonic_exponent.
 set (ex := ln_beta beta x).
-generalize (not_FTZ ex).
+generalize (exp_not_FTZ ex).
 generalize (proj2 (proj2 (valid_exp _) He) (fexp ex + 1)%Z).
 omega.
 rewrite <- H.
@@ -1130,30 +1132,30 @@ End not_FTZ.
 
 Section monotone_exp.
 
-Definition monotone_exp_prop := forall ex ey, (ex <= ey)%Z -> (fexp ex <= fexp ey)%Z.
+Class Monotone_exp :=
+  monotone_exp : forall ex ey, (ex <= ey)%Z -> (fexp ex <= fexp ey)%Z.
 
-Theorem monotone_exp_not_FTZ :
-  monotone_exp_prop ->
-  not_FTZ_prop.
+Context { monotone_exp_ : Monotone_exp }.
+
+Global Instance monotone_exp_not_FTZ : Exp_not_FTZ.
 Proof.
-intros Hm e.
+intros e.
 destruct (Z_lt_le_dec (fexp e) e) as [He|He].
-apply Hm.
+apply monotone_exp.
 now apply Zlt_le_succ.
 now apply valid_exp.
 Qed.
 
 Theorem canonic_exponent_round :
   forall rnd x,
-  monotone_exp_prop ->
   round rnd x <> R0 ->
   (canonic_exponent x <= canonic_exponent (round rnd x))%Z.
 Proof.
-intros rnd x Hm Zr.
+intros rnd x Zr.
 destruct (total_order_T x 0) as [[Hx|Hx]|Hx].
 (* x < 0 *)
 destruct (round_DN_or_UP rnd x) as [Hd|Hu].
-apply Hm.
+apply monotone_exp.
 apply ln_beta_monotone_abs.
 apply Rlt_not_eq with (1 := Hx).
 rewrite Hd.
@@ -1197,7 +1199,7 @@ apply Rle_antisym with (1 := Zr).
 apply round_monotone_l.
 apply generic_format_0.
 now apply Rlt_le.
-apply Hm.
+apply monotone_exp.
 apply ln_beta_monotone with (1 := Hx).
 rewrite Hu.
 eapply round_UP_pt.

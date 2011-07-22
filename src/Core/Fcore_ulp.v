@@ -409,7 +409,7 @@ apply (round_UP_pt beta fexp x).
 Qed.
 
 Theorem ulp_monotone :
-  monotone_exp_prop fexp ->
+  forall { Hm : Monotone_exp fexp },
   forall x y: R,
   (0 < x)%R -> (x <= y)%R ->
   (ulp x <= ulp y)%R.
@@ -446,12 +446,12 @@ now rewrite canonic_exponent_DN with (2 := Hd).
 Qed.
 
 Theorem ulp_error_f :
-  monotone_exp_prop fexp ->
+  forall { Hm : Monotone_exp fexp },
   forall Zrnd x,
   (round beta fexp Zrnd x <> 0)%R ->
   (Rabs (round beta fexp Zrnd x - x) < ulp (round beta fexp Zrnd x))%R.
 Proof.
-intros Hf Zrnd x Hfx.
+intros Hm Zrnd x Hfx.
 case (round_DN_or_UP beta fexp Zrnd x); intros Hx.
 (* *)
 case (Rle_or_lt 0 (round beta fexp rndDN x)).
@@ -496,12 +496,12 @@ rewrite round_DN_opp; apply Ropp_0_gt_lt_contravar; apply Rlt_gt; assumption.
 Qed.
 
 Theorem ulp_half_error_f : 
-  monotone_exp_prop fexp ->
+  forall { Hm : Monotone_exp fexp },
   forall choice x,
   (round beta fexp (rndN choice) x <> 0)%R ->
   (Rabs (round beta fexp (rndN choice) x - x) <= /2 * ulp (round beta fexp (rndN choice) x))%R.
 Proof.
-intros Hf choice x Hfx.
+intros Hm choice x Hfx.
 case (round_DN_or_UP beta fexp (rndN choice) x); intros Hx.
 (* *)
 case (Rle_or_lt 0 (round beta fexp rndDN x)).
