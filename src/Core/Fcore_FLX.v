@@ -192,80 +192,63 @@ Definition FLXN_format (x : R) :=
   x = F2R f /\ (x <> R0 ->
   Zpower beta (prec - 1) <= Zabs (Fnum f) < Zpower beta prec)%Z.
 
-Theorem FLX_format_FLXN :
-  forall x : R, FLX_format x <-> FLXN_format x.
+Theorem generic_format_FLXN :
+  forall x, FLXN_format x -> generic_format beta FLX_exp x.
 Proof.
-intros x.
-split.
-(* . *)
-intros ((xm, xe), (H1, H2)).
-destruct (Z_eq_dec xm 0) as [H3|H3].
-exists (Float beta 0 0).
-split.
-rewrite H1, H3.
-now rewrite 2!F2R_0.
-intros H.
-elim H.
-rewrite H1, H3.
-apply F2R_0.
-destruct (ln_beta beta (Z2R xm)) as (d,H4).
-specialize (H4 (Z2R_neq _ _ H3)).
-assert (H5: (0 <= prec - d)%Z).
-cut (d - 1 < prec)%Z. omega.
-apply (lt_bpow beta).
-apply Rle_lt_trans with (Rabs (Z2R xm)).
-apply H4.
-rewrite <- Z2R_Zpower, <- Z2R_abs.
-now apply Z2R_lt.
-now apply Zlt_le_weak.
-exists (Float beta (xm * Zpower beta (prec - d)) (xe + d - prec)).
-split.
-unfold F2R. simpl.
-rewrite Z2R_mult, Z2R_Zpower.
-rewrite Rmult_assoc, <- bpow_plus.
-rewrite H1.
-now ring_simplify (prec - d + (xe + d - prec))%Z.
-exact H5.
-intros _. simpl.
-split.
-apply le_Z2R.
-apply Rmult_le_reg_r with (bpow (d - prec)).
-apply bpow_gt_0.
-rewrite Z2R_abs, Z2R_mult, Rabs_mult, 2!Z2R_Zpower.
-rewrite <- bpow_plus.
-rewrite <- Z2R_abs.
-rewrite Rabs_pos_eq.
-rewrite Rmult_assoc, <- bpow_plus.
-ring_simplify (prec - 1 + (d - prec))%Z.
-ring_simplify (prec - d + (d - prec))%Z.
-now rewrite Rmult_1_r, Z2R_abs.
-apply bpow_ge_0.
-exact H5.
-generalize prec_gt_0.
-clear ; omega.
-apply lt_Z2R.
-rewrite Z2R_abs, Z2R_mult, Rabs_mult.
-rewrite 2!Z2R_Zpower.
-rewrite <- Z2R_abs, Rabs_pos_eq.
-apply Rmult_lt_reg_r with (bpow (d - prec)).
-apply bpow_gt_0.
-rewrite Rmult_assoc, <- 2!bpow_plus.
-ring_simplify (prec + (d - prec))%Z.
-ring_simplify (prec - d + (d - prec))%Z.
-now rewrite Rmult_1_r, Z2R_abs.
-apply bpow_ge_0.
-now apply Zlt_le_weak.
-exact H5.
-(* . *)
-intros ((xm, xe), (H1, H2)).
-destruct (Req_dec x 0) as [H3|H3].
-rewrite H3.
-apply FLX_format_generic.
+intros x ((xm,ex),(H1,H2)).
+destruct (Req_dec x 0) as [Zx|Zx].
+rewrite Zx.
 apply generic_format_0.
-specialize (H2 H3). clear H3.
+specialize (H2 Zx).
+apply generic_format_FLX.
 rewrite H1.
 eexists ; repeat split.
 apply H2.
+Qed.
+
+Theorem FLXN_format_generic :
+  forall x, generic_format beta FLX_exp x -> FLXN_format x.
+Proof.
+intros x Hx.
+rewrite Hx.
+simpl.
+eexists ; split. split.
+simpl.
+rewrite <- Hx.
+intros Zx.
+split.
+(* *)
+apply le_Z2R.
+rewrite Z2R_Zpower.
+2: now apply Zlt_0_le_0_pred.
+rewrite Z2R_abs, <- scaled_mantissa_generic with (1 := Hx).
+apply Rmult_le_reg_r with (bpow (canonic_exponent beta FLX_exp x)).
+apply bpow_gt_0.
+rewrite <- bpow_plus.
+rewrite <- scaled_mantissa_abs.
+rewrite <- canonic_exponent_abs.
+rewrite scaled_mantissa_bpow.
+unfold canonic_exponent, FLX_exp.
+rewrite ln_beta_abs.
+ring_simplify (prec - 1 + (ln_beta beta x - prec))%Z.
+destruct (ln_beta beta x) as (ex,Ex).
+now apply Ex.
+(* *)
+apply lt_Z2R.
+rewrite Z2R_Zpower.
+2: now apply Zlt_le_weak.
+rewrite Z2R_abs, <- scaled_mantissa_generic with (1 := Hx).
+apply Rmult_lt_reg_r with (bpow (canonic_exponent beta FLX_exp x)).
+apply bpow_gt_0.
+rewrite <- bpow_plus.
+rewrite <- scaled_mantissa_abs.
+rewrite <- canonic_exponent_abs.
+rewrite scaled_mantissa_bpow.
+unfold canonic_exponent, FLX_exp.
+rewrite ln_beta_abs.
+ring_simplify (prec + (ln_beta beta x - prec))%Z.
+destruct (ln_beta beta x) as (ex,Ex).
+now apply Ex.
 Qed.
 
 Theorem FLXN_format_satisfies_any :
@@ -273,10 +256,8 @@ Theorem FLXN_format_satisfies_any :
 Proof.
 refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FLX_exp)).
 split ; intros H.
-apply -> FLX_format_FLXN.
-now apply FLX_format_generic.
-apply generic_format_FLX.
-now apply <- FLX_format_FLXN.
+now apply FLXN_format_generic.
+now apply generic_format_FLXN.
 Qed.
 
 (** FLX is a nice format: it has a monotone exponent... *)

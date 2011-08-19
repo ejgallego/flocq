@@ -193,8 +193,7 @@ split.
 destruct (Req_dec x 0) as [H4|H4].
 intros _.
 rewrite H4.
-apply -> FLX_format_FLXN...
-apply FLX_format_generic...
+apply FLXN_format_generic...
 apply generic_format_0.
 intros ((xm,xe),(H1,(H2,H3))).
 specialize (H2 H4).
