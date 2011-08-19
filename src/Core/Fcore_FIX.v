@@ -52,16 +52,18 @@ apply Zle_refl.
 now intros _ _.
 Qed.
 
-Theorem FIX_format_generic :
-  forall x : R, FIX_format x <-> generic_format beta FIX_exp x.
+Theorem generic_format_FIX :
+  forall x, FIX_format x -> generic_format beta FIX_exp x.
 Proof.
-split.
-(* . *)
-intros ((xm, xe), (Hx1, Hx2)).
+intros x ((xm, xe), (Hx1, Hx2)).
 rewrite Hx1.
 now apply generic_format_canonic.
-(* . *)
-intros H.
+Qed.
+
+Theorem FIX_format_generic :
+  forall x, generic_format beta FIX_exp x -> FIX_format x.
+Proof.
+intros x H.
 rewrite H.
 eexists ; repeat split.
 Qed.
@@ -71,8 +73,9 @@ Theorem FIX_format_satisfies_any :
 Proof.
 refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FIX_exp)).
 intros x.
-apply iff_sym.
+split.
 apply FIX_format_generic.
+apply generic_format_FIX.
 Qed.
 
 Global Instance FIX_exp_monotone : Monotone_exp FIX_exp.

@@ -246,8 +246,9 @@ Proof.
 intros x Hx1.
 apply iff_trans with (1 := FLT_format_generic x).
 apply iff_trans with (1 := FLT_generic_format_FIX x Hx1).
-apply iff_sym.
-now apply FIX_format_generic.
+split.
+apply FIX_format_generic.
+apply generic_format_FIX.
 Qed.
 
 (** FLT is a nice format: it has a monotone exponent... *)
