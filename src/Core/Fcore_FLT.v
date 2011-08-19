@@ -170,10 +170,10 @@ Proof.
 intros x Hx1.
 apply iff_trans with (1 := FLT_format_generic x).
 apply iff_trans with (1 := FLT_generic_format_FLX x Hx1).
-apply iff_sym.
+split.
 now apply FLX_format_generic.
+now apply generic_format_FLX.
 Qed.
-
 
 Theorem FLT_round_FLX : forall rnd x,
   (bpow (emin + prec - 1) <= Rabs x)%R ->
