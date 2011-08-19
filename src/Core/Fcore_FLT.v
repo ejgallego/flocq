@@ -54,12 +54,12 @@ repeat split ;
   intros ; zify ; omega.
 Qed.
 
-Theorem FLT_format_generic :
-  forall x : R, FLT_format x <-> generic_format beta FLT_exp x.
+Theorem generic_format_FLT :
+  forall x, FLT_format x -> generic_format beta FLT_exp x.
 Proof.
-split.
-(* . *)
-intros ((xm, xe), (Hx1, (Hx2, Hx3))).
+clear prec_gt_0_.
+intros x ((xm, xe), (Hx1, (Hx2, Hx3))).
+simpl in Hx2, Hx3.
 destruct (Req_dec x 0) as [Hx4|Hx4].
 rewrite Hx4.
 apply generic_format_0.
@@ -78,7 +78,12 @@ rewrite Hx1.
 apply F2R_lt_bpow.
 simpl.
 now ring_simplify (prec + xe - xe)%Z.
-(* . *)
+Qed.
+
+Theorem FLT_format_generic :
+  forall x, generic_format beta FLT_exp x -> FLT_format x.
+Proof.
+intros x.
 unfold generic_format.
 set (ex := canonic_exponent beta FLT_exp x).
 set (mx := Ztrunc (scaled_mantissa beta FLT_exp x)).
@@ -113,8 +118,9 @@ Theorem FLT_format_satisfies_any :
 Proof.
 refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FLT_exp)).
 intros x.
-apply iff_sym.
+split.
 apply FLT_format_generic.
+apply generic_format_FLT.
 Qed.
 
 Theorem FLT_canonic_FLX :
@@ -138,16 +144,16 @@ Qed.
 Theorem FLT_generic_format_FLX :
   forall x : R,
   (bpow (emin + prec - 1) <= Rabs x)%R ->
-  ( generic_format beta FLT_exp x <-> generic_format beta (FLX_exp prec) x ).
+  generic_format beta (FLX_exp prec) x ->
+  generic_format beta FLT_exp x.
 Proof.
-intros x Hx.
+intros x Hx H.
 destruct (Req_dec x 0) as [Hx0|Hx0].
 rewrite Hx0.
-split ; intros _ ;  apply generic_format_0.
+apply generic_format_0.
 unfold generic_format, scaled_mantissa.
 now rewrite (FLT_canonic_FLX x Hx0 Hx).
 Qed.
-
 
 Theorem FLX_generic_format_FLT :
   forall x : R,
@@ -161,20 +167,6 @@ unfold canonic_exponent, FLX_exp, FLT_exp.
 apply Zle_max_l.
 Qed.
 
-
-Theorem FLT_format_FLX :
-  forall x : R,
-  (bpow (emin + prec - 1) <= Rabs x)%R ->
-  ( FLT_format x <-> FLX_format beta prec x ).
-Proof.
-intros x Hx1.
-apply iff_trans with (1 := FLT_format_generic x).
-apply iff_trans with (1 := FLT_generic_format_FLX x Hx1).
-split.
-now apply FLX_format_generic.
-now apply generic_format_FLX.
-Qed.
-
 Theorem FLT_round_FLX : forall rnd x,
   (bpow (emin + prec - 1) <= Rabs x)%R ->
   round beta FLT_exp rnd x = round beta (FLX_exp prec) rnd x.
@@ -185,7 +177,6 @@ intros H; contradict Hx.
 rewrite H, Rabs_R0; apply Rlt_not_le.
 apply bpow_gt_0.
 Qed.
-
 
 (** Links between FLT and FIX (underflow) *)
 Theorem FLT_canonic_FIX :
@@ -205,50 +196,46 @@ apply Rle_lt_trans with (2 := Hx).
 now apply Hex.
 Qed.
 
+Theorem FIX_generic_format_FLT :
+  forall x : R,
+  generic_format beta FLT_exp x ->
+  generic_format beta (FIX_exp emin) x.
+Proof.
+intros x Hx.
+rewrite Hx.
+apply generic_format_canonic_exponent.
+rewrite <- Hx.
+apply Zle_max_r.
+Qed.
+
 Theorem FLT_generic_format_FIX :
   forall x : R,
   (Rabs x <= bpow (emin + prec))%R ->
-  ( generic_format beta FLT_exp x <-> generic_format beta (FIX_exp emin) x ).
+  generic_format beta (FIX_exp emin) x ->
+  generic_format beta FLT_exp x.
 Proof.
-intros x Hx.
+intros x Hx H'.
 destruct (Req_dec x 0) as [Hx0|Hx0].
 rewrite Hx0.
-split ; intros _ ;  apply generic_format_0.
+apply generic_format_0.
 destruct Hx as [Hx|Hx].
 unfold generic_format, scaled_mantissa.
 now rewrite (FLT_canonic_FIX x Hx0 Hx).
 (* extra case *)
 rewrite <- (Rabs_pos_eq (bpow (emin + prec))) in Hx. 2: apply bpow_ge_0.
 assert (H1: generic_format beta FLT_exp (bpow (emin + prec))).
-rewrite <- F2R_bpow.
-apply generic_format_canonic_exponent.
-unfold generic_format, canonic_exponent, FLT_exp.
-rewrite F2R_bpow, ln_beta_bpow.
+apply generic_format_bpow.
+unfold FLT_exp.
 assert (Hp := prec_gt_0 prec).
-apply Zmax_lub ; omega.
+apply Zmax_lub ; clear -Hp ; omega.
 assert (H2: generic_format beta (FIX_exp emin) (bpow (emin + prec))).
-rewrite <- F2R_bpow.
-apply generic_format_canonic_exponent.
-unfold generic_format, canonic_exponent, FIX_exp.
+apply generic_format_bpow.
+unfold FIX_exp.
 generalize (prec_gt_0 prec).
 clear ; omega.
 destruct Rabs_eq_Rabs with (1 := Hx) as [H|H] ;
   rewrite H ; clear H ;
-  split ; intros _ ;
   try apply generic_format_opp ; easy.
-Qed.
-
-Theorem FLT_format_FIX :
-  forall x,
-  (Rabs x <= bpow (emin + prec))%R ->
-  ( FLT_format x <-> FIX_format beta emin x ).
-Proof.
-intros x Hx1.
-apply iff_trans with (1 := FLT_format_generic x).
-apply iff_trans with (1 := FLT_generic_format_FIX x Hx1).
-split.
-apply FIX_format_generic.
-apply generic_format_FIX.
 Qed.
 
 (** FLT is a nice format: it has a monotone exponent... *)
