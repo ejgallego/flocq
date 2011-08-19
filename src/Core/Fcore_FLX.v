@@ -62,6 +62,7 @@ Theorem FIX_format_FLX :
   FLX_format x ->
   FIX_format beta (e - prec) x.
 Proof.
+clear prec_gt_0_.
 intros x e Hx ((xm, xe), (H1, H2)).
 rewrite H1, (F2R_prec_normalize beta xm xe e prec).
 now eexists.
@@ -145,11 +146,15 @@ Qed.
 Theorem generic_format_FLX :
   forall x, FLX_format x -> generic_format beta FLX_exp x.
 Proof.
+clear prec_gt_0_.
 intros x ((mx,ex),(H1,H2)).
+simpl in H2.
 rewrite H1.
 destruct (Z_eq_dec mx 0) as [Zmx|Zmx].
 rewrite Zmx, F2R_0.
 apply generic_format_0.
+destruct (Zle_or_lt 0 prec) as [Hprec|Hprec].
+(* *)
 apply generic_format_canonic_exponent.
 unfold canonic_exponent, FLX_exp.
 rewrite ln_beta_F2R with (1 := Zmx).
@@ -160,9 +165,15 @@ destruct (ln_beta beta (Z2R mx)) as (emx,Emx). simpl.
 specialize (Emx (Z2R_neq _ _ Zmx)).
 apply Rle_lt_trans with (1 := proj1 Emx).
 rewrite <- Z2R_abs.
-rewrite <- Z2R_Zpower.
+rewrite <- Z2R_Zpower with (1 := Hprec).
 now apply Z2R_lt.
-now apply Zlt_le_weak.
+(* *)
+revert H2 Hprec.
+case prec ; simpl ; try discriminate.
+intros _ H _.
+elim (Zlt_irrefl 0).
+apply Zle_lt_trans with (2 := H).
+apply Zabs_pos.
 Qed.
 
 Theorem FLX_format_satisfies_any :
