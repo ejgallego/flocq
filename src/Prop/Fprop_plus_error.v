@@ -102,15 +102,9 @@ now rewrite Zle_imp_le_bool with (1 := He).
 rewrite Hxy.
 destruct (round_repr_same_exp (Znearest choice) (mx + my * beta ^ (ey - ex)) ex) as (mxy, Hxy').
 rewrite Hxy'.
-assert (H: (F2R (Float beta mxy ex) -
-   F2R (Float beta (mx + my * beta ^ (ey - ex)) ex))%R = F2R
-     (Float beta
-        (- (mx + my * beta ^ (ey - ex)) +
-         mxy * beta ^ (ex - ex)) ex)).
-unfold Rminus.
-rewrite opp_F2R, Rplus_comm, <- plus_F2R.
-unfold Fplus. simpl.
-now rewrite Zle_bool_refl.
+assert (H: (F2R (Float beta mxy ex) - F2R (Float beta (mx + my * beta ^ (ey - ex)) ex))%R =
+  F2R (Float beta (mxy - (mx + my * beta ^ (ey - ex))) ex)).
+now rewrite <- minus_F2R, Fminus_same_exp.
 rewrite H.
 apply generic_format_canonic_exponent.
 apply monotone_exp.
@@ -170,12 +164,10 @@ specialize (Hexy H0).
 destruct (Zle_or_lt exy (fexp exy)) as [He'|He'].
 (* . *)
 assert (H: (x + y)%R = F2R (Float beta (Ztrunc (x * bpow (- fexp exy)) +
-  Ztrunc (y * bpow (- fexp exy)) * Zpower beta (fexp exy - fexp exy)) (fexp exy))).
+  Ztrunc (y * bpow (- fexp exy))) (fexp exy))).
 rewrite (subnormal_exponent beta fexp exy x He' Hx) at 1.
 rewrite (subnormal_exponent beta fexp exy y He' Hy) at 1.
-rewrite <- plus_F2R.
-unfold Fplus. simpl.
-now rewrite Zle_bool_refl.
+now rewrite <- plus_F2R, Fplus_same_exp.
 rewrite H in Hxy.
 rewrite round_generic in Hxy...
 now rewrite <- H in Hxy.

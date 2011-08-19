@@ -102,6 +102,16 @@ rewrite Z2R_plus.
 apply Rmult_plus_distr_r.
 Qed.
 
+Theorem Fplus_same_exp :
+  forall m1 m2 e,
+  Fplus (Float beta m1 e) (Float beta m2 e) = Float beta (m1 + m2) e.
+Proof.
+intros m1 m2 e.
+unfold Fplus.
+simpl.
+now rewrite Zle_bool_refl, Zminus_diag, Zmult_1_r.
+Qed.
+
 Theorem Fexp_Fplus :
   forall f1 f2 : float beta,
   Fexp (Fplus f1 f2) = Zmin (Fexp f1) (Fexp f2).
@@ -122,6 +132,15 @@ Proof.
 intros f1 f2; unfold Fminus.
 rewrite plus_F2R, Fopp_F2R.
 ring.
+Qed.
+
+Theorem Fminus_same_exp :
+  forall m1 m2 e,
+  Fminus (Float beta m1 e) (Float beta m2 e) = Float beta (m1 - m2) e.
+Proof.
+intros m1 m2 e.
+unfold Fminus.
+apply Fplus_same_exp.
 Qed.
 
 Definition Fmult (f1 f2 : float beta) :=
