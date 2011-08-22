@@ -241,6 +241,20 @@ Definition is_finite f :=
   | _ => false
   end.
 
+Definition is_finite_FF f :=
+  match f with
+  | F754_finite _ _ _ => true
+  | F754_zero _ => true
+  | _ => false
+  end.
+
+Theorem is_finite_FF2B :
+  forall x Hx,
+  is_finite (FF2B x Hx) = is_finite_FF x.
+Proof.
+now intros [| | |].
+Qed.
+
 Definition Bopp x :=
   match x with
   | B754_nan => x
@@ -583,14 +597,17 @@ Theorem binary_round_sign_correct :
   forall mode x mx ex lx,
   inbetween_float radix2 (Zpos mx) ex (Rabs x) lx ->
   (ex <= fexp (digits radix2 (Zpos mx) + ex))%Z ->
-  valid_binary (binary_round_sign mode (Rlt_bool x 0) mx ex lx) = true /\
+  let z := binary_round_sign mode (Rlt_bool x 0) mx ex lx in
+  valid_binary z = true /\
   if Rlt_bool (Rabs (round radix2 fexp (round_mode mode) x)) (bpow radix2 emax) then
-    FF2R radix2 (binary_round_sign mode (Rlt_bool x 0) mx ex lx) = round radix2 fexp (round_mode mode) x
+    FF2R radix2 z = round radix2 fexp (round_mode mode) x /\
+    is_finite_FF z = true
   else
-    binary_round_sign mode (Rlt_bool x 0) mx ex lx = binary_overflow mode (Rlt_bool x 0).
+    z = binary_overflow mode (Rlt_bool x 0).
 Proof with auto with typeclass_instances.
-intros m x mx ex lx Bx Ex.
-unfold binary_round_sign.
+intros m x mx ex lx Bx Ex z.
+unfold binary_round_sign in z.
+revert z.
 rewrite shr_truncate. 2: easy.
 refine (_ (round_trunc_sign_any_correct _ _ (round_mode m) (choice_mode m) _ x (Zpos mx) ex lx Bx (or_introl _ Ex))).
 refine (_ (truncate_correct_partial _ _ _ _ _ _ _ Bx Ex)).
@@ -629,8 +646,10 @@ destruct (truncate radix2 fexp (Z0, e1, loc_Exact)) as ((m2, e2), l2).
 rewrite shr_m_shr_record_of_loc.
 intros Hm2.
 rewrite Hm2.
+intros z.
 repeat split.
 rewrite Rlt_bool_true.
+repeat split.
 apply sym_eq.
 case Rlt_bool ; apply F2R_0.
 rewrite abs_F2R, abs_cond_Zopp, F2R_0.
@@ -677,6 +696,7 @@ discriminate.
 exact He2.
 apply (conj H).
 rewrite Rlt_bool_true.
+repeat split.
 apply F2R_cond_Zopp.
 now apply bounded_lt_emax.
 rewrite (Rlt_bool_false _ (bpow radix2 emax)).
@@ -765,7 +785,8 @@ Lemma Bmult_correct_aux :
   let z := binary_round_sign m (xorb sx sy) (mx * my) (ex + ey) loc_Exact in
   valid_binary z = true /\
   if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (x * y))) (bpow radix2 emax) then
-    FF2R radix2 z = round radix2 fexp (round_mode m) (x * y)
+    FF2R radix2 z = round radix2 fexp (round_mode m) (x * y) /\
+    is_finite_FF z = true
   else
     z = binary_overflow m (xorb sx sy).
 Proof.
@@ -829,18 +850,22 @@ Definition Bmult m x y :=
 Theorem Bmult_correct :
   forall m x y,
   if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (B2R x * B2R y))) (bpow radix2 emax) then
-    B2R (Bmult m x y) = round radix2 fexp (round_mode m) (B2R x * B2R y)
+    B2R (Bmult m x y) = round radix2 fexp (round_mode m) (B2R x * B2R y) /\
+    is_finite (Bmult m x y) = andb (is_finite x) (is_finite y)
   else
     B2FF (Bmult m x y) = binary_overflow m (xorb (Bsign x) (Bsign y)).
 Proof.
 intros m [sx|sx| |sx mx ex Hx] [sy|sy| |sy my ey Hy] ;
-  try ( rewrite ?Rmult_0_r, ?Rmult_0_l, round_0, Rabs_R0, Rlt_bool_true ; [ apply refl_equal | apply bpow_gt_0 | auto with typeclass_instances ] ).
+  try ( rewrite ?Rmult_0_r, ?Rmult_0_l, round_0, Rabs_R0, Rlt_bool_true ; [ split ; apply refl_equal | apply bpow_gt_0 | auto with typeclass_instances ] ).
 simpl.
 case Bmult_correct_aux.
-intros H1 H2.
-revert H2.
-case Rlt_bool ; intros H2.
+intros H1.
+case Rlt_bool.
+intros (H2, H3).
+split.
 now rewrite B2R_FF2B.
+now rewrite is_finite_FF2B.
+intros H2.
 now rewrite B2FF_FF2B.
 Qed.
 
@@ -931,17 +956,18 @@ Theorem binary_round_sign_shl_correct :
   forall m sx mx ex,
   valid_binary (binary_round_sign_shl m sx mx ex) = true /\
   let x := F2R (Float radix2 (cond_Zopp sx (Zpos mx)) ex) in
+  let z := binary_round_sign_shl m sx mx ex in
   if Rlt_bool (Rabs (round radix2 fexp (round_mode m) x)) (bpow radix2 emax) then
-    FF2R radix2 (binary_round_sign_shl m sx mx ex) = round radix2 fexp (round_mode m) x
+    FF2R radix2 z = round radix2 fexp (round_mode m) x /\
+    is_finite_FF z = true
   else
-    binary_round_sign_shl m sx mx ex = binary_overflow m sx.
+    z = binary_overflow m sx.
 Proof.
 intros m sx mx ex.
 unfold binary_round_sign_shl.
 generalize (shl_fexp_correct mx ex).
 destruct (shl_fexp mx ex) as (mz, ez).
 intros (H1, H2).
-simpl.
 set (x := F2R (Float radix2 (cond_Zopp sx (Zpos mx)) ex)).
 replace sx with (Rlt_bool x 0).
 apply binary_round_sign_correct.
@@ -987,7 +1013,8 @@ Theorem Bplus_correct :
   is_finite x = true ->
   is_finite y = true ->
   if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (B2R x + B2R y))) (bpow radix2 emax) then
-    B2R (Bplus m x y) = round radix2 fexp (round_mode m) (B2R x + B2R y)
+    B2R (Bplus m x y) = round radix2 fexp (round_mode m) (B2R x + B2R y) /\
+    is_finite (Bplus m x y) = true
   else
     (B2FF (Bplus m x y) = binary_overflow m (Bsign x) /\ Bsign x = Bsign y).
 Proof with auto with typeclass_instances.
@@ -1108,8 +1135,10 @@ apply bpow_gt_0.
 generalize (binary_round_sign_shl_correct m false mz ez).
 simpl.
 case Rlt_bool_spec.
-intros _ (Vz, Rz).
+intros _ (Vz, (Rz, Rz')).
+split.
 now rewrite B2R_FF2B.
+now rewrite is_finite_FF2B.
 intros Hz' (Vz, Rz).
 specialize (Sz Hz').
 refine (conj _ (proj2 Sz)).
@@ -1122,8 +1151,10 @@ now apply F2R_ge_0_compat.
 generalize (binary_round_sign_shl_correct m true mz ez).
 simpl.
 case Rlt_bool_spec.
-intros _ (Vz, Rz).
+intros _ (Vz, (Rz, Rz')).
+split.
 now rewrite B2R_FF2B.
+now rewrite is_finite_FF2B.
 intros Hz' (Vz, Rz).
 specialize (Sz Hz').
 refine (conj _ (proj2 Sz)).
@@ -1160,7 +1191,8 @@ Lemma Bdiv_correct_aux :
     end in
   valid_binary z = true /\
   if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (x / y))) (bpow radix2 emax) then
-    FF2R radix2 z = round radix2 fexp (round_mode m) (x / y)
+    FF2R radix2 z = round radix2 fexp (round_mode m) (x / y) /\
+    is_finite_FF z = true
   else
     z = binary_overflow m (xorb sx sy).
 Proof.
@@ -1265,7 +1297,8 @@ Theorem Bdiv_correct :
   forall m x y,
   B2R y <> R0 ->
   if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (B2R x / B2R y))) (bpow radix2 emax) then
-    B2R (Bdiv m x y) = round radix2 fexp (round_mode m) (B2R x / B2R y)
+    B2R (Bdiv m x y) = round radix2 fexp (round_mode m) (B2R x / B2R y) /\
+    is_finite (Bdiv m x y) = is_finite x
   else
     B2FF (Bdiv m x y) = binary_overflow m (xorb (Bsign x) (Bsign y)).
 Proof.
@@ -1273,14 +1306,17 @@ intros m x [sy|sy| |sy my ey Hy] Zy ; try now elim Zy.
 revert x.
 unfold Rdiv.
 intros [sx|sx| |sx mx ex Hx] ;
-  try ( rewrite Rmult_0_l, round_0, Rabs_R0, Rlt_bool_true ; [ apply refl_equal | apply bpow_gt_0 | auto with typeclass_instances ] ).
+  try ( rewrite Rmult_0_l, round_0, Rabs_R0, Rlt_bool_true ; [ split ; apply refl_equal | apply bpow_gt_0 | auto with typeclass_instances ] ).
 simpl.
 case Bdiv_correct_aux.
-intros H1 H2.
-revert H2.
+intros H1.
 unfold Rdiv.
-case Rlt_bool ; intros H2.
+case Rlt_bool.
+intros (H2, H3).
+split.
 now rewrite B2R_FF2B.
+now rewrite is_finite_FF2B.
+intros H2.
 now rewrite B2FF_FF2B.
 Qed.
 
@@ -1310,7 +1346,8 @@ Lemma Bsqrt_correct_aux :
     | _ => F754_nan (* dummy *)
     end in
   valid_binary z = true /\
-  FF2R radix2 z = round radix2 fexp (round_mode m) (sqrt x).
+  FF2R radix2 z = round radix2 fexp (round_mode m) (sqrt x) /\
+  is_finite_FF z = true.
 Proof with auto with typeclass_instances.
 intros m mx ex Hx.
 replace (Fsqrt_core_binary (Zpos mx) ex) with (Fsqrt_core radix2 prec (Zpos mx) ex).
@@ -1424,13 +1461,15 @@ Definition Bsqrt m x :=
 
 Theorem Bsqrt_correct :
   forall m x,
-  B2R (Bsqrt m x) = round radix2 fexp (round_mode m) (sqrt (B2R x)).
+  B2R (Bsqrt m x) = round radix2 fexp (round_mode m) (sqrt (B2R x)) /\
+  is_finite (Bsqrt m x) = match x with B754_zero _ => true | B754_finite false _ _ _ => true | _ => false end.
 Proof.
 intros m [sx|[|]| |sx mx ex Hx] ; try ( now simpl ; rewrite sqrt_0, round_0 ; auto with typeclass_instances ).
 simpl.
 case Bsqrt_correct_aux.
-intros H1 H2.
+intros H1 (H2, H3).
 case sx.
+refine (conj _ (refl_equal false)).
 apply sym_eq.
 unfold sqrt.
 case Rcase_abs.
@@ -1440,7 +1479,9 @@ auto with typeclass_instances.
 intros H.
 elim Rge_not_lt with (1 := H).
 now apply F2R_lt_0_compat.
+split.
 now rewrite B2R_FF2B.
+now rewrite is_finite_FF2B.
 Qed.
 
 End Binary.
