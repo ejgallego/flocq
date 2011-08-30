@@ -99,26 +99,26 @@ now rewrite Zmult_1_l.
 omega.
 Qed.
 
-Theorem generic_format_canonic_exponent :
+Theorem generic_format_F2R :
   forall m e,
-  (canonic_exponent (F2R (Float beta m e)) <= e)%Z ->
+  ( m <> 0 -> canonic_exponent (F2R (Float beta m e)) <= e )%Z ->
   generic_format (F2R (Float beta m e)).
 Proof.
 intros m e.
+destruct (Z_eq_dec m 0) as [Zm|Zm].
+intros _.
+rewrite Zm, F2R_0.
+apply generic_format_0.
 unfold generic_format, scaled_mantissa.
 set (e' := canonic_exponent (F2R (Float beta m e))).
 intros He.
+specialize (He Zm).
 unfold F2R at 3. simpl.
-assert (H: (Z2R m * bpow e * bpow (- e') = Z2R (m * Zpower beta (e + -e')))%R).
-rewrite Rmult_assoc, <- bpow_plus, Z2R_mult.
-rewrite Z2R_Zpower.
-apply refl_equal.
+rewrite  F2R_change_exp with (1 := He).
+apply F2R_eq_compat.
+rewrite Rmult_assoc, <- bpow_plus, <- Z2R_Zpower, <- Z2R_mult.
+now rewrite Ztrunc_Z2R.
 now apply Zle_left.
-rewrite H, Ztrunc_Z2R.
-unfold F2R. simpl.
-rewrite <- H.
-rewrite Rmult_assoc, <- bpow_plus, Zplus_opp_l.
-now rewrite Rmult_1_r.
 Qed.
 
 Theorem canonic_opp :

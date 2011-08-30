@@ -66,7 +66,8 @@ unfold canonic_exponent.
 now rewrite ln_beta_unique with (1 := Ey).
 rewrite Hx, Hy.
 rewrite <- plus_F2R.
-apply generic_format_canonic_exponent.
+apply generic_format_F2R.
+intros _.
 case_eq (Fplus beta fx fy).
 intros mxy exy Pxy.
 rewrite <- Pxy, plus_F2R, <- Hx, <- Hy.

@@ -61,10 +61,8 @@ clear prec_gt_0_.
 intros x ((mx, ex), (H1, (H2, H3))).
 simpl in H2, H3.
 rewrite H1.
-destruct (Z_eq_dec mx 0) as [Zmx|Zmx].
-rewrite Zmx, F2R_0.
-apply generic_format_0.
-apply generic_format_canonic_exponent.
+apply generic_format_F2R.
+intros Zmx.
 unfold canonic_exponent, FLT_exp.
 rewrite ln_beta_F2R with (1 := Zmx).
 apply Zmax_lub with (2 := H3).
@@ -152,9 +150,11 @@ Theorem FLX_generic_format_FLT :
   forall x : R,
   generic_format beta FLT_exp x -> generic_format beta (FLX_exp prec) x.
 Proof.
+clear prec_gt_0_.
 intros x Hx.
 unfold generic_format in Hx; rewrite Hx.
-apply generic_format_canonic_exponent.
+apply generic_format_F2R.
+intros _.
 rewrite <- Hx.
 unfold canonic_exponent, FLX_exp, FLT_exp.
 apply Zle_max_l.
@@ -194,9 +194,11 @@ Theorem FIX_generic_format_FLT :
   generic_format beta FLT_exp x ->
   generic_format beta (FIX_exp emin) x.
 Proof.
+clear prec_gt_0_.
 intros x Hx.
 rewrite Hx.
-apply generic_format_canonic_exponent.
+apply generic_format_F2R.
+intros _.
 rewrite <- Hx.
 apply Zle_max_r.
 Qed.

@@ -80,7 +80,7 @@ rewrite Hx4.
 apply generic_format_0.
 specialize (Hx2 Hx4).
 rewrite Hx1.
-apply generic_format_canonic_exponent.
+apply generic_format_F2R.
 unfold canonic_exponent, FTZ_exp.
 rewrite <- Hx1.
 destruct (ln_beta beta x) as (ex, Hx6).

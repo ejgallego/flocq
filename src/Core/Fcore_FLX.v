@@ -150,10 +150,8 @@ clear prec_gt_0_.
 intros x ((mx,ex),(H1,H2)).
 simpl in H2.
 rewrite H1.
-destruct (Z_eq_dec mx 0) as [Zmx|Zmx].
-rewrite Zmx, F2R_0.
-apply generic_format_0.
-apply generic_format_canonic_exponent.
+apply generic_format_F2R.
+intros Zmx.
 unfold canonic_exponent, FLX_exp.
 rewrite ln_beta_F2R with (1 := Zmx).
 apply Zplus_le_reg_r with (prec - ex)%Z.

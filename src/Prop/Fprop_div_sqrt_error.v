@@ -42,7 +42,8 @@ intros x y fx fy Hx Hy H1 H2.
 case (Req_dec (x+y) 0); intros H.
 rewrite H; apply generic_format_0.
 rewrite Hx, Hy, <- plus_F2R.
-apply generic_format_canonic_exponent.
+apply generic_format_F2R.
+intros _.
 case_eq (Fplus beta fx fy).
 intros mz ez Hz.
 rewrite <- Hz.

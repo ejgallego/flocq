@@ -594,10 +594,8 @@ set (k := (fexp (digits beta m + e) - e)%Z).
 case Zlt_bool_spec ; intros Hk.
 (* *)
 unfold truncate_aux.
-destruct (Z_eq_dec (m / beta ^ k) 0) as [Hd|Hd].
-rewrite Hd, F2R_0.
-apply generic_format_0.
-apply generic_format_canonic_exponent.
+apply generic_format_F2R.
+intros Hd.
 unfold canonic_exponent.
 rewrite ln_beta_F2R_digits with (1 := Hd).
 rewrite digits_shr with (1 := Hm).
@@ -617,7 +615,7 @@ apply Zlt_le_weak.
 now apply Zgt_lt.
 (* *)
 destruct (Zle_lt_or_eq _ _ Hm) as [Hm'|Hm'].
-apply generic_format_canonic_exponent.
+apply generic_format_F2R.
 unfold canonic_exponent.
 rewrite ln_beta_F2R_digits.
 2: now apply Zgt_not_eq.
@@ -781,14 +779,11 @@ split.
 apply refl_equal.
 inversion_clear H1.
 rewrite H.
-apply generic_format_canonic_exponent.
+apply generic_format_F2R.
+intros Zm.
 unfold canonic_exponent.
-rewrite ln_beta_F2R_digits.
+rewrite ln_beta_F2R_digits with (1 := Zm).
 now apply Zlt_le_weak.
-apply sym_not_eq.
-apply Zlt_not_eq.
-rewrite H in Hx.
-apply F2R_gt_0_reg with (1 := Hx).
 (* x = 0 *)
 assert (Hm: m = Z0).
 cut (m <= 0 < m + 1)%Z. omega.
@@ -1089,7 +1084,7 @@ exact H2.
 rewrite H2 in H1.
 inversion_clear H1.
 rewrite H.
-apply generic_format_canonic_exponent.
+apply generic_format_F2R.
 unfold canonic_exponent.
 omega.
 Qed.

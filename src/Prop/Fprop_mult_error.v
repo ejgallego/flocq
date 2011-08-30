@@ -150,8 +150,7 @@ rewrite Hr0.
 apply generic_format_0.
 destruct (mult_error_FLX_aux x y Hx Hy Hr0) as ((m,e),(H1,(H2,H3))).
 rewrite <- H1.
-apply generic_format_canonic_exponent; simpl.
-simpl in H2; assumption.
+now apply generic_format_F2R.
 Qed.
 
 End Fprop_mult_error.
@@ -203,7 +202,8 @@ rewrite <- (FLT_round_FLX beta emin) in H1.
 2:apply Rle_trans with (2:=Hxy).
 2:apply bpow_le ; generalize (prec_gt_0 prec) ; clear ; omega.
 unfold f; rewrite <- H1.
-apply generic_format_canonic_exponent.
+apply generic_format_F2R.
+intros _.
 simpl in H2, H3.
 unfold canonic_exponent, FLT_exp.
 case (Zmax_spec (ln_beta beta (F2R (Float beta m e)) - prec) emin);

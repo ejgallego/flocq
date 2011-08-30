@@ -670,7 +670,8 @@ rewrite <- bpow_plus.
 now replace (e - 1 - fexp (e - 1) + fexp (e - 1))%Z with (e-1)%Z by ring.
 omega.
 rewrite H.
-apply generic_format_canonic_exponent.
+apply generic_format_F2R.
+intros _.
 apply Zeq_le.
 apply canonic_exponent_fexp.
 rewrite <- H.

@@ -106,7 +106,8 @@ assert (H: (F2R (Float beta mxy ex) - F2R (Float beta (mx + my * beta ^ (ey - ex
   F2R (Float beta (mxy - (mx + my * beta ^ (ey - ex))) ex)).
 now rewrite <- minus_F2R, Fminus_same_exp.
 rewrite H.
-apply generic_format_canonic_exponent.
+apply generic_format_F2R.
+intros _.
 apply monotone_exp.
 rewrite <- H, <- Hxy', <- Hxy.
 apply ln_beta_monotone_abs.
@@ -171,7 +172,8 @@ now rewrite <- plus_F2R, Fplus_same_exp.
 rewrite H in Hxy.
 rewrite round_generic in Hxy...
 now rewrite <- H in Hxy.
-apply generic_format_canonic_exponent.
+apply generic_format_F2R.
+intros _.
 rewrite <- H.
 unfold canonic_exponent.
 rewrite ln_beta_unique with (1 := Hexy).
