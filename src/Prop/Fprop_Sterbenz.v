@@ -74,10 +74,7 @@ rewrite <- Pxy, plus_F2R, <- Hx, <- Hy.
 unfold canonic_exponent.
 replace exy with (fexp (Zmin ex ey)).
 apply monotone_exp.
-apply bpow_lt_bpow with beta.
-apply Rle_lt_trans with (2 := Hxy).
-destruct (ln_beta beta (x + y)) as (exy', Exy). simpl.
-now apply Exy.
+now apply ln_beta_le.
 replace exy with (Fexp (Fplus beta fx fy)) by exact (f_equal Fexp Pxy).
 rewrite Fexp_Fplus.
 simpl. clear -monotone_exp.

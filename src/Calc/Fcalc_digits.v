@@ -411,17 +411,13 @@ apply Zplus_lt_compat.
 now apply Zplus_lt_compat.
 now apply Zmult_lt_0_compat.
 rewrite 3!digits_ln_beta ; try now (apply sym_not_eq ; apply Zlt_not_eq).
-destruct (ln_beta beta (Z2R (x + y + x * y))) as (exy, Hexy). simpl.
-specialize (Hexy (Rgt_not_eq _ _ Hxy)).
+apply ln_beta_le with (1 := Rgt_not_eq _ _ Hxy).
+rewrite Rabs_pos_eq with (1 := Rlt_le _ _ Hxy).
 destruct (ln_beta beta (Z2R x)) as (ex, Hex). simpl.
 specialize (Hex (Rgt_not_eq _ _ (Z2R_lt _ _ Hx))).
 destruct (ln_beta beta (Z2R y)) as (ey, Hey). simpl.
 specialize (Hey (Rgt_not_eq _ _ (Z2R_lt _ _ Hy))).
-eapply bpow_lt_bpow.
 apply Rlt_le_trans with (Z2R (x + 1) * Z2R (y + 1))%R.
-apply Rle_lt_trans with (Z2R (x + y + x * y)).
-rewrite <- (Rabs_pos_eq _ (Rlt_le _ _ Hxy)).
-apply Hexy.
 rewrite <- Z2R_mult.
 apply Z2R_lt.
 apply Zplus_lt_reg_r with (- (x + y + x * y + 1))%Z.

@@ -123,17 +123,12 @@ clear Hr.
 apply Zle_trans with (cexp (x * y)%R - prec)%Z.
 unfold canonic_exponent, FLX_exp.
 apply Zplus_le_compat_r.
-rewrite ln_beta_unique with (1 := Her).
 rewrite ln_beta_unique with (1 := Hexy).
-apply (bpow_lt_bpow beta).
-apply Rle_lt_trans with (1 := proj1 Her).
-apply Rlt_le_trans with (ulp beta (FLX_exp prec) (x * y)).
+apply ln_beta_le with (1 := Hz).
+replace (bpow (exy - prec)) with (ulp beta (FLX_exp prec) (x * y)).
 apply ulp_error...
-unfold ulp.
-apply bpow_le.
-unfold canonic_exponent, FLX_exp.
-rewrite ln_beta_unique with (1 := Hexy).
-apply Zle_refl.
+unfold ulp, canonic_exponent.
+now rewrite ln_beta_unique with (1 := Hexy).
 apply Hc1.
 reflexivity.
 Qed.

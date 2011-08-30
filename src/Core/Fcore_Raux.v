@@ -2125,6 +2125,19 @@ apply Rle_ge.
 apply bpow_ge_0.
 Qed.
 
+Theorem ln_beta_le :
+  forall x e,
+  x <> R0 ->
+  (Rabs x < bpow e)%R ->
+  (ln_beta x <= e)%Z.
+Proof.
+intros x e Zx Hx.
+destruct (ln_beta x) as (ex, Ex) ; simpl.
+specialize (Ex Zx).
+apply bpow_lt_bpow.
+now apply Rle_lt_trans with (Rabs x).
+Qed.
+
 Theorem ln_beta_Z2R_le :
   forall m e,
   m <> Z0 ->
@@ -2132,10 +2145,8 @@ Theorem ln_beta_Z2R_le :
   (ln_beta (Z2R m) <= e)%Z.
 Proof.
 intros m e Zm Hm.
-destruct (ln_beta (Z2R m)) as (e',E) ; simpl.
-specialize (E (Z2R_neq m 0 Zm)).
-apply bpow_lt_bpow.
-apply Rle_lt_trans with (1 := proj1 E).
+apply ln_beta_le.
+exact (Z2R_neq m 0 Zm).
 destruct (Zle_or_lt 0 e).
 rewrite <- Z2R_abs, <- Z2R_Zpower with (1 := H).
 now apply Z2R_lt.

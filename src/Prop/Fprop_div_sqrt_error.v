@@ -50,15 +50,9 @@ rewrite <- Hz.
 apply Zle_trans with (Zmin (Fexp fx) (Fexp fy)).
 unfold canonic_exponent, FLX_exp.
 rewrite plus_F2R, <- Hx, <- Hy.
-destruct (ln_beta beta (x+y)); simpl.
-specialize (a H).
-apply Zmin_case.
 apply Zplus_le_reg_l with prec; ring_simplify.
-apply (bpow_lt_bpow beta).
-now apply Rle_lt_trans with (1:=proj1 a).
-apply Zplus_le_reg_l with prec; ring_simplify.
-apply (bpow_lt_bpow beta).
-now apply Rle_lt_trans with (1:=proj1 a).
+apply ln_beta_le with (1 := H).
+now apply Zmin_case.
 rewrite <- Fexp_Fplus, Hz.
 apply Zle_refl.
 Qed.
