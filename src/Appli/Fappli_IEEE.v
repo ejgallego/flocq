@@ -954,9 +954,9 @@ Definition binary_round_sign_shl m sx mx ex :=
 
 Theorem binary_round_sign_shl_correct :
   forall m sx mx ex,
-  valid_binary (binary_round_sign_shl m sx mx ex) = true /\
-  let x := F2R (Float radix2 (cond_Zopp sx (Zpos mx)) ex) in
   let z := binary_round_sign_shl m sx mx ex in
+  valid_binary z = true /\
+  let x := F2R (Float radix2 (cond_Zopp sx (Zpos mx)) ex) in
   if Rlt_bool (Rabs (round radix2 fexp (round_mode m) x)) (bpow radix2 emax) then
     FF2R radix2 z = round radix2 fexp (round_mode m) x /\
     is_finite_FF z = true
