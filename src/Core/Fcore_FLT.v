@@ -58,26 +58,19 @@ Theorem generic_format_FLT :
   forall x, FLT_format x -> generic_format beta FLT_exp x.
 Proof.
 clear prec_gt_0_.
-intros x ((xm, xe), (Hx1, (Hx2, Hx3))).
-simpl in Hx2, Hx3.
-destruct (Req_dec x 0) as [Hx4|Hx4].
-rewrite Hx4.
+intros x ((mx, ex), (H1, (H2, H3))).
+simpl in H2, H3.
+rewrite H1.
+destruct (Z_eq_dec mx 0) as [Zmx|Zmx].
+rewrite Zmx, F2R_0.
 apply generic_format_0.
-destruct (ln_beta beta x) as (ex, Hx5).
-specialize (Hx5 Hx4).
-rewrite Hx1.
 apply generic_format_canonic_exponent.
-rewrite <- Hx1.
-rewrite canonic_exponent_fexp with (1 := Hx5).
-unfold FLT_exp.
-apply Zmax_lub. 2: exact Hx3.
-cut (ex -1 < prec + xe)%Z. omega.
-apply (lt_bpow beta).
-apply Rle_lt_trans with (1 := proj1 Hx5).
-rewrite Hx1.
-apply F2R_lt_bpow.
-simpl.
-now ring_simplify (prec + xe - xe)%Z.
+unfold canonic_exponent, FLT_exp.
+rewrite ln_beta_F2R with (1 := Zmx).
+apply Zmax_lub with (2 := H3).
+apply Zplus_le_reg_r with (prec - ex)%Z.
+ring_simplify.
+now apply ln_beta_Z2R_le.
 Qed.
 
 Theorem FLT_format_generic :

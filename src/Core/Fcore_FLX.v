@@ -153,27 +153,12 @@ rewrite H1.
 destruct (Z_eq_dec mx 0) as [Zmx|Zmx].
 rewrite Zmx, F2R_0.
 apply generic_format_0.
-destruct (Zle_or_lt 0 prec) as [Hprec|Hprec].
-(* *)
 apply generic_format_canonic_exponent.
 unfold canonic_exponent, FLX_exp.
 rewrite ln_beta_F2R with (1 := Zmx).
 apply Zplus_le_reg_r with (prec - ex)%Z.
 ring_simplify.
-apply bpow_lt_bpow with beta.
-destruct (ln_beta beta (Z2R mx)) as (emx,Emx). simpl.
-specialize (Emx (Z2R_neq _ _ Zmx)).
-apply Rle_lt_trans with (1 := proj1 Emx).
-rewrite <- Z2R_abs.
-rewrite <- Z2R_Zpower with (1 := Hprec).
-now apply Z2R_lt.
-(* *)
-revert H2 Hprec.
-case prec ; simpl ; try discriminate.
-intros _ H _.
-elim (Zlt_irrefl 0).
-apply Zle_lt_trans with (2 := H).
-apply Zabs_pos.
+now apply ln_beta_Z2R_le.
 Qed.
 
 Theorem FLX_format_satisfies_any :

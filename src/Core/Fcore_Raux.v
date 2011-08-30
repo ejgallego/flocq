@@ -2125,6 +2125,27 @@ apply Rle_ge.
 apply bpow_ge_0.
 Qed.
 
+Theorem ln_beta_Z2R_le :
+  forall m e,
+  m <> Z0 ->
+  (Zabs m < Zpower r e)%Z->
+  (ln_beta (Z2R m) <= e)%Z.
+Proof.
+intros m e Zm Hm.
+destruct (ln_beta (Z2R m)) as (e',E) ; simpl.
+specialize (E (Z2R_neq m 0 Zm)).
+apply bpow_lt_bpow.
+apply Rle_lt_trans with (1 := proj1 E).
+destruct (Zle_or_lt 0 e).
+rewrite <- Z2R_abs, <- Z2R_Zpower with (1 := H).
+now apply Z2R_lt.
+elim Zm.
+cut (Zabs m < 0)%Z.
+now case m.
+clear -Hm H.
+now destruct e.
+Qed.
+
 Theorem Zpower_pos_gt_0 :
   forall b p, (0 < b)%Z ->
   (0 < Zpower_pos b p)%Z.
