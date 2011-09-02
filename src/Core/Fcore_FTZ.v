@@ -69,46 +69,38 @@ generalize (prec_gt_0 prec).
 split ; intros ; omega.
 Qed.
 
+Theorem FLXN_format_FTZ :
+  forall x, FTZ_format x -> FLXN_format beta prec x.
+Proof.
+intros x ((xm, xe), (Hx1, (Hx2, Hx3))).
+eexists.
+apply (conj Hx1 Hx2).
+Qed.
+
 Theorem generic_format_FTZ :
   forall x, FTZ_format x -> generic_format beta FTZ_exp x.
 Proof.
-intros x ((xm, xe), (Hx1, (Hx2, Hx3))).
-destruct (Req_dec x 0) as [Hx4|Hx4].
-rewrite Hx4.
-apply generic_format_0.
-specialize (Hx2 Hx4).
-rewrite Hx1.
-apply generic_format_F2R.
-unfold canonic_exponent, FTZ_exp.
-rewrite <- Hx1.
-destruct (ln_beta beta x) as (ex, Hx6).
-simpl.
-specialize (Hx6 Hx4).
-generalize (Zlt_cases (ex - prec) emin).
-case (Zlt_bool (ex - prec) emin) ; intros H1.
-elim (Rlt_not_le _ _ (proj2 Hx6)).
-apply Rle_trans with (bpow (prec - 1) * bpow emin)%R.
-rewrite <- bpow_plus.
-apply bpow_le.
-omega.
-rewrite Hx1, abs_F2R.
-unfold F2R. simpl.
-apply Rmult_le_compat.
-apply bpow_ge_0.
-apply bpow_ge_0.
-rewrite <- Z2R_Zpower.
-now apply Z2R_le.
-apply Zle_minus_le_0.
-now apply (Zlt_le_succ 0).
-now apply bpow_le.
-cut (ex - 1 < prec + xe)%Z. omega.
-apply (lt_bpow beta).
-apply Rle_lt_trans with (1 := proj1 Hx6).
-rewrite Hx1.
-apply F2R_lt_bpow.
-simpl.
-ring_simplify (prec + xe - xe)%Z.
+intros x Hx.
+cut (generic_format beta (FLX_exp prec) x).
+apply generic_inclusion_ln_beta.
+intros Zx.
+destruct Hx as ((xm, xe), (Hx1, (Hx2, Hx3))).
+simpl in Hx2, Hx3.
+specialize (Hx2 Zx).
+assert (Zxm: xm <> Z0).
+contradict Zx.
+rewrite Hx1, Zx.
+apply F2R_0.
+unfold FTZ_exp, FLX_exp.
+rewrite Zlt_bool_false.
+apply Zle_refl.
+rewrite Hx1, ln_beta_F2R with (1 := Zxm).
+cut (prec - 1 < ln_beta beta (Z2R xm))%Z.
+clear -Hx3 ; omega.
+apply ln_beta_Z2R_gt with (1 := Zxm).
 apply Hx2.
+apply generic_format_FLXN.
+now apply FLXN_format_FTZ.
 Qed.
 
 Theorem FTZ_format_generic :
@@ -183,23 +175,6 @@ intros x.
 split.
 apply FTZ_format_generic.
 apply generic_format_FTZ.
-Qed.
-
-Theorem FLXN_format_FTZ :
-  forall x, FTZ_format x -> FLXN_format beta prec x.
-Proof with auto with typeclass_instances.
-intros x Fx.
-apply FLXN_format_generic...
-apply generic_format_FTZ in Fx.
-revert Fx.
-apply generic_inclusion_ln_beta.
-intros _.
-unfold FLX_exp, FTZ_exp.
-case Zlt_bool_spec.
-generalize (prec_gt_0 prec).
-omega.
-intros _.
-apply Zle_refl.
 Qed.
 
 Theorem FTZ_format_FLXN :
