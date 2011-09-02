@@ -208,29 +208,14 @@ Theorem FLT_generic_format_FIX :
   (Rabs x <= bpow (emin + prec))%R ->
   generic_format beta (FIX_exp emin) x ->
   generic_format beta FLT_exp x.
-Proof.
-intros x Hx H'.
-destruct (Req_dec x 0) as [Hx0|Hx0].
-rewrite Hx0.
-apply generic_format_0.
-destruct Hx as [Hx|Hx].
-unfold generic_format, scaled_mantissa.
-now rewrite (FLT_canonic_FIX x Hx0 Hx).
-(* extra case *)
-rewrite <- (Rabs_pos_eq (bpow (emin + prec))) in Hx. 2: apply bpow_ge_0.
-assert (H1: generic_format beta FLT_exp (bpow (emin + prec))).
-apply generic_format_bpow.
-unfold FLT_exp.
-assert (Hp := prec_gt_0 prec).
-apply Zmax_lub ; clear -Hp ; omega.
-assert (H2: generic_format beta (FIX_exp emin) (bpow (emin + prec))).
-apply generic_format_bpow.
+Proof with auto with typeclass_instances.
+clear prec_gt_0_.
+apply generic_inclusion_le...
+intros e He.
 unfold FIX_exp.
-generalize (prec_gt_0 prec).
-clear ; omega.
-destruct Rabs_eq_Rabs with (1 := Hx) as [H|H] ;
-  rewrite H ; clear H ;
-  try apply generic_format_opp ; easy.
+apply Zmax_lub.
+omega.
+apply Zle_refl.
 Qed.
 
 (** FLT is a nice format: it has a monotone exponent... *)

@@ -70,52 +70,6 @@ exact H2.
 now rewrite <- H1.
 Qed.
 
-Theorem FLX_format_FIX :
-  forall x e,
-  (bpow (e - 1) <= Rabs x <= bpow e)%R ->
-  FIX_format beta (e - prec) x ->
-  FLX_format x.
-Proof.
-intros x e (Hx1,[Hx2|Hx2]).
-(* . *)
-intros ((xm, xe), (H1, H2)).
-rewrite H1.
-eexists ; repeat split.
-simpl.
-apply lt_Z2R.
-apply Rmult_lt_reg_r with (bpow (e - prec)).
-apply bpow_gt_0.
-rewrite Z2R_Zpower, <- bpow_plus.
-ring_simplify (prec + (e - prec))%Z.
-rewrite <- H2.
-simpl.
-change (F2R (Float beta (Zabs xm) xe) < bpow e)%R.
-now rewrite <- abs_F2R, <- H1.
-now apply Zlt_le_weak.
-(* . *)
-intros ((xm, xe), (H1, H2)).
-assert (Ha: forall x, FLX_format (Rabs x) -> FLX_format x).
-clear.
-intros x Ha.
-unfold Rabs in Ha.
-destruct (Rcase_abs x) as [Hx|Hx].
-destruct Ha as ((m,e),(Ha,Hb)).
-exists (Float beta (-m) e).
-split.
-now rewrite <- opp_F2R, <- Ha, Ropp_involutive.
-simpl.
-now rewrite Zabs_Zopp.
-exact Ha.
-(* . . *)
-apply Ha.
-rewrite Hx2.
-exists (Float beta 1 e).
-split.
-apply sym_eq.
-apply Rmult_1_l.
-now apply Zpower_gt_1.
-Qed.
-
 Theorem FLX_format_generic :
   forall x, generic_format beta FLX_exp x -> FLX_format x.
 Proof.
@@ -167,6 +121,20 @@ intros x.
 split.
 apply FLX_format_generic.
 apply generic_format_FLX.
+Qed.
+
+Theorem FLX_format_FIX :
+  forall x e,
+  (bpow (e - 1) <= Rabs x <= bpow e)%R ->
+  FIX_format beta (e - prec) x ->
+  FLX_format x.
+Proof with auto with typeclass_instances.
+intros x e Hx Fx.
+apply FLX_format_generic.
+apply generic_format_FIX in Fx.
+revert Fx.
+apply generic_inclusion with (e := e)...
+apply Zle_refl.
 Qed.
 
 (** unbounded floating-point format with normal mantissas *)
