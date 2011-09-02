@@ -96,7 +96,21 @@ rewrite Ztrunc_Z2R.
 rewrite <- F2R_bpow.
 rewrite F2R_change_exp with (1 := H).
 now rewrite Zmult_1_l.
-omega.
+now apply Zle_minus_le_0.
+Qed.
+
+Theorem generic_format_bpow' :
+  forall e, (fexp e <= e)%Z ->
+  generic_format (bpow e).
+Proof.
+intros e He.
+apply generic_format_bpow.
+destruct (Zle_lt_or_eq _ _ He).
+now apply valid_exp.
+rewrite <- H.
+apply valid_exp_.
+rewrite H.
+apply Zle_refl.
 Qed.
 
 Theorem generic_format_F2R :
