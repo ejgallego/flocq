@@ -269,28 +269,13 @@ Proof.
 intros x y Hx Hxy.
 case (Z_lt_le_dec 0 x).
 clear Hx. intros Hx.
-assert (Hy: (y <> 0)%Z).
-apply sym_not_eq.
-apply Zlt_not_eq.
-now apply Zlt_le_trans with x.
 rewrite 2!digits_ln_beta.
-destruct (ln_beta beta (Z2R x)) as (ex, Hex). simpl.
-specialize (Hex (Rgt_not_eq _ _ (Z2R_lt _ _ Hx))).
-destruct (ln_beta beta (Z2R y)) as (ey, Hey). simpl.
-specialize (Hey (Z2R_neq _ _ Hy)).
-eapply bpow_lt_bpow.
-apply Rle_lt_trans with (1 := proj1 Hex).
-apply Rle_lt_trans with (Rabs (Z2R y)).
-rewrite Rabs_pos_eq.
-apply Rle_trans with (Z2R y).
+apply ln_beta_monotone.
+now apply (Z2R_lt 0).
 now apply Z2R_le.
-apply RRle_abs.
-apply (Z2R_le 0).
-now apply Zlt_le_weak.
-apply Hey.
-exact Hy.
-apply sym_not_eq.
-now apply Zlt_not_eq.
+apply Zgt_not_eq.
+now apply Zlt_le_trans with x.
+now apply Zgt_not_eq.
 intros Hx'.
 rewrite (Zle_antisym _ _ Hx' Hx).
 apply digits_ge_0.
