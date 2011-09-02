@@ -185,54 +185,39 @@ apply FTZ_format_generic.
 apply generic_format_FTZ.
 Qed.
 
+Theorem FLXN_format_FTZ :
+  forall x, FTZ_format x -> FLXN_format beta prec x.
+Proof with auto with typeclass_instances.
+intros x Fx.
+apply FLXN_format_generic...
+apply generic_format_FTZ in Fx.
+revert Fx.
+apply generic_inclusion_ln_beta.
+intros _.
+unfold FLX_exp, FTZ_exp.
+case Zlt_bool_spec.
+generalize (prec_gt_0 prec).
+omega.
+intros _.
+apply Zle_refl.
+Qed.
+
 Theorem FTZ_format_FLXN :
   forall x : R,
   (bpow (emin + prec - 1) <= Rabs x)%R ->
-  ( FTZ_format x <-> FLXN_format beta prec x ).
-Proof with auto with typeclass_instances.
-intros x Hx.
-split.
-(* . *)
-destruct (Req_dec x 0) as [H4|H4].
-intros _.
-rewrite H4.
-apply FLXN_format_generic...
-apply generic_format_0.
-intros ((xm,xe),(H1,(H2,H3))).
-specialize (H2 H4).
-rewrite H1.
-eexists. split. split.
-now intros _.
-(* . *)
-intros ((xm,xe),(H1,H2)).
-rewrite H1.
-eexists. split. split. split.
-now rewrite <- H1 at 1.
-rewrite (Zsucc_pred emin).
-apply Zlt_le_succ.
-apply (lt_bpow beta).
-apply Rmult_lt_reg_l with (Z2R (Zabs xm)).
-apply Rmult_lt_reg_r with (bpow xe).
-apply bpow_gt_0.
-rewrite Rmult_0_l.
-rewrite H1, abs_F2R in Hx.
-apply Rlt_le_trans with (2 := Hx).
-apply bpow_gt_0.
-rewrite H1, abs_F2R in Hx.
-apply Rlt_le_trans with (2 := Hx).
-replace (emin + prec - 1)%Z with (prec + (emin - 1))%Z by ring.
-rewrite bpow_plus.
-apply Rmult_lt_compat_r.
-apply bpow_gt_0.
-rewrite <- Z2R_Zpower.
-apply Z2R_lt.
-apply H2.
-intros H.
-rewrite <- abs_F2R, <- H1, H, Rabs_right in Hx.
-apply Rle_not_lt with (1 := Hx).
-apply bpow_gt_0.
-apply Rle_refl.
-now apply Zlt_le_weak.
+  FLXN_format beta prec x -> FTZ_format x.
+Proof.
+clear prec_gt_0_.
+intros x Hx Fx.
+apply FTZ_format_generic.
+apply generic_format_FLXN in Fx.
+revert Hx Fx.
+apply generic_inclusion_ge.
+intros e He.
+unfold FTZ_exp.
+rewrite Zlt_bool_false.
+apply Zle_refl.
+omega.
 Qed.
 
 Section FTZ_round.
@@ -295,7 +280,6 @@ Proof.
 intros x Hx.
 unfold round, scaled_mantissa, canonic_exponent.
 destruct (ln_beta beta x) as (ex, He). simpl.
-unfold Zrnd_FTZ.
 assert (Hx0: x <> R0).
 intros Hx0.
 apply Rle_not_lt with (1 := Hx).
@@ -307,6 +291,7 @@ apply (bpow_lt_bpow beta).
 apply Rle_lt_trans with (1 := Hx).
 apply He.
 replace (FTZ_exp ex) with (FLX_exp prec ex).
+unfold Zrnd_FTZ.
 rewrite Rle_bool_true.
 apply refl_equal.
 rewrite Rabs_mult.
@@ -323,10 +308,9 @@ generalize (prec_gt_0 prec).
 clear -He' ; omega.
 apply bpow_ge_0.
 unfold FLX_exp, FTZ_exp.
-generalize (Zlt_cases (ex - prec) emin).
-case Zlt_bool.
-omega.
-easy.
+rewrite Zlt_bool_false.
+apply refl_equal.
+clear -He' ; omega.
 Qed.
 
 Theorem FTZ_round_small :
