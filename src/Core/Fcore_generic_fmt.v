@@ -23,11 +23,13 @@ Require Import Fcore_defs.
 Require Import Fcore_rnd.
 Require Import Fcore_float_prop.
 
-Section RND_generic.
+Section Generic.
 
 Variable beta : radix.
 
 Notation bpow e := (bpow beta e).
+
+Section Format.
 
 Variable fexp : Z -> Z.
 
@@ -1715,6 +1717,140 @@ Qed.
 
 End rndN_opp.
 
-End RND_generic.
+End Format.
+
+Section Inclusion.
+
+Variables fexp1 fexp2 : Z -> Z.
+
+Context { valid_exp1 : Valid_exp fexp1 }.
+Context { valid_exp2 : Valid_exp fexp2 }.
+
+Theorem generic_inclusion_ln_beta :
+  forall x,
+  ( x <> R0 -> (fexp2 (ln_beta beta x) <= fexp1 (ln_beta beta x))%Z ) ->
+  generic_format fexp1 x ->
+  generic_format fexp2 x.
+Proof.
+intros x He Fx.
+rewrite Fx.
+apply generic_format_F2R.
+intros Zx.
+rewrite <- Fx.
+apply He.
+contradict Zx.
+rewrite Zx, scaled_mantissa_0.
+apply (Ztrunc_Z2R 0).
+Qed.
+
+Theorem generic_inclusion_lt_ge :
+  forall e1 e2,
+  ( forall e, (e1 < e <= e2)%Z -> (fexp2 e <= fexp1 e)%Z ) ->
+  forall x,
+  (bpow e1 <= Rabs x < bpow e2)%R ->
+  generic_format fexp1 x ->
+  generic_format fexp2 x.
+Proof.
+intros e1 e2 He x (Hx1,Hx2).
+apply generic_inclusion_ln_beta.
+intros Zx.
+apply He.
+split.
+now apply ln_beta_gt.
+now apply ln_beta_le.
+Qed.
+
+Theorem generic_inclusion :
+  forall e,
+  (fexp2 e <= fexp1 e)%Z ->
+  forall x,
+  (bpow (e - 1) <= Rabs x <= bpow e)%R ->
+  generic_format fexp1 x ->
+  generic_format fexp2 x.
+Proof with auto with typeclass_instances.
+intros e He x (Hx1,[Hx2|Hx2]).
+apply generic_inclusion_ln_beta.
+now rewrite ln_beta_unique with (1 := conj Hx1 Hx2).
+intros Fx.
+apply generic_format_abs_inv.
+rewrite Hx2.
+apply generic_format_bpow'...
+apply Zle_trans with (1 := He).
+apply generic_format_bpow_inv...
+rewrite <- Hx2.
+now apply generic_format_abs.
+Qed.
+
+Theorem generic_inclusion_le_ge :
+  forall e1 e2,
+  (e1 < e2)%Z ->
+  ( forall e, (e1 < e <= e2)%Z -> (fexp2 e <= fexp1 e)%Z ) ->
+  forall x,
+  (bpow e1 <= Rabs x <= bpow e2)%R ->
+  generic_format fexp1 x ->
+  generic_format fexp2 x.
+Proof.
+intros e1 e2 He' He x (Hx1,[Hx2|Hx2]).
+(* *)
+apply generic_inclusion_ln_beta.
+intros Zx.
+apply He.
+split.
+now apply ln_beta_gt.
+now apply ln_beta_le.
+(* *)
+apply generic_inclusion with (e := e2).
+apply He.
+split.
+apply He'.
+apply Zle_refl.
+rewrite Hx2.
+split.
+apply bpow_le.
+apply Zle_pred.
+apply Rle_refl.
+Qed.
+
+Theorem generic_inclusion_le :
+  forall e2,
+  ( forall e, (e <= e2)%Z -> (fexp2 e <= fexp1 e)%Z ) ->
+  forall x,
+  (Rabs x <= bpow e2)%R ->
+  generic_format fexp1 x ->
+  generic_format fexp2 x.
+Proof.
+intros e2 He x [Hx|Hx].
+apply generic_inclusion_ln_beta.
+intros Zx.
+apply He.
+now apply ln_beta_le.
+apply generic_inclusion with (e := e2).
+apply He.
+apply Zle_refl.
+rewrite Hx.
+split.
+apply bpow_le.
+apply Zle_pred.
+apply Rle_refl.
+Qed.
+
+Theorem generic_inclusion_ge :
+  forall e1,
+  ( forall e, (e1 < e)%Z -> (fexp2 e <= fexp1 e)%Z ) ->
+  forall x,
+  (bpow e1 <= Rabs x)%R ->
+  generic_format fexp1 x ->
+  generic_format fexp2 x.
+Proof.
+intros e1 He x Hx.
+apply generic_inclusion_ln_beta.
+intros Zx.
+apply He.
+now apply ln_beta_gt.
+Qed.
+
+End Inclusion.
+
+End Generic.
 
 Notation ZnearestA := (Znearest (Zle_bool 0)).
