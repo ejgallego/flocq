@@ -2173,6 +2173,26 @@ clear -Hm H.
 now destruct e.
 Qed.
 
+Theorem ln_beta_Z2R_gt :
+  forall m e,
+  m <> Z0 ->
+  (Zpower r e <= Zabs m)%Z ->
+  (e < ln_beta (Z2R m))%Z.
+Proof.
+intros m e Zm Hm.
+apply ln_beta_gt.
+rewrite <- Z2R_abs.
+destruct (Zle_or_lt 0 e).
+rewrite <- Z2R_Zpower with (1 := H).
+now apply Z2R_le.
+apply Rle_trans with (bpow 0).
+apply bpow_le.
+now apply Zlt_le_weak.
+apply (Z2R_le 1).
+clear -Zm.
+zify ; omega.
+Qed.
+
 Theorem Zpower_pos_gt_0 :
   forall b p, (0 < b)%Z ->
   (0 < Zpower_pos b p)%Z.
