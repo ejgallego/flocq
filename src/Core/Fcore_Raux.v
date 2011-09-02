@@ -2138,6 +2138,22 @@ apply bpow_lt_bpow.
 now apply Rle_lt_trans with (Rabs x).
 Qed.
 
+Theorem ln_beta_gt :
+  forall x e,
+  (bpow e <= Rabs x)%R ->
+  (e < ln_beta x)%Z.
+Proof.
+intros x e Hx.
+destruct (ln_beta x) as (ex, Ex) ; simpl.
+apply lt_bpow.
+apply Rle_lt_trans with (1 := Hx).
+apply Ex.
+intros Zx.
+apply Rle_not_lt with (1 := Hx).
+rewrite Zx, Rabs_R0.
+apply bpow_gt_0.
+Qed.
+
 Theorem ln_beta_Z2R_le :
   forall m e,
   m <> Z0 ->
