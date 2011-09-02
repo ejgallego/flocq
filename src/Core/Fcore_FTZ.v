@@ -69,12 +69,10 @@ generalize (prec_gt_0 prec).
 split ; intros ; omega.
 Qed.
 
-Theorem FTZ_format_generic :
-  forall x : R, FTZ_format x <-> generic_format beta FTZ_exp x.
+Theorem generic_format_FTZ :
+  forall x, FTZ_format x -> generic_format beta FTZ_exp x.
 Proof.
-split.
-(* . *)
-intros ((xm, xe), (Hx1, (Hx2, Hx3))).
+intros x ((xm, xe), (Hx1, (Hx2, Hx3))).
 destruct (Req_dec x 0) as [Hx4|Hx4].
 rewrite Hx4.
 apply generic_format_0.
@@ -111,8 +109,12 @@ apply F2R_lt_bpow.
 simpl.
 ring_simplify (prec + xe - xe)%Z.
 apply Hx2.
-(* . *)
-intros Hx.
+Qed.
+
+Theorem FTZ_format_generic :
+  forall x, generic_format beta FTZ_exp x -> FTZ_format x.
+Proof.
+intros x Hx.
 destruct (Req_dec x 0) as [Hx3|Hx3].
 exists (Float beta 0 emin).
 split.
@@ -178,8 +180,9 @@ Theorem FTZ_format_satisfies_any :
 Proof.
 refine (satisfies_any_eq _ _ _ (generic_format_satisfies_any beta FTZ_exp)).
 intros x.
-apply iff_sym.
+split.
 apply FTZ_format_generic.
+apply generic_format_FTZ.
 Qed.
 
 Theorem FTZ_format_FLXN :
