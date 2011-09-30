@@ -111,6 +111,30 @@ Proof.
 now intros [sx|sx| |sx mx ex] Hx.
 Qed.
 
+Theorem valid_binary_B2FF :
+  forall x,
+  valid_binary (B2FF x) = true.
+Proof.
+now intros [sx|sx| |sx mx ex Hx].
+Qed.
+
+Theorem FF2B_B2FF :
+  forall x H,
+  FF2B (B2FF x) H = x.
+Proof.
+intros [sx|sx| |sx mx ex Hx] H ; try easy.
+apply f_equal.
+apply eqbool_irrelevance.
+Qed.
+
+Theorem FF2B_B2FF_valid :
+  forall x,
+  FF2B (B2FF x) (valid_binary_B2FF x) = x.
+Proof.
+intros x.
+apply FF2B_B2FF.
+Qed.
+
 Theorem B2R_FF2B :
   forall x Hx,
   B2R (FF2B x Hx) = FF2R radix2 x.
@@ -251,6 +275,13 @@ Definition is_finite_FF f :=
 Theorem is_finite_FF2B :
   forall x Hx,
   is_finite (FF2B x Hx) = is_finite_FF x.
+Proof.
+now intros [| | |].
+Qed.
+
+Theorem is_finite_FF_B2FF :
+  forall x,
+  is_finite_FF (B2FF x) = is_finite x.
 Proof.
 now intros [| | |].
 Qed.
@@ -778,6 +809,21 @@ Definition Bsign x :=
   | B754_finite s _ _ _ => s
   end.
 
+Definition Bsign_FF x :=
+  match x with
+  | F754_nan => false
+  | F754_zero s => s
+  | F754_infinity s => s
+  | F754_finite s _ _ => s
+  end.
+
+Theorem Bsign_FF2B :
+  forall x H,
+  Bsign (FF2B x H) = Bsign_FF x.
+Proof.
+now intros [sx|sx| |sx mx ex] H.
+Qed.
+
 Lemma Bmult_correct_aux :
   forall m sx mx ex (Hx : bounded mx ex = true) sy my ey (Hy : bounded my ey = true),
   let x := F2R (Float radix2 (cond_Zopp sx (Zpos mx)) ex) in
@@ -867,6 +913,30 @@ now rewrite B2R_FF2B.
 now rewrite is_finite_FF2B.
 intros H2.
 now rewrite B2FF_FF2B.
+Qed.
+
+Definition Bmult_FF m x y :=
+  match x, y with
+  | F754_nan, _ => x
+  | _, F754_nan => y
+  | F754_infinity sx, F754_infinity sy => F754_infinity (xorb sx sy)
+  | F754_infinity sx, F754_finite sy _ _ => F754_infinity (xorb sx sy)
+  | F754_finite sx _ _, F754_infinity sy => F754_infinity (xorb sx sy)
+  | F754_infinity _, F754_zero _ => F754_nan
+  | F754_zero _, F754_infinity _ => F754_nan
+  | F754_finite sx _ _, F754_zero sy => F754_zero (xorb sx sy)
+  | F754_zero sx, F754_finite sy _ _ => F754_zero (xorb sx sy)
+  | F754_zero sx, F754_zero sy => F754_zero (xorb sx sy)
+  | F754_finite sx mx ex, F754_finite sy my ey =>
+    binary_round_sign m (xorb sx sy) (mx * my) (ex + ey) loc_Exact
+  end.
+
+Theorem B2FF_Bmult :
+  forall m x y,
+  B2FF (Bmult m x y) = Bmult_FF m (B2FF x) (B2FF y).
+Proof.
+intros m [sx|sx| |sx mx ex Hx] [sy|sy| |sy my ey Hy] ; try easy.
+apply B2FF_FF2B.
 Qed.
 
 Definition shl mx ex ex' :=
