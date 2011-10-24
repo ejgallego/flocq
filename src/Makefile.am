@@ -1,6 +1,7 @@
 FILES = \
 	Flocq_version.v \
 	Core/Fcore_defs.v \
+	Core/Fcore_digits.v \
 	Core/Fcore_float_prop.v \
 	Core/Fcore_Raux.v \
 	Core/Fcore_rnd.v \
