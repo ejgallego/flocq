@@ -20,6 +20,15 @@ COPYING file for more details.
 Require Import Fcore_Raux.
 Require Import ZOdiv.
 
+Theorem Zmult_pow :
+  forall n k1 k2, (0 <= k1)%Z -> (0 <= k2)%Z ->
+  (Zpower n k1 * Zpower n k2)%Z = Zpower n (k1 + k2).
+Proof.
+intros n k1 k2 H1 H2.
+apply sym_eq.
+now apply Zpower_exp ; apply Zle_ge.
+Qed.
+
 Theorem Zmod_mod_mult :
   forall n a b, (0 < a)%Z -> (0 <= b)%Z ->
   Zmod (Zmod n (a * b)) b = Zmod n b.
@@ -189,7 +198,7 @@ split.
 apply Hn.
 apply Zlt_le_trans with (1 := proj2 Hn).
 replace k with (e + (k - e))%Z by ring.
-rewrite Zpower_exp.
+rewrite <- Zmult_pow.
 rewrite <- (Zmult_1_r (beta ^ e)) at 1.
 apply Zmult_le_compat_l.
 apply (Zlt_le_succ 0).
@@ -200,7 +209,6 @@ now apply Zle_lt_trans with n.
 generalize (Zle_lt_trans _ _ _ (proj1 Hn) (proj2 Hn)).
 clear.
 now destruct e as [|e|e].
-apply Zle_ge.
 now apply Zle_minus_le_0.
 Qed.
 
@@ -244,9 +252,8 @@ apply Zpower_ge_0.
 replace (beta ^ e * beta)%Z with (beta ^ (e + 1))%Z.
 exact Hn2.
 rewrite <- (Zmult_1_r beta) at 3.
-apply Zpower_exp.
-now apply Zle_ge.
-easy.
+apply sym_eq.
+now apply (Zmult_pow beta e 1).
 Qed.
 
 Theorem Zdigit_mul_pow :
@@ -260,17 +267,18 @@ pattern k' ; apply Zlt_0_ind with (2 := Hk').
 clear k' Hk'.
 intros k' IHk' Hk' k H.
 unfold Zdigit.
+apply (f_equal (fun x => ZOmod x beta)).
 pattern k at 1 ; replace k with (k - k' + k')%Z by ring.
-rewrite Zpower_exp by omega.
-rewrite ZOdiv_mult_cancel_r.
-apply refl_equal.
+rewrite <- Zmult_pow with (2 := Hk').
+apply ZOdiv_mult_cancel_r.
 apply Zgt_not_eq.
 now apply Zpower_gt_0.
+now apply Zle_minus_le_0.
 destruct (Zle_or_lt 0 k) as [H0|H0].
 rewrite (Zdigit_lt n) by omega.
 unfold Zdigit.
 replace k' with (k' - k + k)%Z by ring.
-rewrite Zpower_exp by omega.
+rewrite <- Zmult_pow with (2 := H0).
 rewrite Zmult_assoc, ZO_div_mult.
 replace (k' - k)%Z with (k' - k - 1 + 1)%Z by ring.
 rewrite Zpower_exp by omega.
@@ -280,6 +288,8 @@ rewrite Zmult_1_r.
 apply ZO_mod_mult.
 apply Zgt_not_eq.
 now apply Zpower_gt_0.
+apply Zle_minus_le_0.
+now apply Zlt_le_weak.
 rewrite Zdigit_lt with (1 := H0).
 apply sym_eq.
 apply Zdigit_lt.
@@ -294,7 +304,7 @@ intros n k k' Hk Hk'.
 unfold Zdigit.
 rewrite ZOdiv_ZOdiv.
 rewrite Zplus_comm.
-now rewrite Zpower_exp ; try apply Zle_ge.
+now rewrite <- Zmult_pow.
 Qed.
 
 Theorem Zdigit_mod_pow :
@@ -309,7 +319,7 @@ apply (f_equal (fun x => ZOdiv x (beta ^ k))).
 replace k' with (k + 1 + (k' - (k + 1)))%Z by ring.
 rewrite Zpower_exp by omega.
 rewrite Zmult_comm.
-rewrite Zpower_exp by omega.
+rewrite <- Zmult_pow by easy.
 change (Zpower beta 1) with (beta * 1)%Z.
 rewrite Zmult_1_r.
 apply ZOmod_mod_mult.
@@ -323,16 +333,14 @@ Proof.
 intros e1 e2 He.
 destruct (Zle_or_lt 0 e1)%Z as [H1|H1].
 replace e2 with (e2 - e1 + e1)%Z by ring.
-rewrite Zpower_exp.
+rewrite <- Zmult_pow with (2 := H1).
 rewrite <- (Zmult_1_l (beta ^ e1)) at 1.
 apply Zmult_le_compat_r.
 apply (Zlt_le_succ 0).
 apply Zpower_gt_0.
 now apply Zle_minus_le_0.
 apply Zpower_ge_0.
-apply Zle_ge.
 now apply Zle_minus_le_0.
-now apply Zle_ge.
 clear He.
 destruct e1 as [|e1|e1] ; try easy.
 apply Zpower_ge_0.
@@ -379,11 +387,9 @@ rewrite Zplus_comm, Zmult_comm.
 apply sym_eq.
 apply ZO_div_mod_eq.
 rewrite inj_S.
-unfold Zsucc.
-rewrite Zpower_exp.
-apply f_equal.
-apply Zmult_1_r.
-apply Zle_ge.
+apply sym_eq.
+rewrite <- (Zmult_1_r beta) at 2.
+apply (Zmult_pow beta (Z_of_nat k) 1).
 apply Zle_0_nat.
 easy.
 Qed.
@@ -462,6 +468,44 @@ case Zle_bool_spec ; intros Hk.
 now apply Zdigit_mul_pow.
 apply Zdigit_div_pow with (1 := Hk').
 omega.
+Qed.
+
+Theorem Zscale_mul_pow :
+  forall n k k', (0 <= k)%Z ->
+  Zscale (n * Zpower beta k) k' = Zscale n (k + k').
+Proof.
+intros n k k' Hk.
+unfold Zscale.
+case Zle_bool_spec ; intros Hk'.
+rewrite Zle_bool_true.
+rewrite <- Zmult_assoc.
+apply f_equal.
+now apply Zmult_pow.
+now apply Zplus_le_0_compat.
+case Zle_bool_spec ; intros Hk''.
+pattern k at 1 ; replace k with (k + k' + -k')%Z by ring.
+assert (0 <= -k')%Z by omega.
+rewrite <- Zmult_pow by easy.
+rewrite Zmult_assoc, ZO_div_mult.
+apply refl_equal.
+apply Zgt_not_eq.
+now apply Zpower_gt_0.
+replace (-k')%Z with (-(k+k') + k)%Z by ring.
+rewrite <- Zmult_pow with (2 := Hk).
+apply ZOdiv_mult_cancel_r.
+apply Zgt_not_eq.
+now apply Zpower_gt_0.
+omega.
+Qed.
+
+Theorem Zscale_scale :
+  forall n k k', (0 <= k)%Z ->
+  Zscale (Zscale n k) k' = Zscale n (k + k').
+Proof.
+intros n k k' Hk.
+unfold Zscale at 2.
+rewrite Zle_bool_true with (1 := Hk).
+now apply Zscale_mul_pow.
 Qed.
 
 Definition Zslice n k1 k2 :=
