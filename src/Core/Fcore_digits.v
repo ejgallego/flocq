@@ -563,4 +563,76 @@ now rewrite Zle_bool_false.
 omega.
 Qed.
 
+Theorem Zslice_mul_pow :
+  forall n k k1 k2, (0 <= k)%Z ->
+  Zslice (n * Zpower beta k) k1 k2 = Zslice n (k1 - k) k2.
+Proof.
+intros n k k1 k2 Hk.
+unfold Zslice.
+case Zle_bool_spec ; intros Hk2.
+2: apply refl_equal.
+rewrite Zscale_mul_pow with (1 := Hk).
+now replace (- (k1 - k))%Z with (k + -k1)%Z by ring.
+Qed.
+
+Theorem Zslice_div_pow_ge :
+  forall n k k1 k2, (0 <= k)%Z -> (0 <= k1)%Z ->
+  Zslice (n / Zpower beta k) k1 k2 = Zslice n (k1 + k) k2.
+Proof.
+intros n k k1 k2 Hk Hk1.
+unfold Zslice.
+case Zle_bool_spec ; intros Hk2.
+2: apply refl_equal.
+apply (f_equal (fun x => ZOmod x (beta ^ k2))).
+unfold Zscale.
+case Zle_bool_spec ; intros Hk1'.
+replace k1 with Z0 by omega.
+case Zle_bool_spec ; intros Hk'.
+replace k with Z0 by omega.
+simpl.
+now rewrite ZOdiv_1_r.
+rewrite Zopp_involutive.
+apply Zmult_1_r.
+rewrite Zle_bool_false by omega.
+rewrite 2!Zopp_involutive, Zplus_comm.
+rewrite <- Zmult_pow by assumption.
+apply ZOdiv_ZOdiv.
+Qed.
+
+Theorem Zslice_scale :
+  forall n k k1 k2, (0 <= k1)%Z ->
+  Zslice (Zscale n k) k1 k2 = Zslice n (k1 - k) k2.
+Proof.
+intros n k k1 k2 Hk1.
+unfold Zscale.
+case Zle_bool_spec; intros Hk.
+now apply Zslice_mul_pow.
+apply Zslice_div_pow_ge with (2 := Hk1).
+omega.
+Qed.
+
+Theorem Zslice_div_pow :
+  forall n k k1 k2, (0 <= k)%Z ->
+  Zslice (n / Zpower beta k) k1 k2 = Zscale (Zslice n k (k1 + k2)) (-k1).
+Proof.
+intros n k k1 k2 Hk.
+apply Zdigit_ext.
+intros k' Hk'.
+rewrite Zdigit_scale with (1 := Hk').
+unfold Zminus.
+rewrite (Zplus_comm k'), Zopp_involutive.
+destruct (Zle_or_lt k2 k') as [Hk2|Hk2].
+rewrite Zdigit_slice_ge with (1 := Hk2).
+apply sym_eq.
+apply Zdigit_slice_ge.
+now apply Zplus_le_compat_l.
+rewrite Zdigit_slice by now split.
+destruct (Zle_or_lt 0 (k1 + k')) as [Hk1'|Hk1'].
+rewrite Zdigit_slice by omega.
+rewrite Zdigit_div_pow by assumption.
+apply f_equal.
+ring.
+now rewrite 2!Zdigit_lt.
+Qed.
+
 End Fcore_digits.
