@@ -347,6 +347,21 @@ apply sym_eq.
 now apply (Zmult_pow beta e 1).
 Qed.
 
+Theorem Zdigit_not_0 :
+  forall e n, (0 <= e)%Z ->
+  (Zpower beta e <= Zabs n < Zpower beta (e + 1))%Z ->
+  Zdigit n e <> Z0.
+Proof.
+intros e n He Hn.
+destruct (Zle_or_lt 0 n) as [Hn'|Hn'].
+rewrite (Zabs_eq _ Hn') in Hn.
+now apply Zdigit_not_0_pos.
+intros H.
+rewrite (Zabs_non_eq n) in Hn by now apply Zlt_le_weak.
+apply (Zdigit_not_0_pos _ _ He Hn).
+now rewrite Zdigit_opp, H.
+Qed.
+
 Theorem Zdigit_mul_pow :
   forall n k k', (0 <= k')%Z ->
   Zdigit (n * Zpower beta k') k = Zdigit n (k - k').
@@ -1047,6 +1062,65 @@ case Zlt_bool.
 exact H.
 apply IHn.
 now apply Zlt_lt_succ.
+Qed.
+
+Theorem Zdigit_ge :
+  forall n k, (Zdigits n <= k)%Z ->
+  Zdigit n k = Z0.
+Proof.
+intros n k Hk.
+apply Zdigit_ge_Zpower with (2 := Hk).
+apply Zdigits_correct.
+Qed.
+
+Theorem Zdigit_digits :
+  forall n, n <> Z0 ->
+  Zdigit n (Zdigits n - 1) <> Z0.
+Proof.
+intros n Zn.
+apply Zdigit_not_0.
+apply Zlt_0_le_0_pred.
+now apply Zdigits_gt_0.
+ring_simplify (Zdigits n - 1 + 1).
+apply Zdigits_correct.
+Qed.
+
+Theorem Zpower_lt_Zpower :
+  forall e1 e2,
+  (Zpower beta (e1 - 1) < Zpower beta e2)%Z ->
+  (e1 <= e2)%Z.
+Proof.
+intros e1 e2 He.
+apply Znot_gt_le.
+intros H.
+apply Zlt_not_le with (1 := He).
+destruct (Zle_or_lt 0 e2) as [He2|He2].
+rewrite <- (Zmult_1_r (beta^ e2)).
+replace (e1 - 1)%Z with (e2 + (e1 - 1 - e2))%Z by ring.
+assert (0 <= e1 - 1 - e2)%Z by omega.
+rewrite <- Zmult_pow by assumption.
+apply Zmult_le_compat_l.
+apply (Zlt_le_succ 0).
+now apply Zpower_gt_0.
+apply Zpower_ge_0.
+replace (beta ^ e2)%Z with Z0 by now destruct e2.
+apply Zpower_ge_0.
+Qed.
+
+Theorem Zdigits_slice :
+  forall n k l, (0 <= l)%Z ->
+  (Zdigits (Zslice n k l) <= l)%Z.
+Proof.
+intros n k l Hl.
+unfold Zslice.
+rewrite Zle_bool_true with (1 := Hl).
+destruct (Zdigits_correct (Zscale n (- k) mod beta ^ l)) as (H1,H2).
+apply Zpower_lt_Zpower.
+apply Zle_lt_trans with (1 := H1).
+rewrite <- (Zabs_eq (beta ^ l)) at 2 by apply Zpower_ge_0.
+apply ZOmod_lt.
+apply Zgt_not_eq.
+now apply Zpower_gt_0.
 Qed.
 
 End Fcore_digits.
