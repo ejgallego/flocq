@@ -168,6 +168,52 @@ rewrite <- ZOplus_mod with (1 := Hab).
 ring.
 Qed.
 
+Theorem Zsame_sign_trans :
+  forall v u w, v <> Z0 ->
+  (0 <= u * v)%Z -> (0 <= v * w)%Z -> (0 <= u * w)%Z.
+Proof.
+intros [|v|v] [|u|u] [|w|w] Zv Huv Hvw ; try easy ; now elim Zv.
+Qed.
+
+Theorem Zsame_sign_trans_weak :
+  forall v u w, (v = Z0 -> w = Z0) ->
+  (0 <= u * v)%Z -> (0 <= v * w)%Z -> (0 <= u * w)%Z.
+Proof.
+intros [|v|v] [|u|u] [|w|w] Zv Huv Hvw ; try easy ; now discriminate Zv.
+Qed.
+
+Theorem Zsame_sign_imp :
+  forall u v,
+  (0 < u -> 0 <= v)%Z ->
+  (0 < -u -> 0 <= -v)%Z ->
+  (0 <= u * v)%Z.
+Proof.
+intros [|u|u] v Hp Hn.
+easy.
+apply Zmult_le_0_compat.
+easy.
+now apply Hp.
+replace (Zneg u * v)%Z with (Zpos u * (-v))%Z.
+apply Zmult_le_0_compat.
+easy.
+now apply Hn.
+rewrite <- Zopp_mult_distr_r.
+apply Zopp_mult_distr_l.
+Qed.
+
+Theorem Zsame_sign_odiv :
+  forall u v, (0 <= v)%Z ->
+  (0 <= u * ZOdiv u v)%Z.
+Proof.
+intros u v Hv.
+apply Zsame_sign_imp ; intros Hu.
+apply ZO_div_pos with (2 := Hv).
+now apply Zlt_le_weak.
+rewrite <- ZOdiv_opp_l.
+apply ZO_div_pos with (2 := Hv).
+now apply Zlt_le_weak.
+Qed.
+
 Section Fcore_digits.
 
 Variable beta : radix.
@@ -573,38 +619,18 @@ rewrite ZOdiv_plus_pow_digit with (1 := Huv).
 rewrite <- (Zmult_1_r beta) at 3 5 7.
 change (beta * 1)%Z with (beta ^1)%Z.
 apply ZOmod_plus_pow_digit.
-destruct (Zle_or_lt 0 u) as [Hu|Hu].
-destruct (Zle_or_lt 0 v) as [Hv|Hv].
-apply Zmult_le_0_compat.
-apply ZO_div_pos with (1 := Hu).
+apply Zsame_sign_trans_weak with v.
+intros Zv ; rewrite Zv.
+apply ZOdiv_0_l.
+rewrite Zmult_comm.
+apply Zsame_sign_trans_weak with u.
+intros Zu ; rewrite Zu.
+apply ZOdiv_0_l.
+now rewrite Zmult_comm.
+apply Zsame_sign_odiv.
 apply Zpower_ge_0.
-apply ZO_div_pos with (1 := Hv).
+apply Zsame_sign_odiv.
 apply Zpower_ge_0.
-destruct (Zle_lt_or_eq _ _ Hu) as [Hu'|Hu'].
-elim Zle_not_lt with (1 := Huv).
-rewrite <- (Zmult_0_r u).
-unfold Zlt.
-rewrite <- Zmult_compare_compat_l.
-easy.
-now apply Zlt_gt.
-now rewrite <- Hu', ZOdiv_0_l.
-destruct (Zle_or_lt v 0) as [Hv|Hv].
-rewrite <- (Zopp_involutive u), <- (Zopp_involutive v).
-rewrite ZOdiv_opp_l, (ZOdiv_opp_l (-v)).
-rewrite Zmult_opp_opp.
-apply Zmult_le_0_compat.
-apply ZO_div_pos.
-clear -Hu ; omega.
-apply Zpower_ge_0.
-apply ZO_div_pos.
-clear -Hv ; omega.
-apply Zpower_ge_0.
-elim Zle_not_lt with (1 := Huv).
-rewrite <- (Zmult_0_l v).
-unfold Zlt.
-rewrite <- Zmult_compare_compat_r.
-easy.
-now apply Zlt_gt.
 intros k' (Hk1,Hk2).
 rewrite 2!Zdigit_div_pow by assumption.
 apply Hd.
