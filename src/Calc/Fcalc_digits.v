@@ -23,96 +23,14 @@ COPYING file for more details.
 Require Import Fcore_Raux.
 Require Import Fcore_defs.
 Require Import Fcore_float_prop.
+Require Import Fcore_digits.
 
 Section Fcalc_digits.
 
 Variable beta : radix.
 Notation bpow e := (bpow beta e).
 
-(** Computes the number of bits (radix 2) of a positive integer.
-
-It serves as an upper bound on the number of digits to ensure termination.
-*)
-
-Fixpoint digits2_Pnat (n : positive) : nat :=
-  match n with
-  | xH => O
-  | xO p => S (digits2_Pnat p)
-  | xI p => S (digits2_Pnat p)
-  end.
-
-Theorem digits2_Pnat_correct :
-  forall n,
-  let d := digits2_Pnat n in
-  (Zpower_nat 2 d <= Zpos n < Zpower_nat 2 (S d))%Z.
-Proof.
-intros n d. unfold d. clear.
-assert (Hp: forall m, (Zpower_nat 2 (S m) = 2 * Zpower_nat 2 m)%Z) by easy.
-induction n ; simpl.
-rewrite Zpos_xI, 2!Hp.
-omega.
-rewrite (Zpos_xO n), 2!Hp.
-omega.
-now split.
-Qed.
-
-Section digits_aux.
-
-Variable p : Z.
-Hypothesis Hp : (0 <= p)%Z.
-
-Fixpoint digits_aux (nb pow : Z) (n : nat) { struct n } : Z :=
-  match n with
-  | O => nb
-  | S n => if Zlt_bool p pow then nb else digits_aux (nb + 1) (Zmult beta pow) n
-  end.
-
-Lemma digits_aux_invariant :
-  forall k n nb,
-  (0 <= nb)%Z ->
-  (Zpower beta (nb + Z_of_nat k - 1) <= p)%Z ->
-  digits_aux (nb + Z_of_nat k) (Zpower beta (nb + Z_of_nat k)) n =
-  digits_aux nb (Zpower beta nb) (n + k).
-Proof.
-induction k ; intros n nb Hnb.
-now rewrite Zplus_0_r, plus_0_r.
-rewrite inj_S.
-unfold Zsucc.
-intros H.
-rewrite (Zplus_comm _ 1), Zplus_assoc.
-rewrite IHk.
-rewrite <- plus_n_Sm.
-simpl.
-generalize (Zlt_cases p (Zpower beta nb)).
-case Zlt_bool ; intros Hpp.
-elim (Zlt_irrefl p).
-apply Zlt_le_trans with (1 := Hpp).
-apply Zle_trans with (2 := H).
-replace (nb + (Z_of_nat k + 1) - 1)%Z with (nb + Z_of_nat k)%Z by ring.
-apply le_Z2R.
-rewrite Z2R_Zpower with (1 := Hnb).
-rewrite Z2R_Zpower.
-apply bpow_le.
-omega.
-omega.
-rewrite Zpower_exp.
-unfold Zpower at 2, Zpower_pos, iter_pos.
-rewrite Zmult_1_r.
-now rewrite Zmult_comm.
-now apply Zle_ge.
-easy.
-omega.
-now rewrite <- Zplus_assoc, (Zplus_comm 1).
-Qed.
-
-End digits_aux.
-
-Definition digits n :=
-  match n with
-  | Z0 => Z0
-  | Zneg p => digits_aux (Zpos p) 1 beta (digits2_Pnat p)
-  | Zpos p => digits_aux n 1 beta (digits2_Pnat p)
-  end.
+Notation digits := (Zdigits beta).
 
 Theorem digits_abs :
   forall n, digits (Zabs n) = digits n.
@@ -126,89 +44,18 @@ Theorem digits_ln_beta :
   digits n = ln_beta beta (Z2R n).
 Proof.
 intros n Hn.
-destruct (ln_beta beta (Z2R n)) as (e, He).
-simpl.
+destruct (ln_beta beta (Z2R n)) as (e, He) ; simpl.
 specialize (He (Z2R_neq _ _ Hn)).
 rewrite <- Z2R_abs in He.
-assert (Hn': (0 < Zabs n)%Z).
-destruct n ; try easy.
-now elim Hn.
-rewrite <- digits_abs.
-destruct (Zabs n) as [|p|p] ; try (now elim Hn').
-clear n Hn Hn'.
-simpl.
-assert (He1: (0 <= e - 1)%Z).
-apply Zlt_0_le_0_pred.
-apply (lt_bpow beta).
+assert (Hd := Zdigits_correct beta n).
+assert (Hd' := Zdigits_gt_0 beta n).
+apply Zle_antisym ; apply (bpow_lt_bpow beta).
 apply Rle_lt_trans with (2 := proj2 He).
-apply (Z2R_le 1).
-now apply (Zlt_le_succ 0).
-assert (He2: (Z_of_nat (Zabs_nat (e - 1)) = e - 1)%Z).
-rewrite inj_Zabs_nat.
-now apply Zabs_eq.
-replace (radix_val beta) with (Zpower beta 1).
-replace (digits2_Pnat p) with (digits2_Pnat p - Zabs_nat (e - 1) + Zabs_nat (e - 1)).
-rewrite <- digits_aux_invariant.
-rewrite He2.
-ring_simplify (1 + (e - 1))%Z.
-destruct (digits2_Pnat p - Zabs_nat (e - 1)) as [|n].
-easy.
-simpl.
-generalize (Zlt_cases (Zpos p) (Zpower beta e)).
-case Zlt_bool ; intros Hpp.
-easy.
-elim Rlt_not_le with (1 := proj2 He).
-rewrite <- Z2R_Zpower.
-apply Z2R_le.
-now apply Zge_le.
-omega.
-easy.
-rewrite He2.
-ring_simplify (1 + (e - 1) - 1)%Z.
-apply le_Z2R.
-now rewrite Z2R_Zpower.
-rewrite plus_comm.
-apply le_plus_minus_r.
-apply inj_le_rev.
-rewrite He2.
-cut (e - 1 < Z_of_nat (S (digits2_Pnat p)))%Z.
-rewrite inj_S.
-omega.
-apply (lt_bpow beta).
+rewrite <- Z2R_Zpower by omega.
+now apply Z2R_le.
 apply Rle_lt_trans with (1 := proj1 He).
-rewrite <- Z2R_Zpower_nat.
-apply Z2R_lt.
-apply Zlt_le_trans with (Zpower_nat 2 (S (digits2_Pnat p))).
-exact (proj2 (digits2_Pnat_correct p)).
-clear.
-induction (S (digits2_Pnat p)).
-easy.
-change (2 * Zpower_nat 2 n <= beta * Zpower_nat beta n)%Z.
-apply Zmult_le_compat ; try easy.
-apply Zle_bool_imp_le.
-apply beta.
-now apply Zpower_NR0.
-apply Zmult_1_r.
-Qed.
-
-Theorem digits_gt_0 :
-  forall n, (n <> 0)%Z -> (0 < digits n)%Z.
-Proof.
-intros n H.
-rewrite digits_ln_beta with (1 := H).
-destruct ln_beta as (e, He). simpl.
-apply (lt_bpow beta).
-apply Rle_lt_trans with (Rabs (Z2R n)).
-simpl.
-rewrite <- Z2R_abs.
-apply (Z2R_le 1).
-apply (Zlt_le_succ 0).
-revert H.
-case n ; try easy.
-intros H.
-now elim H.
-apply He.
-now apply (Z2R_neq _ 0).
+rewrite <- Z2R_Zpower by omega.
+now apply Z2R_lt.
 Qed.
 
 Theorem digits_ge_0 :
@@ -218,7 +65,7 @@ intros n.
 destruct (Z_eq_dec n 0) as [H|H].
 now rewrite H.
 apply Zlt_le_weak.
-now apply digits_gt_0.
+now apply Zdigits_gt_0.
 Qed.
 
 Theorem ln_beta_F2R_digits :
@@ -472,8 +319,8 @@ apply Zpower_le_digits.
 apply Zlt_pred.
 apply Zpower_ge_0.
 apply Zpower_ge_0.
-generalize (digits_gt_0 x). omega.
-generalize (digits_gt_0 y). omega.
+generalize (Zdigits_gt_0 beta x). omega.
+generalize (Zdigits_gt_0 beta y). omega.
 Qed.
 
 Theorem digits_shr :
@@ -568,7 +415,7 @@ Definition radix2 := Build_radix 2 (refl_equal _).
 
 Theorem Z_of_nat_S_digits2_Pnat :
   forall m : positive,
-  Z_of_nat (S (digits2_Pnat m)) = digits radix2 (Zpos m).
+  Z_of_nat (S (digits2_Pnat m)) = Zdigits radix2 (Zpos m).
 Proof.
 intros m.
 rewrite digits_ln_beta. 2: easy.
@@ -586,3 +433,5 @@ now apply Z2R_lt.
 rewrite inj_S.
 apply Zpred_succ.
 Qed.
+
+Notation digits := Zdigits (only parsing).

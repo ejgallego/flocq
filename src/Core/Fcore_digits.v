@@ -214,6 +214,33 @@ apply ZO_div_pos with (2 := Hv).
 now apply Zlt_le_weak.
 Qed.
 
+(** Computes the number of bits (radix 2) of a positive integer.
+
+It serves as an upper bound on the number of digits to ensure termination.
+*)
+
+Fixpoint digits2_Pnat (n : positive) : nat :=
+  match n with
+  | xH => O
+  | xO p => S (digits2_Pnat p)
+  | xI p => S (digits2_Pnat p)
+  end.
+
+Theorem digits2_Pnat_correct :
+  forall n,
+  let d := digits2_Pnat n in
+  (Zpower_nat 2 d <= Zpos n < Zpower_nat 2 (S d))%Z.
+Proof.
+intros n d. unfold d. clear.
+assert (Hp: forall m, (Zpower_nat 2 (S m) = 2 * Zpower_nat 2 m)%Z) by easy.
+induction n ; simpl.
+rewrite Zpos_xI, 2!Hp.
+omega.
+rewrite (Zpos_xO n), 2!Hp.
+omega.
+now split.
+Qed.
+
 Section Fcore_digits.
 
 Variable beta : radix.
@@ -915,6 +942,111 @@ now apply Zdigit_slice_ge.
 right.
 apply Zdigit_lt.
 omega.
+Qed.
+
+Section digits_aux.
+
+Variable p : Z.
+Hypothesis Hp : (0 <= p)%Z.
+
+Fixpoint Zdigits_aux (nb pow : Z) (n : nat) { struct n } : Z :=
+  match n with
+  | O => nb
+  | S n => if Zlt_bool p pow then nb else Zdigits_aux (nb + 1) (Zmult beta pow) n
+  end.
+
+End digits_aux.
+
+Definition Zdigits n :=
+  match n with
+  | Z0 => Z0
+  | Zneg p => Zdigits_aux (Zpos p) 1 beta (digits2_Pnat p)
+  | Zpos p => Zdigits_aux n 1 beta (digits2_Pnat p)
+  end.
+
+Theorem Zdigits_correct :
+  forall n,
+  (Zpower beta (Zdigits n - 1) <= Zabs n < Zpower beta (Zdigits n))%Z.
+Proof.
+cut (forall p, Zpower beta (Zdigits (Zpos p) - 1) <= Zpos p < Zpower beta (Zdigits (Zpos p)))%Z.
+intros H [|n|n] ; try exact (H n).
+now split.
+intros n.
+simpl.
+(* *)
+assert (U: (Zpos n < Zpower beta (Z_of_nat (S (digits2_Pnat n))))%Z).
+apply Zlt_le_trans with (1 := proj2 (digits2_Pnat_correct n)).
+rewrite Zpower_Zpower_nat.
+rewrite Zabs_nat_Z_of_nat.
+induction (S (digits2_Pnat n)).
+easy.
+rewrite 2!(Zpower_nat_is_exp 1 n0).
+apply Zmult_le_compat with (2 := IHn0).
+unfold Zpower_nat, iter_nat.
+rewrite 2!Zmult_1_r.
+apply Zle_bool_imp_le.
+apply beta.
+easy.
+now apply Zpower_NR0.
+apply Zle_0_nat.
+(* *)
+revert U.
+rewrite inj_S.
+unfold Zsucc.
+generalize (digits2_Pnat n).
+intros u U.
+pattern (radix_val beta) at 2 4 ; replace (radix_val beta) with (Zpower beta 1) by apply Zmult_1_r.
+assert (V: (Zpower beta (1 - 1) <= Zpos n)%Z).
+now apply (Zlt_le_succ 0).
+generalize (conj V U).
+clear.
+generalize (Zle_refl 1).
+generalize 1%Z at 2 3 5 6 7 9 10.
+(* *)
+induction u.
+easy.
+rewrite inj_S; unfold Zsucc.
+simpl Zdigits_aux.
+intros v Hv U.
+case Zlt_bool_spec ; intros K.
+now split.
+pattern (radix_val beta) at 2 5 ; replace (radix_val beta) with (Zpower beta 1) by apply Zmult_1_r.
+rewrite Zmult_pow.
+rewrite Zplus_comm.
+apply IHu.
+clear -Hv ; omega.
+split.
+now ring_simplify (1 + v - 1)%Z.
+now rewrite Zplus_assoc.
+easy.
+apply Zle_succ_le with (1 := Hv).
+Qed.
+
+Theorem Zdigits_abs :
+  forall n, Zdigits (Zabs n) = Zdigits n.
+Proof.
+now intros [|n|n].
+Qed.
+
+Theorem Zdigits_gt_0 :
+  forall n, n <> Z0 -> (0 < Zdigits n)%Z.
+Proof.
+intros n Zn.
+rewrite <- (Zdigits_abs n).
+assert (Hn: (0 < Zabs n)%Z).
+destruct n ; try easy.
+now elim Zn.
+destruct (Zabs n) as [|p|p] ; try easy ; clear.
+simpl.
+generalize 1%Z (radix_val beta) (refl_equal Lt : (0 < 1)%Z).
+induction (digits2_Pnat p).
+easy.
+simpl.
+intros.
+case Zlt_bool.
+exact H.
+apply IHn.
+now apply Zlt_lt_succ.
 Qed.
 
 End Fcore_digits.

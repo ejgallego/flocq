@@ -19,6 +19,7 @@ COPYING file for more details.
 
 (** * IEEE-754 arithmetic *)
 Require Import Fcore.
+Require Import Fcore_digits.
 Require Import Fcalc_digits.
 Require Import Fcalc_round.
 Require Import Fcalc_bracket.
@@ -858,7 +859,7 @@ generalize (H _ _ Hx) (H _ _ Hy).
 clear x y sx sy Hx Hy H.
 unfold fexp, FLT_exp.
 refine (_ (digits_mult_ge radix2 (Zpos mx) (Zpos my) _ _)) ; try discriminate.
-refine (_ (digits_gt_0 radix2 (Zpos mx) _) (digits_gt_0 radix2 (Zpos my) _)) ; try discriminate.
+refine (_ (Zdigits_gt_0 radix2 (Zpos mx) _) (Zdigits_gt_0 radix2 (Zpos my) _)) ; try discriminate.
 generalize (digits radix2 (Zpos mx)) (digits radix2 (Zpos my)) (digits radix2 (Zpos mx * Zpos my)).
 clear -Hmax.
 unfold emin.
