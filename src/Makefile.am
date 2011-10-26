@@ -1,15 +1,16 @@
 FILES = \
 	Flocq_version.v \
+	Core/Fcore_Raux.v \
+	Core/Fcore_Zaux.v \
 	Core/Fcore_defs.v \
 	Core/Fcore_digits.v \
 	Core/Fcore_float_prop.v \
-	Core/Fcore_Raux.v \
-	Core/Fcore_rnd.v \
 	Core/Fcore_FIX.v \
 	Core/Fcore_FLT.v \
 	Core/Fcore_FLX.v \
 	Core/Fcore_FTZ.v \
 	Core/Fcore_generic_fmt.v \
+	Core/Fcore_rnd.v \
 	Core/Fcore_rnd_ne.v \
 	Core/Fcore_ulp.v \
 	Core/Fcore.v \
@@ -19,10 +20,10 @@ FILES = \
 	Calc/Fcalc_ops.v \
 	Calc/Fcalc_round.v \
 	Calc/Fcalc_sqrt.v \
+	Prop/Fprop_div_sqrt_error.v \
 	Prop/Fprop_mult_error.v \
 	Prop/Fprop_plus_error.v \
 	Prop/Fprop_relative.v \
-	Prop/Fprop_div_sqrt_error.v \
 	Prop/Fprop_Sterbenz.v \
 	Appli/Fappli_IEEE.v \
 	Appli/Fappli_sqrt_FLT_ne.v

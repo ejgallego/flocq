@@ -17,202 +17,9 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
-Require Import Fcore_Raux.
+Require Import ZArith.
+Require Import Fcore_Zaux.
 Require Import ZOdiv.
-
-Theorem Zmult_pow :
-  forall n k1 k2, (0 <= k1)%Z -> (0 <= k2)%Z ->
-  (Zpower n k1 * Zpower n k2)%Z = Zpower n (k1 + k2).
-Proof.
-intros n k1 k2 H1 H2.
-apply sym_eq.
-now apply Zpower_exp ; apply Zle_ge.
-Qed.
-
-Theorem Zmod_mod_mult :
-  forall n a b, (0 < a)%Z -> (0 <= b)%Z ->
-  Zmod (Zmod n (a * b)) b = Zmod n b.
-Proof.
-intros n a [|b|b] Ha Hb.
-now rewrite 2!Zmod_0_r.
-rewrite (Zmod_eq n (a * Zpos b)).
-rewrite Zmult_assoc.
-unfold Zminus.
-rewrite Zopp_mult_distr_l.
-apply Z_mod_plus.
-easy.
-apply Zmult_gt_0_compat.
-now apply Zlt_gt.
-easy.
-now elim Hb.
-Qed.
-
-Theorem ZOmod_eq :
-  forall a b,
-  ZOmod a b = (a - ZOdiv a b * b)%Z.
-Proof.
-intros a b.
-rewrite (ZO_div_mod_eq a b) at 2.
-ring.
-Qed.
-
-Theorem ZOmod_mod_mult :
-  forall n a b,
-  ZOmod (ZOmod n (a * b)) b = ZOmod n b.
-Proof.
-intros n a b.
-assert (ZOmod n (a * b) = n + - (n / (a * b) * a) * b)%Z.
-rewrite <- Zopp_mult_distr_l.
-rewrite <- Zmult_assoc.
-apply ZOmod_eq.
-rewrite H.
-apply ZO_mod_plus.
-rewrite <- H.
-apply ZOmod_sgn2.
-Qed.
-
-Theorem Zdiv_mod_mult :
-  forall n a b, (0 <= a)%Z -> (0 <= b)%Z ->
-  (Zdiv (Zmod n (a * b)) a) = Zmod (Zdiv n a) b.
-Proof.
-intros n a b Ha Hb.
-destruct (Zle_lt_or_eq _ _ Ha) as [Ha'|Ha'].
-destruct (Zle_lt_or_eq _ _ Hb) as [Hb'|Hb'].
-rewrite (Zmod_eq n (a * b)).
-rewrite (Zmult_comm a b) at 2.
-rewrite Zmult_assoc.
-unfold Zminus.
-rewrite Zopp_mult_distr_l.
-rewrite Z_div_plus by now apply Zlt_gt.
-rewrite <- Zdiv_Zdiv by easy.
-apply sym_eq.
-apply Zmod_eq.
-now apply Zlt_gt.
-now apply Zmult_gt_0_compat ; apply Zlt_gt.
-rewrite <- Hb'.
-rewrite Zmult_0_r, 2!Zmod_0_r.
-apply Zdiv_0_l.
-rewrite <- Ha'.
-now rewrite 2!Zdiv_0_r, Zmod_0_l.
-Qed.
-
-Theorem ZOdiv_mod_mult :
-  forall n a b,
-  (ZOdiv (ZOmod n (a * b)) a) = ZOmod (ZOdiv n a) b.
-Proof.
-intros n a b.
-destruct (Z_eq_dec a 0) as [Za|Za].
-rewrite Za.
-now rewrite 2!ZOdiv_0_r, ZOmod_0_l.
-assert (ZOmod n (a * b) = n + - (n / a / b * b) * a)%Z.
-rewrite (ZOmod_eq n (a * b)) at 1.
-rewrite ZOdiv_ZOdiv.
-ring.
-rewrite H.
-rewrite ZO_div_plus with (2 := Za).
-apply sym_eq.
-apply ZOmod_eq.
-rewrite <- H.
-apply ZOmod_sgn2.
-Qed.
-
-Theorem ZOdiv_small_abs :
-  forall a b,
-  (Zabs a < b)%Z -> ZOdiv a b = Z0.
-Proof.
-intros a b Ha.
-destruct (Zle_or_lt 0 a) as [H|H].
-apply ZOdiv_small.
-split.
-exact H.
-now rewrite Zabs_eq in Ha.
-apply Zopp_inj.
-rewrite <- ZOdiv_opp_l, Zopp_0.
-apply ZOdiv_small.
-generalize (Zabs_non_eq a).
-omega.
-Qed.
-
-Theorem ZOmod_small_abs :
-  forall a b,
-  (Zabs a < b)%Z -> ZOmod a b = a.
-Proof.
-intros a b Ha.
-destruct (Zle_or_lt 0 a) as [H|H].
-apply ZOmod_small.
-split.
-exact H.
-now rewrite Zabs_eq in Ha.
-apply Zopp_inj.
-rewrite <- ZOmod_opp_l.
-apply ZOmod_small.
-generalize (Zabs_non_eq a).
-omega.
-Qed.
-
-Theorem ZOdiv_plus :
-  forall a b c, (0 <= a * b)%Z ->
-  (ZOdiv (a + b) c = ZOdiv a c + ZOdiv b c + ZOdiv (ZOmod a c + ZOmod b c) c)%Z.
-Proof.
-intros a b c Hab.
-destruct (Z_eq_dec c 0) as [Zc|Zc].
-now rewrite Zc, 4!ZOdiv_0_r.
-apply Zmult_reg_r with (1 := Zc).
-rewrite 2!Zmult_plus_distr_l.
-assert (forall d, (d / c) * c = d - d mod c)%Z.
-intros d.
-rewrite ZOmod_eq.
-ring.
-rewrite 4!H.
-rewrite <- ZOplus_mod with (1 := Hab).
-ring.
-Qed.
-
-Theorem Zsame_sign_trans :
-  forall v u w, v <> Z0 ->
-  (0 <= u * v)%Z -> (0 <= v * w)%Z -> (0 <= u * w)%Z.
-Proof.
-intros [|v|v] [|u|u] [|w|w] Zv Huv Hvw ; try easy ; now elim Zv.
-Qed.
-
-Theorem Zsame_sign_trans_weak :
-  forall v u w, (v = Z0 -> w = Z0) ->
-  (0 <= u * v)%Z -> (0 <= v * w)%Z -> (0 <= u * w)%Z.
-Proof.
-intros [|v|v] [|u|u] [|w|w] Zv Huv Hvw ; try easy ; now discriminate Zv.
-Qed.
-
-Theorem Zsame_sign_imp :
-  forall u v,
-  (0 < u -> 0 <= v)%Z ->
-  (0 < -u -> 0 <= -v)%Z ->
-  (0 <= u * v)%Z.
-Proof.
-intros [|u|u] v Hp Hn.
-easy.
-apply Zmult_le_0_compat.
-easy.
-now apply Hp.
-replace (Zneg u * v)%Z with (Zpos u * (-v))%Z.
-apply Zmult_le_0_compat.
-easy.
-now apply Hn.
-rewrite <- Zopp_mult_distr_r.
-apply Zopp_mult_distr_l.
-Qed.
-
-Theorem Zsame_sign_odiv :
-  forall u v, (0 <= v)%Z ->
-  (0 <= u * ZOdiv u v)%Z.
-Proof.
-intros u v Hv.
-apply Zsame_sign_imp ; intros Hu.
-apply ZO_div_pos with (2 := Hv).
-now apply Zlt_le_weak.
-rewrite <- ZOdiv_opp_l.
-apply ZO_div_pos with (2 := Hv).
-now apply Zlt_le_weak.
-Qed.
 
 (** Computes the number of bits (radix 2) of a positive integer.
 
@@ -244,7 +51,6 @@ Qed.
 Section Fcore_digits.
 
 Variable beta : radix.
-Notation bpow e := (bpow beta e).
 
 Definition Zdigit n k := ZOmod (ZOdiv n (Zpower beta k)) beta.
 
@@ -430,26 +236,6 @@ change (Zpower beta 1) with (beta * 1)%Z.
 rewrite Zmult_1_r.
 apply ZOmod_mod_mult.
 now rewrite 2!Zdigit_lt.
-Qed.
-
-Theorem Zpower_le :
-  forall e1 e2, (e1 <= e2)%Z ->
-  (Zpower beta e1 <= Zpower beta e2)%Z.
-Proof.
-intros e1 e2 He.
-destruct (Zle_or_lt 0 e1)%Z as [H1|H1].
-replace e2 with (e2 - e1 + e1)%Z by ring.
-rewrite <- Zmult_pow with (2 := H1).
-rewrite <- (Zmult_1_l (beta ^ e1)) at 1.
-apply Zmult_le_compat_r.
-apply (Zlt_le_succ 0).
-apply Zpower_gt_0.
-now apply Zle_minus_le_0.
-apply Zpower_ge_0.
-now apply Zle_minus_le_0.
-clear He.
-destruct e1 as [|e1|e1] ; try easy.
-apply Zpower_ge_0.
 Qed.
 
 Theorem Zdigit_mod_pow_ge :
@@ -995,14 +781,15 @@ rewrite Zpower_Zpower_nat.
 rewrite Zabs_nat_Z_of_nat.
 induction (S (digits2_Pnat n)).
 easy.
-rewrite 2!(Zpower_nat_is_exp 1 n0).
+rewrite 2!(Zpower_nat_S).
 apply Zmult_le_compat with (2 := IHn0).
-unfold Zpower_nat, iter_nat.
-rewrite 2!Zmult_1_r.
 apply Zle_bool_imp_le.
 apply beta.
 easy.
-now apply Zpower_NR0.
+rewrite <- (Zabs_nat_Z_of_nat n0).
+rewrite <- Zpower_Zpower_nat.
+apply (Zpower_ge_0 (Build_radix 2 (refl_equal true))).
+apply Zle_0_nat.
 apply Zle_0_nat.
 (* *)
 revert U.
