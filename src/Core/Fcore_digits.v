@@ -655,6 +655,32 @@ apply Zdigit_div_pow with (1 := Hk').
 omega.
 Qed.
 
+Theorem Zscale_0 :
+  forall k,
+  Zscale 0 k = Z0.
+Proof.
+intros k.
+unfold Zscale.
+case Zle_bool.
+apply Zmult_0_l.
+apply ZOdiv_0_l.
+Qed.
+
+Theorem Zsame_sign_scale :
+  forall n k,
+  (0 <= n * Zscale n k)%Z.
+Proof.
+intros n k.
+unfold Zscale.
+case Zle_bool_spec ; intros Hk.
+rewrite Zmult_assoc.
+apply Zmult_le_0_compat.
+apply Zsame_sign_imp ; apply Zlt_le_weak.
+apply Zpower_ge_0.
+apply Zsame_sign_odiv.
+apply Zpower_ge_0.
+Qed.
+
 Theorem Zscale_mul_pow :
   forall n k k', (0 <= k)%Z ->
   Zscale (n * Zpower beta k) k' = Zscale n (k + k').
@@ -720,6 +746,34 @@ case Zle_bool_spec ; intros Hk2.
 apply Zdigit_mod_pow_ge.
 now split.
 apply Zdigit_0.
+Qed.
+
+Theorem Zslice_0 :
+  forall k k',
+  Zslice 0 k k' = Z0.
+Proof.
+intros k k'.
+unfold Zslice.
+case Zle_bool.
+rewrite Zscale_0.
+apply ZOmod_0_l.
+apply refl_equal.
+Qed.
+
+Theorem Zsame_sign_slice :
+  forall n k k',
+  (0 <= n * Zslice n k k')%Z.
+Proof.
+intros n k k'.
+unfold Zslice.
+case Zle_bool.
+apply Zsame_sign_trans_weak with (Zscale n (-k)).
+intros H ; rewrite H.
+apply ZOmod_0_l.
+apply Zsame_sign_scale.
+rewrite Zmult_comm.
+apply ZOmod_sgn2.
+now rewrite Zmult_0_r.
 Qed.
 
 Theorem Zslice_slice :
@@ -818,6 +872,49 @@ rewrite Zdigit_div_pow by assumption.
 apply f_equal.
 ring.
 now rewrite 2!Zdigit_lt.
+Qed.
+
+Theorem Zplus_slice :
+  forall n k l1 l2, (0 <= l1)%Z -> (0 <= l2)%Z ->
+  (Zslice n k l1 + Zscale (Zslice n (k + l1) l2) l1)%Z = Zslice n k (l1 + l2).
+Proof.
+intros n k1 l1 l2 Hl1 Hl2.
+clear Hl1.
+apply Zdigit_ext.
+intros k Hk.
+rewrite Zdigit_plus.
+rewrite Zdigit_scale with (1 := Hk).
+destruct (Zle_or_lt (l1 + l2) k) as [Hk2|Hk2].
+rewrite Zdigit_slice_ge with (1 := Hk2).
+now rewrite 2!Zdigit_slice_ge by omega.
+rewrite Zdigit_slice with (1 := conj Hk Hk2).
+destruct (Zle_or_lt l1 k) as [Hk1|Hk1].
+rewrite Zdigit_slice_ge with (1 := Hk1).
+rewrite Zdigit_slice by omega.
+simpl ; apply f_equal.
+ring.
+rewrite Zdigit_slice with (1 := conj Hk Hk1).
+rewrite (Zdigit_lt _ (k - l1)) by omega.
+apply Zplus_0_r.
+rewrite Zmult_comm.
+apply Zsame_sign_trans_weak with n.
+intros H ; rewrite H.
+apply Zslice_0.
+rewrite Zmult_comm.
+apply Zsame_sign_trans_weak with (Zslice n (k1 + l1) l2).
+intros H ; rewrite H.
+apply Zscale_0.
+apply Zsame_sign_slice.
+apply Zsame_sign_scale.
+apply Zsame_sign_slice.
+clear k Hk ; intros k Hk.
+rewrite Zdigit_scale with (1 := Hk).
+destruct (Zle_or_lt l1 k) as [Hk1|Hk1].
+left.
+now apply Zdigit_slice_ge.
+right.
+apply Zdigit_lt.
+omega.
 Qed.
 
 End Fcore_digits.
