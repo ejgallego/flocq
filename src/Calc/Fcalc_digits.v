@@ -144,30 +144,11 @@ Theorem Zpower_le_digits :
   (e < digits x)%Z ->
   (Zpower beta e <= Zabs x)%Z.
 Proof.
-intros [|e|e] x Hex.
-(* *)
-apply (Zlt_le_succ 0).
-apply lt_digits.
-apply Zabs_pos.
-now rewrite digits_abs.
-2: apply Zabs_pos.
-(* *)
-apply le_Z2R.
-rewrite Z2R_Zpower. 2: easy.
-assert (Zx: x <> Z0).
-intros H.
-apply Zlt_not_le with (1 := Hex).
-now rewrite H.
-revert Hex.
-rewrite digits_ln_beta with (1 := Zx).
-destruct (ln_beta beta (Z2R x)) as (ex, Ex).
-unfold ln_beta_val.
-specialize (Ex (Z2R_neq _ 0 Zx)).
-intros Hex.
-rewrite <- Z2R_abs in Ex.
-apply Rle_trans with (2 := proj1 Ex).
-apply bpow_le.
-omega.
+intros e x Hex.
+destruct (Zdigits_correct beta x) as (H1,H2).
+apply Zle_trans with (2 := H1).
+apply Zpower_le.
+clear -Hex ; omega.
 Qed.
 
 Theorem digits_le_Zpower :
@@ -180,42 +161,24 @@ generalize (Zpower_le_digits e x).
 omega.
 Qed.
 
-Theorem digits_gt_Zpower :
-  forall e x,
-  (Zpower beta e <= Zabs x)%Z ->
-  (e < digits x)%Z.
-Proof.
-intros [|e|e] x Hex.
-(* *)
-apply Zlt_le_trans with 1%Z.
-apply refl_equal.
-rewrite <- digits_abs.
-change 1%Z with (digits 1).
-now apply digits_le.
-(* *)
-rewrite (Zpred_succ (Zpos e)).
-apply Zlt_le_trans with (1 := Zlt_pred _).
-unfold Zsucc.
-rewrite <- digits_Zpower. 2: easy.
-rewrite <- (digits_abs x).
-apply digits_le with (2 := Hex).
-apply le_Z2R.
-rewrite Z2R_Zpower.
-apply bpow_ge_0.
-easy.
-(* *)
-apply Zlt_le_trans with Z0.
-apply refl_equal.
-apply digits_ge_0.
-Qed.
-
 Theorem Zpower_gt_digits :
   forall e x,
   (digits x <= e)%Z ->
   (Zabs x < Zpower beta e)%Z.
 Proof.
 intros e x Hex.
-generalize (digits_gt_Zpower e x).
+destruct (Zdigits_correct beta x) as (H1,H2).
+apply Zlt_le_trans with (1 := H2).
+now apply Zpower_le.
+Qed.
+
+Theorem digits_gt_Zpower :
+  forall e x,
+  (Zpower beta e <= Zabs x)%Z ->
+  (e < digits x)%Z.
+Proof.
+intros e x Hex.
+generalize (Zpower_gt_digits e x).
 omega.
 Qed.
 
