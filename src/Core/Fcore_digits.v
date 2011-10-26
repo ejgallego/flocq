@@ -150,6 +150,24 @@ generalize (Zabs_non_eq a).
 omega.
 Qed.
 
+Theorem ZOdiv_plus :
+  forall a b c, (0 <= a * b)%Z ->
+  (ZOdiv (a + b) c = ZOdiv a c + ZOdiv b c + ZOdiv (ZOmod a c + ZOmod b c) c)%Z.
+Proof.
+intros a b c Hab.
+destruct (Z_eq_dec c 0) as [Zc|Zc].
+now rewrite Zc, 4!ZOdiv_0_r.
+apply Zmult_reg_r with (1 := Zc).
+rewrite 2!Zmult_plus_distr_l.
+assert (forall d, (d / c) * c = d - d mod c)%Z.
+intros d.
+rewrite ZOmod_eq.
+ring.
+rewrite 4!H.
+rewrite <- ZOplus_mod with (1 := Hab).
+ring.
+Qed.
+
 Section Fcore_digits.
 
 Variable beta : radix.
@@ -453,6 +471,147 @@ apply Zlt_le_trans with (Zpower beta (Zabs n1)).
 apply Zpower_gt.
 apply Zpower_le.
 apply Zle_max_l.
+Qed.
+
+Theorem ZOmod_plus_pow_digit :
+  forall u v n, (0 <= u * v)%Z ->
+  (forall k, (0 <= k < n)%Z -> Zdigit u k = Z0 \/ Zdigit v k = Z0) ->
+  ZOmod (u + v) (Zpower beta n) = (ZOmod u (Zpower beta n) + ZOmod v (Zpower beta n))%Z.
+Proof.
+intros u v n Huv Hd.
+destruct (Zle_or_lt 0 n) as [Hn|Hn].
+rewrite ZOplus_mod with (1 := Huv).
+apply ZOmod_small_abs.
+generalize (Zle_refl n).
+pattern n at -2 ; rewrite <- Zabs_eq with (1 := Hn).
+rewrite <- (inj_Zabs_nat n).
+induction (Zabs_nat n) as [|p IHp].
+now rewrite 2!ZOmod_1_r.
+rewrite <- 2!Zsum_digit_digit.
+simpl Zsum_digit.
+rewrite inj_S.
+intros Hn'.
+replace (Zsum_digit (Zdigit u) p + Zdigit u (Z_of_nat p) * beta ^ Z_of_nat p +
+  (Zsum_digit (Zdigit v) p + Zdigit v (Z_of_nat p) * beta ^ Z_of_nat p))%Z with
+  (Zsum_digit (Zdigit u) p + Zsum_digit (Zdigit v) p +
+  (Zdigit u (Z_of_nat p) + Zdigit v (Z_of_nat p)) * beta ^ Z_of_nat p)%Z by ring.
+apply (Zle_lt_trans _ _ _ (Zabs_triangle _ _)).
+replace (beta ^ Zsucc (Z_of_nat p))%Z with (beta ^ Z_of_nat p + (beta - 1) * beta ^ Z_of_nat p)%Z.
+apply Zplus_lt_le_compat.
+rewrite 2!Zsum_digit_digit.
+apply IHp.
+now apply Zle_succ_le.
+rewrite Zabs_Zmult.
+rewrite (Zabs_eq (beta ^ Z_of_nat p)) by apply Zpower_ge_0.
+apply Zmult_le_compat_r. 2: apply Zpower_ge_0.
+apply Zlt_succ_le.
+assert (forall u v, Zabs (Zdigit u v) < Zsucc (beta -  1))%Z.
+clear ; intros n k.
+assert (0 < beta)%Z.
+apply Zlt_le_trans with 2%Z.
+apply refl_equal.
+apply Zle_bool_imp_le.
+apply beta.
+replace (Zsucc (beta - 1)) with (Zabs beta).
+apply ZOmod_lt.
+now apply Zgt_not_eq.
+rewrite Zabs_eq.
+apply Zsucc_pred.
+now apply Zlt_le_weak.
+assert (0 <= Z_of_nat p < n)%Z.
+split.
+apply Zle_0_nat.
+apply Zgt_lt.
+now apply Zle_succ_gt.
+destruct (Hd (Z_of_nat p) H0) as [K|K] ; rewrite K.
+apply H.
+rewrite Zplus_0_r.
+apply H.
+unfold Zsucc.
+ring_simplify.
+rewrite <- Zmult_pow.
+change (beta ^1)%Z with (beta * 1)%Z.
+now rewrite Zmult_1_r.
+apply Zle_0_nat.
+easy.
+destruct n as [|n|n] ; try easy.
+now rewrite 3!ZOmod_0_r.
+Qed.  
+
+Theorem ZOdiv_plus_pow_digit :
+  forall u v n, (0 <= u * v)%Z ->
+  (forall k, (0 <= k < n)%Z -> Zdigit u k = Z0 \/ Zdigit v k = Z0) ->
+  ZOdiv (u + v) (Zpower beta n) = (ZOdiv u (Zpower beta n) + ZOdiv v (Zpower beta n))%Z.
+Proof.
+intros u v n Huv Hd.
+rewrite <- (Zplus_0_r (u / beta ^ n + v / beta ^ n)).
+rewrite ZOdiv_plus with (1 := Huv).
+rewrite <- ZOmod_plus_pow_digit by assumption.
+apply f_equal.
+destruct (Zle_or_lt 0 n) as [Hn|Hn].
+apply ZOdiv_small_abs.
+rewrite <- Zabs_eq.
+apply ZOmod_lt.
+apply Zgt_not_eq.
+now apply Zpower_gt_0.
+apply Zpower_ge_0.
+clear -Hn.
+destruct n as [|n|n] ; try easy.
+apply ZOdiv_0_r.
+Qed.
+
+Theorem Zdigit_plus :
+  forall u v, (0 <= u * v)%Z ->
+  (forall k, (0 <= k)%Z -> Zdigit u k = Z0 \/ Zdigit v k = Z0) ->
+  forall k,
+  Zdigit (u + v) k = (Zdigit u k + Zdigit v k)%Z.
+Proof.
+intros u v Huv Hd k.
+destruct (Zle_or_lt 0 k) as [Hk|Hk].
+unfold Zdigit.
+rewrite ZOdiv_plus_pow_digit with (1 := Huv).
+rewrite <- (Zmult_1_r beta) at 3 5 7.
+change (beta * 1)%Z with (beta ^1)%Z.
+apply ZOmod_plus_pow_digit.
+destruct (Zle_or_lt 0 u) as [Hu|Hu].
+destruct (Zle_or_lt 0 v) as [Hv|Hv].
+apply Zmult_le_0_compat.
+apply ZO_div_pos with (1 := Hu).
+apply Zpower_ge_0.
+apply ZO_div_pos with (1 := Hv).
+apply Zpower_ge_0.
+destruct (Zle_lt_or_eq _ _ Hu) as [Hu'|Hu'].
+elim Zle_not_lt with (1 := Huv).
+rewrite <- (Zmult_0_r u).
+unfold Zlt.
+rewrite <- Zmult_compare_compat_l.
+easy.
+now apply Zlt_gt.
+now rewrite <- Hu', ZOdiv_0_l.
+destruct (Zle_or_lt v 0) as [Hv|Hv].
+rewrite <- (Zopp_involutive u), <- (Zopp_involutive v).
+rewrite ZOdiv_opp_l, (ZOdiv_opp_l (-v)).
+rewrite Zmult_opp_opp.
+apply Zmult_le_0_compat.
+apply ZO_div_pos.
+clear -Hu ; omega.
+apply Zpower_ge_0.
+apply ZO_div_pos.
+clear -Hv ; omega.
+apply Zpower_ge_0.
+elim Zle_not_lt with (1 := Huv).
+rewrite <- (Zmult_0_l v).
+unfold Zlt.
+rewrite <- Zmult_compare_compat_r.
+easy.
+now apply Zlt_gt.
+intros k' (Hk1,Hk2).
+rewrite 2!Zdigit_div_pow by assumption.
+apply Hd.
+now apply Zplus_le_0_compat.
+intros k' (Hk1,Hk2).
+now apply Hd.
+now rewrite 3!Zdigit_lt.
 Qed.
 
 Definition Zscale n k :=
