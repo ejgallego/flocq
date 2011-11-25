@@ -1854,3 +1854,9 @@ End Inclusion.
 End Generic.
 
 Notation ZnearestA := (Znearest (Zle_bool 0)).
+
+(** Notations for backward-compatibility with Flocq 1.4. *)
+Notation rndDN := Zfloor (only parsing).
+Notation rndUP := Zceil (only parsing).
+Notation rndZR := Ztrunc (only parsing).
+Notation rndNA := ZnearestA (only parsing).

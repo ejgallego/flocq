@@ -526,3 +526,6 @@ now apply round_NE_pt_pos.
 Qed.
 
 End Fcore_rnd_NE.
+
+(** Notations for backward-compatibility with Flocq 1.4. *)
+Notation rndNE := ZnearestE (only parsing).
