@@ -340,6 +340,46 @@ destruct e1 as [|e1|e1] ; try easy.
 apply Zpower_ge_0.
 Qed.
 
+Theorem Zpower_lt :
+  forall e1 e2, (0 <= e2)%Z -> (e1 < e2)%Z ->
+  (Zpower r e1 < Zpower r e2)%Z.
+Proof.
+intros e1 e2 He2 He.
+destruct (Zle_or_lt 0 e1)%Z as [H1|H1].
+replace e2 with (e2 - e1 + e1)%Z by ring.
+rewrite <- Zmult_pow with (2 := H1).
+rewrite Zmult_comm.
+rewrite <- (Zmult_1_r (r ^ e1)) at 1.
+apply Zmult_lt_compat2.
+split.
+now apply Zpower_gt_0.
+apply Zle_refl.
+split.
+easy.
+apply Zpower_gt_1.
+clear -He ; omega.
+apply Zle_minus_le_0.
+now apply Zlt_le_weak.
+revert H1.
+clear -He2.
+destruct e1 ; try easy.
+intros _.
+now apply Zpower_gt_0.
+Qed.
+
+Theorem Zpower_lt_Zpower :
+  forall e1 e2,
+  (Zpower r (e1 - 1) < Zpower r e2)%Z ->
+  (e1 <= e2)%Z.
+Proof.
+intros e1 e2 He.
+apply Znot_gt_le.
+intros H.
+apply Zlt_not_le with (1 := He).
+apply Zpower_le.
+clear -H ; omega.
+Qed.
+
 End Zpower.
 
 Section Div_Mod.

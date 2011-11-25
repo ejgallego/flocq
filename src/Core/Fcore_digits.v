@@ -872,28 +872,6 @@ ring_simplify (Zdigits n - 1 + 1).
 apply Zdigits_correct.
 Qed.
 
-Theorem Zpower_lt_Zpower :
-  forall e1 e2,
-  (Zpower beta (e1 - 1) < Zpower beta e2)%Z ->
-  (e1 <= e2)%Z.
-Proof.
-intros e1 e2 He.
-apply Znot_gt_le.
-intros H.
-apply Zlt_not_le with (1 := He).
-destruct (Zle_or_lt 0 e2) as [He2|He2].
-rewrite <- (Zmult_1_r (beta^ e2)).
-replace (e1 - 1)%Z with (e2 + (e1 - 1 - e2))%Z by ring.
-assert (0 <= e1 - 1 - e2)%Z by omega.
-rewrite <- Zmult_pow by assumption.
-apply Zmult_le_compat_l.
-apply (Zlt_le_succ 0).
-now apply Zpower_gt_0.
-apply Zpower_ge_0.
-replace (beta ^ e2)%Z with Z0 by now destruct e2.
-apply Zpower_ge_0.
-Qed.
-
 Theorem Zdigits_slice :
   forall n k l, (0 <= l)%Z ->
   (Zdigits (Zslice n k l) <= l)%Z.
@@ -902,7 +880,7 @@ intros n k l Hl.
 unfold Zslice.
 rewrite Zle_bool_true with (1 := Hl).
 destruct (Zdigits_correct (Zscale n (- k) mod beta ^ l)) as (H1,H2).
-apply Zpower_lt_Zpower.
+apply Zpower_lt_Zpower with beta.
 apply Zle_lt_trans with (1 := H1).
 rewrite <- (Zabs_eq (beta ^ l)) at 2 by apply Zpower_ge_0.
 apply ZOmod_lt.
