@@ -80,7 +80,7 @@ Theorem Fabs_F2R :
   forall f1 : float beta,
   (F2R (Fabs f1) = Rabs (F2R f1))%R.
 intros (m1,e1).
-now rewrite abs_F2R.
+apply F2R_abs.
 Qed.
 
 Definition Fplus (f1 f2 : float beta) :=

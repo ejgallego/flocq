@@ -110,11 +110,11 @@ apply generic_format_F2R.
 intros _.
 apply monotone_exp.
 rewrite <- H, <- Hxy', <- Hxy.
-apply ln_beta_monotone_abs.
+apply ln_beta_le_abs.
 exact H0.
 pattern x at 3 ; replace x with (-(y - (x + y)))%R by ring.
 rewrite Rabs_Ropp.
-now apply (generic_N_pt beta _ choice (x + y)).
+now apply (round_N_pt beta _ choice (x + y)).
 Qed.
 
 (** Error of the addition *)
@@ -179,7 +179,7 @@ unfold canonic_exponent.
 rewrite ln_beta_unique with (1 := Hexy).
 apply Zle_refl.
 (* . *)
-elim Rle_not_lt with (1 := round_monotone beta _ rnd _ _ (proj1 Hexy)).
+elim Rle_not_lt with (1 := round_le beta _ rnd _ _ (proj1 Hexy)).
 rewrite (Rabs_pos_eq _ Hp).
 rewrite Hxy.
 rewrite round_generic...

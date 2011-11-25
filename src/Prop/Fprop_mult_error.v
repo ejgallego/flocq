@@ -109,7 +109,7 @@ rewrite Hy at 6.
 rewrite <- mult_F2R.
 simpl.
 unfold f, round, Rminus.
-rewrite opp_F2R, Rplus_comm, <- plus_F2R.
+rewrite <- F2R_opp, Rplus_comm, <- plus_F2R.
 unfold Fplus. simpl.
 now rewrite Zle_imp_le_bool with (1 := Hc2).
 (* *)
@@ -124,7 +124,7 @@ apply Zle_trans with (cexp (x * y)%R - prec)%Z.
 unfold canonic_exponent, FLX_exp.
 apply Zplus_le_compat_r.
 rewrite ln_beta_unique with (1 := Hexy).
-apply ln_beta_le with (1 := Hz).
+apply ln_beta_le_bpow with (1 := Hz).
 replace (bpow (exy - prec)) with (ulp beta (FLX_exp prec) (x * y)).
 apply ulp_error...
 unfold ulp, canonic_exponent.
@@ -185,15 +185,15 @@ rewrite round_0...
 ring_simplify (0 - 0)%R.
 apply generic_format_0.
 destruct (mult_error_FLX_aux beta prec rnd x y) as ((m,e),(H1,(H2,H3))).
-now apply FLX_generic_format_FLT with emin.
-now apply FLX_generic_format_FLT with emin.
-rewrite <- (FLT_round_FLX beta emin).
+now apply generic_format_FLX_FLT with emin.
+now apply generic_format_FLX_FLT with emin.
+rewrite <- (round_FLT_FLX beta emin).
 assumption.
 apply Rle_trans with (2:=Hxy).
 apply bpow_le.
 generalize (prec_gt_0 prec).
 clear ; omega.
-rewrite <- (FLT_round_FLX beta emin) in H1.
+rewrite <- (round_FLT_FLX beta emin) in H1.
 2:apply Rle_trans with (2:=Hxy).
 2:apply bpow_le ; generalize (prec_gt_0 prec) ; clear ; omega.
 unfold f; rewrite <- H1.

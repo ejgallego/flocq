@@ -97,7 +97,7 @@ apply Zle_refl.
 rewrite Hx1, ln_beta_F2R with (1 := Zxm).
 cut (prec - 1 < ln_beta beta (Z2R xm))%Z.
 clear -Hx3 ; omega.
-apply ln_beta_Z2R_gt with (1 := Zxm).
+apply ln_beta_gt_Zpower with (1 := Zxm).
 apply Hx2.
 apply generic_format_FLXN.
 now apply FLXN_format_FTZ.
@@ -124,7 +124,7 @@ generalize (Zlt_cases (ex - prec) emin) Hx. clear Hx.
 case (Zlt_bool (ex - prec) emin) ; intros Hx5 Hx2.
 elim Rlt_not_ge with (1 := proj2 Hx4).
 apply Rle_ge.
-rewrite Hx2, abs_F2R.
+rewrite Hx2, <- F2R_abs.
 rewrite <- (Rmult_1_l (bpow ex)).
 unfold F2R. simpl.
 apply Rmult_le_compat.
@@ -137,7 +137,7 @@ apply Rmult_lt_reg_r with (bpow (emin + prec - 1)).
 apply bpow_gt_0.
 rewrite Rmult_0_l.
 change (0 < F2R (Float beta (Zabs (Ztrunc (x * bpow (- (emin + prec - 1))))) (emin + prec - 1)))%R.
-rewrite <- abs_F2R, <- Hx2.
+rewrite F2R_abs, <- Hx2.
 now apply Rabs_pos_lt.
 apply bpow_le.
 omega.
@@ -150,7 +150,7 @@ apply bpow_gt_0.
 rewrite <- bpow_plus.
 replace (prec - 1 + (ex - prec))%Z with (ex - 1)%Z by ring.
 change (bpow (ex - 1) <= F2R (Float beta (Zabs (Ztrunc (x * bpow (- (ex - prec))))) (ex - prec)))%R.
-rewrite <- abs_F2R, <- Hx2.
+rewrite F2R_abs, <- Hx2.
 apply Hx4.
 apply Zle_minus_le_0.
 now apply (Zlt_le_succ 0).
@@ -161,7 +161,7 @@ apply bpow_gt_0.
 rewrite <- bpow_plus.
 replace (prec + (ex - prec))%Z with ex by ring.
 change (F2R (Float beta (Zabs (Ztrunc (x * bpow (- (ex - prec))))) (ex - prec)) < bpow ex)%R.
-rewrite <- abs_F2R, <- Hx2.
+rewrite F2R_abs, <- Hx2.
 apply Hx4.
 now apply Zlt_le_weak.
 now apply Zge_le.
@@ -214,9 +214,9 @@ case Rle_bool_spec ; intros Hx ;
   case Rle_bool_spec ; intros Hy.
 4: easy.
 (* 1 <= |x| *)
-now apply Zrnd_monotone.
+now apply Zrnd_le.
 rewrite <- (Zrnd_Z2R rnd 0).
-apply Zrnd_monotone...
+apply Zrnd_le...
 apply Rle_trans with (Z2R (-1)). 2: now apply Z2R_le.
 destruct (Rabs_ge_inv _ _ Hx) as [Hx1|Hx1].
 exact Hx1.
@@ -226,7 +226,7 @@ apply Rle_trans with (1 := Hxy).
 apply RRle_abs.
 (* |x| < 1 *)
 rewrite <- (Zrnd_Z2R rnd 0).
-apply Zrnd_monotone...
+apply Zrnd_le...
 apply Rle_trans with (Z2R 1).
 now apply Z2R_le.
 destruct (Rabs_ge_inv _ _ Hy) as [Hy1|Hy1].
@@ -247,7 +247,7 @@ clear.
 now case n ; trivial ; simpl ; intros [p|p|].
 Qed.
 
-Theorem FTZ_round :
+Theorem round_FTZ_FLX :
   forall x : R,
   (bpow (emin + prec - 1) <= Rabs x)%R ->
   round beta FTZ_exp Zrnd_FTZ x = round beta (FLX_exp prec) rnd x.
@@ -288,7 +288,7 @@ apply refl_equal.
 clear -He' ; omega.
 Qed.
 
-Theorem FTZ_round_small :
+Theorem round_FTZ_small :
   forall x : R,
   (Rabs x < bpow (emin + prec - 1))%R ->
   round beta FTZ_exp Zrnd_FTZ x = R0.

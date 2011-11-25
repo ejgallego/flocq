@@ -51,7 +51,7 @@ apply Zle_trans with (Zmin (Fexp fx) (Fexp fy)).
 unfold canonic_exponent, FLX_exp.
 rewrite plus_F2R, <- Hx, <- Hy.
 apply Zplus_le_reg_l with prec; ring_simplify.
-apply ln_beta_le with (1 := H).
+apply ln_beta_le_bpow with (1 := H).
 now apply Zmin_case.
 rewrite <- Fexp_Fplus, Hz.
 apply Zle_refl.
@@ -169,7 +169,7 @@ unfold Rminus; apply format_add with fx (Fopp beta (Fmult beta fr fr)); trivial.
 unfold Rsqr; now rewrite Fopp_F2R,mult_F2R, <- Hr1.
 (* *) 
 apply Rle_lt_trans with x.
-apply Rabs_Rminus_pos.
+apply Rabs_minus_le.
 apply Rle_0_sqr.
 destruct (relative_error_N_FLX_ex beta prec (prec_gt_0 prec) choice (sqrt x)) as (eps,(Heps1,Heps2)).
 rewrite Heps2.
@@ -277,7 +277,7 @@ intros H1.
 absurd (Rabs (F2R fr) < bpow (es - 1))%R.
 apply Rle_not_lt.
 rewrite <- Hr1.
-apply round_monotone_abs_l...
+apply abs_round_ge_generic...
 apply generic_format_bpow.
 unfold FLX_exp; omega.
 apply Es.

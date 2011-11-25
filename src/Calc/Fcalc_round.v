@@ -50,7 +50,7 @@ apply (f_equal (fun m => (Z2R m * bpow e)%R)).
 apply Hc.
 apply inbetween_mult_reg with (bpow e).
 apply bpow_gt_0.
-now rewrite scaled_mantissa_bpow.
+now rewrite scaled_mantissa_mult_bpow.
 Qed.
 
 Definition cond_incr (b : bool) m := if b then (m + 1)%Z else m.
@@ -74,7 +74,7 @@ apply inbetween_mult_reg with (bpow e).
 apply bpow_gt_0.
 rewrite <- (Rabs_right (bpow e)) at 3.
 rewrite <- Rabs_mult.
-now rewrite scaled_mantissa_bpow.
+now rewrite scaled_mantissa_mult_bpow.
 apply Rle_ge.
 apply bpow_ge_0.
 (* *)
@@ -902,7 +902,7 @@ unfold Rabs in H.
 destruct (Rcase_abs x) as [Zx|Zx].
 rewrite Rlt_bool_true with (1 := Zx).
 simpl.
-rewrite <- opp_F2R.
+rewrite F2R_opp.
 rewrite <- H, Ropp_involutive.
 apply round_generic...
 rewrite Rlt_bool_false.

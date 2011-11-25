@@ -281,7 +281,7 @@ clear -H Hprec.
 unfold prec ; omega.
 apply Rnot_le_lt.
 intros H0.
-refine (_ (ln_beta_monotone radix2 _ _ _ H0)).
+refine (_ (ln_beta_le radix2 _ _ _ H0)).
 rewrite ln_beta_bpow.
 rewrite ln_beta_F2R_digits. 2: discriminate.
 unfold emin, prec.
@@ -340,7 +340,7 @@ apply (Zpower_gt_0 radix2).
 now apply Zlt_le_weak.
 apply Rnot_le_lt.
 intros H0.
-refine (_ (ln_beta_monotone radix2 _ _ _ H0)).
+refine (_ (ln_beta_le radix2 _ _ _ H0)).
 rewrite ln_beta_bpow.
 rewrite ln_beta_F2R_digits. 2: discriminate.
 rewrite <- H.

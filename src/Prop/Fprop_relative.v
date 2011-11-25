@@ -147,10 +147,10 @@ Proof.
 intros m x Hx.
 apply generic_relative_error.
 unfold x.
-rewrite abs_F2R.
+rewrite <- F2R_abs.
 apply bpow_le_F2R.
 apply F2R_lt_reg with beta emin.
-rewrite F2R_0, <- abs_F2R.
+rewrite F2R_0, F2R_abs.
 now apply Rabs_pos_lt.
 Qed.
 
@@ -200,7 +200,7 @@ apply round_abs_abs...
 clear rnd valid_rnd x Hx Hx' He.
 intros rnd valid_rnd x Hx.
 rewrite <- (round_generic beta fexp rnd (bpow (ex - 1))).
-now apply round_monotone.
+now apply round_le.
 apply generic_format_bpow.
 ring_simplify (ex - 1 + 1)%Z.
 generalize (Hmin ex).
@@ -217,10 +217,10 @@ intros Hp m x Hx.
 apply generic_relative_error_2.
 exact Hp.
 unfold x.
-rewrite abs_F2R.
+rewrite <- F2R_abs.
 apply bpow_le_F2R.
 apply F2R_lt_reg with beta emin.
-rewrite F2R_0, <- abs_F2R.
+rewrite F2R_0, F2R_abs.
 now apply Rabs_pos_lt.
 Qed.
 
@@ -294,10 +294,10 @@ apply Rle_refl.
 (* . *)
 apply generic_relative_error_N.
 unfold x.
-rewrite abs_F2R.
+rewrite <- F2R_abs.
 apply bpow_le_F2R.
 apply F2R_lt_reg with beta emin.
-rewrite F2R_0, <- abs_F2R.
+rewrite F2R_0, F2R_abs.
 now apply Rabs_pos_lt.
 Qed.
 
@@ -355,7 +355,7 @@ apply round_abs_abs...
 clear rnd valid_rnd x Hx Hx' He.
 intros rnd valid_rnd x Hx.
 rewrite <- (round_generic beta fexp rnd (bpow (ex - 1))).
-now apply round_monotone.
+now apply round_le.
 apply generic_format_bpow.
 ring_simplify (ex - 1 + 1)%Z.
 generalize (Hmin ex).
@@ -378,10 +378,10 @@ apply Rle_refl.
 (* . *)
 apply generic_relative_error_N_2 with (1 := Hp).
 unfold x.
-rewrite abs_F2R.
+rewrite <- F2R_abs.
 apply bpow_le_F2R.
 apply F2R_lt_reg with beta emin.
-rewrite F2R_0, <- abs_F2R.
+rewrite F2R_0, F2R_abs.
 now apply Rabs_pos_lt.
 Qed.
 

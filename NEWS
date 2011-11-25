@@ -1,37 +1,73 @@
-
-round_monotone -> round_le    
-round_monotone_l -> round_ge_generic
-round_monotone_r -> round_le_generic
-round_monotone_abs_l -> abs_round_ge_generic
-round_monotone_abs_r -> abs_round_le_generic
-canonic_exponent_round -> canonic_exponent_round_ge
-generic_N_pt -> round_N_pt
-ulp_le_pos -> ulp_le_id
-succ_lt_le -> succ_le_lt
-ulp_monotone -> ulp_le
-ulp_DN_pt_eq -> ulp_DN
-format_pred -> generic_format_pred
-pred_ulp -> pred_plus_ulp
-pred_lt -> pred_lt_id
-FLT_canonic_FLX -> canonic_exp_FLT_FLX
-FLT_generic_format_FLX -> generic_format_FLT_FLX
-FLX_generic_format_FLT -> generic_format_FLX_FLT
-FLT_round_FLX -> round_FLT_FLX
-FLT_canonic_FIX -> canonic_FLT_FIX
-FIX_generic_format_FLT -> generic_format_FIX_FLT
-FLT_generic_format_FIX -> generic_format_FLT_FIX
-
-
-
-
-
-Type classes (Valid_exp, Valid_rnd, Exp_not_FTZ, Monotone_exp
-Exists_NE
-
-
-Equivalences FIX/FLX (...) cassées
-
-
+Version 2.0.0:
+ - changed rounding modes from records to R -> Z functions as arguments
+   to the round function
+   . rndDN -> Zfloor
+   . rndUP -> Zceil
+   . rndZE -> Ztrunc
+   . rndNE -> ZnearestE
+   . rndNA -> ZnearestA
+ - added typeclasses for automatic inference of properties:
+   . Valid_exp for Z -> Z functions describing formats
+   . Valid_rnd for R -> Z functions describing rounding modes
+   . Exp_not_FTZ for Z -> Z functions describing formats with subnormal
+   . Monotone_exp for Z -> Z functions describing regular formats
+   . Exists_NE for radix/formats supporting rounding to nearest even
+ - removed theorems superseded by typeclasses:
+   . FIX_exp_correct, FLX_exp_correct, FLT_exp_correct, FTZ_exp_correct
+   . FIX_exp_monotone, FLX_exp_monotone, FLT_monotone
+   . Rnd_NE_pt_FIX, Rnd_NE_pt_FLX, Rnd_NE_pt_FLT
+   . round_NE_pt_FLX, round_NE_pt_FLT
+   . Zrnd_opp_le, Zrnd_Z2R_opp
+ - split theorems on equivalence between specific and generic formats
+   into both directions:
+   . FIX_format_generic and generic_format_FIX
+   . FLX_format_generic and generic_format_FLX
+   . FLT_format_generic and generic_format_FLT
+   . FTZ_format_generic and generic_format_FTZ
+ - modified correctness theorems for IEEE-754 operators so that they also
+   mention finiteness of the results
+ - added a Flocq_version.Flocq_version Coq variable for Flocq detection
+   and version testing in configure scripts
+ - moved parts of some files into other files:
+   . Fcore_Raux -> Fcore_Zaux
+   . Fcalc_digits -> Fcore_digits
+   . Fappli_IEEE -> Fappli_IEEE_bits
+ - renamed theorems more uniformly:
+   . Rabs_Rminus_pos -> Rabs_minus_le
+   . exp_increasing_weak -> exp_le
+   . ln_beta_monotone -> ln_beta_le
+   . ln_beta_monotone_abs -> ln_beta_le_abs
+   . abs_F2R -> F2R_abs (changed direction)
+   . opp_F2R -> F2R_opp (changed direction)
+   . scaled_mantissa_bpow -> scaled_mantissa_mult_bpow
+   . round_monotone -> round_le
+   . round_monotone_l -> round_ge_generic
+   . round_monotone_r -> round_le_generic
+   . round_monotone_abs_l -> abs_round_ge_generic
+   . round_monotone_abs_r -> abs_round_le_generic
+   . generic_format_canonic_exponent -> generic_format_F2R (modified hypothesis)
+   . canonic_exponent_round -> canonic_exponent_round_ge
+   . generic_N_pt -> round_N_pt
+   . round_pred_pos_imp_rnd -> round_pred_ge_0
+   . round_pred_rnd_imp_pos -> round_pred_gt_0
+   . round_pred_neg_imp_rnd -> round_pred_le_0
+   . round_pred_rnd_imp_neg -> round_pred_lt_0
+   . ulp_le_pos -> ulp_le_id
+   . succ_lt_le -> succ_le_lt
+   . ulp_monotone -> ulp_le
+   . ulp_DN_pt_eq -> ulp_DN
+   . format_pred -> generic_format_pred
+   . pred_ulp -> pred_plus_ulp
+   . pred_lt -> pred_lt_id
+   . FLT_generic_format_FLX -> generic_format_FLT_FLX
+   . FLX_generic_format_FLT -> generic_format_FLX_FLT
+   . FIX_generic_format_FLT -> generic_format_FIX_FLT
+   . FLT_generic_format_FIX -> generic_format_FLT_FIX
+   . FLT_round_FLX -> round_FLT_FLX
+   . FTZ_round -> round_FTZ_FLX
+   . FTZ_round_small -> round_FTZ_small
+   . FLT_canonic_FLX -> canonic_exp_FLT_FLX
+   . FLT_canonic_FIX -> canonic_exp_FLT_FIX
 
 Version 1.4.0:
  - improved efficiency of IEEE-754 addition

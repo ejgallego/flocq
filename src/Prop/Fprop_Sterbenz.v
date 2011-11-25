@@ -74,15 +74,15 @@ rewrite <- Pxy, plus_F2R, <- Hx, <- Hy.
 unfold canonic_exponent.
 replace exy with (fexp (Zmin ex ey)).
 apply monotone_exp.
-now apply ln_beta_le.
+now apply ln_beta_le_bpow.
 replace exy with (Fexp (Fplus beta fx fy)) by exact (f_equal Fexp Pxy).
 rewrite Fexp_Fplus.
 simpl. clear -monotone_exp.
 apply sym_eq.
 destruct (Zmin_spec ex ey) as [(H1,H2)|(H1,H2)] ; rewrite H2.
-apply Zmin_left.
+apply Zmin_l.
 now apply monotone_exp.
-apply Zmin_right.
+apply Zmin_r.
 apply monotone_exp.
 apply Zlt_le_weak.
 now apply Zgt_lt.
@@ -103,14 +103,14 @@ apply generic_format_plus ; try assumption.
 apply Rle_lt_trans with (1 := Hxy).
 unfold Rmin.
 destruct (Rle_dec (Rabs x) (Rabs y)) as [Hxy'|Hxy'].
-rewrite Zmin_left.
+rewrite Zmin_l.
 destruct (ln_beta beta x) as (ex, Hx).
 now apply Hx.
-now apply ln_beta_monotone_abs.
-rewrite Zmin_right.
+now apply ln_beta_le_abs.
+rewrite Zmin_r.
 destruct (ln_beta beta y) as (ex, Hy).
 now apply Hy.
-apply ln_beta_monotone_abs.
+apply ln_beta_le_abs.
 exact Zy.
 apply Rlt_le.
 now apply Rnot_le_lt.

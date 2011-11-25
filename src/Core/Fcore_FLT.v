@@ -143,7 +143,7 @@ destruct (Req_dec x 0) as [Hx0|Hx0].
 rewrite Hx0.
 apply generic_format_0.
 unfold generic_format, scaled_mantissa.
-now rewrite (FLT_canonic_FLX x Hx0 Hx).
+now rewrite canonic_exp_FLT_FLX.
 Qed.
 
 Theorem generic_format_FLX_FLT :
@@ -165,14 +165,15 @@ Theorem round_FLT_FLX : forall rnd x,
   round beta FLT_exp rnd x = round beta (FLX_exp prec) rnd x.
 intros rnd x Hx.
 unfold round, scaled_mantissa.
-rewrite ->FLT_canonic_FLX; trivial.
-intros H; contradict Hx.
-rewrite H, Rabs_R0; apply Rlt_not_le.
+rewrite canonic_exp_FLT_FLX ; trivial.
+contradict Hx.
+rewrite Hx, Rabs_R0.
+apply Rlt_not_le.
 apply bpow_gt_0.
 Qed.
 
 (** Links between FLT and FIX (underflow) *)
-Theorem canonic_FLT_FIX :
+Theorem canonic_exp_FLT_FIX :
   forall x, x <> R0 ->
   (Rabs x < bpow (emin + prec))%R ->
   canonic_exponent beta FLT_exp x = canonic_exponent beta (FIX_exp emin) x.

@@ -307,7 +307,7 @@ Theorem B2R_Bopp :
 Proof.
 intros [sx|sx| |sx mx ex Hx] ; apply sym_eq ; try apply Ropp_0.
 simpl.
-rewrite opp_F2R.
+rewrite <- F2R_opp.
 now case sx.
 Qed.
 
@@ -326,7 +326,7 @@ unfold ln_beta_val.
 intros H.
 apply Rlt_le_trans with (bpow radix2 e').
 change (Zpos mx) with (Zabs (Zpos mx)).
-rewrite <- abs_F2R.
+rewrite F2R_abs.
 apply Ex.
 apply Rgt_not_eq.
 now apply F2R_gt_0_compat.
@@ -347,7 +347,7 @@ Theorem B2R_lt_emax :
   (Rabs (B2R x) < bpow radix2 emax)%R.
 Proof.
 intros [sx|sx| |sx mx ex Hx] ; simpl ; try ( rewrite Rabs_R0 ; apply bpow_gt_0 ).
-rewrite abs_F2R, abs_cond_Zopp.
+rewrite <- F2R_abs, abs_cond_Zopp.
 now apply bounded_lt_emax.
 Qed.
 
@@ -378,7 +378,7 @@ cut (e' - 1 < emax)%Z. clear ; omega.
 apply lt_bpow with radix2.
 apply Rle_lt_trans with (2 := Bx).
 change (Zpos mx) with (Zabs (Zpos mx)).
-rewrite <- abs_F2R.
+rewrite F2R_abs.
 apply Ex.
 apply Rgt_not_eq.
 now apply F2R_gt_0_compat.
@@ -659,7 +659,7 @@ assert (Hr: Rabs (round radix2 fexp (round_mode m) x) = F2R (Float radix2 m1' e1
 (* . *)
 rewrite <- (Zabs_eq m1').
 replace (Zabs m1') with (Zabs (cond_Zopp (Rlt_bool x 0) m1')).
-rewrite <- abs_F2R.
+rewrite F2R_abs.
 now apply f_equal.
 apply abs_cond_Zopp.
 apply Zle_trans with (2 := Hm).
@@ -684,7 +684,7 @@ rewrite Rlt_bool_true.
 repeat split.
 apply sym_eq.
 case Rlt_bool ; apply F2R_0.
-rewrite abs_F2R, abs_cond_Zopp, F2R_0.
+rewrite <- F2R_abs, abs_cond_Zopp, F2R_0.
 apply bpow_gt_0.
 (* . 0 < m1' *)
 assert (He: (e1 <= fexp (digits radix2 (Zpos m1') + e1))%Z).
@@ -693,7 +693,7 @@ rewrite <- ln_beta_F2R_digits, <- Hr, ln_beta_abs.
 rewrite H1b.
 rewrite canonic_exponent_abs.
 fold (canonic_exponent radix2 fexp (round radix2 fexp (round_mode m) x)).
-apply canonic_exponent_round...
+apply canonic_exponent_round_ge...
 rewrite H1c.
 case (Rlt_bool x 0).
 apply Rlt_not_eq.
@@ -712,7 +712,7 @@ destruct m2 as [|m2|m2].
 elim Rgt_not_eq with (2 := H3).
 rewrite F2R_0.
 now apply F2R_gt_0_compat.
-rewrite F2R_cond_Zopp, H3, abs_cond_Ropp, abs_F2R.
+rewrite F2R_cond_Zopp, H3, abs_cond_Ropp, <- F2R_abs.
 simpl Zabs.
 case_eq (Zle_bool e2 (emax - prec)) ; intros He2.
 assert (bounded m2 e2 = true).
@@ -844,7 +844,7 @@ simpl.
 replace (xorb sx sy) with (Rlt_bool (F2R (Float radix2 (cond_Zopp sx (Zpos mx) * cond_Zopp sy (Zpos my)) (ex + ey))) 0).
 apply binary_round_sign_correct.
 constructor.
-rewrite abs_F2R.
+rewrite <- F2R_abs.
 apply F2R_eq_compat.
 rewrite Zabs_Zmult.
 now rewrite 2!abs_cond_Zopp.
@@ -1044,7 +1044,7 @@ replace sx with (Rlt_bool x 0).
 apply binary_round_sign_correct.
 constructor.
 unfold x.
-now rewrite abs_F2R, abs_cond_Zopp.
+now rewrite <- F2R_abs, abs_cond_Zopp.
 exact H2.
 unfold x.
 case sx.
@@ -1208,15 +1208,15 @@ clear Hs.
 apply Rabs_lt.
 split.
 apply Rlt_le_trans with (F2R (Float radix2 (cond_Zopp true (Zpos mx)) ex)).
-rewrite <- opp_F2R.
+rewrite F2R_opp.
 now apply Ropp_lt_contravar.
-apply round_monotone_l...
+apply round_ge_generic...
 now apply generic_format_canonic.
 pattern (F2R (Float radix2 (cond_Zopp true (Zpos mx)) ex)) at 1 ; rewrite <- Rplus_0_r.
 apply Rplus_le_compat_l.
 now apply F2R_ge_0_compat.
 apply Rle_lt_trans with (2 := By).
-apply round_monotone_r...
+apply round_le_generic...
 now apply generic_format_canonic.
 rewrite <- (Rplus_0_l (F2R (Float radix2 (Zpos my) ey))).
 apply Rplus_le_compat_r.
@@ -1228,15 +1228,15 @@ clear Hs.
 apply Rabs_lt.
 split.
 apply Rlt_le_trans with (F2R (Float radix2 (cond_Zopp true (Zpos my)) ey)).
-rewrite <- opp_F2R.
+rewrite F2R_opp.
 now apply Ropp_lt_contravar.
-apply round_monotone_l...
+apply round_ge_generic...
 now apply generic_format_canonic.
 pattern (F2R (Float radix2 (cond_Zopp true (Zpos my)) ey)) at 1 ; rewrite <- Rplus_0_l.
 apply Rplus_le_compat_r.
 now apply F2R_ge_0_compat.
 apply Rle_lt_trans with (2 := Bx).
-apply round_monotone_r...
+apply round_le_generic...
 now apply generic_format_canonic.
 rewrite <- (Rplus_0_r (F2R (Float radix2 (Zpos mx) ex))).
 apply Rplus_le_compat_l.
@@ -1301,7 +1301,7 @@ now apply Zle_lt_trans with Z0.
 (* . mz > 0 *)
 apply binary_round_sign_correct.
 rewrite Rabs_mult, Rabs_Rinv.
-now rewrite 2!abs_F2R, 2!abs_cond_Zopp.
+now rewrite <- 2!F2R_abs, 2!abs_cond_Zopp.
 case sy.
 apply Rlt_not_eq.
 now apply F2R_lt_0_compat.
@@ -1326,14 +1326,14 @@ now apply F2R_gt_0_compat.
 (* *)
 case sy ; simpl.
 change (Zneg my) with (Zopp (Zpos my)).
-rewrite <- opp_F2R.
+rewrite F2R_opp.
 rewrite <- Ropp_inv_permute.
 rewrite Ropp_mult_distr_r_reverse.
 case sx ; simpl.
 apply Rlt_bool_false.
 rewrite <- Ropp_mult_distr_l_reverse.
 apply Rmult_le_pos.
-rewrite opp_F2R.
+rewrite <- F2R_opp.
 now apply F2R_ge_0_compat.
 apply Rlt_le.
 apply Rinv_0_lt_compat.
@@ -1349,7 +1349,7 @@ apply Rgt_not_eq.
 now apply F2R_gt_0_compat.
 case sx.
 apply Rlt_bool_true.
-rewrite <- opp_F2R.
+rewrite F2R_opp.
 rewrite Ropp_mult_distr_l_reverse.
 rewrite <- Ropp_0.
 apply Ropp_lt_contravar.
@@ -1516,7 +1516,7 @@ apply generic_format_canonic.
 apply (canonic_bounded_prec false).
 apply (andb_prop _ _ Hx).
 (* .. *)
-apply round_monotone_l...
+apply round_ge_generic...
 apply generic_format_0.
 apply sqrt_ge_0.
 rewrite Rabs_pos_eq.

@@ -117,7 +117,7 @@ intros x y Hx Hxy.
 case (Z_lt_le_dec 0 x).
 clear Hx. intros Hx.
 rewrite 2!digits_ln_beta.
-apply ln_beta_monotone.
+apply ln_beta_le.
 now apply (Z2R_lt 0).
 now apply Z2R_le.
 apply Zgt_not_eq.
@@ -206,7 +206,7 @@ apply Zplus_lt_compat.
 now apply Zplus_lt_compat.
 now apply Zmult_lt_0_compat.
 rewrite 3!digits_ln_beta ; try now (apply sym_not_eq ; apply Zlt_not_eq).
-apply ln_beta_le with (1 := Rgt_not_eq _ _ Hxy).
+apply ln_beta_le_bpow with (1 := Rgt_not_eq _ _ Hxy).
 rewrite Rabs_pos_eq with (1 := Rlt_le _ _ Hxy).
 destruct (ln_beta beta (Z2R x)) as (ex, Hex). simpl.
 specialize (Hex (Rgt_not_eq _ _ (Z2R_lt _ _ Hx))).
