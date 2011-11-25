@@ -1054,6 +1054,55 @@ apply Rlt_bool_false.
 now apply F2R_ge_0_compat.
 Qed.
 
+Definition binary_normalize mode m e szero :=
+  match m with
+  | Z0 => B754_zero szero
+  | Zpos m => FF2B _ (proj1 (binary_round_sign_shl_correct mode false m e))
+  | Zneg m => FF2B _ (proj1 (binary_round_sign_shl_correct mode true m e))
+  end.
+
+Theorem binary_normalize_correct :
+  forall m mx ex szero,
+  if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (F2R (Float radix2 mx ex)))) (bpow radix2 emax) then
+    B2R (binary_normalize m mx ex szero) = round radix2 fexp (round_mode m) (F2R (Float radix2 mx ex)) /\
+    is_finite (binary_normalize m mx ex szero) = true
+  else
+    B2FF (binary_normalize m mx ex szero) = binary_overflow m (Rlt_bool (F2R (Float radix2 mx ex)) 0).
+Proof with auto with typeclass_instances.
+intros m mx ez szero.
+destruct mx as [|mz|mz] ; simpl.
+rewrite F2R_0, round_0, Rabs_R0, Rlt_bool_true...
+apply bpow_gt_0.
+(* . mz > 0 *)
+generalize (binary_round_sign_shl_correct m false mz ez).
+simpl.
+case Rlt_bool_spec.
+intros _ (Vz, (Rz, Rz')).
+split.
+now rewrite B2R_FF2B.
+now rewrite is_finite_FF2B.
+intros Hz' (Vz, Rz).
+rewrite B2FF_FF2B, Rz.
+apply f_equal.
+apply sym_eq.
+apply Rlt_bool_false.
+now apply F2R_ge_0_compat.
+(* . mz < 0 *)
+generalize (binary_round_sign_shl_correct m true mz ez).
+simpl.
+case Rlt_bool_spec.
+intros _ (Vz, (Rz, Rz')).
+split.
+now rewrite B2R_FF2B.
+now rewrite is_finite_FF2B.
+intros Hz' (Vz, Rz).
+rewrite B2FF_FF2B, Rz.
+apply f_equal.
+apply sym_eq.
+apply Rlt_bool_true.
+now apply F2R_lt_0_compat.
+Qed.
+
 Definition Bplus m x y :=
   match x, y with
   | B754_nan, _ => x
@@ -1069,14 +1118,8 @@ Definition Bplus m x y :=
   | _, B754_zero _ => x
   | B754_finite sx mx ex Hx, B754_finite sy my ey Hy =>
     let ez := Zmin ex ey in
-    match Zplus (cond_Zopp sx (Zpos (fst (shl mx ex ez)))) (cond_Zopp sy (Zpos (fst (shl my ey ez)))) with
-    | Z0 =>
-      match m with mode_DN => B754_zero true | _ => B754_zero false end
-    | Zpos mz =>
-      FF2B (binary_round_sign_shl m false mz ez) (proj1 (binary_round_sign_shl_correct _ _ _ _))
-    | Zneg mz =>
-      FF2B (binary_round_sign_shl m true mz ez) (proj1 (binary_round_sign_shl_correct _ _ _ _))
-    end
+    binary_normalize m (Zplus (cond_Zopp sx (Zpos (fst (shl mx ex ez)))) (cond_Zopp sy (Zpos (fst (shl my ey ez)))))
+      ez (match m with mode_DN => true | _ => false end)
   end.
 
 Theorem Bplus_correct :
@@ -1107,6 +1150,7 @@ apply generic_format_B2R.
 (* *)
 clear Fx Fy.
 simpl.
+set (szero := match m with mode_DN => true | _ => false end).
 set (ez := Zmin ex ey).
 set (mz := (cond_Zopp sx (Zpos (fst (shl mx ex ez))) + cond_Zopp sy (Zpos (fst (shl my ey ez))))%Z).
 assert (Hp: (F2R (Float radix2 (cond_Zopp sx (Zpos mx)) ex) +
@@ -1197,43 +1241,16 @@ now apply generic_format_canonic.
 rewrite <- (Rplus_0_r (F2R (Float radix2 (Zpos mx) ex))).
 apply Rplus_le_compat_l.
 now apply F2R_le_0_compat.
-destruct mz as [|mz|mz].
-(* . mz = 0 *)
-rewrite F2R_0, round_0, Rabs_R0, Rlt_bool_true...
-now case m.
-apply bpow_gt_0.
-(* . mz > 0 *)
-generalize (binary_round_sign_shl_correct m false mz ez).
-simpl.
+(* . *)
+generalize (binary_normalize_correct m mz ez szero).
 case Rlt_bool_spec.
-intros _ (Vz, (Rz, Rz')).
-split.
-now rewrite B2R_FF2B.
-now rewrite is_finite_FF2B.
-intros Hz' (Vz, Rz).
+easy.
+intros Hz' Vz.
 specialize (Sz Hz').
-refine (conj _ (proj2 Sz)).
-rewrite B2FF_FF2B.
-rewrite (proj1 Sz).
-rewrite Rlt_bool_false.
-exact Rz.
-now apply F2R_ge_0_compat.
-(* . mz < 0 *)
-generalize (binary_round_sign_shl_correct m true mz ez).
-simpl.
-case Rlt_bool_spec.
-intros _ (Vz, (Rz, Rz')).
 split.
-now rewrite B2R_FF2B.
-now rewrite is_finite_FF2B.
-intros Hz' (Vz, Rz).
-specialize (Sz Hz').
-refine (conj _ (proj2 Sz)).
-rewrite B2FF_FF2B.
-rewrite (proj1 Sz).
-rewrite Rlt_bool_true.
-exact Rz.
-now apply F2R_lt_0_compat.
+rewrite Vz.
+now apply f_equal.
+apply Sz.
 Qed.
 
 Definition Bminus m x y := Bplus m x (Bopp y).
