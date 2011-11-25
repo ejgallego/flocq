@@ -68,7 +68,7 @@ rewrite ln_beta_F2R with (1 := Zmx).
 apply Zmax_lub with (2 := H3).
 apply Zplus_le_reg_r with (prec - ex)%Z.
 ring_simplify.
-now apply ln_beta_Z2R_le.
+now apply ln_beta_le_Zpower.
 Qed.
 
 Theorem FLT_format_generic :
@@ -87,7 +87,7 @@ apply Rmult_lt_reg_r with (bpow ex).
 apply bpow_gt_0.
 rewrite <- bpow_plus.
 change (F2R (Float beta (Zabs mx) ex) < bpow (prec + ex))%R.
-rewrite <- abs_F2R.
+rewrite F2R_abs.
 rewrite <- Hx.
 destruct (Req_dec x 0) as [Hx0|Hx0].
 rewrite Hx0, Rabs_R0.
@@ -114,7 +114,7 @@ apply FLT_format_generic.
 apply generic_format_FLT.
 Qed.
 
-Theorem FLT_canonic_FLX :
+Theorem canonic_exp_FLT_FLX :
   forall x, x <> R0 ->
   (bpow (emin + prec - 1) <= Rabs x)%R ->
   canonic_exponent beta FLT_exp x = canonic_exponent beta (FLX_exp prec) x.
@@ -132,7 +132,7 @@ apply He.
 Qed.
 
 (** Links between FLT and FLX *)
-Theorem FLT_generic_format_FLX :
+Theorem generic_format_FLT_FLX :
   forall x : R,
   (bpow (emin + prec - 1) <= Rabs x)%R ->
   generic_format beta (FLX_exp prec) x ->
@@ -146,7 +146,7 @@ unfold generic_format, scaled_mantissa.
 now rewrite (FLT_canonic_FLX x Hx0 Hx).
 Qed.
 
-Theorem FLX_generic_format_FLT :
+Theorem generic_format_FLX_FLT :
   forall x : R,
   generic_format beta FLT_exp x -> generic_format beta (FLX_exp prec) x.
 Proof.
@@ -160,7 +160,7 @@ unfold canonic_exponent, FLX_exp, FLT_exp.
 apply Zle_max_l.
 Qed.
 
-Theorem FLT_round_FLX : forall rnd x,
+Theorem round_FLT_FLX : forall rnd x,
   (bpow (emin + prec - 1) <= Rabs x)%R ->
   round beta FLT_exp rnd x = round beta (FLX_exp prec) rnd x.
 intros rnd x Hx.
@@ -172,7 +172,7 @@ apply bpow_gt_0.
 Qed.
 
 (** Links between FLT and FIX (underflow) *)
-Theorem FLT_canonic_FIX :
+Theorem canonic_FLT_FIX :
   forall x, x <> R0 ->
   (Rabs x < bpow (emin + prec))%R ->
   canonic_exponent beta FLT_exp x = canonic_exponent beta (FIX_exp emin) x.
@@ -189,7 +189,7 @@ apply Rle_lt_trans with (2 := Hx).
 now apply Hex.
 Qed.
 
-Theorem FIX_generic_format_FLT :
+Theorem generic_format_FIX_FLT :
   forall x : R,
   generic_format beta FLT_exp x ->
   generic_format beta (FIX_exp emin) x.
@@ -203,7 +203,7 @@ rewrite <- Hx.
 apply Zle_max_r.
 Qed.
 
-Theorem FLT_generic_format_FIX :
+Theorem generic_format_FLT_FIX :
   forall x : R,
   (Rabs x <= bpow (emin + prec))%R ->
   generic_format beta (FIX_exp emin) x ->

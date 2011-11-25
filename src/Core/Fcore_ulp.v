@@ -54,7 +54,7 @@ unfold ulp.
 now rewrite canonic_exponent_abs.
 Qed.
 
-Theorem ulp_le_pos:
+Theorem ulp_le_id:
   forall x, 
     (0 < x)%R ->
     F x -> 
@@ -81,7 +81,7 @@ Theorem ulp_le_abs:
 Proof.
 intros x Zx Fx.
 rewrite <- ulp_abs.
-apply ulp_le_pos.
+apply ulp_le_id.
 now apply Rabs_pos_lt.
 now apply generic_format_abs.
 Qed.
@@ -102,7 +102,7 @@ unfold generic_format, F2R. simpl.
 rewrite <- H.
 rewrite Ztrunc_Z2R.
 rewrite H.
-now rewrite scaled_mantissa_bpow.
+now rewrite scaled_mantissa_mult_bpow.
 Qed.
 
 (** The successor of x is x + ulp x *)
@@ -286,7 +286,7 @@ apply round_generic...
 now apply generic_format_succ.
 Qed.
 
-Theorem succ_lt_le:
+Theorem succ_le_lt:
   forall x y,
   F x -> F y ->
   (0 < x < y)%R ->
@@ -370,7 +370,7 @@ now apply (Z2R_lt 0 2).
 apply bpow_ge_0.
 (* x <> rnd x *)
 set (d := round beta fexp Zfloor x).
-destruct (generic_N_pt beta fexp choice x) as (Hr1, Hr2).
+destruct (round_N_pt beta fexp choice x) as (Hr1, Hr2).
 destruct (Rle_or_lt (x - d) (d + ulp x - x)) as [H|H].
 (* . rnd(x) = rndd(x) *)
 apply Rle_trans with (Rabs (d - x)).
@@ -407,7 +407,7 @@ rewrite Hu.
 apply (round_UP_pt beta fexp x).
 Qed.
 
-Theorem ulp_monotone :
+Theorem ulp_le :
   forall { Hm : Monotone_exp fexp },
   forall x y: R,
   (0 < x)%R -> (x <= y)%R ->
@@ -416,7 +416,7 @@ Proof.
 intros Hm x y Hx Hxy.
 apply bpow_le.
 apply Hm.
-now apply ln_beta_monotone.
+now apply ln_beta_le.
 Qed.
 
 Theorem ulp_bpow :
@@ -434,7 +434,7 @@ apply Zlt_succ.
 apply bpow_ge_0.
 Qed.
 
-Theorem ulp_DN_pt_eq :
+Theorem ulp_DN :
   forall x,
   (0 < round beta fexp Zfloor x)%R ->
   ulp (round beta fexp Zfloor x) = ulp x.
@@ -455,18 +455,18 @@ case (round_DN_or_UP beta fexp rnd x); intros Hx.
 case (Rle_or_lt 0 (round beta fexp Zfloor x)).
 intros H; destruct H.
 rewrite Hx at 2.
-rewrite ulp_DN_pt_eq; trivial.
+rewrite ulp_DN; trivial.
 apply ulp_error...
 rewrite Hx in Hfx; contradict Hfx; auto with real.
 intros H.
 apply Rlt_le_trans with (1:=ulp_error _ _).
 rewrite <- (ulp_opp x), <- (ulp_opp (round beta fexp rnd x)).
-apply ulp_monotone; trivial.
+apply ulp_le; trivial.
 apply Ropp_0_gt_lt_contravar; apply Rlt_gt.
 case (Rle_or_lt 0 x); trivial.
 intros H1; contradict H.
 apply Rle_not_lt.
-apply round_monotone_l...
+apply round_ge_generic...
 apply generic_format_0.
 apply Ropp_le_contravar; rewrite Hx.
 apply (round_DN_pt beta fexp x).
@@ -474,18 +474,18 @@ apply (round_DN_pt beta fexp x).
 rewrite Hx; case (Rle_or_lt 0 (round beta fexp Zceil x)).
 intros H; destruct H.
 apply Rlt_le_trans with (1:=ulp_error _ _).
-apply ulp_monotone; trivial.
+apply ulp_le; trivial.
 case (Rle_or_lt x 0); trivial.
 intros H1; contradict H.
 apply Rle_not_lt.
-apply round_monotone_r...
+apply round_le_generic...
 apply generic_format_0.
 apply round_UP_pt...
 rewrite Hx in Hfx; contradict Hfx; auto with real.
 intros H.
 rewrite <- (ulp_opp (round beta fexp Zceil x)).
 rewrite <- round_DN_opp.
-rewrite ulp_DN_pt_eq; trivial.
+rewrite ulp_DN; trivial.
 replace (round beta fexp Zceil x - x)%R with (-((round beta fexp Zfloor (-x) - (-x))))%R.
 rewrite Rabs_Ropp.
 apply ulp_error...
@@ -505,7 +505,7 @@ case (round_DN_or_UP beta fexp (Znearest choice) x); intros Hx.
 case (Rle_or_lt 0 (round beta fexp Zfloor x)).
 intros H; destruct H.
 rewrite Hx at 2.
-rewrite ulp_DN_pt_eq; trivial.
+rewrite ulp_DN; trivial.
 apply ulp_half_error.
 rewrite Hx in Hfx; contradict Hfx; auto with real.
 intros H.
@@ -513,12 +513,12 @@ apply Rle_trans with (1:=ulp_half_error _ _).
 apply Rmult_le_compat_l.
 auto with real.
 rewrite <- (ulp_opp x), <- (ulp_opp (round beta fexp (Znearest choice) x)).
-apply ulp_monotone; trivial.
+apply ulp_le; trivial.
 apply Ropp_0_gt_lt_contravar; apply Rlt_gt.
 case (Rle_or_lt 0 x); trivial.
 intros H1; contradict H.
 apply Rle_not_lt.
-apply round_monotone_l...
+apply round_ge_generic...
 apply generic_format_0.
 apply Ropp_le_contravar; rewrite Hx.
 apply (round_DN_pt beta fexp x).
@@ -528,18 +528,18 @@ intros H; destruct H.
 apply Rle_trans with (1:=ulp_half_error _ _).
 apply Rmult_le_compat_l.
 auto with real.
-apply ulp_monotone; trivial.
+apply ulp_le; trivial.
 case (Rle_or_lt x 0); trivial.
 intros H1; contradict H.
 apply Rle_not_lt.
-apply round_monotone_r...
+apply round_le_generic...
 apply generic_format_0.
 rewrite Hx; apply (round_UP_pt beta fexp x).
 rewrite Hx in Hfx; contradict Hfx; auto with real.
 intros H.
 rewrite Hx at 2; rewrite <- (ulp_opp (round beta fexp Zceil x)).
 rewrite <- round_DN_opp.
-rewrite ulp_DN_pt_eq; trivial.
+rewrite ulp_DN; trivial.
 pattern x at 1 2; rewrite <- Ropp_involutive.
 rewrite round_N_opp.
 unfold Rminus.
@@ -589,7 +589,7 @@ unfold ulp, F2R; simpl.
 now rewrite Rmult_1_l.
 Qed.
 
-Theorem format_pred_1:
+Lemma generic_format_pred_1:
   forall x, (0 < x)%R -> F x -> 
   x <> bpow (ln_beta beta x - 1) ->
   F (x - ulp x).
@@ -648,7 +648,7 @@ apply bpow_ge_0.
 omega.
 Qed.
 
-Theorem format_pred_2 :
+Lemma generic_format_pred_2 :
   forall x, (0 < x)%R -> F x -> 
   let e := ln_beta_val beta x (ln_beta beta x) in
   x =  bpow (e - 1) ->
@@ -712,18 +712,18 @@ rewrite Hx, He.
 ring.
 Qed.
 
-Theorem format_pred :
+Theorem generic_format_pred :
   forall x, (0 < x)%R -> F x -> 
   F (pred x).
 Proof.
 intros x Zx Fx.
 unfold pred.
 case Req_bool_spec; intros H.
-now apply format_pred_2.
-now apply format_pred_1.
+now apply generic_format_pred_2.
+now apply generic_format_pred_1.
 Qed.
 
-Theorem pred_ulp_1 :
+Lemma pred_plus_ulp_1 :
   forall x, (0 < x)%R -> F x -> 
   x <> bpow (ln_beta beta x - 1) ->
   ((x - ulp x) + ulp (x-ulp x) = x)%R.
@@ -770,7 +770,7 @@ apply F2R_gt_0_reg with beta (canonic_exponent beta fexp x).
 now rewrite <- Fx.
 Qed.
 
-Theorem pred_ulp_2 :
+Lemma pred_plus_ulp_2 :
   forall x, (0 < x)%R -> F x -> 
   let e := ln_beta_val beta x (ln_beta beta x) in
   x =  bpow (e - 1) ->
@@ -824,7 +824,7 @@ contradict Zp.
 rewrite Hxe, He; ring.
 Qed.
 
-Theorem pred_ulp :
+Theorem pred_plus_ulp :
   forall x, (0 < x)%R -> F x ->
   (pred x <> 0)%R ->
   (pred x + ulp (pred x) = x)%R.
@@ -832,11 +832,11 @@ Proof.
 intros x Zx Fx.
 unfold pred.
 case Req_bool_spec; intros H Zp.
-now apply pred_ulp_2.
-now apply pred_ulp_1.
+now apply pred_plus_ulp_2.
+now apply pred_plus_ulp_1.
 Qed.
 
-Theorem pred_lt :
+Theorem pred_lt_id :
   forall x, 
   (pred x < x)%R.
 Proof.
@@ -874,7 +874,7 @@ apply generic_format_bpow_inv with beta; trivial.
 simpl in H.
 rewrite <- H; assumption.
 apply Rle_0_minus.
-now apply ulp_le_pos.
+now apply ulp_le_id.
 Qed.
 
 Theorem round_UP_pred :
@@ -884,13 +884,13 @@ Theorem round_UP_pred :
 Proof.
 intros x Hx Fx eps Heps.
 rewrite round_UP_succ; trivial.
-apply pred_ulp; trivial.
+apply pred_plus_ulp; trivial.
 apply Rlt_trans with (1:=Hx).
-apply pred_lt.
+apply pred_lt_id.
 now apply Rgt_not_eq.
-apply format_pred; trivial.
+apply generic_format_pred; trivial.
 apply Rlt_trans with (1:=Hx).
-apply pred_lt.
+apply pred_lt_id.
 Qed.
 
 Theorem round_DN_pred :
@@ -901,13 +901,13 @@ Proof.
 intros x Hpx Fx eps Heps.
 assert (Hx:(0 < x)%R).
 apply Rlt_trans with (1:=Hpx).
-apply pred_lt.
+apply pred_lt_id.
 replace (x-eps)%R with (pred x + (ulp (pred x)-eps))%R.
-2: pattern x at 3; rewrite <- (pred_ulp x); trivial.
+2: pattern x at 3; rewrite <- (pred_plus_ulp x); trivial.
 2: ring.
 2: now apply Rgt_not_eq.
 rewrite round_DN_succ; trivial.
-now apply format_pred.
+now apply generic_format_pred.
 split.
 apply Rle_0_minus.
 now apply Heps.
@@ -918,7 +918,7 @@ apply Ropp_lt_contravar.
 now apply Heps.
 Qed.
 
-Theorem le_pred_lt_aux :
+Lemma le_pred_lt_aux :
   forall x y,
   F x -> F y ->
   (0 < x < y)%R ->
@@ -1018,7 +1018,7 @@ case (Rle_or_lt (ulp (pred y)) (y-x)); intros H1.
 apply Rplus_le_reg_r with (-x + ulp (pred y))%R.
 ring_simplify (x+(-x+ulp (pred y)))%R.
 apply Rle_trans with (1:=H1).
-rewrite <- (pred_ulp y) at 1; trivial.
+rewrite <- (pred_plus_ulp y) at 1; trivial.
 apply Req_le; ring.
 now apply Rgt_not_eq.
 (* . *)

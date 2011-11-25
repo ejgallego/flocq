@@ -84,7 +84,7 @@ rewrite <- scaled_mantissa_generic with (1 := H).
 rewrite <- scaled_mantissa_abs.
 apply Rmult_lt_reg_r with (bpow (canonic_exponent beta FLX_exp (Rabs x))).
 apply bpow_gt_0.
-rewrite scaled_mantissa_bpow.
+rewrite scaled_mantissa_mult_bpow.
 rewrite Z2R_Zpower, <- bpow_plus.
 2: now apply Zlt_le_weak.
 unfold canonic_exponent, FLX_exp.
@@ -110,7 +110,7 @@ unfold canonic_exponent, FLX_exp.
 rewrite ln_beta_F2R with (1 := Zmx).
 apply Zplus_le_reg_r with (prec - ex)%Z.
 ring_simplify.
-now apply ln_beta_Z2R_le.
+now apply ln_beta_le_Zpower.
 Qed.
 
 Theorem FLX_format_satisfies_any :
@@ -178,7 +178,7 @@ apply bpow_gt_0.
 rewrite <- bpow_plus.
 rewrite <- scaled_mantissa_abs.
 rewrite <- canonic_exponent_abs.
-rewrite scaled_mantissa_bpow.
+rewrite scaled_mantissa_mult_bpow.
 unfold canonic_exponent, FLX_exp.
 rewrite ln_beta_abs.
 ring_simplify (prec - 1 + (ln_beta beta x - prec))%Z.
@@ -194,7 +194,7 @@ apply bpow_gt_0.
 rewrite <- bpow_plus.
 rewrite <- scaled_mantissa_abs.
 rewrite <- canonic_exponent_abs.
-rewrite scaled_mantissa_bpow.
+rewrite scaled_mantissa_mult_bpow.
 unfold canonic_exponent, FLX_exp.
 rewrite ln_beta_abs.
 ring_simplify (prec + (ln_beta beta x - prec))%Z.

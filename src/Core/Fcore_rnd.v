@@ -1007,7 +1007,7 @@ intros F x f (Hf,_) Hx.
 now apply Rnd_N_pt_idempotent with F.
 Qed.
 
-Theorem round_pred_pos_imp_rnd :
+Theorem round_pred_ge_0 :
   forall P : R -> R -> Prop,
   round_pred_monotone P ->
   P 0 0 ->
@@ -1017,7 +1017,7 @@ intros P HP HP0 x f Hxf Hx.
 now apply (HP 0 x).
 Qed.
 
-Theorem round_pred_rnd_imp_pos :
+Theorem round_pred_gt_0 :
   forall P : R -> R -> Prop,
   round_pred_monotone P ->
   P 0 0 ->
@@ -1030,7 +1030,7 @@ apply Rlt_not_le with (1 := Hf).
 now apply (HP x 0).
 Qed.
 
-Theorem round_pred_neg_imp_rnd :
+Theorem round_pred_le_0 :
   forall P : R -> R -> Prop,
   round_pred_monotone P ->
   P 0 0 ->
@@ -1040,7 +1040,7 @@ intros P HP HP0 x f Hxf Hx.
 now apply (HP x 0).
 Qed.
 
-Theorem round_pred_rnd_imp_neg :
+Theorem round_pred_lt_0 :
   forall P : R -> R -> Prop,
   round_pred_monotone P ->
   P 0 0 ->

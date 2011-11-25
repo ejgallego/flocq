@@ -41,24 +41,6 @@ apply Zlt_irrefl with x.
 now rewrite Hn at 1.
 Qed.
 
-Theorem Zmin_left :
-  forall x y : Z,
-  (x <= y)%Z -> Zmin x y = x.
-Proof.
-intros x y.
-generalize (Zmin_spec x y).
-omega.
-Qed.
-
-Theorem Zmin_right :
-  forall x y : Z,
-  (y <= x)%Z -> Zmin x y = y.
-Proof.
-intros x y.
-generalize (Zmin_spec x y).
-omega.
-Qed.
-
 End Zmissing.
 
 Section Proof_Irrelevance.
@@ -158,12 +140,11 @@ End Even_Odd.
 
 Section Zpower.
 
-Theorem Zmult_pow :
+Theorem Zpower_plus :
   forall n k1 k2, (0 <= k1)%Z -> (0 <= k2)%Z ->
-  (Zpower n k1 * Zpower n k2)%Z = Zpower n (k1 + k2).
+  Zpower n (k1 + k2) = (Zpower n k1 * Zpower n k2)%Z.
 Proof.
 intros n k1 k2 H1 H2.
-apply sym_eq.
 now apply Zpower_exp ; apply Zle_ge.
 Qed.
 
@@ -327,7 +308,7 @@ Proof.
 intros e1 e2 He.
 destruct (Zle_or_lt 0 e1)%Z as [H1|H1].
 replace e2 with (e2 - e1 + e1)%Z by ring.
-rewrite <- Zmult_pow with (2 := H1).
+rewrite Zpower_plus with (2 := H1).
 rewrite <- (Zmult_1_l (r ^ e1)) at 1.
 apply Zmult_le_compat_r.
 apply (Zlt_le_succ 0).
@@ -347,7 +328,7 @@ Proof.
 intros e1 e2 He2 He.
 destruct (Zle_or_lt 0 e1)%Z as [H1|H1].
 replace e2 with (e2 - e1 + e1)%Z by ring.
-rewrite <- Zmult_pow with (2 := H1).
+rewrite Zpower_plus with (2 := H1).
 rewrite Zmult_comm.
 rewrite <- (Zmult_1_r (r ^ e1)) at 1.
 apply Zmult_lt_compat2.

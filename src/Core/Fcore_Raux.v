@@ -52,7 +52,7 @@ rewrite H.
 now destruct (Rcase_abs y) as [_|_] ; [right|left].
 Qed.
 
-Theorem Rabs_Rminus_pos:
+Theorem Rabs_minus_le:
   forall x y : R,
   (0 <= y)%R -> (y <= 2*x)%R ->
   (Rabs (x-y) <= x)%R.
@@ -162,7 +162,7 @@ rewrite 3!(Rmult_comm r).
 now apply Rmult_min_distr_r.
 Qed.
 
-Theorem exp_increasing_weak :
+Theorem exp_le :
   forall x y : R,
   (x <= y)%R -> (exp x <= exp y)%R.
 Proof.
@@ -1619,7 +1619,7 @@ fold fact.
 pattern x at 2 3 ; replace x with (exp (ln x * / fact * fact)).
 split.
 rewrite Z2R_minus.
-apply exp_increasing_weak.
+apply exp_le.
 apply Rmult_le_compat_r.
 now apply Rlt_le.
 unfold Rminus.
@@ -1704,7 +1704,7 @@ apply ln_beta_opp.
 apply refl_equal.
 Qed.
 
-Theorem ln_beta_monotone_abs :
+Theorem ln_beta_le_abs :
   forall x y,
   (x <> 0)%R -> (Rabs x <= Rabs y)%R ->
   (ln_beta x <= ln_beta y)%Z.
@@ -1725,13 +1725,13 @@ rewrite Hy', Rabs_R0.
 apply Rle_refl.
 Qed.
 
-Theorem ln_beta_monotone :
+Theorem ln_beta_le :
   forall x y,
   (0 < x)%R -> (x <= y)%R ->
   (ln_beta x <= ln_beta y)%Z.
 Proof.
 intros x y H0x Hxy.
-apply ln_beta_monotone_abs.
+apply ln_beta_le_abs.
 now apply Rgt_not_eq.
 rewrite 2!Rabs_pos_eq.
 exact Hxy.
@@ -1755,7 +1755,7 @@ apply Rle_ge.
 apply bpow_ge_0.
 Qed.
 
-Theorem ln_beta_le :
+Theorem ln_beta_le_bpow :
   forall x e,
   x <> R0 ->
   (Rabs x < bpow e)%R ->
@@ -1768,7 +1768,7 @@ apply bpow_lt_bpow.
 now apply Rle_lt_trans with (Rabs x).
 Qed.
 
-Theorem ln_beta_gt :
+Theorem ln_beta_gt_bpow :
   forall x e,
   (bpow e <= Rabs x)%R ->
   (e < ln_beta x)%Z.
@@ -1784,14 +1784,14 @@ rewrite Zx, Rabs_R0.
 apply bpow_gt_0.
 Qed.
 
-Theorem ln_beta_Z2R_le :
+Theorem ln_beta_le_Zpower :
   forall m e,
   m <> Z0 ->
   (Zabs m < Zpower r e)%Z->
   (ln_beta (Z2R m) <= e)%Z.
 Proof.
 intros m e Zm Hm.
-apply ln_beta_le.
+apply ln_beta_le_bpow.
 exact (Z2R_neq m 0 Zm).
 destruct (Zle_or_lt 0 e).
 rewrite <- Z2R_abs, <- Z2R_Zpower with (1 := H).
@@ -1803,14 +1803,14 @@ clear -Hm H.
 now destruct e.
 Qed.
 
-Theorem ln_beta_Z2R_gt :
+Theorem ln_beta_gt_Zpower :
   forall m e,
   m <> Z0 ->
   (Zpower r e <= Zabs m)%Z ->
   (e < ln_beta (Z2R m))%Z.
 Proof.
 intros m e Zm Hm.
-apply ln_beta_gt.
+apply ln_beta_gt_bpow.
 rewrite <- Z2R_abs.
 destruct (Zle_or_lt 0 e).
 rewrite <- Z2R_Zpower with (1 := H).

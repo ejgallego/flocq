@@ -1,3 +1,38 @@
+
+round_monotone -> round_le    
+round_monotone_l -> round_ge_generic
+round_monotone_r -> round_le_generic
+round_monotone_abs_l -> abs_round_ge_generic
+round_monotone_abs_r -> abs_round_le_generic
+canonic_exponent_round -> canonic_exponent_round_ge
+generic_N_pt -> round_N_pt
+ulp_le_pos -> ulp_le_id
+succ_lt_le -> succ_le_lt
+ulp_monotone -> ulp_le
+ulp_DN_pt_eq -> ulp_DN
+format_pred -> generic_format_pred
+pred_ulp -> pred_plus_ulp
+pred_lt -> pred_lt_id
+FLT_canonic_FLX -> canonic_exp_FLT_FLX
+FLT_generic_format_FLX -> generic_format_FLT_FLX
+FLX_generic_format_FLT -> generic_format_FLX_FLT
+FLT_round_FLX -> round_FLT_FLX
+FLT_canonic_FIX -> canonic_FLT_FIX
+FIX_generic_format_FLT -> generic_format_FIX_FLT
+FLT_generic_format_FIX -> generic_format_FLT_FIX
+
+
+
+
+
+Type classes (Valid_exp, Valid_rnd, Exp_not_FTZ, Monotone_exp
+Exists_NE
+
+
+Equivalences FIX/FLX (...) cassées
+
+
+
 Version 1.4.0:
  - improved efficiency of IEEE-754 addition
  - fixed compilation with Coq 8.3
