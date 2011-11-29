@@ -23,6 +23,7 @@ COPYING file for more details.
 Require Import Fcore_Raux.
 Require Import Fcore_defs.
 Require Import Fcore_float_prop.
+Require Import Fcore_digits.
 Require Import Fcalc_bracket.
 Require Import Fcalc_digits.
 
@@ -44,8 +45,8 @@ Complexity is fine as long as p1 <= 2p and p2 <= p.
 *)
 
 Definition Fdiv_core prec m1 e1 m2 e2 :=
-  let d1 := digits beta m1 in
-  let d2 := digits beta m2 in
+  let d1 := Zdigits beta m1 in
+  let d2 := Zdigits beta m2 in
   let e := (e1 - e2)%Z in
   let (m, e') :=
     match (d2 + prec - d1)%Z with
@@ -60,13 +61,13 @@ Theorem Fdiv_core_correct :
   (0 < prec)%Z ->
   (0 < m1)%Z -> (0 < m2)%Z ->
   let '(m, e, l) := Fdiv_core prec m1 e1 m2 e2 in
-  (prec <= digits beta m)%Z /\
+  (prec <= Zdigits beta m)%Z /\
   inbetween_float beta m e (F2R (Float beta m1 e1) / F2R (Float beta m2 e2)) l.
 Proof.
 intros prec m1 e1 m2 e2 Hprec Hm1 Hm2.
 unfold Fdiv_core.
-set (d1 := digits beta m1).
-set (d2 := digits beta m2).
+set (d1 := Zdigits beta m1).
+set (d2 := Zdigits beta m2).
 case_eq
  (match (d2 + prec - d1)%Z with
   | Zpos p => ((m1 * Zpower_pos beta p)%Z, (e1 - e2 + Zneg p)%Z)
@@ -74,7 +75,7 @@ case_eq
   end).
 intros m' e' Hme.
 (* . the shifted mantissa m' has enough digits *)
-assert (Hs: F2R (Float beta m' (e' + e2)) = F2R (Float beta m1 e1) /\ (0 < m')%Z /\ (d2 + prec <= digits beta m')%Z).
+assert (Hs: F2R (Float beta m' (e' + e2)) = F2R (Float beta m1 e1) /\ (0 < m')%Z /\ (d2 + prec <= Zdigits beta m')%Z).
 replace (d2 + prec)%Z with (d2 + prec - d1 + d1)%Z by ring.
 destruct (d2 + prec - d1)%Z as [|p|p] ;
   unfold d1 ;
@@ -95,7 +96,7 @@ split.
 apply Zmult_lt_0_compat.
 exact Hm1.
 now apply Zpower_gt_0.
-rewrite digits_shift.
+rewrite Zdigits_mult_Zpower.
 rewrite Zplus_comm.
 apply Zle_refl.
 apply sym_not_eq.
@@ -113,25 +114,25 @@ destruct (Zdiv_eucl m' m2) as (q, r).
 intros (Hq, Hr).
 split.
 (* . the result mantissa q has enough digits *)
-cut (digits beta m' <= d2 + digits beta q)%Z. omega.
+cut (Zdigits beta m' <= d2 + Zdigits beta q)%Z. omega.
 unfold d2.
 rewrite Hq.
 assert (Hq': (0 < q)%Z).
 apply Zmult_lt_reg_r with (1 := Hm2).
 assert (m2 < m')%Z.
-apply lt_digits with beta.
+apply lt_Zdigits with beta.
 now apply Zlt_le_weak.
 unfold d2 in Hs3.
 clear -Hprec Hs3 ; omega.
 cut (q * m2 = m' - r)%Z. clear -Hr H ; omega.
 rewrite Hq.
 ring.
-apply Zle_trans with (digits beta (m2 + q + m2 * q)).
-apply digits_le.
+apply Zle_trans with (Zdigits beta (m2 + q + m2 * q)).
+apply Zdigits_le.
 rewrite <- Hq.
 now apply Zlt_le_weak.
 clear -Hr Hq'. omega.
-apply digits_mult_strong ; apply Zlt_le_weak.
+apply Zdigits_mult_strong ; apply Zlt_le_weak.
 now apply Zle_lt_trans with r.
 exact Hq'.
 (* . the location is correctly computed *)

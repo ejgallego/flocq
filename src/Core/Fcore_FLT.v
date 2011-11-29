@@ -63,7 +63,7 @@ simpl in H2, H3.
 rewrite H1.
 apply generic_format_F2R.
 intros Zmx.
-unfold canonic_exponent, FLT_exp.
+unfold canonic_exp, FLT_exp.
 rewrite ln_beta_F2R with (1 := Zmx).
 apply Zmax_lub with (2 := H3).
 apply Zplus_le_reg_r with (prec - ex)%Z.
@@ -76,7 +76,7 @@ Theorem FLT_format_generic :
 Proof.
 intros x.
 unfold generic_format.
-set (ex := canonic_exponent beta FLT_exp x).
+set (ex := canonic_exp beta FLT_exp x).
 set (mx := Ztrunc (scaled_mantissa beta FLT_exp x)).
 intros Hx.
 rewrite Hx.
@@ -87,12 +87,12 @@ apply Rmult_lt_reg_r with (bpow ex).
 apply bpow_gt_0.
 rewrite <- bpow_plus.
 change (F2R (Float beta (Zabs mx) ex) < bpow (prec + ex))%R.
-rewrite F2R_abs.
+rewrite F2R_Zabs.
 rewrite <- Hx.
 destruct (Req_dec x 0) as [Hx0|Hx0].
 rewrite Hx0, Rabs_R0.
 apply bpow_gt_0.
-unfold canonic_exponent in ex.
+unfold canonic_exp in ex.
 destruct (ln_beta beta x) as (ex', He).
 simpl in ex.
 specialize (He Hx0).
@@ -117,10 +117,10 @@ Qed.
 Theorem canonic_exp_FLT_FLX :
   forall x, x <> R0 ->
   (bpow (emin + prec - 1) <= Rabs x)%R ->
-  canonic_exponent beta FLT_exp x = canonic_exponent beta (FLX_exp prec) x.
+  canonic_exp beta FLT_exp x = canonic_exp beta (FLX_exp prec) x.
 Proof.
 intros x Hx0 Hx.
-unfold canonic_exponent.
+unfold canonic_exp.
 apply Zmax_left.
 destruct (ln_beta beta x) as (ex, He).
 unfold FLX_exp. simpl.
@@ -156,7 +156,7 @@ unfold generic_format in Hx; rewrite Hx.
 apply generic_format_F2R.
 intros _.
 rewrite <- Hx.
-unfold canonic_exponent, FLX_exp, FLT_exp.
+unfold canonic_exp, FLX_exp, FLT_exp.
 apply Zle_max_l.
 Qed.
 
@@ -176,10 +176,10 @@ Qed.
 Theorem canonic_exp_FLT_FIX :
   forall x, x <> R0 ->
   (Rabs x < bpow (emin + prec))%R ->
-  canonic_exponent beta FLT_exp x = canonic_exponent beta (FIX_exp emin) x.
+  canonic_exp beta FLT_exp x = canonic_exp beta (FIX_exp emin) x.
 Proof.
 intros x Hx0 Hx.
-unfold canonic_exponent.
+unfold canonic_exp.
 apply Zmax_right.
 unfold FIX_exp.
 destruct (ln_beta beta x) as (ex, Hex).

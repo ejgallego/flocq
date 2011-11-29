@@ -30,7 +30,7 @@ Variable prec : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 
 Notation format := (generic_format beta (FLX_exp prec)).
-Notation cexp := (canonic_exponent beta (FLX_exp prec)).
+Notation cexp := (canonic_exp beta (FLX_exp prec)).
 
 Variable rnd : R -> Z.
 Context { valid_rnd : Valid_rnd rnd }.
@@ -42,7 +42,7 @@ Lemma mult_error_FLX_aux:
   (round beta (FLX_exp prec) rnd (x * y) - (x * y) <> 0)%R ->
   exists f:float beta, 
       (F2R f = round beta (FLX_exp prec) rnd (x * y) - (x * y))%R
-      /\  (canonic_exponent beta (FLX_exp prec) (F2R f) <= Fexp f)%Z
+      /\  (canonic_exp beta (FLX_exp prec) (F2R f) <= Fexp f)%Z
       /\ (Fexp f = cexp x + cexp y)%Z.
 Proof with auto with typeclass_instances.
 intros x y Hx Hy Hz.
@@ -68,7 +68,7 @@ now rewrite Hxy0, Rmult_0_r.
 specialize (Hey Hy0).
 (* *)
 assert (Hc1: (cexp (x * y)%R - prec <= cexp x + cexp y)%Z).
-unfold canonic_exponent, FLX_exp.
+unfold canonic_exp, FLX_exp.
 rewrite ln_beta_unique with (1 := Hex).
 rewrite ln_beta_unique with (1 := Hey).
 rewrite ln_beta_unique with (1 := Hexy).
@@ -84,7 +84,7 @@ apply Hex.
 apply Hey.
 (* *)
 assert (Hc2: (cexp x + cexp y <= cexp (x * y)%R)%Z).
-unfold canonic_exponent, FLX_exp.
+unfold canonic_exp, FLX_exp.
 rewrite ln_beta_unique with (1 := Hex).
 rewrite ln_beta_unique with (1 := Hey).
 rewrite ln_beta_unique with (1 := Hexy).
@@ -106,10 +106,10 @@ assert (Hr: ((F2R (Float beta (- (Ztrunc (scaled_mantissa beta (FLX_exp prec) x)
   beta ^ (cexp (x * y)%R - (cexp x + cexp y))) (cexp x + cexp y))) = f - x * y)%R).
 rewrite Hx at 6.
 rewrite Hy at 6.
-rewrite <- mult_F2R.
+rewrite <- F2R_mult.
 simpl.
 unfold f, round, Rminus.
-rewrite <- F2R_opp, Rplus_comm, <- plus_F2R.
+rewrite <- F2R_opp, Rplus_comm, <- F2R_plus.
 unfold Fplus. simpl.
 now rewrite Zle_imp_le_bool with (1 := Hc2).
 (* *)
@@ -121,13 +121,13 @@ rewrite Hr.
 simpl.
 clear Hr.
 apply Zle_trans with (cexp (x * y)%R - prec)%Z.
-unfold canonic_exponent, FLX_exp.
+unfold canonic_exp, FLX_exp.
 apply Zplus_le_compat_r.
 rewrite ln_beta_unique with (1 := Hexy).
 apply ln_beta_le_bpow with (1 := Hz).
 replace (bpow (exy - prec)) with (ulp beta (FLX_exp prec) (x * y)).
 apply ulp_error...
-unfold ulp, canonic_exponent.
+unfold ulp, canonic_exp.
 now rewrite ln_beta_unique with (1 := Hexy).
 apply Hc1.
 reflexivity.
@@ -160,7 +160,7 @@ Context { prec_gt_0_ : Prec_gt_0 prec }.
 Variable Hpemin: (emin <= prec)%Z.
 
 Notation format := (generic_format beta (FLT_exp emin prec)).
-Notation cexp := (canonic_exponent beta (FLT_exp emin prec)).
+Notation cexp := (canonic_exp beta (FLT_exp emin prec)).
 
 Variable rnd : R -> Z.
 Context { valid_rnd : Valid_rnd rnd }.
@@ -200,14 +200,14 @@ unfold f; rewrite <- H1.
 apply generic_format_F2R.
 intros _.
 simpl in H2, H3.
-unfold canonic_exponent, FLT_exp.
+unfold canonic_exp, FLT_exp.
 case (Zmax_spec (ln_beta beta (F2R (Float beta m e)) - prec) emin);
   intros (M1,M2); rewrite M2.
 apply Zle_trans with (2:=H2).
-unfold canonic_exponent, FLX_exp.
+unfold canonic_exp, FLX_exp.
 apply Zle_refl.
 rewrite H3.
-unfold canonic_exponent, FLX_exp.
+unfold canonic_exp, FLX_exp.
 assert (Hxy0:(x*y <> 0)%R).
 contradict Hr0.
 unfold f.

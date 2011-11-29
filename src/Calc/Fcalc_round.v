@@ -20,6 +20,7 @@ COPYING file for more details.
 (** * Helper function for computing the rounded value of a real number. *)
 
 Require Import Fcore.
+Require Import Fcore_digits.
 Require Import Fcalc_bracket.
 Require Import Fcalc_digits.
 
@@ -40,7 +41,7 @@ Theorem inbetween_float_round :
   forall rnd choice,
   ( forall x m l, inbetween_int m x l -> rnd x = choice m l ) ->
   forall x m l,
-  let e := canonic_exponent beta fexp x in
+  let e := canonic_exp beta fexp x in
   inbetween_float beta m e x l ->
   round beta fexp rnd x = F2R (Float beta (choice m l) e).
 Proof.
@@ -60,7 +61,7 @@ Theorem inbetween_float_round_sign :
   ( forall x m l, inbetween_int m (Rabs x) l ->
     rnd x = cond_Zopp (Rlt_bool x 0) (choice (Rlt_bool x 0) m l) ) ->
   forall x m l,
-  let e := canonic_exponent beta fexp x in
+  let e := canonic_exp beta fexp x in
   inbetween_float beta m e (Rabs x) l ->
   round beta fexp rnd x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (choice (Rlt_bool x 0) m l)) e).
 Proof.
@@ -104,7 +105,7 @@ Qed.
 
 Theorem inbetween_float_DN :
   forall x m l,
-  let e := canonic_exponent beta fexp x in
+  let e := canonic_exp beta fexp x in
   inbetween_float beta m e x l ->
   round beta fexp Zfloor x = F2R (Float beta m e).
 Proof.
@@ -156,7 +157,7 @@ Qed.
 
 Theorem inbetween_float_DN_sign :
   forall x m l,
-  let e := canonic_exponent beta fexp x in
+  let e := canonic_exp beta fexp x in
   inbetween_float beta m e (Rabs x) l ->
   round beta fexp Zfloor x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (cond_incr (round_sign_DN (Rlt_bool x 0) l) m)) e).
 Proof.
@@ -197,7 +198,7 @@ Qed.
 
 Theorem inbetween_float_UP :
   forall x m l,
-  let e := canonic_exponent beta fexp x in
+  let e := canonic_exp beta fexp x in
   inbetween_float beta m e x l ->
   round beta fexp Zceil x = F2R (Float beta (cond_incr (round_UP l) m) e).
 Proof.
@@ -247,7 +248,7 @@ Qed.
 
 Theorem inbetween_float_UP_sign :
   forall x m l,
-  let e := canonic_exponent beta fexp x in
+  let e := canonic_exp beta fexp x in
   inbetween_float beta m e (Rabs x) l ->
   round beta fexp Zceil x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (cond_incr (round_sign_UP (Rlt_bool x 0) l) m)) e).
 Proof.
@@ -298,7 +299,7 @@ Qed.
 
 Theorem inbetween_float_ZR :
   forall x m l,
-  let e := canonic_exponent beta fexp x in
+  let e := canonic_exp beta fexp x in
   inbetween_float beta m e x l ->
   round beta fexp Ztrunc x = F2R (Float beta (cond_incr (round_ZR (Zlt_bool m 0) l) m) e).
 Proof.
@@ -337,7 +338,7 @@ Qed.
 
 Theorem inbetween_float_ZR_sign :
   forall x m l,
-  let e := canonic_exponent beta fexp x in
+  let e := canonic_exp beta fexp x in
   inbetween_float beta m e (Rabs x) l ->
   round beta fexp Ztrunc x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) m) e).
 Proof.
@@ -457,7 +458,7 @@ Qed.
 
 Theorem inbetween_float_NE :
   forall x m l,
-  let e := canonic_exponent beta fexp x in
+  let e := canonic_exp beta fexp x in
   inbetween_float beta m e x l ->
   round beta fexp ZnearestE x = F2R (Float beta (cond_incr (round_N (negb (Zeven m)) l) m) e).
 Proof.
@@ -482,7 +483,7 @@ Qed.
 
 Theorem inbetween_float_NE_sign :
   forall x m l,
-  let e := canonic_exponent beta fexp x in
+  let e := canonic_exp beta fexp x in
   inbetween_float beta m e (Rabs x) l ->
   round beta fexp ZnearestE x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (cond_incr (round_N (negb (Zeven m)) l) m)) e).
 Proof.
@@ -503,7 +504,7 @@ Qed.
 
 Theorem inbetween_float_NA :
   forall x m l,
-  let e := canonic_exponent beta fexp x in
+  let e := canonic_exp beta fexp x in
   inbetween_float beta m e x l ->
   round beta fexp ZnearestA x = F2R (Float beta (cond_incr (round_N (Zle_bool 0 m) l) m) e).
 Proof.
@@ -565,7 +566,7 @@ Qed.
 
 Definition truncate t :=
   let '(m, e, l) := t in
-  let k := (fexp (digits beta m + e) - e)%Z in
+  let k := (fexp (Zdigits beta m + e) - e)%Z in
   if Zlt_bool 0 k then truncate_aux t k
   else t.
 
@@ -590,16 +591,16 @@ Theorem generic_format_truncate :
 Proof.
 intros m e l Hm.
 unfold truncate.
-set (k := (fexp (digits beta m + e) - e)%Z).
+set (k := (fexp (Zdigits beta m + e) - e)%Z).
 case Zlt_bool_spec ; intros Hk.
 (* *)
 unfold truncate_aux.
 apply generic_format_F2R.
 intros Hd.
-unfold canonic_exponent.
-rewrite ln_beta_F2R_digits with (1 := Hd).
-rewrite digits_shr with (1 := Hm).
-replace (digits beta m - k + (e + k))%Z with (digits beta m + e)%Z by ring.
+unfold canonic_exp.
+rewrite ln_beta_F2R_Zdigits with (1 := Hd).
+rewrite Zdigits_div_Zpower with (1 := Hm).
+replace (Zdigits beta m - k + (e + k))%Z with (Zdigits beta m + e)%Z by ring.
 unfold k.
 ring_simplify.
 apply Zle_refl.
@@ -610,14 +611,14 @@ contradict Hd.
 apply Zdiv_small.
 apply conj with (1 := Hm).
 rewrite <- Zabs_eq with (1 := Hm).
-apply Zpower_gt_digits.
+apply Zpower_gt_Zdigits.
 apply Zlt_le_weak.
 now apply Zgt_lt.
 (* *)
 destruct (Zle_lt_or_eq _ _ Hm) as [Hm'|Hm'].
 apply generic_format_F2R.
-unfold canonic_exponent.
-rewrite ln_beta_F2R_digits.
+unfold canonic_exp.
+rewrite ln_beta_F2R_Zdigits.
 2: now apply Zgt_not_eq.
 unfold k in Hk. clear -Hk.
 omega.
@@ -630,17 +631,17 @@ Theorem truncate_correct_format :
   m <> Z0 ->
   let x := F2R (Float beta m e) in
   generic_format beta fexp x ->
-  (e <= fexp (digits beta m + e))%Z ->
+  (e <= fexp (Zdigits beta m + e))%Z ->
   let '(m', e', l') := truncate (m, e, loc_Exact) in
-  x = F2R (Float beta m' e') /\ e' = canonic_exponent beta fexp x.
+  x = F2R (Float beta m' e') /\ e' = canonic_exp beta fexp x.
 Proof.
 intros m e Hm x Fx He.
-assert (Hc: canonic_exponent beta fexp x = fexp (digits beta m + e)).
-unfold canonic_exponent, x.
-now rewrite ln_beta_F2R_digits.
+assert (Hc: canonic_exp beta fexp x = fexp (Zdigits beta m + e)).
+unfold canonic_exp, x.
+now rewrite ln_beta_F2R_Zdigits.
 unfold truncate.
 rewrite <- Hc.
-set (k := (canonic_exponent beta fexp x - e)%Z).
+set (k := (canonic_exp beta fexp x - e)%Z).
 case Zlt_bool_spec ; intros Hk.
 (* *)
 unfold truncate_aux.
@@ -676,13 +677,13 @@ Theorem truncate_correct_partial :
   forall x m e l,
   (0 < x)%R ->
   inbetween_float beta m e x l ->
-  (e <= fexp (digits beta m + e))%Z ->
+  (e <= fexp (Zdigits beta m + e))%Z ->
   let '(m', e', l') := truncate (m, e, l) in
-  inbetween_float beta m' e' x l' /\ e' = canonic_exponent beta fexp x.
+  inbetween_float beta m' e' x l' /\ e' = canonic_exp beta fexp x.
 Proof.
 intros x m e l Hx H1 H2.
 unfold truncate.
-set (k := (fexp (digits beta m + e) - e)%Z).
+set (k := (fexp (Zdigits beta m + e) - e)%Z).
 set (p := Zpower beta k).
 (* *)
 assert (Hx': (F2R (Float beta m e) <= x < F2R (Float beta (m + 1) e))%R).
@@ -694,9 +695,9 @@ apply F2R_lt_reg with beta e.
 rewrite F2R_0.
 apply Rlt_trans with  (1 := Hx).
 apply Hx'.
-assert (He: (e + k = canonic_exponent beta fexp x)%Z).
+assert (He: (e + k = canonic_exp beta fexp x)%Z).
 (* . *)
-unfold canonic_exponent.
+unfold canonic_exp.
 destruct (Zle_lt_or_eq _ _ Hm) as [Hm'|Hm'].
 (* .. 0 < m *)
 rewrite ln_beta_F2R_bounds with (1 := Hm') (2 := Hx').
@@ -704,7 +705,7 @@ assert (H: m <> Z0).
 apply sym_not_eq.
 now apply Zlt_not_eq.
 rewrite ln_beta_F2R with (1 := H).
-rewrite <- digits_ln_beta with (1 := H).
+rewrite <- Zdigits_ln_beta with (1 := H).
 unfold k.
 ring.
 (* .. m = 0 *)
@@ -745,14 +746,14 @@ Theorem truncate_correct :
   forall x m e l,
   (0 <= x)%R ->
   inbetween_float beta m e x l ->
-  (e <= fexp (digits beta m + e))%Z \/ l = loc_Exact ->
+  (e <= fexp (Zdigits beta m + e))%Z \/ l = loc_Exact ->
   let '(m', e', l') := truncate (m, e, l) in
   inbetween_float beta m' e' x l' /\
-  (e' = canonic_exponent beta fexp x \/ (l' = loc_Exact /\ format x)).
+  (e' = canonic_exp beta fexp x \/ (l' = loc_Exact /\ format x)).
 Proof.
 intros x m e l [Hx|Hx] H1 H2.
 (* 0 < x *)
-destruct (Zle_or_lt e (fexp (digits beta m + e))) as [H3|H3].
+destruct (Zle_or_lt e (fexp (Zdigits beta m + e))) as [H3|H3].
 (* . enough digits *)
 generalize (truncate_correct_partial x m e l Hx H1 H3).
 destruct (truncate (m, e, l)) as ((m', e'), l').
@@ -766,7 +767,7 @@ elim (Zlt_irrefl e).
 now apply Zle_lt_trans with (1 := H2).
 rewrite H2 in H1 |- *.
 unfold truncate.
-generalize (Zlt_cases 0 (fexp (digits beta m + e) - e)).
+generalize (Zlt_cases 0 (fexp (Zdigits beta m + e) - e)).
 case Zlt_bool.
 intros H.
 apply False_ind.
@@ -781,8 +782,8 @@ inversion_clear H1.
 rewrite H.
 apply generic_format_F2R.
 intros Zm.
-unfold canonic_exponent.
-rewrite ln_beta_F2R_digits with (1 := Zm).
+unfold canonic_exp.
+rewrite ln_beta_F2R_Zdigits with (1 := Zm).
 now apply Zlt_le_weak.
 (* x = 0 *)
 assert (Hm: m = Z0).
@@ -836,7 +837,7 @@ Hypothesis inbetween_int_valid :
 Theorem round_any_correct :
   forall x m e l,
   inbetween_float beta m e x l ->
-  (e = canonic_exponent beta fexp x \/ (l = loc_Exact /\ format x)) ->
+  (e = canonic_exp beta fexp x \/ (l = loc_Exact /\ format x)) ->
   round beta fexp rnd x = F2R (Float beta (choice m l) e).
 Proof with auto with typeclass_instances.
 intros x m e l Hin [He|(Hl,Hf)].
@@ -860,7 +861,7 @@ Theorem round_trunc_any_correct :
   forall x m e l,
   (0 <= x)%R ->
   inbetween_float beta m e x l ->
-  (e <= fexp (digits beta m + e))%Z \/ l = loc_Exact ->
+  (e <= fexp (Zdigits beta m + e))%Z \/ l = loc_Exact ->
   round beta fexp rnd x = let '(m', e', l') := truncate (m, e, l) in F2R (Float beta (choice m' l') e').
 Proof.
 intros x m e l Hx Hl He.
@@ -886,7 +887,7 @@ Hypothesis inbetween_int_valid :
 Theorem round_sign_any_correct :
   forall x m e l,
   inbetween_float beta m e (Rabs x) l ->
-  (e = canonic_exponent beta fexp x \/ (l = loc_Exact /\ format x)) ->
+  (e = canonic_exp beta fexp x \/ (l = loc_Exact /\ format x)) ->
   round beta fexp rnd x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (choice (Rlt_bool x 0) m l)) e).
 Proof with auto with typeclass_instances.
 intros x m e l Hin [He|(Hl,Hf)].
@@ -902,7 +903,7 @@ unfold Rabs in H.
 destruct (Rcase_abs x) as [Zx|Zx].
 rewrite Rlt_bool_true with (1 := Zx).
 simpl.
-rewrite F2R_opp.
+rewrite F2R_Zopp.
 rewrite <- H, Ropp_involutive.
 apply round_generic...
 rewrite Rlt_bool_false.
@@ -949,7 +950,7 @@ Qed.
 Theorem round_trunc_sign_any_correct :
   forall x m e l,
   inbetween_float beta m e (Rabs x) l ->
-  (e <= fexp (digits beta m + e))%Z \/ l = loc_Exact ->
+  (e <= fexp (Zdigits beta m + e))%Z \/ l = loc_Exact ->
   round beta fexp rnd x = let '(m', e', l') := truncate (m, e, l) in F2R (Float beta (cond_Zopp (Rlt_bool x 0) (choice (Rlt_bool x 0) m' l')) e').
 Proof.
 intros x m e l Hl He.
@@ -960,7 +961,7 @@ apply round_sign_any_correct.
 exact H1.
 destruct H2 as [H2|(H2,H3)].
 left.
-now rewrite <- canonic_exponent_abs.
+now rewrite <- canonic_exp_abs.
 right.
 split.
 exact H2.
@@ -1055,13 +1056,13 @@ Theorem truncate_FIX_correct :
   (e <= emin)%Z \/ l = loc_Exact ->
   let '(m', e', l') := truncate_FIX (m, e, l) in
   inbetween_float beta m' e' x l' /\
-  (e' = canonic_exponent beta (FIX_exp emin) x \/ (l' = loc_Exact /\ generic_format beta (FIX_exp emin) x)).
+  (e' = canonic_exp beta (FIX_exp emin) x \/ (l' = loc_Exact /\ generic_format beta (FIX_exp emin) x)).
 Proof.
 intros x m e l H1 H2.
 unfold truncate_FIX.
 set (k := (emin - e)%Z).
 set (p := Zpower beta k).
-unfold canonic_exponent, FIX_exp.
+unfold canonic_exp, FIX_exp.
 generalize (Zlt_cases 0 k).
 case (Zlt_bool 0 k) ; intros Hk.
 (* shift *)
@@ -1085,7 +1086,7 @@ rewrite H2 in H1.
 inversion_clear H1.
 rewrite H.
 apply generic_format_F2R.
-unfold canonic_exponent.
+unfold canonic_exp.
 omega.
 Qed.
 

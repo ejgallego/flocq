@@ -849,6 +849,16 @@ apply IHn.
 now apply Zlt_lt_succ.
 Qed.
 
+Theorem Zdigits_ge_0 :
+  forall n, (0 <= Zdigits n)%Z.
+Proof.
+intros n.
+destruct (Z_eq_dec n 0) as [H|H].
+now rewrite H.
+apply Zlt_le_weak.
+now apply Zdigits_gt_0.
+Qed.
+
 Theorem Zdigit_out :
   forall n k, (Zdigits n <= k)%Z ->
   Zdigit n k = Z0.

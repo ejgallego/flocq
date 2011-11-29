@@ -73,7 +73,7 @@ apply sqrt_ge_0.
 apply H2.
 left.
 unfold FLT_exp.
-generalize (Zmax_spec (Fcalc_digits.digits beta ms + es - prec) emin).
+generalize (Zmax_spec (Fcore_digits.Zdigits beta ms + es - prec) emin).
 omega.
 Qed.
 

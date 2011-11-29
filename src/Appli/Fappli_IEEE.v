@@ -172,8 +172,8 @@ apply sym_eq.
 simpl.
 pattern ex at 2 ; rewrite <- Hx.
 apply (f_equal fexp).
-rewrite ln_beta_F2R_digits.
-rewrite <- digits_abs.
+rewrite ln_beta_F2R_Zdigits.
+rewrite <- Zdigits_abs.
 rewrite Z_of_nat_S_digits2_Pnat.
 now case sx.
 now case sx.
@@ -320,13 +320,13 @@ intros mx ex Hx.
 destruct (andb_prop _ _ Hx) as (H1,H2).
 generalize (Zeq_bool_eq _ _ H1). clear H1. intro H1.
 generalize (Zle_bool_imp_le _ _ H2). clear H2. intro H2.
-generalize (ln_beta_F2R_digits radix2 (Zpos mx) ex).
+generalize (ln_beta_F2R_Zdigits radix2 (Zpos mx) ex).
 destruct (ln_beta radix2 (F2R (Float radix2 (Zpos mx) ex))) as (e',Ex).
 unfold ln_beta_val.
 intros H.
 apply Rlt_le_trans with (bpow radix2 e').
 change (Zpos mx) with (Zabs (Zpos mx)).
-rewrite F2R_abs.
+rewrite F2R_Zabs.
 apply Ex.
 apply Rgt_not_eq.
 now apply F2R_gt_0_compat.
@@ -336,7 +336,7 @@ revert H1. clear -H2.
 rewrite Z_of_nat_S_digits2_Pnat.
 change Fcalc_digits.radix2 with radix2.
 unfold fexp, FLT_exp.
-generalize (digits radix2 (Zpos mx)).
+generalize (Zdigits radix2 (Zpos mx)).
 intros ; zify ; subst.
 clear -H H2. clearbody emin.
 omega.
@@ -347,7 +347,7 @@ Theorem B2R_lt_emax :
   (Rabs (B2R x) < bpow radix2 emax)%R.
 Proof.
 intros [sx|sx| |sx mx ex Hx] ; simpl ; try ( rewrite Rabs_R0 ; apply bpow_gt_0 ).
-rewrite <- F2R_abs, abs_cond_Zopp.
+rewrite <- F2R_Zabs, abs_cond_Zopp.
 now apply bounded_lt_emax.
 Qed.
 
@@ -365,20 +365,20 @@ unfold canonic, Fexp in Cx.
 rewrite Cx at 2.
 rewrite Z_of_nat_S_digits2_Pnat.
 change Fcalc_digits.radix2 with radix2.
-unfold canonic_exponent.
-rewrite ln_beta_F2R_digits. 2: discriminate.
+unfold canonic_exp.
+rewrite ln_beta_F2R_Zdigits. 2: discriminate.
 now apply -> Zeq_is_eq_bool.
 apply Zle_bool_true.
 unfold canonic, Fexp in Cx.
 rewrite Cx.
-unfold canonic_exponent, fexp, FLT_exp.
+unfold canonic_exp, fexp, FLT_exp.
 destruct (ln_beta radix2 (F2R (Float radix2 (Zpos mx) ex))) as (e',Ex). simpl.
 apply Zmax_lub.
 cut (e' - 1 < emax)%Z. clear ; omega.
 apply lt_bpow with radix2.
 apply Rle_lt_trans with (2 := Bx).
 change (Zpos mx) with (Zabs (Zpos mx)).
-rewrite F2R_abs.
+rewrite F2R_Zabs.
 apply Ex.
 apply Rgt_not_eq.
 now apply F2R_gt_0_compat.
@@ -513,7 +513,7 @@ Definition digits2 m :=
 
 Theorem digits2_digits :
   forall m,
-  digits2 m = digits radix2 m.
+  digits2 m = Zdigits radix2 m.
 Proof.
 unfold digits2.
 intros [|m|m] ; try apply Z_of_nat_S_digits2_Pnat.
@@ -534,7 +534,7 @@ case_eq (truncate radix2 fexp (m, e, l)).
 intros (m', e') l'.
 unfold shr_fexp.
 rewrite digits2_digits.
-case_eq (fexp (digits radix2 m + e) - e)%Z.
+case_eq (fexp (Zdigits radix2 m + e) - e)%Z.
 (* *)
 intros He.
 unfold truncate.
@@ -544,15 +544,15 @@ intros H.
 now inversion H.
 (* *)
 intros p Hp.
-assert (He: (e <= fexp (digits radix2 m + e))%Z).
+assert (He: (e <= fexp (Zdigits radix2 m + e))%Z).
 clear -Hp ; zify ; omega.
 destruct (inbetween_float_ex radix2 m e l) as (x, Hx).
-generalize (inbetween_shr x m e l (fexp (digits radix2 m + e) - e) Hm Hx).
+generalize (inbetween_shr x m e l (fexp (Zdigits radix2 m + e) - e) Hm Hx).
 assert (Hx0 : (0 <= x)%R).
 apply Rle_trans with (F2R (Float radix2 m e)).
 now apply F2R_ge_0_compat.
 exact (proj1 (inbetween_float_bounds _ _ _ _ _ Hx)).
-case_eq (shr (shr_record_of_loc m l) e (fexp (digits radix2 m + e) - e)).
+case_eq (shr (shr_record_of_loc m l) e (fexp (Zdigits radix2 m + e) - e)).
 intros mrs e'' H3 H4 H1.
 generalize (truncate_correct radix2 _ x m e l Hx0 Hx (or_introl _ He)).
 rewrite H1.
@@ -628,7 +628,7 @@ Definition binary_round_sign mode sx mx ex lx :=
 Theorem binary_round_sign_correct :
   forall mode x mx ex lx,
   inbetween_float radix2 (Zpos mx) ex (Rabs x) lx ->
-  (ex <= fexp (digits radix2 (Zpos mx) + ex))%Z ->
+  (ex <= fexp (Zdigits radix2 (Zpos mx) + ex))%Z ->
   let z := binary_round_sign mode (Rlt_bool x 0) mx ex lx in
   valid_binary z = true /\
   if Rlt_bool (Rabs (round radix2 fexp (round_mode mode) x)) (bpow radix2 emax) then
@@ -659,7 +659,7 @@ assert (Hr: Rabs (round radix2 fexp (round_mode m) x) = F2R (Float radix2 m1' e1
 (* . *)
 rewrite <- (Zabs_eq m1').
 replace (Zabs m1') with (Zabs (cond_Zopp (Rlt_bool x 0) m1')).
-rewrite F2R_abs.
+rewrite F2R_Zabs.
 now apply f_equal.
 apply abs_cond_Zopp.
 apply Zle_trans with (2 := Hm).
@@ -684,16 +684,16 @@ rewrite Rlt_bool_true.
 repeat split.
 apply sym_eq.
 case Rlt_bool ; apply F2R_0.
-rewrite <- F2R_abs, abs_cond_Zopp, F2R_0.
+rewrite <- F2R_Zabs, abs_cond_Zopp, F2R_0.
 apply bpow_gt_0.
 (* . 0 < m1' *)
-assert (He: (e1 <= fexp (digits radix2 (Zpos m1') + e1))%Z).
-rewrite <- ln_beta_F2R_digits, <- Hr, ln_beta_abs.
+assert (He: (e1 <= fexp (Zdigits radix2 (Zpos m1') + e1))%Z).
+rewrite <- ln_beta_F2R_Zdigits, <- Hr, ln_beta_abs.
 2: discriminate.
 rewrite H1b.
-rewrite canonic_exponent_abs.
-fold (canonic_exponent radix2 fexp (round radix2 fexp (round_mode m) x)).
-apply canonic_exponent_round_ge...
+rewrite canonic_exp_abs.
+fold (canonic_exp radix2 fexp (round radix2 fexp (round_mode m) x)).
+apply canonic_exp_round_ge...
 rewrite H1c.
 case (Rlt_bool x 0).
 apply Rlt_not_eq.
@@ -721,7 +721,7 @@ split.
 unfold bounded_prec.
 apply Zeq_bool_true.
 rewrite Z_of_nat_S_digits2_Pnat.
-rewrite <- ln_beta_F2R_digits.
+rewrite <- ln_beta_F2R_Zdigits.
 apply sym_eq.
 now rewrite H3 in H4.
 discriminate.
@@ -742,19 +742,19 @@ rewrite Bool.andb_true_r.
 apply Zeq_bool_true.
 rewrite Z_of_nat_S_digits2_Pnat.
 change Fcalc_digits.radix2 with radix2.
-replace (digits radix2 (Zpos (match (Zpower 2 prec - 1)%Z with Zpos p => p | _ => xH end))) with prec.
+replace (Zdigits radix2 (Zpos (match (Zpower 2 prec - 1)%Z with Zpos p => p | _ => xH end))) with prec.
 unfold fexp, FLT_exp, emin.
 generalize (prec_gt_0 prec).
 clear -Hmax ; zify ; omega.
 change 2%Z with (radix_val radix2).
 case_eq (Zpower radix2 prec - 1)%Z.
-simpl digits.
+simpl Zdigits.
 generalize (Zpower_gt_1 radix2 prec (prec_gt_0 prec)).
 clear ; omega.
 intros p Hp.
 apply Zle_antisym.
-cut (prec - 1 < digits radix2 (Zpos p))%Z. clear ; omega.
-apply digits_gt_Zpower.
+cut (prec - 1 < Zdigits radix2 (Zpos p))%Z. clear ; omega.
+apply Zdigits_gt_Zpower.
 simpl Zabs. rewrite <- Hp.
 cut (Zpower radix2 (prec - 1) < Zpower radix2 prec)%Z. clear ; omega.
 apply lt_Z2R.
@@ -762,7 +762,7 @@ rewrite 2!Z2R_Zpower. 2: now apply Zlt_le_weak.
 apply bpow_lt.
 apply Zlt_pred.
 now apply Zlt_0_le_0_pred.
-apply digits_le_Zpower.
+apply Zdigits_le_Zpower.
 simpl Zabs. rewrite <- Hp.
 apply Zlt_pred.
 intros p Hp.
@@ -839,7 +839,7 @@ Lemma Bmult_correct_aux :
 Proof.
 intros m sx mx ex Hx sy my ey Hy x y.
 unfold x, y.
-rewrite <- mult_F2R.
+rewrite <- F2R_mult.
 simpl.
 replace (xorb sx sy) with (Rlt_bool (F2R (Float radix2 (cond_Zopp sx (Zpos mx) * cond_Zopp sy (Zpos my)) (ex + ey))) 0).
 apply binary_round_sign_correct.
@@ -850,7 +850,7 @@ rewrite Zabs_Zmult.
 now rewrite 2!abs_cond_Zopp.
 (* *)
 change (Zpos (mx * my)) with (Zpos mx * Zpos my)%Z.
-assert (forall m e, bounded m e = true -> fexp (digits radix2 (Zpos m) + e) = e)%Z.
+assert (forall m e, bounded m e = true -> fexp (Zdigits radix2 (Zpos m) + e) = e)%Z.
 clear. intros m e Hb.
 destruct (andb_prop _ _ Hb) as (H,_).
 apply Zeq_bool_eq.
@@ -858,9 +858,9 @@ now rewrite <- Z_of_nat_S_digits2_Pnat.
 generalize (H _ _ Hx) (H _ _ Hy).
 clear x y sx sy Hx Hy H.
 unfold fexp, FLT_exp.
-refine (_ (digits_mult_ge radix2 (Zpos mx) (Zpos my) _ _)) ; try discriminate.
+refine (_ (Zdigits_mult_ge radix2 (Zpos mx) (Zpos my) _ _)) ; try discriminate.
 refine (_ (Zdigits_gt_0 radix2 (Zpos mx) _) (Zdigits_gt_0 radix2 (Zpos my) _)) ; try discriminate.
-generalize (digits radix2 (Zpos mx)) (digits radix2 (Zpos my)) (digits radix2 (Zpos mx * Zpos my)).
+generalize (Zdigits radix2 (Zpos mx)) (Zdigits radix2 (Zpos my)) (Zdigits radix2 (Zpos mx * Zpos my)).
 clear -Hmax.
 unfold emin.
 intros dx dy dxy Hx Hy Hxy.
@@ -1005,7 +1005,7 @@ Theorem shl_fexp_correct :
   forall mx ex,
   let (mx', ex') := shl_fexp mx ex in
   F2R (Float radix2 (Zpos mx) ex) = F2R (Float radix2 (Zpos mx') ex') /\
-  (ex' <= fexp (digits radix2 (Zpos mx') + ex'))%Z.
+  (ex' <= fexp (Zdigits radix2 (Zpos mx') + ex'))%Z.
 Proof.
 intros mx ex.
 unfold shl_fexp.
@@ -1015,9 +1015,9 @@ case shl.
 intros mx' ex' (H1, H2).
 split.
 exact H1.
-rewrite <- ln_beta_F2R_digits. 2: easy.
+rewrite <- ln_beta_F2R_Zdigits. 2: easy.
 rewrite <- H1.
-now rewrite ln_beta_F2R_digits.
+now rewrite ln_beta_F2R_Zdigits.
 Qed.
 
 Definition binary_round_sign_shl m sx mx ex :=
@@ -1044,7 +1044,7 @@ replace sx with (Rlt_bool x 0).
 apply binary_round_sign_correct.
 constructor.
 unfold x.
-now rewrite <- F2R_abs, abs_cond_Zopp.
+now rewrite <- F2R_Zabs, abs_cond_Zopp.
 exact H2.
 unfold x.
 case sx.
@@ -1208,7 +1208,7 @@ clear Hs.
 apply Rabs_lt.
 split.
 apply Rlt_le_trans with (F2R (Float radix2 (cond_Zopp true (Zpos mx)) ex)).
-rewrite F2R_opp.
+rewrite F2R_Zopp.
 now apply Ropp_lt_contravar.
 apply round_ge_generic...
 now apply generic_format_canonic.
@@ -1228,7 +1228,7 @@ clear Hs.
 apply Rabs_lt.
 split.
 apply Rlt_le_trans with (F2R (Float radix2 (cond_Zopp true (Zpos my)) ey)).
-rewrite F2R_opp.
+rewrite F2R_Zopp.
 now apply Ropp_lt_contravar.
 apply round_ge_generic...
 now apply generic_format_canonic.
@@ -1301,14 +1301,14 @@ now apply Zle_lt_trans with Z0.
 (* . mz > 0 *)
 apply binary_round_sign_correct.
 rewrite Rabs_mult, Rabs_Rinv.
-now rewrite <- 2!F2R_abs, 2!abs_cond_Zopp.
+now rewrite <- 2!F2R_Zabs, 2!abs_cond_Zopp.
 case sy.
 apply Rlt_not_eq.
 now apply F2R_lt_0_compat.
 apply Rgt_not_eq.
 now apply F2R_gt_0_compat.
 revert Pz.
-generalize (digits radix2 (Zpos mz)).
+generalize (Zdigits radix2 (Zpos mz)).
 unfold fexp, FLT_exp.
 clear.
 intros ; zify ; subst.
@@ -1326,7 +1326,7 @@ now apply F2R_gt_0_compat.
 (* *)
 case sy ; simpl.
 change (Zneg my) with (Zopp (Zpos my)).
-rewrite F2R_opp.
+rewrite F2R_Zopp.
 rewrite <- Ropp_inv_permute.
 rewrite Ropp_mult_distr_r_reverse.
 case sx ; simpl.
@@ -1349,7 +1349,7 @@ apply Rgt_not_eq.
 now apply F2R_gt_0_compat.
 case sx.
 apply Rlt_bool_true.
-rewrite F2R_opp.
+rewrite F2R_Zopp.
 rewrite Ropp_mult_distr_l_reverse.
 rewrite <- Ropp_0.
 apply Ropp_lt_contravar.
@@ -1523,7 +1523,7 @@ rewrite Rabs_pos_eq.
 exact Bz.
 apply sqrt_ge_0.
 revert Pz.
-generalize (digits radix2 (Zpos mz)).
+generalize (Zdigits radix2 (Zpos mz)).
 unfold fexp, FLT_exp.
 clear.
 intros ; zify ; subst.

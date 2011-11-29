@@ -31,13 +31,13 @@ Variable Hp : Zlt 0 prec.
 (* FLX first - probably correct in FLTand maybe FTZ? *)
 
 Notation format := (generic_format beta (FLX_exp prec)).
-Notation cexp := (canonic_exponent beta (FLX_exp prec)).
+Notation cexp := (canonic_exp beta (FLX_exp prec)).
 Notation ulp := (ulp beta (FLX_exp prec)).
 
 Theorem pred_gt_0: forall f,
   format f -> (0 < f)%R -> (0 < pred beta (FLX_exp prec) f)%R.
 intros f Hf Zf.
-unfold pred, Fcore_ulp.ulp, canonic_exponent, FLX_exp.
+unfold pred, Fcore_ulp.ulp, canonic_exp, FLX_exp.
 destruct (ln_beta beta f) as (ef,Hef).
 simpl.
 assert (Zf2: (f <>0)%R) by now apply Rgt_not_eq.

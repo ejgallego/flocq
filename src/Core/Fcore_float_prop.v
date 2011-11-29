@@ -108,7 +108,7 @@ apply Zle_antisym ;
   apply Rle_refl.
 Qed.
 
-Theorem F2R_abs:
+Theorem F2R_Zabs:
   forall m e : Z,
    F2R (Float beta (Zabs m) e) = Rabs (F2R (Float beta m e)).
 Proof.
@@ -123,7 +123,7 @@ apply Rle_ge.
 apply bpow_ge_0.
 Qed.
 
-Theorem F2R_opp :
+Theorem F2R_Zopp :
   forall m e : Z,
   F2R (Float beta (Zopp m) e) = Ropp (F2R (Float beta m e)).
 Proof.
@@ -332,7 +332,7 @@ Theorem F2R_lt_bpow :
   (Rabs (F2R f) < bpow e')%R.
 Proof.
 intros (m, e) e' Hm.
-rewrite <- F2R_abs.
+rewrite <- F2R_Zabs.
 destruct (Zle_or_lt e e') as [He|He].
 unfold F2R. simpl.
 apply Rmult_lt_reg_r with (bpow (-e)).
@@ -379,7 +379,7 @@ apply F2R_change_exp.
 cut (e' - 1 < e + p)%Z. omega.
 apply (lt_bpow beta).
 apply Rle_lt_trans with (1 := Hf).
-rewrite <- F2R_abs, Zplus_comm, bpow_plus.
+rewrite <- F2R_Zabs, Zplus_comm, bpow_plus.
 apply Rmult_lt_compat_r.
 apply bpow_gt_0.
 rewrite <- Z2R_Zpower.
@@ -421,7 +421,7 @@ destruct (ln_beta beta (Z2R m)) as (d, Hd).
 simpl.
 specialize (Hd (Z2R_neq _ _ H)).
 apply ln_beta_unique.
-rewrite <- F2R_abs.
+rewrite <- F2R_Zabs.
 unfold F2R. simpl.
 rewrite <- Z2R_abs in Hd.
 split.
@@ -469,14 +469,14 @@ simpl.
 apply sym_eq.
 apply ln_beta_unique.
 assert (H2 : (bpow (e1' - 1) <= F2R (Float beta m1 e1) < bpow e1')%R).
-rewrite <- (Zabs_eq m1), F2R_abs.
+rewrite <- (Zabs_eq m1), F2R_Zabs.
 apply H1.
 apply Rgt_not_eq.
 apply Rlt_gt.
 now apply F2R_gt_0_compat.
 now apply Zlt_le_weak.
 clear H1.
-rewrite <- F2R_abs, Zabs_eq.
+rewrite <- F2R_Zabs, Zabs_eq.
 split.
 apply Rlt_le.
 apply Rle_lt_trans with (2 := H12).

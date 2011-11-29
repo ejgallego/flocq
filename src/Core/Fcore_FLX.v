@@ -82,12 +82,12 @@ apply lt_Z2R.
 rewrite Z2R_abs.
 rewrite <- scaled_mantissa_generic with (1 := H).
 rewrite <- scaled_mantissa_abs.
-apply Rmult_lt_reg_r with (bpow (canonic_exponent beta FLX_exp (Rabs x))).
+apply Rmult_lt_reg_r with (bpow (canonic_exp beta FLX_exp (Rabs x))).
 apply bpow_gt_0.
 rewrite scaled_mantissa_mult_bpow.
 rewrite Z2R_Zpower, <- bpow_plus.
 2: now apply Zlt_le_weak.
-unfold canonic_exponent, FLX_exp.
+unfold canonic_exp, FLX_exp.
 ring_simplify (prec + (ln_beta beta (Rabs x) - prec))%Z.
 rewrite ln_beta_abs.
 destruct (Req_dec x 0) as [Hx|Hx].
@@ -106,7 +106,7 @@ simpl in H2.
 rewrite H1.
 apply generic_format_F2R.
 intros Zmx.
-unfold canonic_exponent, FLX_exp.
+unfold canonic_exp, FLX_exp.
 rewrite ln_beta_F2R with (1 := Zmx).
 apply Zplus_le_reg_r with (prec - ex)%Z.
 ring_simplify.
@@ -173,13 +173,13 @@ apply le_Z2R.
 rewrite Z2R_Zpower.
 2: now apply Zlt_0_le_0_pred.
 rewrite Z2R_abs, <- scaled_mantissa_generic with (1 := Hx).
-apply Rmult_le_reg_r with (bpow (canonic_exponent beta FLX_exp x)).
+apply Rmult_le_reg_r with (bpow (canonic_exp beta FLX_exp x)).
 apply bpow_gt_0.
 rewrite <- bpow_plus.
 rewrite <- scaled_mantissa_abs.
-rewrite <- canonic_exponent_abs.
+rewrite <- canonic_exp_abs.
 rewrite scaled_mantissa_mult_bpow.
-unfold canonic_exponent, FLX_exp.
+unfold canonic_exp, FLX_exp.
 rewrite ln_beta_abs.
 ring_simplify (prec - 1 + (ln_beta beta x - prec))%Z.
 destruct (ln_beta beta x) as (ex,Ex).
@@ -189,13 +189,13 @@ apply lt_Z2R.
 rewrite Z2R_Zpower.
 2: now apply Zlt_le_weak.
 rewrite Z2R_abs, <- scaled_mantissa_generic with (1 := Hx).
-apply Rmult_lt_reg_r with (bpow (canonic_exponent beta FLX_exp x)).
+apply Rmult_lt_reg_r with (bpow (canonic_exp beta FLX_exp x)).
 apply bpow_gt_0.
 rewrite <- bpow_plus.
 rewrite <- scaled_mantissa_abs.
-rewrite <- canonic_exponent_abs.
+rewrite <- canonic_exp_abs.
 rewrite scaled_mantissa_mult_bpow.
-unfold canonic_exponent, FLX_exp.
+unfold canonic_exp, FLX_exp.
 rewrite ln_beta_abs.
 ring_simplify (prec + (ln_beta beta x - prec))%Z.
 destruct (ln_beta beta x) as (ex,Ex).

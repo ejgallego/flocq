@@ -65,29 +65,29 @@ Definition Fopp (f1: float beta) :=
   let '(Float m1 e1) := f1 in
   Float beta (-m1)%Z e1.
 
-Theorem Fopp_F2R :
+Theorem F2R_opp :
   forall f1 : float beta,
   (F2R (Fopp f1) = -F2R f1)%R.
-unfold Fopp, F2R; intros (m1,e1).
-simpl; rewrite Z2R_opp; ring.
+intros (m1,e1).
+apply F2R_Zopp.
 Qed.
 
 Definition Fabs (f1: float beta) :=
   let '(Float m1 e1) := f1 in
   Float beta (Zabs m1)%Z e1.
 
-Theorem Fabs_F2R :
+Theorem F2R_abs :
   forall f1 : float beta,
   (F2R (Fabs f1) = Rabs (F2R f1))%R.
 intros (m1,e1).
-apply F2R_abs.
+apply F2R_Zabs.
 Qed.
 
 Definition Fplus (f1 f2 : float beta) :=
   let '(m1, m2 ,e) := Falign f1 f2 in
   Float beta (m1 + m2) e.
 
-Theorem plus_F2R :
+Theorem F2R_plus :
   forall f1 f2 : float beta,
   F2R (Fplus f1 f2) = (F2R f1 + F2R f2)%R.
 Proof.
@@ -125,12 +125,12 @@ Qed.
 Definition Fminus (f1 f2 : float beta) :=
   Fplus f1 (Fopp f2).
 
-Theorem minus_F2R :
+Theorem F2R_minus :
   forall f1 f2 : float beta,
   F2R (Fminus f1 f2) = (F2R f1 - F2R f2)%R.
 Proof.
 intros f1 f2; unfold Fminus.
-rewrite plus_F2R, Fopp_F2R.
+rewrite F2R_plus, F2R_opp.
 ring.
 Qed.
 
@@ -148,7 +148,7 @@ Definition Fmult (f1 f2 : float beta) :=
   let '(Float m2 e2) := f2 in
   Float beta (m1 * m2) (e1 + e2).
 
-Theorem mult_F2R :
+Theorem F2R_mult :
   forall f1 f2 : float beta,
   F2R (Fmult f1 f2) = (F2R f1 * F2R f2)%R.
 Proof.

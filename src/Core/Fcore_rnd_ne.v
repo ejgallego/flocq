@@ -95,9 +95,9 @@ rewrite <- Ropp_involutive.
 now apply generic_format_opp.
 now apply canonic_opp.
 now apply canonic_opp.
-rewrite round_DN_opp, F2R_opp.
+rewrite round_DN_opp, F2R_Zopp.
 now apply f_equal.
-rewrite round_UP_opp, F2R_opp.
+rewrite round_UP_opp, F2R_Zopp.
 now apply f_equal.
 Qed.
 
@@ -191,7 +191,7 @@ rewrite Rmult_plus_distr_r.
 rewrite Z2R_Zpower, <- bpow_plus.
 ring_simplify (ex - fexp ex + fexp ex)%Z.
 rewrite Hu2, Hud.
-unfold ulp, canonic_exponent.
+unfold ulp, canonic_exp.
 rewrite ln_beta_unique with beta x ex.
 unfold F2R.
 simpl. ring.
@@ -225,7 +225,7 @@ omega.
 revert Hud.
 unfold ulp, F2R.
 rewrite Hd, Hu.
-unfold canonic_exponent.
+unfold canonic_exp.
 rewrite ln_beta_unique with beta (F2R xu) ex.
 rewrite ln_beta_unique with (1 := Hd4).
 rewrite ln_beta_unique with (1 := Hexa).
@@ -268,7 +268,7 @@ now apply generic_format_satisfies_any.
 intros x d u Hf Hd Hu.
 generalize (proj1 Hd).
 unfold generic_format.
-set (ed := canonic_exponent beta fexp d).
+set (ed := canonic_exp beta fexp d).
 set (md := Ztrunc (scaled_mantissa beta fexp d)).
 intros Hd1.
 case_eq (Zeven md) ; [ intros He | intros Ho ].
@@ -280,7 +280,7 @@ now repeat split.
 left.
 generalize (proj1 Hu).
 unfold generic_format.
-set (eu := canonic_exponent beta fexp u).
+set (eu := canonic_exp beta fexp u).
 set (mu := Ztrunc (scaled_mantissa beta fexp u)).
 intros Hu1.
 rewrite Hu1.
@@ -349,7 +349,7 @@ set (xr := round beta fexp ZnearestE x).
 destruct (Req_dec (mx - Z2R (Zfloor mx)) (/2)) as [Hm|Hm].
 (* midpoint *)
 left.
-exists (Float beta (Ztrunc (scaled_mantissa beta fexp xr)) (canonic_exponent beta fexp xr)).
+exists (Float beta (Ztrunc (scaled_mantissa beta fexp xr)) (canonic_exp beta fexp xr)).
 split.
 apply round_N_pt...
 split.
@@ -396,9 +396,9 @@ now apply (Z2R_lt 0 2).
 destruct (proj2 Hu) as [Hu'|Hu'].
 (* ... u <> bpow *)
 unfold scaled_mantissa.
-rewrite canonic_exponent_fexp_pos with (1 := conj (proj1 Hu) Hu').
+rewrite canonic_exp_fexp_pos with (1 := conj (proj1 Hu) Hu').
 unfold round, F2R. simpl.
-rewrite canonic_exponent_fexp_pos with (1 := Hex).
+rewrite canonic_exp_fexp_pos with (1 := Hex).
 rewrite Rmult_assoc, <- bpow_plus, Zplus_opp_r, Rmult_1_r.
 rewrite Ztrunc_Z2R.
 fold mx.
@@ -406,7 +406,7 @@ rewrite Hfc.
 now rewrite Zeven_plus, Hmx.
 (* ... u = bpow *)
 rewrite Hu'.
-unfold scaled_mantissa, canonic_exponent.
+unfold scaled_mantissa, canonic_exp.
 rewrite ln_beta_bpow.
 rewrite <- bpow_plus, <- Z2R_Zpower.
 rewrite Ztrunc_Z2R.
@@ -432,7 +432,7 @@ apply Rmult_eq_reg_r with (bpow (fexp ex)).
 unfold Zminus.
 rewrite bpow_plus.
 rewrite Rmult_assoc, <- bpow_plus, Zplus_opp_l, Rmult_1_r.
-pattern (fexp ex) ; rewrite <- canonic_exponent_fexp_pos with (1 := Hex).
+pattern (fexp ex) ; rewrite <- canonic_exp_fexp_pos with (1 := Hex).
 now apply sym_eq.
 apply Rgt_not_eq.
 apply bpow_gt_0.
@@ -441,7 +441,7 @@ omega.
 (* .. small pos *)
 assert (Zeven (Zfloor mx) = true). 2: now rewrite H in Hmx.
 unfold mx, scaled_mantissa.
-rewrite canonic_exponent_fexp_pos with (1 := Hex).
+rewrite canonic_exp_fexp_pos with (1 := Hex).
 now rewrite mantissa_DN_small_pos.
 (* not midpoint *)
 right.
@@ -473,7 +473,7 @@ apply Rnd_N_pt_idempotent with (1 := Hg).
 rewrite <- (scaled_mantissa_mult_bpow beta fexp x).
 fold mx.
 rewrite <- Hxg.
-change (Z2R (Zfloor mx) * bpow (canonic_exponent beta fexp x))%R with d.
+change (Z2R (Zfloor mx) * bpow (canonic_exp beta fexp x))%R with d.
 now eapply round_DN_pt.
 apply Rgt_not_eq.
 apply bpow_gt_0.
@@ -485,9 +485,9 @@ Theorem round_NE_opp :
 Proof.
 intros x.
 unfold round. simpl.
-rewrite scaled_mantissa_opp, canonic_exponent_opp.
+rewrite scaled_mantissa_opp, canonic_exp_opp.
 rewrite Znearest_opp.
-rewrite <- F2R_opp.
+rewrite <- F2R_Zopp.
 apply (f_equal (fun v => F2R (Float beta (-v) _))).
 set (m := scaled_mantissa beta fexp x).
 unfold Znearest.
@@ -512,7 +512,7 @@ intros _ f ((mg,eg),(H1,(H2,H3))).
 exists (Float beta (- mg) eg).
 repeat split.
 rewrite H1.
-now rewrite F2R_opp.
+now rewrite F2R_Zopp.
 now apply canonic_opp.
 simpl.
 now rewrite Zeven_opp.

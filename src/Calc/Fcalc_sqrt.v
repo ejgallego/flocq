@@ -22,6 +22,7 @@ COPYING file for more details.
 
 Require Import Fcore_Raux.
 Require Import Fcore_defs.
+Require Import Fcore_digits.
 Require Import Fcore_float_prop.
 Require Import Fcalc_bracket.
 Require Import Fcalc_digits.
@@ -151,7 +152,7 @@ Complexity is fine as long as p1 <= 2p-1.
 *)
 
 Definition Fsqrt_core prec m e :=
-  let d := digits beta m in
+  let d := Zdigits beta m in
   let s := Zmax (2 * prec - d) 0 in
   let e' := (e - s)%Z in
   let (s', e'') := if Zeven e' then (s, e') else (s + 1, e' - 1)%Z in
@@ -170,12 +171,12 @@ Theorem Fsqrt_core_correct :
   forall prec m e,
   (0 < m)%Z ->
   let '(m', e', l) := Fsqrt_core prec m e in
-  (prec <= digits beta m')%Z /\
+  (prec <= Zdigits beta m')%Z /\
   inbetween_float beta m' e' (sqrt (F2R (Float beta m e))) l.
 Proof.
 intros prec m e Hm.
 unfold Fsqrt_core.
-set (d := digits beta m).
+set (d := Zdigits beta m).
 set (s := Zmax (2 * prec - d) 0).
 (* . exponent *)
 case_eq (if Zeven (e - s) then (s, (e - s)%Z) else ((s + 1)%Z, (e - s - 1)%Z)).
@@ -208,7 +209,7 @@ set (m' := match s' with
   | Zpos p => (m * Zpower_pos beta p)%Z
   | Zneg _ => m
   end).
-assert (Hs: F2R (Float beta m' e') = F2R (Float beta m e) /\ (2 * prec <= digits beta m')%Z /\ (0 < m')%Z).
+assert (Hs: F2R (Float beta m' e') = F2R (Float beta m e) /\ (2 * prec <= Zdigits beta m')%Z /\ (0 < m')%Z).
 rewrite <- He4.
 unfold m'.
 destruct s' as [|p|p].
@@ -224,7 +225,7 @@ ring.
 assert (0 < Zpos p)%Z by easy.
 omega.
 split.
-rewrite digits_shift.
+rewrite Zdigits_mult_Zpower.
 fold d.
 omega.
 apply sym_not_eq.
@@ -247,13 +248,13 @@ easy.
 rewrite Zmult_comm.
 apply Zle_trans with (1 := Hs2).
 rewrite Hq.
-apply Zle_trans with (digits beta (q + q + q * q)).
-apply digits_le.
+apply Zle_trans with (Zdigits beta (q + q + q * q)).
+apply Zdigits_le.
 rewrite <- Hq.
 now apply Zlt_le_weak.
 omega.
-replace (digits beta q * 2)%Z with (digits beta q + digits beta q)%Z by ring.
-apply digits_mult_strong.
+replace (Zdigits beta q * 2)%Z with (Zdigits beta q + Zdigits beta q)%Z by ring.
+apply Zdigits_mult_strong.
 omega.
 omega.
 (* . round *)

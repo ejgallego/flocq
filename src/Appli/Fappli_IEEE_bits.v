@@ -19,6 +19,7 @@ COPYING file for more details.
 
 (** * IEEE-754 encoding of binary floating-point data *)
 Require Import Fcore.
+Require Import Fcore_digits.
 Require Import Fcalc_digits.
 Require Import Fappli_IEEE.
 
@@ -197,7 +198,7 @@ Proof.
 intros [sx|sx| |sx mx ex Hx] ;
   try ( simpl ; apply split_join_bits ; split ; try apply Zle_refl ; try apply Zlt_pred ; trivial ; omega ).
 unfold bits_of_binary_float, split_bits_of_binary_float.
-assert (Hf: (emin <= ex /\ digits radix2 (Zpos mx) <= prec)%Z).
+assert (Hf: (emin <= ex /\ Zdigits radix2 (Zpos mx) <= prec)%Z).
 destruct (andb_prop _ _ Hx) as (Hx', _).
 unfold bounded_prec in Hx'.
 rewrite Z_of_nat_S_digits2_Pnat in Hx'.
@@ -213,7 +214,7 @@ split.
 clear -He_gt_0 H ; omega.
 cut (Zpos mx < 2 * 2^mw)%Z. clear ; omega.
 replace (2 * 2^mw)%Z with (2^prec)%Z.
-apply (Zpower_gt_digits radix2 _ (Zpos mx)).
+apply (Zpower_gt_Zdigits radix2 _ (Zpos mx)).
 apply Hf.
 unfold prec.
 rewrite Zplus_comm.
@@ -264,16 +265,16 @@ case Zeq_bool_spec ; intros He1.
 case_eq (x mod 2^mw)%Z ; try easy.
 (* subnormal *)
 intros px Hm.
-assert (digits radix2 (Zpos px) <= mw)%Z.
-apply digits_le_Zpower.
+assert (Zdigits radix2 (Zpos px) <= mw)%Z.
+apply Zdigits_le_Zpower.
 simpl.
 rewrite <- Hm.
 eapply Z_mod_lt.
 now apply Zlt_gt.
 apply bounded_canonic_lt_emax ; try assumption.
-unfold canonic, canonic_exponent.
+unfold canonic, canonic_exp.
 fold emin.
-rewrite ln_beta_F2R_digits. 2: discriminate.
+rewrite ln_beta_F2R_Zdigits. 2: discriminate.
 unfold Fexp, FLT_exp.
 apply sym_eq.
 apply Zmax_right.
@@ -283,7 +284,7 @@ apply Rnot_le_lt.
 intros H0.
 refine (_ (ln_beta_le radix2 _ _ _ H0)).
 rewrite ln_beta_bpow.
-rewrite ln_beta_F2R_digits. 2: discriminate.
+rewrite ln_beta_F2R_Zdigits. 2: discriminate.
 unfold emin, prec.
 apply Zlt_not_le.
 cut (0 < emax)%Z. clear -H Hew ; omega.
@@ -295,9 +296,9 @@ now case Zeq_bool.
 case_eq (x mod 2^mw + 2^mw)%Z ; try easy.
 (* normal *)
 intros px Hm.
-assert (prec = digits radix2 (Zpos px)).
+assert (prec = Zdigits radix2 (Zpos px)).
 (* . *)
-rewrite digits_ln_beta. 2: discriminate.
+rewrite Zdigits_ln_beta. 2: discriminate.
 apply sym_eq.
 apply ln_beta_unique.
 rewrite <- Z2R_abs.
@@ -321,8 +322,8 @@ eapply Z_mod_lt.
 now apply Zlt_gt.
 (* . *)
 apply bounded_canonic_lt_emax ; try assumption.
-unfold canonic, canonic_exponent.
-rewrite ln_beta_F2R_digits. 2: discriminate.
+unfold canonic, canonic_exp.
+rewrite ln_beta_F2R_Zdigits. 2: discriminate.
 unfold Fexp, FLT_exp.
 rewrite <- H.
 set (ex := ((x / 2^mw) mod 2^ew)%Z).
@@ -342,7 +343,7 @@ apply Rnot_le_lt.
 intros H0.
 refine (_ (ln_beta_le radix2 _ _ _ H0)).
 rewrite ln_beta_bpow.
-rewrite ln_beta_F2R_digits. 2: discriminate.
+rewrite ln_beta_F2R_Zdigits. 2: discriminate.
 rewrite <- H.
 apply Zlt_not_le.
 unfold emin.
@@ -419,7 +420,7 @@ generalize (Zeq_bool_eq _ _ H1).
 rewrite Z_of_nat_S_digits2_Pnat.
 unfold FLT_exp, emin.
 change Fcalc_digits.radix2 with radix2.
-generalize (digits radix2 (Zpos mx)).
+generalize (Zdigits radix2 (Zpos mx)).
 clear.
 intros ; zify ; omega.
 (* . *)
@@ -431,8 +432,8 @@ generalize (Zeq_bool_eq _ _ H1).
 rewrite Z_of_nat_S_digits2_Pnat.
 unfold FLT_exp, emin, prec.
 change Fcalc_digits.radix2 with radix2.
-generalize (digits_le_Zpower radix2 _ (Zpos mx) Hm).
-generalize (digits radix2 (Zpos mx)).
+generalize (Zdigits_le_Zpower radix2 _ (Zpos mx) Hm).
+generalize (Zdigits radix2 (Zpos mx)).
 clear.
 intros ; zify ; omega.
 Qed.
