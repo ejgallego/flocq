@@ -36,9 +36,9 @@ Inductive full_float :=
   | F754_nan : full_float
   | F754_finite : bool -> positive -> Z -> full_float.
 
-Definition FF2R r x :=
+Definition FF2R beta x :=
   match x with
-  | F754_finite s m e => F2R (Float r (cond_Zopp s (Zpos m)) e)
+  | F754_finite s m e => F2R (Float beta (cond_Zopp s (Zpos m)) e)
   | _ => R0
   end.
 
@@ -46,7 +46,10 @@ End AnyRadix.
 
 Section Binary.
 
-Variable prec emax : Z.
+(** prec is the number of bits of the mantissa including the implicit one
+    emax is the exponent of the infinities
+    Typically p=24 and emax = 128 in single precision *)
+Variable prec emax : Z. 
 Context (prec_gt_0_ : Prec_gt_0 prec).
 Hypothesis Hmax : (prec < emax)%Z.
 
@@ -55,11 +58,11 @@ Let fexp := FLT_exp emin prec.
 Instance fexp_correct : Valid_exp fexp := FLT_exp_valid emin prec.
 Instance fexp_monotone : Monotone_exp fexp := FLT_exp_monotone emin prec.
 
-Definition bounded_prec m e :=
+Definition canonic_mantissa m e :=
   Zeq_bool (fexp (Z_of_nat (S (digits2_Pnat m)) + e)) e.
 
 Definition bounded m e :=
-  andb (bounded_prec m e) (Zle_bool e (emax - prec)).
+  andb (canonic_mantissa m e) (Zle_bool e (emax - prec)).
 
 Definition valid_binary x :=
   match x with
@@ -67,6 +70,9 @@ Definition valid_binary x :=
   | _ => true
   end.
 
+(** Basic type used for representing binary FP numbers. 
+    Note that there is exactly one such object per FP datum.
+    NaNs do not have any payload. They cannot be distinguished. *)
 Inductive binary_float :=
   | B754_zero : bool -> binary_float
   | B754_infinity : bool -> binary_float
@@ -161,9 +167,9 @@ Proof.
 now intros T fz fi fn ff [sx|sx| |sx mx ex] Hx.
 Qed.
 
-Theorem canonic_bounded_prec :
+Theorem canonic_canonic_mantissa :
   forall (sx : bool) mx ex,
-  bounded_prec mx ex = true ->
+  canonic_mantissa mx ex = true ->
   canonic radix2 fexp (Float radix2 (cond_Zopp sx (Zpos mx)) ex).
 Proof.
 intros sx mx ex H.
@@ -186,11 +192,11 @@ Proof.
 intros [sx|sx| |sx mx ex Hx] ; try apply generic_format_0.
 simpl.
 apply generic_format_canonic.
-apply canonic_bounded_prec.
+apply canonic_canonic_mantissa.
 now destruct (andb_prop _ _ Hx) as (H, _).
 Qed.
 
-Theorem binary_unicity :
+Theorem B2FF_inj :
   forall x y : binary_float,
   B2FF x = B2FF y ->
   x = y.
@@ -219,7 +225,7 @@ Definition is_finite_strict f :=
   | _ => false
   end.
 
-Theorem finite_binary_unicity :
+Theorem B2R_inj:
   forall x y : binary_float,
   is_finite_strict x = true ->
   is_finite_strict y = true ->
@@ -247,9 +253,9 @@ assert (mx = my /\ ex = ey).
 refine (_ (canonic_unicity _ fexp _ _ _ _ Heq)).
 rewrite Hs.
 now case sy ; intro H ; injection H ; split.
-apply canonic_bounded_prec.
+apply canonic_canonic_mantissa.
 exact (proj1 (andb_prop _ _ Hx)).
-apply canonic_bounded_prec.
+apply canonic_canonic_mantissa.
 exact (proj1 (andb_prop _ _ Hy)).
 (* *)
 revert Hx.
@@ -311,6 +317,15 @@ rewrite <- F2R_opp.
 now case sx.
 Qed.
 
+
+Theorem is_finite_Bopp: forall x,
+  is_finite (Bopp x) = is_finite x.
+Proof.
+now intros [| | |].
+Qed.
+
+
+
 Theorem bounded_lt_emax :
   forall mx ex,
   bounded mx ex = true ->
@@ -342,7 +357,7 @@ clear -H H2. clearbody emin.
 omega.
 Qed.
 
-Theorem B2R_lt_emax :
+Theorem abs_B2R_lt_emax :
   forall x,
   (Rabs (B2R x) < bpow radix2 emax)%R.
 Proof.
@@ -360,7 +375,7 @@ Proof.
 intros mx ex Cx Bx.
 apply andb_true_intro.
 split.
-unfold bounded_prec.
+unfold canonic_mantissa.
 unfold canonic, Fexp in Cx.
 rewrite Cx at 2.
 rewrite Z_of_nat_S_digits2_Pnat.
@@ -387,6 +402,7 @@ generalize (prec_gt_0 prec).
 clear -Hmax ; omega.
 Qed.
 
+(** mantissa, round and sticky bits *)
 Record shr_record := { shr_m : Z ; shr_r : bool ; shr_s : bool }.
 
 Definition shr_1 mrs :=
@@ -438,7 +454,7 @@ Definition shr mrs e n :=
   | _ => (mrs, e)
   end.
 
-Theorem inbetween_shr_1 :
+Lemma inbetween_shr_1 :
   forall x mrs e,
   (0 <= shr_m mrs)%Z ->
   inbetween_float radix2 (shr_m mrs) e x (loc_of_shr_record mrs) ->
@@ -508,20 +524,20 @@ intros (m, r, s) Hm.
 now destruct m as [|[m|m|]|m] ; try (now elim Hm) ; destruct r as [|] ; destruct s as [|].
 Qed.
 
-Definition digits2 m :=
+Definition Zdigits2 m :=
   match m with Z0 => m | Zpos p => Z_of_nat (S (digits2_Pnat p)) | Zneg p => Z_of_nat (S (digits2_Pnat p)) end.
 
-Theorem digits2_digits :
+Theorem Zdigits2_Zdigits :
   forall m,
-  digits2 m = Zdigits radix2 m.
+  Zdigits2 m = Zdigits radix2 m.
 Proof.
-unfold digits2.
+unfold Zdigits2.
 intros [|m|m] ; try apply Z_of_nat_S_digits2_Pnat.
 easy.
 Qed.
 
 Definition shr_fexp m e l :=
-  shr (shr_record_of_loc m l) e (fexp (digits2 m + e) - e).
+  shr (shr_record_of_loc m l) e (fexp (Zdigits2 m + e) - e).
 
 Theorem shr_truncate :
   forall m e l,
@@ -533,7 +549,7 @@ intros m e l Hm.
 case_eq (truncate radix2 fexp (m, e, l)).
 intros (m', e') l'.
 unfold shr_fexp.
-rewrite digits2_digits.
+rewrite Zdigits2_Zdigits.
 case_eq (fexp (Zdigits radix2 m + e) - e)%Z.
 (* *)
 intros He.
@@ -616,7 +632,7 @@ Definition binary_overflow m s :=
   if overflow_to_inf m s then F754_infinity s
   else F754_finite s (match (Zpower 2 prec - 1)%Z with Zpos p => p | _ => xH end) (emax - prec).
 
-Definition binary_round_sign mode sx mx ex lx :=
+Definition binary_round_aux mode sx mx ex lx :=
   let '(mrs', e') := shr_fexp (Zpos mx) ex lx in
   let '(mrs'', e'') := shr_fexp (choice_mode mode sx (shr_m mrs') (loc_of_shr_record mrs')) e' loc_Exact in
   match shr_m mrs'' with
@@ -625,11 +641,11 @@ Definition binary_round_sign mode sx mx ex lx :=
   | _ => F754_nan (* dummy *)
   end.
 
-Theorem binary_round_sign_correct :
+Theorem binary_round_aux_correct :
   forall mode x mx ex lx,
   inbetween_float radix2 (Zpos mx) ex (Rabs x) lx ->
   (ex <= fexp (Zdigits radix2 (Zpos mx) + ex))%Z ->
-  let z := binary_round_sign mode (Rlt_bool x 0) mx ex lx in
+  let z := binary_round_aux mode (Rlt_bool x 0) mx ex lx in
   valid_binary z = true /\
   if Rlt_bool (Rabs (round radix2 fexp (round_mode mode) x)) (bpow radix2 emax) then
     FF2R radix2 z = round radix2 fexp (round_mode mode) x /\
@@ -638,7 +654,7 @@ Theorem binary_round_sign_correct :
     z = binary_overflow mode (Rlt_bool x 0).
 Proof with auto with typeclass_instances.
 intros m x mx ex lx Bx Ex z.
-unfold binary_round_sign in z.
+unfold binary_round_aux in z.
 revert z.
 rewrite shr_truncate. 2: easy.
 refine (_ (round_trunc_sign_any_correct _ _ (round_mode m) (choice_mode m) _ x (Zpos mx) ex lx Bx (or_introl _ Ex))).
@@ -718,7 +734,7 @@ case_eq (Zle_bool e2 (emax - prec)) ; intros He2.
 assert (bounded m2 e2 = true).
 apply andb_true_intro.
 split.
-unfold bounded_prec.
+unfold canonic_mantissa.
 apply Zeq_bool_true.
 rewrite Z_of_nat_S_digits2_Pnat.
 rewrite <- ln_beta_F2R_Zdigits.
@@ -810,7 +826,7 @@ Definition Bsign x :=
   | B754_finite s _ _ _ => s
   end.
 
-Definition Bsign_FF x :=
+Definition sign_FF x :=
   match x with
   | F754_nan => false
   | F754_zero s => s
@@ -820,7 +836,7 @@ Definition Bsign_FF x :=
 
 Theorem Bsign_FF2B :
   forall x H,
-  Bsign (FF2B x H) = Bsign_FF x.
+  Bsign (FF2B x H) = sign_FF x.
 Proof.
 now intros [sx|sx| |sx mx ex] H.
 Qed.
@@ -829,7 +845,7 @@ Lemma Bmult_correct_aux :
   forall m sx mx ex (Hx : bounded mx ex = true) sy my ey (Hy : bounded my ey = true),
   let x := F2R (Float radix2 (cond_Zopp sx (Zpos mx)) ex) in
   let y := F2R (Float radix2 (cond_Zopp sy (Zpos my)) ey) in
-  let z := binary_round_sign m (xorb sx sy) (mx * my) (ex + ey) loc_Exact in
+  let z := binary_round_aux m (xorb sx sy) (mx * my) (ex + ey) loc_Exact in
   valid_binary z = true /\
   if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (x * y))) (bpow radix2 emax) then
     FF2R radix2 z = round radix2 fexp (round_mode m) (x * y) /\
@@ -842,7 +858,7 @@ unfold x, y.
 rewrite <- F2R_mult.
 simpl.
 replace (xorb sx sy) with (Rlt_bool (F2R (Float radix2 (cond_Zopp sx (Zpos mx) * cond_Zopp sy (Zpos my)) (ex + ey))) 0).
-apply binary_round_sign_correct.
+apply binary_round_aux_correct.
 constructor.
 rewrite <- F2R_abs.
 apply F2R_eq_compat.
@@ -929,7 +945,7 @@ Definition Bmult_FF m x y :=
   | F754_zero sx, F754_finite sy _ _ => F754_zero (xorb sx sy)
   | F754_zero sx, F754_zero sy => F754_zero (xorb sx sy)
   | F754_finite sx mx ex, F754_finite sy my ey =>
-    binary_round_sign m (xorb sx sy) (mx * my) (ex + ey) loc_Exact
+    binary_round_aux m (xorb sx sy) (mx * my) (ex + ey) loc_Exact
   end.
 
 Theorem B2FF_Bmult :
@@ -940,20 +956,21 @@ intros m [sx|sx| |sx mx ex Hx] [sy|sy| |sy my ey Hy] ; try easy.
 apply B2FF_FF2B.
 Qed.
 
-Definition shl mx ex ex' :=
+
+Definition shl_align mx ex ex' :=
   match (ex' - ex)%Z with
   | Zneg d => (shift_pos d mx, ex')
   | _ => (mx, ex)
   end.
 
-Theorem shl_correct :
+Theorem shl_align_correct :
   forall mx ex ex',
-  let (mx', ex'') := shl mx ex ex' in
+  let (mx', ex'') := shl_align mx ex ex' in
   F2R (Float radix2 (Zpos mx) ex) = F2R (Float radix2 (Zpos mx') ex'') /\
   (ex'' <= ex')%Z.
 Proof.
 intros mx ex ex'.
-unfold shl.
+unfold shl_align.
 case_eq (ex' - ex)%Z.
 (* d = 0 *)
 intros H.
@@ -982,13 +999,13 @@ now rewrite Hd.
 apply Zle_refl.
 Qed.
 
-Theorem snd_shl :
+Theorem snd_shl_align :
   forall mx ex ex',
   (ex' <= ex)%Z ->
-  snd (shl mx ex ex') = ex'.
+  snd (shl_align mx ex ex') = ex'.
 Proof.
 intros mx ex ex' He.
-unfold shl.
+unfold shl_align.
 case_eq (ex' - ex)%Z ; simpl.
 intros H.
 now rewrite Zminus_eq with (1 := H).
@@ -998,20 +1015,20 @@ intros.
 apply refl_equal.
 Qed.
 
-Definition shl_fexp mx ex :=
-  shl mx ex (fexp (Z_of_nat (S (digits2_Pnat mx)) + ex)).
+Definition shl_align_fexp mx ex :=
+  shl_align mx ex (fexp (Z_of_nat (S (digits2_Pnat mx)) + ex)).
 
-Theorem shl_fexp_correct :
+Theorem shl_align_fexp_correct :
   forall mx ex,
-  let (mx', ex') := shl_fexp mx ex in
+  let (mx', ex') := shl_align_fexp mx ex in
   F2R (Float radix2 (Zpos mx) ex) = F2R (Float radix2 (Zpos mx') ex') /\
   (ex' <= fexp (Zdigits radix2 (Zpos mx') + ex'))%Z.
 Proof.
 intros mx ex.
-unfold shl_fexp.
-generalize (shl_correct mx ex (fexp (Z_of_nat (S (digits2_Pnat mx)) + ex))).
+unfold shl_align_fexp.
+generalize (shl_align_correct mx ex (fexp (Z_of_nat (S (digits2_Pnat mx)) + ex))).
 rewrite Z_of_nat_S_digits2_Pnat.
-case shl.
+case shl_align.
 intros mx' ex' (H1, H2).
 split.
 exact H1.
@@ -1020,12 +1037,12 @@ rewrite <- H1.
 now rewrite ln_beta_F2R_Zdigits.
 Qed.
 
-Definition binary_round_sign_shl m sx mx ex :=
-  let '(mz, ez) := shl_fexp mx ex in binary_round_sign m sx mz ez loc_Exact.
+Definition binary_round m sx mx ex :=
+  let '(mz, ez) := shl_align_fexp mx ex in binary_round_aux m sx mz ez loc_Exact.
 
-Theorem binary_round_sign_shl_correct :
+Theorem binary_round_correct :
   forall m sx mx ex,
-  let z := binary_round_sign_shl m sx mx ex in
+  let z := binary_round m sx mx ex in
   valid_binary z = true /\
   let x := F2R (Float radix2 (cond_Zopp sx (Zpos mx)) ex) in
   if Rlt_bool (Rabs (round radix2 fexp (round_mode m) x)) (bpow radix2 emax) then
@@ -1035,13 +1052,13 @@ Theorem binary_round_sign_shl_correct :
     z = binary_overflow m sx.
 Proof.
 intros m sx mx ex.
-unfold binary_round_sign_shl.
-generalize (shl_fexp_correct mx ex).
-destruct (shl_fexp mx ex) as (mz, ez).
+unfold binary_round.
+generalize (shl_align_fexp_correct mx ex).
+destruct (shl_align_fexp mx ex) as (mz, ez).
 intros (H1, H2).
 set (x := F2R (Float radix2 (cond_Zopp sx (Zpos mx)) ex)).
 replace sx with (Rlt_bool x 0).
-apply binary_round_sign_correct.
+apply binary_round_aux_correct.
 constructor.
 unfold x.
 now rewrite <- F2R_Zabs, abs_cond_Zopp.
@@ -1057,8 +1074,8 @@ Qed.
 Definition binary_normalize mode m e szero :=
   match m with
   | Z0 => B754_zero szero
-  | Zpos m => FF2B _ (proj1 (binary_round_sign_shl_correct mode false m e))
-  | Zneg m => FF2B _ (proj1 (binary_round_sign_shl_correct mode true m e))
+  | Zpos m => FF2B _ (proj1 (binary_round_correct mode false m e))
+  | Zneg m => FF2B _ (proj1 (binary_round_correct mode true m e))
   end.
 
 Theorem binary_normalize_correct :
@@ -1074,7 +1091,7 @@ destruct mx as [|mz|mz] ; simpl.
 rewrite F2R_0, round_0, Rabs_R0, Rlt_bool_true...
 apply bpow_gt_0.
 (* . mz > 0 *)
-generalize (binary_round_sign_shl_correct m false mz ez).
+generalize (binary_round_correct m false mz ez).
 simpl.
 case Rlt_bool_spec.
 intros _ (Vz, (Rz, Rz')).
@@ -1088,7 +1105,7 @@ apply sym_eq.
 apply Rlt_bool_false.
 now apply F2R_ge_0_compat.
 (* . mz < 0 *)
-generalize (binary_round_sign_shl_correct m true mz ez).
+generalize (binary_round_correct m true mz ez).
 simpl.
 case Rlt_bool_spec.
 intros _ (Vz, (Rz, Rz')).
@@ -1118,7 +1135,7 @@ Definition Bplus m x y :=
   | _, B754_zero _ => x
   | B754_finite sx mx ex Hx, B754_finite sy my ey Hy =>
     let ez := Zmin ex ey in
-    binary_normalize m (Zplus (cond_Zopp sx (Zpos (fst (shl mx ex ez)))) (cond_Zopp sy (Zpos (fst (shl my ey ez)))))
+    binary_normalize m (Zplus (cond_Zopp sx (Zpos (fst (shl_align mx ex ez)))) (cond_Zopp sy (Zpos (fst (shl_align my ey ez)))))
       ez (match m with mode_DN => true | _ => false end)
   end.
 
@@ -1141,27 +1158,27 @@ now case m.
 apply bpow_gt_0.
 (* *)
 rewrite Rplus_0_l, round_generic, Rlt_bool_true...
-apply B2R_lt_emax.
+apply abs_B2R_lt_emax.
 apply generic_format_B2R.
 (* *)
 rewrite Rplus_0_r, round_generic, Rlt_bool_true...
-apply B2R_lt_emax.
+apply abs_B2R_lt_emax.
 apply generic_format_B2R.
 (* *)
 clear Fx Fy.
 simpl.
 set (szero := match m with mode_DN => true | _ => false end).
 set (ez := Zmin ex ey).
-set (mz := (cond_Zopp sx (Zpos (fst (shl mx ex ez))) + cond_Zopp sy (Zpos (fst (shl my ey ez))))%Z).
+set (mz := (cond_Zopp sx (Zpos (fst (shl_align mx ex ez))) + cond_Zopp sy (Zpos (fst (shl_align my ey ez))))%Z).
 assert (Hp: (F2R (Float radix2 (cond_Zopp sx (Zpos mx)) ex) +
   F2R (Float radix2 (cond_Zopp sy (Zpos my)) ey))%R = F2R (Float radix2 mz ez)).
 rewrite 2!F2R_cond_Zopp.
-generalize (shl_correct mx ex ez).
-generalize (shl_correct my ey ez).
-generalize (snd_shl mx ex ez (Zle_min_l ex ey)).
-generalize (snd_shl my ey ez (Zle_min_r ex ey)).
-destruct (shl mx ex ez) as (mx', ex').
-destruct (shl my ey ez) as (my', ey').
+generalize (shl_align_correct mx ex ez).
+generalize (shl_align_correct my ey ez).
+generalize (snd_shl_align mx ex ez (Zle_min_l ex ey)).
+generalize (snd_shl_align my ey ez (Zle_min_r ex ey)).
+destruct (shl_align mx ex ez) as (mx', ex').
+destruct (shl_align my ey ez) as (my', ey').
 simpl.
 intros H1 H2.
 rewrite H1, H2.
@@ -1197,7 +1214,7 @@ now apply F2R_ge_0_compat.
 elim Rle_not_lt with (1 := Bz).
 generalize (bounded_lt_emax _ _ Hx) (bounded_lt_emax _ _ Hy) (andb_prop _ _ Hx) (andb_prop _ _ Hy).
 intros Bx By (Hx',_) (Hy',_).
-generalize (canonic_bounded_prec sx _ _ Hx') (canonic_bounded_prec sy _ _ Hy').
+generalize (canonic_canonic_mantissa sx _ _ Hx') (canonic_canonic_mantissa sy _ _ Hy').
 clear -Bx By Hs.
 intros Cx Cy.
 destruct sx.
@@ -1255,9 +1272,30 @@ Qed.
 
 Definition Bminus m x y := Bplus m x (Bopp y).
 
+Theorem Bminus_correct :
+  forall m x y,
+  is_finite x = true ->
+  is_finite y = true ->
+  if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (B2R x - B2R y))) (bpow radix2 emax) then
+    B2R (Bminus m x y) = round radix2 fexp (round_mode m) (B2R x - B2R y) /\
+    is_finite (Bminus m x y) = true
+  else
+    (B2FF (Bminus m x y) = binary_overflow m (Bsign x) /\ Bsign x = negb (Bsign y)).
+Proof with auto with typeclass_instances.
+intros m x y Fx Fy.
+replace (negb (Bsign y)) with (Bsign (Bopp y)).
+unfold Rminus.
+rewrite <- B2R_Bopp.
+apply Bplus_correct.
+exact Fx.
+now rewrite is_finite_Bopp.
+now destruct y as [ | | | ].
+Qed.
+
+
 Definition Fdiv_core_binary m1 e1 m2 e2 :=
-  let d1 := digits2 m1 in
-  let d2 := digits2 m2 in
+  let d1 := Zdigits2 m1 in
+  let d2 := Zdigits2 m2 in
   let e := (e1 - e2)%Z in
   let (m, e') :=
     match (d2 + prec - d1)%Z with
@@ -1274,7 +1312,7 @@ Lemma Bdiv_correct_aux :
   let z :=
     let '(mz, ez, lz) := Fdiv_core_binary (Zpos mx) ex (Zpos my) ey in
     match mz with
-    | Zpos mz => binary_round_sign m (xorb sx sy) mz ez lz
+    | Zpos mz => binary_round_aux m (xorb sx sy) mz ez lz
     | _ => F754_nan (* dummy *)
     end in
   valid_binary z = true /\
@@ -1286,7 +1324,7 @@ Lemma Bdiv_correct_aux :
 Proof.
 intros m sx mx ex Hx sy my ey Hy.
 replace (Fdiv_core_binary (Zpos mx) ex (Zpos my) ey) with (Fdiv_core radix2 prec (Zpos mx) ex (Zpos my) ey).
-2: now unfold Fdiv_core_binary ; rewrite 2!digits2_digits.
+2: now unfold Fdiv_core_binary ; rewrite 2!Zdigits2_Zdigits.
 refine (_ (Fdiv_core_correct radix2 prec (Zpos mx) ex (Zpos my) ey _ _ _)) ; try easy.
 destruct (Fdiv_core radix2 prec (Zpos mx) ex (Zpos my) ey) as ((mz, ez), lz).
 intros (Pz, Bz).
@@ -1299,7 +1337,7 @@ destruct mz as [|mz|mz].
 elim (Zlt_irrefl prec).
 now apply Zle_lt_trans with Z0.
 (* . mz > 0 *)
-apply binary_round_sign_correct.
+apply binary_round_aux_correct.
 rewrite Rabs_mult, Rabs_Rinv.
 now rewrite <- 2!F2R_Zabs, 2!abs_cond_Zopp.
 case sy.
@@ -1409,7 +1447,7 @@ now rewrite B2FF_FF2B.
 Qed.
 
 Definition Fsqrt_core_binary m e :=
-  let d := digits2 m in
+  let d := Zdigits2 m in
   let s := Zmax (2 * prec - d) 0 in
   let e' := (e - s)%Z in
   let (s', e'') := if Zeven e' then (s, e') else (s + 1, e' - 1)%Z in
@@ -1430,7 +1468,7 @@ Lemma Bsqrt_correct_aux :
   let z :=
     let '(mz, ez, lz) := Fsqrt_core_binary (Zpos mx) ex in
     match mz with
-    | Zpos mz => binary_round_sign m false mz ez lz
+    | Zpos mz => binary_round_aux m false mz ez lz
     | _ => F754_nan (* dummy *)
     end in
   valid_binary z = true /\
@@ -1439,7 +1477,7 @@ Lemma Bsqrt_correct_aux :
 Proof with auto with typeclass_instances.
 intros m mx ex Hx.
 replace (Fsqrt_core_binary (Zpos mx) ex) with (Fsqrt_core radix2 prec (Zpos mx) ex).
-2: now unfold Fsqrt_core_binary ; rewrite digits2_digits.
+2: now unfold Fsqrt_core_binary ; rewrite Zdigits2_Zdigits.
 simpl.
 refine (_ (Fsqrt_core_correct radix2 prec (Zpos mx) ex _)) ; try easy.
 destruct (Fsqrt_core radix2 prec (Zpos mx) ex) as ((mz, ez), lz).
@@ -1449,7 +1487,7 @@ destruct mz as [|mz|mz].
 elim (Zlt_irrefl prec).
 now apply Zle_lt_trans with Z0.
 (* . mz > 0 *)
-refine (_ (binary_round_sign_correct m (sqrt (F2R (Float radix2 (Zpos mx) ex))) mz ez lz _ _)).
+refine (_ (binary_round_aux_correct m (sqrt (F2R (Float radix2 (Zpos mx) ex))) mz ez lz _ _)).
 rewrite Rlt_bool_false. 2: apply sqrt_ge_0.
 rewrite Rlt_bool_true.
 easy.
@@ -1513,7 +1551,7 @@ intros.
 apply Zle_max_r.
 now apply F2R_gt_0_compat.
 apply generic_format_canonic.
-apply (canonic_bounded_prec false).
+apply (canonic_canonic_mantissa false).
 apply (andb_prop _ _ Hx).
 (* .. *)
 apply round_ge_generic...

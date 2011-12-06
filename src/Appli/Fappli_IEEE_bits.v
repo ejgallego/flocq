@@ -25,6 +25,7 @@ Require Import Fappli_IEEE.
 
 Section Binary_Bits.
 
+(** Number of bits for the fraction and exponent *)
 Variable mw ew : Z.
 Hypothesis Hmw : (0 < mw)%Z.
 Hypothesis Hew : (0 < ew)%Z.
@@ -200,7 +201,7 @@ intros [sx|sx| |sx mx ex Hx] ;
 unfold bits_of_binary_float, split_bits_of_binary_float.
 assert (Hf: (emin <= ex /\ Zdigits radix2 (Zpos mx) <= prec)%Z).
 destruct (andb_prop _ _ Hx) as (Hx', _).
-unfold bounded_prec in Hx'.
+unfold canonic_mantissa in Hx'.
 rewrite Z_of_nat_S_digits2_Pnat in Hx'.
 generalize (Zeq_bool_eq _ _ Hx').
 unfold FLT_exp.
@@ -374,7 +375,7 @@ Theorem binary_float_of_bits_of_binary_float :
   binary_float_of_bits (bits_of_binary_float x) = x.
 Proof.
 intros x.
-apply binary_unicity.
+apply B2FF_inj.
 unfold binary_float_of_bits.
 rewrite B2FF_FF2B.
 unfold binary_float_of_bits_aux.
