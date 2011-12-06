@@ -49,7 +49,7 @@ Section Binary.
 (** prec is the number of bits of the mantissa including the implicit one
     emax is the exponent of the infinities
     Typically p=24 and emax = 128 in single precision *)
-Variable prec emax : Z. 
+Variable prec emax : Z.
 Context (prec_gt_0_ : Prec_gt_0 prec).
 Hypothesis Hmax : (prec < emax)%Z.
 
@@ -70,7 +70,7 @@ Definition valid_binary x :=
   | _ => true
   end.
 
-(** Basic type used for representing binary FP numbers. 
+(** Basic type used for representing binary FP numbers.
     Note that there is exactly one such object per FP datum.
     NaNs do not have any payload. They cannot be distinguished. *)
 Inductive binary_float :=

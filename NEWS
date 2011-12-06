@@ -113,30 +113,29 @@ Version 2.0.0:
    . generic_relative_error_F2R_ex -> relative_error_F2R_emin_ex
    . generic_relative_error_2 -> relative_error_round
    . generic_relative_error_F2R_2 -> relative_error_round_F2R_emin
-   . generic_relative_error_N -> relative_error_N 
+   . generic_relative_error_N -> relative_error_N
    . generic_relative_error_N_ex -> relative_error_N_ex
    . generic_relative_error_N_F2R -> relative_error_N_F2R_emin
    . generic_relative_error_N_F2R_ex -> relative_error_N_F2R_emin_ex
    . generic_relative_error_N_2 -> relative_error_N_round
    . generic_relative_error_N_F2R_2 -> relative_error_N_round_F2R_emin
    . relative_error_FLT_F2R  -> relative_error_FLT_F2R_emin
-   . relative_error_FLT_F2R_ex -> relative_error_FLT_F2R_emin_ex 
+   . relative_error_FLT_F2R_ex -> relative_error_FLT_F2R_emin_ex
    . relative_error_N_FLT_2 -> relative_error_N_FLT_round
    . relative_error_N_FLT_F2R -> relative_error_N_FLT_F2R_emin
    . relative_error_N_FLT_F2R_ex -> relative_error_N_FLT_F2R_emin_ex
    . relative_error_N_FLT_F2R_2 -> relative_error_N_FLT_round_F2R_emin
    . relative_error_FLX_2 -> relative_error_FLX_round
    . relative_error_N_FLX_2 -> relative_error_N_FLX_round
-   . canonic_bounded_prec -> canonic_canonic_mantissa 
+   . canonic_bounded_prec -> canonic_canonic_mantissa
    . B2R_lt_emax -> abs_B2R_lt_emax
    . binary_unicity -> B2FF_inj
    . finite_binary_unicity -> B2R_inj
    . binary_round_sign_correct -> binary_round_aux_correct
    . shl_correct -> shl_align_correct
-   . snd_shl -> snd_shl_align 
-   . shl_fexp_correct -> shl_align_fexp_correct 
+   . snd_shl -> snd_shl_align
+   . shl_fexp_correct -> shl_align_fexp_correct
    . binary_round_sign_shl_correct -> binary_round_correct
-
 
 Version 1.4.0:
  - improved efficiency of IEEE-754 addition

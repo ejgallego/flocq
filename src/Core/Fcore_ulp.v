@@ -55,9 +55,9 @@ now rewrite canonic_exp_abs.
 Qed.
 
 Theorem ulp_le_id:
-  forall x, 
+  forall x,
     (0 < x)%R ->
-    F x -> 
+    F x ->
     (ulp x <= x)%R.
 Proof.
 intros x Zx Fx.
@@ -74,9 +74,9 @@ now rewrite <- Fx.
 Qed.
 
 Theorem ulp_le_abs:
-  forall x, 
+  forall x,
     (x <> 0)%R ->
-    F x -> 
+    F x ->
     (ulp x <= Rabs x)%R.
 Proof.
 intros x Zx Fx.
@@ -493,7 +493,7 @@ rewrite round_DN_opp; ring.
 rewrite round_DN_opp; apply Ropp_0_gt_lt_contravar; apply Rlt_gt; assumption.
 Qed.
 
-Theorem ulp_half_error_f : 
+Theorem ulp_half_error_f :
   forall { Hm : Monotone_exp fexp },
   forall choice x,
   (round beta fexp (Znearest choice) x <> 0)%R ->
@@ -590,7 +590,7 @@ now rewrite Rmult_1_l.
 Qed.
 
 Lemma generic_format_pred_1:
-  forall x, (0 < x)%R -> F x -> 
+  forall x, (0 < x)%R -> F x ->
   x <> bpow (ln_beta beta x - 1) ->
   F (x - ulp x).
 Proof.
@@ -649,7 +649,7 @@ omega.
 Qed.
 
 Lemma generic_format_pred_2 :
-  forall x, (0 < x)%R -> F x -> 
+  forall x, (0 < x)%R -> F x ->
   let e := ln_beta_val beta x (ln_beta beta x) in
   x =  bpow (e - 1) ->
   F (x - bpow (fexp (e - 1))).
@@ -657,7 +657,7 @@ Proof.
 intros x Zx Fx e Hx.
 pose (f:=(x - bpow (fexp (e - 1)))%R).
 fold f.
-assert (He:(fexp (e-1) <= e-1)%Z). 
+assert (He:(fexp (e-1) <= e-1)%Z).
 apply generic_format_bpow_inv with beta; trivial.
 rewrite <- Hx; assumption.
 case (Zle_lt_or_eq _ _ He); clear He; intros He.
@@ -713,7 +713,7 @@ ring.
 Qed.
 
 Theorem generic_format_pred :
-  forall x, (0 < x)%R -> F x -> 
+  forall x, (0 < x)%R -> F x ->
   F (pred x).
 Proof.
 intros x Zx Fx.
@@ -724,7 +724,7 @@ now apply generic_format_pred_1.
 Qed.
 
 Lemma pred_plus_ulp_1 :
-  forall x, (0 < x)%R -> F x -> 
+  forall x, (0 < x)%R -> F x ->
   x <> bpow (ln_beta beta x - 1) ->
   ((x - ulp x) + ulp (x-ulp x) = x)%R.
 Proof.
@@ -771,7 +771,7 @@ now rewrite <- Fx.
 Qed.
 
 Lemma pred_plus_ulp_2 :
-  forall x, (0 < x)%R -> F x -> 
+  forall x, (0 < x)%R -> F x ->
   let e := ln_beta_val beta x (ln_beta beta x) in
   x =  bpow (e - 1) ->
   (x - bpow (fexp (e-1)) <> 0)%R ->
@@ -780,7 +780,7 @@ Proof.
 intros x Zx Fx e Hxe Zp.
 replace (ulp (x - bpow (fexp (e - 1)))) with (bpow (fexp (e - 1))).
 ring.
-assert (He:(fexp (e-1) <= e-1)%Z). 
+assert (He:(fexp (e-1) <= e-1)%Z).
 apply generic_format_bpow_inv with beta; trivial.
 rewrite <- Hxe; assumption.
 case (Zle_lt_or_eq _ _ He); clear He; intros He.
@@ -837,7 +837,7 @@ now apply pred_plus_ulp_1.
 Qed.
 
 Theorem pred_lt_id :
-  forall x, 
+  forall x,
   (pred x < x)%R.
 Proof.
 intros.
@@ -858,7 +858,7 @@ apply bpow_gt_0.
 Qed.
 
 Theorem pred_ge_0 :
-  forall x, 
+  forall x,
   (0 < x)%R -> F x -> (0 <= pred x)%R.
 intros x Zx Fx.
 unfold pred.
@@ -924,7 +924,7 @@ Lemma le_pred_lt_aux :
   (0 < x < y)%R ->
   (x <= pred y)%R.
 Proof with auto with typeclass_instances.
-intros x y Hx Hy H. 
+intros x y Hx Hy H.
 assert (Zy:(0 < y)%R).
 apply Rlt_trans with (1:=proj1 H).
 apply H.

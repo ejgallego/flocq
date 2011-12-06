@@ -39,7 +39,7 @@ The algorithm performs the following steps:
 - Shift dividend mantissa so that it has at least p2 + p digits.
 - Perform the Euclidean division.
 - Compute the position according to the division remainder.
- 
+
 Complexity is fine as long as p1 <= 2p and p2 <= p.
 *)
 

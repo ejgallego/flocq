@@ -40,7 +40,7 @@ Lemma mult_error_FLX_aux:
   forall x y,
   format x -> format y ->
   (round beta (FLX_exp prec) rnd (x * y) - (x * y) <> 0)%R ->
-  exists f:float beta, 
+  exists f:float beta,
       (F2R f = round beta (FLX_exp prec) rnd (x * y) - (x * y))%R
       /\  (canonic_exp beta (FLX_exp prec) (F2R f) <= Fexp f)%Z
       /\ (Fexp f = cexp x + cexp y)%Z.

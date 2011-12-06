@@ -54,7 +54,7 @@ rewrite <- Fexp_Fplus, Hz.
 apply Zle_refl.
 Qed.
 
-Theorem ex_Fexp_canonic: forall fexp, forall x, generic_format beta fexp x 
+Theorem ex_Fexp_canonic: forall fexp, forall x, generic_format beta fexp x
   -> exists fx:float beta, (x=F2R fx)%R /\ Fexp fx = canonic_exp beta fexp x.
 intros fexp x; unfold generic_format.
 exists (Float beta (Ztrunc (scaled_mantissa beta fexp x)) (canonic_exp beta fexp x)).
@@ -176,7 +176,7 @@ apply generic_format_round...
 unfold Rminus; apply generic_format_plus_prec with fx (Fopp beta (Fmult beta fr fr)); trivial.
 intros e; apply Zle_refl.
 unfold Rsqr; now rewrite F2R_opp,F2R_mult, <- Hr1.
-(* *) 
+(* *)
 apply Rle_lt_trans with x.
 apply Rabs_minus_le.
 apply Rle_0_sqr.
@@ -248,7 +248,7 @@ apply Rle_trans with (/2*ulp beta  (FLX_exp prec) (F2R fr))%R.
 rewrite <- Hr1.
 apply ulp_half_error_f...
 right; unfold ulp; apply f_equal.
-rewrite Hr2, <- Hr1; trivial. 
+rewrite Hr2, <- Hr1; trivial.
 rewrite Rmult_assoc, Rmult_comm.
 replace (prec+(Fexp fr+Fexp fr))%Z with (Fexp fr + (prec+Fexp fr))%Z by ring.
 rewrite bpow_plus, Rmult_assoc.

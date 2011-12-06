@@ -525,15 +525,15 @@ Lemma error_N_FLT_aux :
   forall x,
   (0 < x)%R ->
   exists eps, exists  eta,
-  (Rabs eps <= /2 * bpow (-prec + 1))%R /\ 
-  (Rabs eta <= /2 * bpow (emin))%R      /\ 
+  (Rabs eps <= /2 * bpow (-prec + 1))%R /\
+  (Rabs eta <= /2 * bpow (emin))%R      /\
   (eps*eta=0)%R /\
   round beta (FLT_exp emin prec) (Znearest choice) x = (x * (1 + eps) + eta)%R.
 Proof.
 intros x Hx2.
 case (Rle_or_lt (bpow (emin+prec)) x); intros Hx.
 (* *)
-destruct relative_error_N_ex with (FLT_exp emin prec) (emin+prec)%Z prec choice x 
+destruct relative_error_N_ex with (FLT_exp emin prec) (emin+prec)%Z prec choice x
   as (eps,(Heps1,Heps2)).
 now apply FLT_exp_valid.
 intros; unfold FLT_exp.

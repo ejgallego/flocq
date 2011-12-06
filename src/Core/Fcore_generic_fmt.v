@@ -400,7 +400,7 @@ Theorem abs_lt_bpow_prec:
   forall prec,
   (forall e, (e - prec <= fexp e)%Z) ->
   (* OK with FLX, FLT and FTZ *)
-  forall x, 
+  forall x,
   (Rabs x < bpow (prec + canonic_exp x))%R.
 intros prec Hp x.
 case (Req_dec x 0); intros Hxz.

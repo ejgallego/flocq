@@ -408,7 +408,7 @@ apply Zle_0_nat.
 easy.
 destruct n as [|n|n] ; try easy.
 now rewrite 3!ZOmod_0_r.
-Qed.  
+Qed.
 
 Theorem ZOdiv_plus_pow_digit :
   forall u v n, (0 <= u * v)%Z ->
