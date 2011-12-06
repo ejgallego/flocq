@@ -26,8 +26,7 @@ FILES = \
 	Prop/Fprop_relative.v \
 	Prop/Fprop_Sterbenz.v \
 	Appli/Fappli_IEEE.v \
-	Appli/Fappli_IEEE_bits.v \
-	Appli/Fappli_sqrt_FLT_ne.v
+	Appli/Fappli_IEEE_bits.v
 
 EXTRA_DIST = $(FILES)
 CLEANFILES = $(FILES:=o) $(FILES:=d) $(FILES:.v=.glob)

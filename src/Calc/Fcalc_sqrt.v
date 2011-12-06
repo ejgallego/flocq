@@ -2,9 +2,9 @@
 This file is part of the Flocq formalization of floating-point
 arithmetic in Coq: http://flocq.gforge.inria.fr/
 
-Copyright (C) 2010 Sylvie Boldo
+Copyright (C) 2010-2011 Sylvie Boldo
 #<br />#
-Copyright (C) 2010 Guillaume Melquiond
+Copyright (C) 2010-2011 Guillaume Melquiond
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -17,8 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
-(** * Helper functions and theorems for computing the rounded
-      square root of a floating-point number. *)
+(** * Helper functions and theorems for computing the rounded square root of a floating-point number. *)
 
 Require Import Fcore_Raux.
 Require Import Fcore_defs.

@@ -495,6 +495,7 @@ Qed.
 
 End Binary_Bits.
 
+(** Specialization for IEEE single precision operations *)
 Section B32_Bits.
 
 Definition binary32 := binary_float 24 128.
@@ -519,6 +520,7 @@ Definition bits_of_b32 : binary32 -> Z := bits_of_binary_float 23 8.
 
 End B32_Bits.
 
+(** Specialization for IEEE double precision operations *)
 Section B64_Bits.
 
 Definition binary64 := binary_float 53 1024.

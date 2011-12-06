@@ -18,6 +18,7 @@ Version 2.0.0:
    . Rnd_NE_pt_FIX, Rnd_NE_pt_FLX, Rnd_NE_pt_FLT
    . round_NE_pt_FLX, round_NE_pt_FLT
    . Zrnd_opp_le, Zrnd_Z2R_opp
+ - removed example file Fappli_sqrt_FLT_ne
  - split theorems on equivalence between specific and generic formats
    into both directions:
    . FIX_format_generic and generic_format_FIX

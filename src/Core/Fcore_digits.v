@@ -755,7 +755,7 @@ Fixpoint Zdigits_aux (nb pow : Z) (n : nat) { struct n } : Z :=
   end.
 
 End digits_aux.
-
+(** Number of digits of an integer *)
 Definition Zdigits n :=
   match n with
   | Z0 => Z0

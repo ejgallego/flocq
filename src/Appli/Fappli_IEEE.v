@@ -2,9 +2,9 @@
 This file is part of the Flocq formalization of floating-point
 arithmetic in Coq: http://flocq.gforge.inria.fr/
 
-Copyright (C) 2010 Sylvie Boldo
+Copyright (C) 2010-2011 Sylvie Boldo
 #<br />#
-Copyright (C) 2010 Guillaume Melquiond
+Copyright (C) 2010-2011 Guillaume Melquiond
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -841,6 +841,8 @@ Proof.
 now intros [sx|sx| |sx mx ex] H.
 Qed.
 
+(** Multiplication *)
+
 Lemma Bmult_correct_aux :
   forall m sx mx ex (Hx : bounded mx ex = true) sy my ey (Hy : bounded my ey = true),
   let x := F2R (Float radix2 (cond_Zopp sx (Zpos mx)) ex) in
@@ -1120,6 +1122,7 @@ apply Rlt_bool_true.
 now apply F2R_lt_0_compat.
 Qed.
 
+(** Addition *)
 Definition Bplus m x y :=
   match x, y with
   | B754_nan, _ => x
@@ -1292,7 +1295,7 @@ now rewrite is_finite_Bopp.
 now destruct y as [ | | | ].
 Qed.
 
-
+(** Division *)
 Definition Fdiv_core_binary m1 e1 m2 e2 :=
   let d1 := Zdigits2 m1 in
   let d2 := Zdigits2 m2 in
@@ -1446,6 +1449,7 @@ intros H2.
 now rewrite B2FF_FF2B.
 Qed.
 
+(** Square root *)
 Definition Fsqrt_core_binary m e :=
   let d := Zdigits2 m in
   let s := Zmax (2 * prec - d) 0 in

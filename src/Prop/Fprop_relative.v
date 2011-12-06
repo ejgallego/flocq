@@ -2,9 +2,9 @@
 This file is part of the Flocq formalization of floating-point
 arithmetic in Coq: http://flocq.gforge.inria.fr/
 
-Copyright (C) 2010 Sylvie Boldo
+Copyright (C) 2010-2011 Sylvie Boldo
 #<br />#
-Copyright (C) 2010 Guillaume Melquiond
+Copyright (C) 2010-2011 Guillaume Melquiond
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -126,7 +126,7 @@ apply bpow_ge_0.
 apply He.
 Qed.
 
-(** * 1+#&epsilon;# property in any rounding *)
+(** 1+#&epsilon;# property in any rounding *)
 Theorem relative_error_ex :
   forall x,
   (bpow emin <= Rabs x)%R ->
@@ -262,7 +262,7 @@ apply bpow_ge_0.
 apply He.
 Qed.
 
-(** * 1+#&epsilon;# property in rounding to nearest *)
+(** 1+#&epsilon;# property in rounding to nearest *)
 Theorem relative_error_N_ex :
   forall x,
   (bpow emin <= Rabs x)%R ->
@@ -436,7 +436,7 @@ apply bpow_gt_0.
 now apply relative_error_FLT_F2R_emin.
 Qed.
 
-(** * 1+#&epsilon;# property in any rounding in FLT *)
+(** 1+#&epsilon;# property in any rounding in FLT *)
 Theorem relative_error_FLT_ex :
   forall x,
   (bpow (emin + prec - 1) <= Rabs x)%R ->
@@ -461,7 +461,7 @@ apply relative_error_N with (emin + prec - 1)%Z...
 apply relative_error_FLT_aux.
 Qed.
 
-(** * 1+#&epsilon;# property in rounding to nearest in FLT *)
+(** 1+#&epsilon;# property in rounding to nearest in FLT *)
 Theorem relative_error_N_FLT_ex :
   forall x,
   (bpow (emin + prec - 1) <= Rabs x)%R ->
@@ -605,7 +605,7 @@ apply relative_error_FLX_aux.
 apply He.
 Qed.
 
-(** * 1+#&epsilon;# property in any rounding in FLX *)
+(** 1+#&epsilon;# property in any rounding in FLX *)
 Theorem relative_error_FLX_ex :
   forall x,
   (x <> 0)%R ->
@@ -655,7 +655,7 @@ apply relative_error_FLX_aux.
 apply He.
 Qed.
 
-(** * 1+#&epsilon;# property in rounding to nearest in FLX *)
+(** 1+#&epsilon;# property in rounding to nearest in FLX *)
 Theorem relative_error_N_FLX_ex :
   forall x,
   exists eps,

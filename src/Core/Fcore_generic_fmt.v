@@ -2,9 +2,9 @@
 This file is part of the Flocq formalization of floating-point
 arithmetic in Coq: http://flocq.gforge.inria.fr/
 
-Copyright (C) 2010 Sylvie Boldo
+Copyright (C) 2010-2011 Sylvie Boldo
 #<br />#
-Copyright (C) 2010 Guillaume Melquiond
+Copyright (C) 2010-2011 Guillaume Melquiond
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -451,7 +451,7 @@ Qed.
 
 Section Fcore_generic_round_pos.
 
-(** * Rounding functions: R -> Z *)
+(** Rounding functions: R -> Z *)
 
 Variable rnd : R -> Z.
 
@@ -485,7 +485,7 @@ rewrite Zfloor_Z2R, Zrnd_Z2R in Hx.
 apply Zlt_irrefl with (1 := Hx).
 Qed.
 
-(** * the most useful one: R -> F *)
+(** the most useful one: R -> F *)
 Definition round x :=
   F2R (Float beta (rnd (scaled_mantissa x)) (canonic_exp x)).
 
@@ -1720,6 +1720,7 @@ End rndN_opp.
 
 End Format.
 
+(** Inclusion of a format into an extended format *)
 Section Inclusion.
 
 Variables fexp1 fexp2 : Z -> Z.
