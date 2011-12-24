@@ -338,6 +338,30 @@ now apply Rle_lt_trans with (2 := Ex).
 now rewrite (proj2 (proj2 (valid_exp _) He)).
 Qed.
 
+Theorem ln_beta_generic_gt :
+  forall x, (x <> 0)%R ->
+  generic_format x ->
+  (canonic_exp x < ln_beta beta x)%Z.
+Proof.
+intros x Zx Gx.
+apply Znot_ge_lt.
+unfold canonic_exp.
+destruct (ln_beta beta x) as (ex,Ex) ; simpl.
+specialize (Ex Zx).
+intros H.
+apply Zge_le in H.
+generalize (scaled_mantissa_small x ex (proj2 Ex) H).
+contradict Zx.
+rewrite Gx.
+replace (Ztrunc (scaled_mantissa x)) with Z0.
+apply F2R_0.
+cut (Zabs (Ztrunc (scaled_mantissa x)) < 1)%Z.
+clear ; zify ; omega.
+apply lt_Z2R.
+rewrite Z2R_abs.
+now rewrite <- scaled_mantissa_generic.
+Qed.
+
 Theorem mantissa_DN_small_pos :
   forall x ex,
   (bpow (ex - 1) <= x < bpow ex)%R ->
@@ -2023,6 +2047,65 @@ apply generic_inclusion_ln_beta.
 intros Zx.
 apply He.
 now apply ln_beta_gt_bpow.
+Qed.
+
+Variable rnd : R -> Z.
+Context { valid_rnd : Valid_rnd rnd }.
+
+Theorem generic_round_generic :
+  forall x,
+  generic_format fexp1 x ->
+  generic_format fexp1 (round fexp2 rnd x).
+Proof with auto with typeclass_instances.
+intros x Gx.
+apply generic_format_abs_inv.
+apply generic_format_abs in Gx.
+revert rnd valid_rnd x Gx.
+refine (round_abs_abs' _ (fun x y => generic_format fexp1 x -> generic_format fexp1 y) _).
+intros rnd valid_rnd x [Hx|Hx] Gx.
+(* x > 0 *)
+generalize (ln_beta_generic_gt _ x (Rgt_not_eq _ _ Hx) Gx).
+unfold canonic_exp.
+destruct (ln_beta beta x) as (ex,Ex) ; simpl.
+specialize (Ex (Rgt_not_eq _ _ Hx)).
+intros He'.
+rewrite Rabs_pos_eq in Ex by now apply Rlt_le.
+destruct (Zle_or_lt ex (fexp2 ex)) as [He|He].
+(* - x near 0 for fexp2 *)
+destruct (round_bounded_small_pos fexp2 rnd x ex He Ex) as [Hr|Hr].
+rewrite Hr.
+apply generic_format_0.
+rewrite Hr.
+apply generic_format_bpow'...
+apply Zlt_le_weak.
+apply valid_exp_large with ex...
+(* - x large for fexp2 *)
+destruct (Zle_or_lt (canonic_exp fexp2 x) (canonic_exp fexp1 x)) as [He''|He''].
+(* - - round fexp2 x is representable for fexp1 *)
+rewrite round_generic...
+rewrite Gx.
+apply generic_format_F2R.
+fold (round fexp1 Ztrunc x).
+intros Zx.
+unfold canonic_exp at 1.
+rewrite ln_beta_round_ZR...
+contradict Zx.
+apply F2R_eq_0_reg with (1 := Zx).
+(* - - round fexp2 x has too many digits for fexp1 *)
+destruct (round_bounded_large_pos fexp2 rnd x ex He Ex) as (Hr1,[Hr2|Hr2]).
+apply generic_format_F2R.
+intros Zx.
+fold (round fexp2 rnd x).
+unfold canonic_exp at 1.
+rewrite ln_beta_unique_pos with (1 := conj Hr1 Hr2).
+rewrite <- ln_beta_unique_pos with (1 := Ex).
+now apply Zlt_le_weak.
+rewrite Hr2.
+apply generic_format_bpow'...
+now apply Zlt_le_weak.
+(* x = 0 *)
+rewrite <- Hx, round_0...
+apply generic_format_0.
 Qed.
 
 End Inclusion.
