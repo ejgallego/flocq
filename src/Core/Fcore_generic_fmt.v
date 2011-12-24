@@ -45,6 +45,23 @@ Class Valid_exp :=
 
 Context { valid_exp_ : Valid_exp }.
 
+Theorem valid_exp_large :
+  forall k l,
+  (fexp k < k)%Z -> (k <= l)%Z ->
+  (fexp l < l)%Z.
+Proof.
+intros k l Hk H.
+replace l with (k + Z_of_nat (Zabs_nat (l - k)))%Z.
+induction (Zabs_nat (l - k)).
+now rewrite Zplus_0_r.
+rewrite inj_S, <- Zplus_succ_r_reverse.
+apply Zle_lt_succ.
+now apply valid_exp_.
+rewrite inj_Zabs_nat, Zabs_eq.
+ring.
+now apply Zle_minus_le_0.
+Qed.
+
 Definition canonic_exp x :=
   fexp (ln_beta beta x).
 
