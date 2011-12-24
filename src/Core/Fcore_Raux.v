@@ -1705,6 +1705,21 @@ apply ln_beta_opp.
 apply refl_equal.
 Qed.
 
+Theorem ln_beta_unique_pos :
+  forall (x : R) (e : Z),
+  (bpow (e - 1) <= x < bpow e)%R ->
+  ln_beta x = e :> Z.
+Proof.
+intros x e1 He1.
+rewrite <- ln_beta_abs.
+apply ln_beta_unique.
+rewrite 2!Rabs_pos_eq.
+exact He1.
+apply Rle_trans with (2 := proj1 He1).
+apply bpow_ge_0.
+apply Rabs_pos.
+Qed.
+
 Theorem ln_beta_le_abs :
   forall x y,
   (x <> 0)%R -> (Rabs x <= Rabs y)%R ->
