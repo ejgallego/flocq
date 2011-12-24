@@ -1283,28 +1283,55 @@ Qed.
 
 End round_large.
 
+Theorem ln_beta_round_ZR :
+  forall x,
+  (round Ztrunc x <> 0)%R ->
+  (ln_beta beta (round Ztrunc x) = ln_beta beta x :> Z).
+Proof with auto with typeclass_instances.
+intros x Zr.
+destruct (Req_dec x 0) as [Zx|Zx].
+rewrite Zx, round_0...
+apply ln_beta_unique.
+destruct (ln_beta beta x) as (ex, Ex) ; simpl.
+specialize (Ex Zx).
+rewrite <- round_ZR_abs.
+split.
+apply round_large_pos_ge_pow...
+rewrite round_ZR_abs.
+now apply Rabs_pos_lt.
+apply Ex.
+apply Rle_lt_trans with (2 := proj2 Ex).
+rewrite round_ZR_pos.
+apply round_DN_pt.
+apply Rabs_pos.
+Qed.
+
+Theorem ln_beta_round_DN :
+  forall x,
+  (0 < round Zfloor x)%R ->
+  (ln_beta beta (round Zfloor x) = ln_beta beta x :> Z).
+Proof.
+intros x Hd.
+assert (0 < x)%R.
+apply Rlt_le_trans with (1 := Hd).
+apply round_DN_pt.
+revert Hd.
+rewrite <- round_ZR_pos.
+intros Hd.
+apply ln_beta_round_ZR.
+now apply Rgt_not_eq.
+now apply Rlt_le.
+Qed.
+
+(* TODO: remove *)
 Theorem canonic_exp_DN :
   forall x,
   (0 < round Zfloor x)%R ->
   canonic_exp (round Zfloor x) = canonic_exp x.
-Proof with auto with typeclass_instances.
+Proof.
 intros x Hd.
-unfold canonic_exp.
-apply f_equal.
-apply ln_beta_unique.
-rewrite (Rabs_pos_eq (round Zfloor x)). 2: now apply Rlt_le.
-destruct (ln_beta beta x) as (ex, He).
-simpl.
-assert (Hx: (0 < x)%R).
-apply Rlt_le_trans with (1 := Hd).
-apply (round_DN_pt x).
-specialize (He (Rgt_not_eq _ _ Hx)).
-rewrite Rabs_pos_eq in He. 2: now apply Rlt_le.
-split.
-apply round_large_pos_ge_pow...
-apply He.
-apply Rle_lt_trans with (2 := proj2 He).
-apply round_DN_pt.
+apply (f_equal fexp).
+now apply ln_beta_round_DN.
 Qed.
 
 Theorem scaled_mantissa_DN :
@@ -1388,63 +1415,34 @@ Qed.
 Variable rnd : R -> Z.
 Context { valid_rnd : Valid_rnd rnd }.
 
+Theorem ln_beta_round_ge :
+  forall x,
+  round rnd x <> R0 ->
+  (ln_beta beta x <= ln_beta beta (round rnd x))%Z.
+Proof with auto with typeclass_instances.
+intros x.
+destruct (round_ZR_or_AW rnd x) as [H|H] ; rewrite H ; clear H ; intros Zr.
+rewrite ln_beta_round_ZR with (1 := Zr).
+apply Zle_refl.
+apply ln_beta_le_abs.
+contradict Zr.
+rewrite Zr.
+apply round_0...
+rewrite <- round_AW_abs.
+rewrite round_AW_pos.
+apply round_UP_pt.
+apply Rabs_pos.
+Qed.
+
 Theorem canonic_exp_round_ge :
   forall x,
   round rnd x <> R0 ->
   (canonic_exp x <= canonic_exp (round rnd x))%Z.
 Proof with auto with typeclass_instances.
 intros x Zr.
-destruct (total_order_T x 0) as [[Hx|Hx]|Hx].
-(* x < 0 *)
-destruct (round_DN_or_UP rnd x) as [Hd|Hu].
+unfold canonic_exp.
 apply monotone_exp.
-apply ln_beta_le_abs.
-apply Rlt_not_eq with (1 := Hx).
-rewrite Hd.
-rewrite Rabs_left with (1 := Hx).
-rewrite Rabs_left1.
-apply Ropp_le_contravar.
-eapply round_DN_pt.
-apply Rlt_le.
-apply Rle_lt_trans with (2 := Hx).
-eapply round_DN_pt.
-replace (canonic_exp x) with (canonic_exp (round rnd x)).
-apply Zle_refl.
-rewrite Hu.
-pattern x at 1 ; rewrite <- Ropp_involutive.
-rewrite round_UP_opp.
-rewrite canonic_exp_opp.
-rewrite <- (canonic_exp_opp x).
-apply canonic_exp_DN.
-rewrite round_DN_opp, <- Hu.
-rewrite <- Ropp_0.
-apply Ropp_lt_contravar.
-apply Rnot_le_lt.
-contradict Zr.
-apply Rle_antisym with (2 := Zr).
-apply round_le_generic...
-apply generic_format_0.
-now apply Rlt_le.
-(* x = 0 *)
-rewrite Hx, round_0...
-apply Zle_refl.
-(* x > 0 *)
-destruct (round_DN_or_UP rnd x) as [Hd|Hu].
-rewrite Hd.
-rewrite canonic_exp_DN.
-apply Zle_refl.
-rewrite <- Hd.
-apply Rnot_ge_lt.
-contradict Zr.
-apply Rge_le in Zr.
-apply Rle_antisym with (1 := Zr).
-apply round_ge_generic...
-apply generic_format_0.
-now apply Rlt_le.
-apply monotone_exp.
-apply ln_beta_le with (1 := Hx).
-rewrite Hu.
-eapply round_UP_pt.
+now apply ln_beta_round_ge.
 Qed.
 
 End monotone_exp.
@@ -1693,7 +1691,6 @@ now apply (Z2R_lt 0 2).
 apply Rlt_le.
 now apply Znearest_N_strict.
 Qed.
-
 
 Theorem round_N_pt :
   forall x,
