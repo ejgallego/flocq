@@ -502,6 +502,19 @@ rewrite Zfloor_Z2R, Zrnd_Z2R in Hx.
 apply Zlt_irrefl with (1 := Hx).
 Qed.
 
+Theorem Zrnd_ZR_or_AW :
+  forall x, rnd x = Ztrunc x \/ rnd x = Zaway x.
+Proof.
+intros x.
+unfold Ztrunc, Zaway.
+destruct (Zrnd_DN_or_UP x) as [Hx|Hx] ;
+  case Rlt_bool.
+now right.
+now left.
+now left.
+now right.
+Qed.
+
 (** the most useful one: R -> F *)
 Definition round x :=
   F2R (Float beta (rnd (scaled_mantissa x)) (canonic_exp x)).
@@ -800,6 +813,13 @@ apply Ztrunc_le.
 apply Ztrunc_Z2R.
 Qed.
 
+Global Instance valid_rnd_AW : Valid_rnd Zaway.
+Proof.
+split.
+apply Zaway_le.
+apply Zaway_Z2R.
+Qed.
+
 Section monotone.
 
 Variable rnd : R -> Z.
@@ -812,6 +832,17 @@ Proof.
 intros x.
 unfold round.
 destruct (Zrnd_DN_or_UP rnd (scaled_mantissa x)) as [Hx|Hx].
+left. now rewrite Hx.
+right. now rewrite Hx.
+Qed.
+
+Theorem round_ZR_or_AW :
+  forall x,
+  round rnd x = round Ztrunc x \/ round rnd x = round Zaway x.
+Proof.
+intros x.
+unfold round.
+destruct (Zrnd_ZR_or_AW rnd (scaled_mantissa x)) as [Hx|Hx].
 left. now rewrite Hx.
 right. now rewrite Hx.
 Qed.
@@ -959,6 +990,134 @@ rewrite Ropp_involutive.
 now rewrite canonic_exp_opp.
 Qed.
 
+Theorem round_ZR_opp :
+  forall x,
+  round Ztrunc (- x) = Ropp (round Ztrunc x).
+Proof.
+intros x.
+unfold round.
+rewrite scaled_mantissa_opp, canonic_exp_opp, Ztrunc_opp.
+apply F2R_Zopp.
+Qed.
+
+Theorem round_ZR_abs :
+  forall x,
+  round Ztrunc (Rabs x) = Rabs (round Ztrunc x).
+Proof with auto with typeclass_instances.
+intros x.
+apply sym_eq.
+unfold Rabs at 2.
+destruct (Rcase_abs x) as [Hx|Hx].
+rewrite round_ZR_opp.
+apply Rabs_left1.
+rewrite <- (round_0 Ztrunc).
+apply round_le...
+now apply Rlt_le.
+apply Rabs_pos_eq.
+rewrite <- (round_0 Ztrunc).
+apply round_le...
+now apply Rge_le.
+Qed.
+
+Theorem round_AW_opp :
+  forall x,
+  round Zaway (- x) = Ropp (round Zaway x).
+Proof.
+intros x.
+unfold round.
+rewrite scaled_mantissa_opp, canonic_exp_opp, Zaway_opp.
+apply F2R_Zopp.
+Qed.
+
+Theorem round_AW_abs :
+  forall x,
+  round Zaway (Rabs x) = Rabs (round Zaway x).
+Proof with auto with typeclass_instances.
+intros x.
+apply sym_eq.
+unfold Rabs at 2.
+destruct (Rcase_abs x) as [Hx|Hx].
+rewrite round_AW_opp.
+apply Rabs_left1.
+rewrite <- (round_0 Zaway).
+apply round_le...
+now apply Rlt_le.
+apply Rabs_pos_eq.
+rewrite <- (round_0 Zaway).
+apply round_le...
+now apply Rge_le.
+Qed.
+
+Theorem round_ZR_pos :
+  forall x,
+  (0 <= x)%R ->
+  round Ztrunc x = round Zfloor x.
+Proof.
+intros x Hx.
+unfold round, Ztrunc.
+case Rlt_bool_spec.
+intros H.
+elim Rlt_not_le with (1 := H).
+rewrite <- (Rmult_0_l (bpow (- canonic_exp x))).
+apply Rmult_le_compat_r with (2 := Hx).
+apply bpow_ge_0.
+easy.
+Qed.
+
+Theorem round_ZR_neg :
+  forall x,
+  (x <= 0)%R ->
+  round Ztrunc x = round Zceil x.
+Proof.
+intros x Hx.
+unfold round, Ztrunc.
+case Rlt_bool_spec.
+easy.
+intros [H|H].
+elim Rlt_not_le with (1 := H).
+rewrite <- (Rmult_0_l (bpow (- canonic_exp x))).
+apply Rmult_le_compat_r with (2 := Hx).
+apply bpow_ge_0.
+rewrite <- H.
+change R0 with (Z2R 0).
+now rewrite Zfloor_Z2R, Zceil_Z2R.
+Qed.
+
+Theorem round_AW_pos :
+  forall x,
+  (0 <= x)%R ->
+  round Zaway x = round Zceil x.
+Proof.
+intros x Hx.
+unfold round, Zaway.
+case Rlt_bool_spec.
+intros H.
+elim Rlt_not_le with (1 := H).
+rewrite <- (Rmult_0_l (bpow (- canonic_exp x))).
+apply Rmult_le_compat_r with (2 := Hx).
+apply bpow_ge_0.
+easy.
+Qed.
+
+Theorem round_AW_neg :
+  forall x,
+  (x <= 0)%R ->
+  round Zaway x = round Zfloor x.
+Proof.
+intros x Hx.
+unfold round, Zaway.
+case Rlt_bool_spec.
+easy.
+intros [H|H].
+elim Rlt_not_le with (1 := H).
+rewrite <- (Rmult_0_l (bpow (- canonic_exp x))).
+apply Rmult_le_compat_r with (2 := Hx).
+apply bpow_ge_0.
+rewrite <- H.
+change R0 with (Z2R 0).
+now rewrite Zfloor_Z2R, Zceil_Z2R.
+Qed.
+
 Theorem generic_format_round :
   forall rnd { Hr : Valid_rnd rnd } x,
   generic_format (round rnd x).
@@ -1029,24 +1188,10 @@ Theorem round_ZR_pt :
 Proof.
 intros x.
 split ; intros Hx.
-(* *)
-replace (round Ztrunc x) with (round Zfloor x).
+rewrite round_ZR_pos with (1 := Hx).
 apply round_DN_pt.
-apply F2R_eq_compat.
-apply sym_eq.
-apply Ztrunc_floor.
-rewrite <- (Rmult_0_l (bpow (- canonic_exp x))).
-apply Rmult_le_compat_r with (2 := Hx).
-apply bpow_ge_0.
-(* *)
-replace (round Ztrunc x) with (round Zceil x).
+rewrite round_ZR_neg with (1 := Hx).
 apply round_UP_pt.
-apply F2R_eq_compat.
-apply sym_eq.
-apply Ztrunc_ceil.
-rewrite <- (Rmult_0_l (bpow (- canonic_exp x))).
-apply Rmult_le_compat_r with (2 := Hx).
-apply bpow_ge_0.
 Qed.
 
 Theorem round_DN_small_pos :
