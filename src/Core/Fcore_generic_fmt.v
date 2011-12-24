@@ -912,9 +912,9 @@ Qed.
 
 End monotone.
 
-Theorem round_abs_abs :
+Theorem round_abs_abs' :
   forall P : R -> R -> Prop,
-  ( forall rnd (Hr : Valid_rnd rnd) x, P x (round rnd x) ) ->
+  ( forall rnd (Hr : Valid_rnd rnd) x, (0 <= x)%R -> P x (round rnd x) ) ->
   forall rnd {Hr : Valid_rnd rnd} x, P (Rabs x) (Rabs (round rnd x)).
 Proof with auto with typeclass_instances.
 intros P HP rnd Hr x.
@@ -932,9 +932,24 @@ pattern x at 2 ; rewrite <- Ropp_involutive.
 rewrite round_opp.
 rewrite Ropp_involutive.
 apply HP...
+rewrite <- Ropp_0.
+apply Ropp_le_contravar.
+now apply Rlt_le.
 rewrite <- (round_0 rnd).
 apply round_le...
 now apply Rlt_le.
+Qed.
+
+(* TODO: remove *)
+Theorem round_abs_abs :
+  forall P : R -> R -> Prop,
+  ( forall rnd (Hr : Valid_rnd rnd) x, P x (round rnd x) ) ->
+  forall rnd {Hr : Valid_rnd rnd} x, P (Rabs x) (Rabs (round rnd x)).
+Proof.
+intros P HP.
+apply round_abs_abs'.
+intros.
+now apply HP.
 Qed.
 
 Section monotone_abs.
