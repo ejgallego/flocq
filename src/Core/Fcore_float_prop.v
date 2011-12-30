@@ -417,23 +417,9 @@ Theorem ln_beta_F2R :
   (ln_beta beta (F2R (Float beta m e)) = ln_beta beta (Z2R m) + e :> Z)%Z.
 Proof.
 intros m e H.
-destruct (ln_beta beta (Z2R m)) as (d, Hd).
-simpl.
-specialize (Hd (Z2R_neq _ _ H)).
-apply ln_beta_unique.
-rewrite <- F2R_Zabs.
-unfold F2R. simpl.
-rewrite <- Z2R_abs in Hd.
-split.
-replace (d + e - 1)%Z with (d - 1 + e)%Z by ring.
-rewrite bpow_plus.
-apply Rmult_le_compat_r.
-apply bpow_ge_0.
-apply Hd.
-rewrite bpow_plus.
-apply Rmult_lt_compat_r.
-apply bpow_gt_0.
-apply Hd.
+unfold F2R ; simpl.
+apply ln_beta_mult_bpow.
+exact (Z2R_neq m 0 H).
 Qed.
 
 Theorem float_distribution_pos :

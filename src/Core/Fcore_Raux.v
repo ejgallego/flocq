@@ -1771,6 +1771,28 @@ apply Rle_ge.
 apply bpow_ge_0.
 Qed.
 
+Theorem ln_beta_mult_bpow :
+  forall x e, x <> R0 ->
+  (ln_beta (x * bpow e) = ln_beta x + e :>Z)%Z.
+Proof.
+intros x e Zx.
+destruct (ln_beta x) as (ex, Ex) ; simpl.
+specialize (Ex Zx).
+apply ln_beta_unique.
+rewrite Rabs_mult.
+rewrite (Rabs_pos_eq (bpow e)) by apply bpow_ge_0.
+split.
+replace (ex + e - 1)%Z with (ex - 1 + e)%Z by ring.
+rewrite bpow_plus.
+apply Rmult_le_compat_r.
+apply bpow_ge_0.
+apply Ex.
+rewrite bpow_plus.
+apply Rmult_lt_compat_r.
+apply bpow_gt_0.
+apply Ex.
+Qed.
+
 Theorem ln_beta_le_bpow :
   forall x e,
   x <> R0 ->
