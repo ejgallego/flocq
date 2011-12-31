@@ -1940,4 +1940,67 @@ now apply Rabs_left.
 now apply Rabs_pos_eq.
 Qed.
 
+Theorem cond_Ropp_involutive :
+  forall b x,
+  cond_Ropp b (cond_Ropp b x) = x.
+Proof.
+intros [|] x.
+apply Ropp_involutive.
+apply refl_equal.
+Qed.
+
+Theorem cond_Ropp_even_function :
+  forall {A : Type} (f : R -> A),
+  (forall x, f (Ropp x) = f x) ->
+  forall b x, f (cond_Ropp b x) = f x.
+Proof.
+now intros A f Hf [|] x ; simpl.
+Qed.
+
+Theorem cond_Ropp_odd_function :
+  forall (f : R -> R),
+  (forall x, f (Ropp x) = Ropp (f x)) ->
+  forall b x, f (cond_Ropp b x) = cond_Ropp b (f x).
+Proof.
+now intros f Hf [|] x ; simpl.
+Qed.
+
+Theorem cond_Ropp_inj :
+  forall b x y,
+  cond_Ropp b x = cond_Ropp b y -> x = y.
+Proof.
+intros b x y H.
+rewrite <- (cond_Ropp_involutive b x), H.
+apply cond_Ropp_involutive.
+Qed.
+
+Theorem cond_Ropp_mult_l :
+  forall b x y,
+  cond_Ropp b (x * y) = (cond_Ropp b x * y)%R.
+Proof.
+intros [|] x y.
+apply sym_eq.
+apply Ropp_mult_distr_l_reverse.
+apply refl_equal.
+Qed.
+
+Theorem cond_Ropp_mult_r :
+  forall b x y,
+  cond_Ropp b (x * y) = (x * cond_Ropp b y)%R.
+Proof.
+intros [|] x y.
+apply sym_eq.
+apply Ropp_mult_distr_r_reverse.
+apply refl_equal.
+Qed.
+
+Theorem cond_Ropp_plus :
+  forall b x y,
+  cond_Ropp b (x + y) = (cond_Ropp b x + cond_Ropp b y)%R.
+Proof.
+intros [|] x y.
+apply Ropp_plus_distr.
+apply refl_equal.
+Qed.
+
 End cond_opp.
