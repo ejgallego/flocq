@@ -1747,6 +1747,25 @@ apply Rlt_le.
 now apply Znearest_N_strict.
 Qed.
 
+Theorem Znearest_imp :
+  forall x n,
+  (Rabs (x - Z2R n) < /2)%R ->
+  Znearest x = n.
+Proof.
+intros x n Hd.
+cut (Zabs (Znearest x - n) < 1)%Z.
+clear ; zify ; omega.
+apply lt_Z2R.
+rewrite Z2R_abs, Z2R_minus.
+replace (Z2R (Znearest x) - Z2R n)%R with (- (x - Z2R (Znearest x)) + (x - Z2R n))%R by ring.
+apply Rle_lt_trans with (1 := Rabs_triang _ _).
+simpl.
+replace R1 with (/2 + /2)%R by field.
+apply Rplus_le_lt_compat with (2 := Hd).
+rewrite Rabs_Ropp.
+apply Znearest_N.
+Qed.
+
 Theorem round_N_pt :
   forall x,
   Rnd_N_pt generic_format x (round Znearest x).
