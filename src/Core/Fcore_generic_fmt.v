@@ -976,6 +976,19 @@ intros.
 now apply HP.
 Qed.
 
+Theorem round_bounded_large :
+  forall rnd {Hr : Valid_rnd rnd} x ex,
+  (fexp ex < ex)%Z ->
+  (bpow (ex - 1) <= Rabs x < bpow ex)%R ->
+  (bpow (ex - 1) <= Rabs (round rnd x) <= bpow ex)%R.
+Proof with auto with typeclass_instances.
+intros rnd Hr x ex He.
+apply round_abs_abs...
+clear rnd Hr x.
+intros rnd' Hr x.
+apply round_bounded_large_pos...
+Qed.
+
 Section monotone_abs.
 
 Variable rnd : R -> Z.
