@@ -1330,6 +1330,37 @@ apply round_DN_pt.
 apply Rabs_pos.
 Qed.
 
+Theorem ln_beta_round :
+  forall rnd {Hrnd : Valid_rnd rnd} x,
+  (round rnd x <> 0)%R ->
+  (ln_beta beta (round rnd x) = ln_beta beta x :> Z) \/
+  Rabs (round rnd x) = bpow (Zmax (ln_beta beta x) (fexp (ln_beta beta x))).
+Proof with auto with typeclass_instances.
+intros rnd Hrnd x.
+destruct (round_ZR_or_AW rnd x) as [Hr|Hr] ; rewrite Hr ; clear Hr rnd Hrnd.
+left.
+now apply ln_beta_round_ZR.
+intros Zr.
+destruct (Req_dec x 0) as [Zx|Zx].
+rewrite Zx, round_0...
+destruct (ln_beta beta x) as (ex, Ex) ; simpl.
+specialize (Ex Zx).
+rewrite <- ln_beta_abs.
+rewrite <- round_AW_abs.
+destruct (Zle_or_lt ex (fexp ex)) as [He|He].
+right.
+rewrite Zmax_r with (1 := He).
+rewrite round_AW_pos with (1 := Rabs_pos _).
+now apply round_UP_small_pos.
+destruct (round_bounded_large_pos Zaway _ ex He Ex) as (H1,[H2|H2]).
+left.
+apply ln_beta_unique.
+rewrite <- round_AW_abs, Rabs_Rabsolu.
+now split.
+right.
+now rewrite Zmax_l with (1 := Zlt_le_weak _ _ He).
+Qed.
+
 Theorem ln_beta_round_DN :
   forall x,
   (0 < round Zfloor x)%R ->
