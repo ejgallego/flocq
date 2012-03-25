@@ -51,15 +51,26 @@ Theorem valid_exp_large :
   (fexp l < l)%Z.
 Proof.
 intros k l Hk H.
-replace l with (k + Z_of_nat (Zabs_nat (l - k)))%Z.
-induction (Zabs_nat (l - k)).
-now rewrite Zplus_0_r.
-rewrite inj_S, <- Zplus_succ_r_reverse.
-apply Zle_lt_succ.
-now apply valid_exp_.
-rewrite inj_Zabs_nat, Zabs_eq.
-ring.
-now apply Zle_minus_le_0.
+apply Znot_ge_lt.
+intros Hl.
+apply Zge_le in Hl.
+assert (H' := proj2 (proj2 (valid_exp l) Hl) k).
+omega.
+Qed.
+
+Theorem valid_exp_large' :
+  forall k l,
+  (fexp k < k)%Z -> (l <= k)%Z ->
+  (fexp l < k)%Z.
+Proof.
+intros k l Hk H.
+apply Znot_ge_lt.
+intros H'.
+apply Zge_le in H'.
+assert (Hl := Zle_trans _ _ _ H H').
+apply valid_exp in Hl.
+assert (H1 := proj2 Hl k H').
+omega.
 Qed.
 
 Definition canonic_exp x :=
@@ -456,38 +467,37 @@ specialize (Hp ex).
 omega.
 Qed.
 
-Theorem generic_format_bpow_inv :
+Theorem generic_format_bpow_inv' :
   forall e,
-    generic_format (bpow e) ->
-   (fexp e <= e)%Z.
+  generic_format (bpow e) ->
+  (fexp (e + 1) <= e)%Z.
 Proof.
 intros e He.
-apply Znot_gt_le; intros He2.
-assert (e+1 <= fexp (e+1))%Z.
-replace (fexp (e+1)) with (fexp e).
-omega.
-destruct (valid_exp e) as (Y1,Y2).
-apply sym_eq; apply Y2; omega.
-absurd (bpow e=0)%R.
-apply sym_not_eq; apply Rlt_not_eq.
-apply bpow_gt_0.
-rewrite He.
-replace (Ztrunc (scaled_mantissa (bpow e))) with 0%Z.
-apply F2R_0.
-apply sym_eq.
+apply Znot_gt_le.
+contradict He.
+unfold generic_format, scaled_mantissa, canonic_exp, F2R. simpl.
+rewrite ln_beta_bpow, <- bpow_plus.
+apply Rgt_not_eq.
 rewrite Ztrunc_floor.
-unfold scaled_mantissa, canonic_exp.
-apply mantissa_DN_small_pos; trivial.
-rewrite ln_beta_bpow.
+2: apply bpow_ge_0.
+rewrite Zfloor_imp with (n := Z0).
+rewrite Rmult_0_l.
+apply bpow_gt_0.
 split.
-apply Req_le.
-apply f_equal.
-ring.
-apply bpow_lt.
+apply bpow_ge_0.
+apply (bpow_lt _ _ 0).
+clear -He ; omega.
+Qed.
+
+Theorem generic_format_bpow_inv :
+  forall e,
+  generic_format (bpow e) ->
+  (fexp e <= e)%Z.
+Proof.
+intros e He.
+apply generic_format_bpow_inv' in He.
+assert (H := valid_exp_large' (e + 1) e).
 omega.
-now rewrite ln_beta_bpow.
-unfold scaled_mantissa.
-apply Rmult_le_pos; apply bpow_ge_0.
 Qed.
 
 Section Fcore_generic_round_pos.
