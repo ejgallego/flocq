@@ -723,6 +723,82 @@ now apply generic_format_pred_2.
 now apply generic_format_pred_1.
 Qed.
 
+Theorem generic_format_plus_ulp :
+  forall { monotone_exp : Monotone_exp fexp },
+  forall x, (x <> 0)%R ->
+  F x -> F (x + ulp x).
+Proof with auto with typeclass_instances.
+intros monotone_exp x Zx Fx.
+destruct (Rtotal_order x 0) as [Hx|[Hx|Hx]].
+rewrite <- Ropp_involutive.
+apply generic_format_opp.
+rewrite Ropp_plus_distr, <- ulp_opp.
+apply generic_format_opp in Fx.
+destruct (Req_dec (-x) (bpow (ln_beta beta (-x) - 1))) as [Hx'|Hx'].
+rewrite Hx' in Fx |- *.
+apply generic_format_bpow_inv' in Fx...
+unfold ulp, canonic_exp.
+rewrite ln_beta_bpow.
+revert Fx.
+generalize (ln_beta_val _ _ (ln_beta beta (-x)) - 1)%Z.
+clear -monotone_exp valid_exp.
+intros e He.
+destruct (Zle_lt_or_eq _ _ He) as [He1|He1].
+assert (He2 : e = (e - fexp (e + 1) + fexp (e + 1))%Z) by ring.
+rewrite He2 at 1.
+rewrite bpow_plus.
+assert (Hb := Z2R_Zpower beta _ (Zle_minus_le_0 _ _ He)).
+match goal with |- F (?a * ?b + - ?b) =>
+  replace (a * b + -b)%R with ((a - 1) * b)%R by ring end.
+rewrite <- Hb.
+rewrite <- (Z2R_minus _ 1).
+change (F (F2R (Float beta (Zpower beta (e - fexp (e + 1)) - 1) (fexp (e + 1))))).
+apply generic_format_F2R.
+intros Zb.
+unfold canonic_exp.
+rewrite ln_beta_F2R with (1 := Zb).
+rewrite (ln_beta_unique beta _ (e - fexp (e + 1))).
+apply monotone_exp.
+rewrite <- He2.
+apply Zle_succ.
+rewrite Rabs_pos_eq.
+rewrite Z2R_minus, Hb.
+split.
+apply Rplus_le_reg_r with (- bpow (e - fexp (e + 1) - 1) + Z2R 1)%R.
+apply Rmult_le_reg_r with (bpow (-(e - fexp (e+1) - 1))).
+apply bpow_gt_0.
+ring_simplify.
+apply Rle_trans with R1.
+rewrite Rmult_1_l.
+apply (bpow_le _ _ 0).
+clear -He1 ; omega.
+rewrite Ropp_mult_distr_l_reverse.
+rewrite <- 2!bpow_plus.
+ring_simplify (e - fexp (e + 1) - 1 + - (e - fexp (e + 1) - 1))%Z.
+ring_simplify (- (e - fexp (e + 1) - 1) + (e - fexp (e + 1)))%Z.
+simpl.
+rewrite <- (Z2R_plus (-1) _).
+apply (Z2R_le 1).
+unfold Zpower_pos, iter_pos.
+generalize (Zle_bool_imp_le _ _ (radix_prop beta)).
+clear ; omega.
+rewrite <- (Rplus_0_r (bpow (e - fexp (e + 1)))) at 2.
+apply Rplus_lt_compat_l.
+now apply (Z2R_lt (-1) 0).
+rewrite Z2R_minus.
+apply Rle_0_minus.
+rewrite Hb.
+apply (bpow_le _ 0).
+now apply Zle_minus_le_0.
+rewrite He1, Rplus_opp_r.
+apply generic_format_0.
+apply generic_format_pred_1 ; try easy.
+rewrite <- Ropp_0.
+now apply Ropp_lt_contravar.
+now elim Zx.
+now apply generic_format_succ.
+Qed.
+
 Lemma pred_plus_ulp_1 :
   forall x, (0 < x)%R -> F x ->
   x <> bpow (ln_beta beta x - 1) ->
