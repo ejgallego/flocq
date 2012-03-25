@@ -799,6 +799,22 @@ now elim Zx.
 now apply generic_format_succ.
 Qed.
 
+Theorem generic_format_minus_ulp :
+  forall { monotone_exp : Monotone_exp fexp },
+  forall x, (x <> 0)%R ->
+  F x -> F (x - ulp x).
+Proof.
+intros monotone_exp x Zx Fx.
+replace (x - ulp x)%R with (-(-x + ulp x))%R by ring.
+apply generic_format_opp.
+rewrite <- ulp_opp.
+apply generic_format_plus_ulp.
+contradict Zx.
+rewrite <- (Ropp_involutive x), Zx.
+apply Ropp_0.
+now apply generic_format_opp.
+Qed.
+
 Lemma pred_plus_ulp_1 :
   forall x, (0 < x)%R -> F x ->
   x <> bpow (ln_beta beta x - 1) ->
