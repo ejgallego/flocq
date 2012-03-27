@@ -1822,6 +1822,18 @@ rewrite Zx, Rabs_R0.
 apply bpow_gt_0.
 Qed.
 
+Theorem bpow_ln_beta_gt :
+  forall x,
+  (Rabs x < bpow (ln_beta x))%R.
+Proof.
+intros x.
+destruct (Req_dec x 0) as [Zx|Zx].
+rewrite Zx, Rabs_R0.
+apply bpow_gt_0.
+destruct (ln_beta x) as (ex, Ex) ; simpl.
+now apply Ex.
+Qed.
+
 Theorem ln_beta_le_Zpower :
   forall m e,
   m <> Z0 ->

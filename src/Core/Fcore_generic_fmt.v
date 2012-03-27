@@ -349,6 +349,21 @@ now apply Rle_lt_trans with (2 := Ex).
 now rewrite (proj2 (proj2 (valid_exp _) He)).
 Qed.
 
+Theorem abs_scaled_mantissa_lt_bpow :
+  forall x,
+  (Rabs (scaled_mantissa x) < bpow (ln_beta beta x - canonic_exp x))%R.
+Proof.
+intros x.
+destruct (Req_dec x 0) as [Zx|Zx].
+rewrite Zx, scaled_mantissa_0, Rabs_R0.
+apply bpow_gt_0.
+apply Rlt_le_trans with (1 := bpow_ln_beta_gt beta _).
+apply bpow_le.
+unfold scaled_mantissa.
+rewrite ln_beta_mult_bpow with (1 := Zx).
+apply Zle_refl.
+Qed.
+
 Theorem ln_beta_generic_gt :
   forall x, (x <> 0)%R ->
   generic_format x ->
