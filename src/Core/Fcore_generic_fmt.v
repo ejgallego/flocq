@@ -1505,6 +1505,29 @@ now apply Zlt_le_succ.
 now apply valid_exp.
 Qed.
 
+Lemma canonic_exp_le_bpow :
+  forall (x : R) (e : Z),
+  x <> R0 ->
+  (Rabs x < bpow e)%R ->
+  (canonic_exp x <= fexp e)%Z.
+Proof.
+intros x e Zx Hx.
+apply monotone_exp.
+now apply ln_beta_le_bpow.
+Qed.
+
+Lemma canonic_exp_ge_bpow :
+  forall (x : R) (e : Z),
+  (bpow (e - 1) <= Rabs x)%R ->
+  (fexp e <= canonic_exp x)%Z.
+Proof.
+intros x e Hx.
+apply monotone_exp.
+rewrite (Zsucc_pred e).
+apply Zlt_le_succ.
+now apply ln_beta_gt_bpow.
+Qed.
+
 Variable rnd : R -> Z.
 Context { valid_rnd : Valid_rnd rnd }.
 
