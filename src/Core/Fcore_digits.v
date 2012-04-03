@@ -209,7 +209,7 @@ Qed.
 
 Theorem Zdigit_div_pow :
   forall n k k', (0 <= k)%Z -> (0 <= k')%Z ->
-  Zdigit (n / Zpower beta k') k = Zdigit n (k + k').
+  Zdigit (ZOdiv n (Zpower beta k')) k = Zdigit n (k + k').
 Proof.
 intros n k k' Hk Hk'.
 unfold Zdigit.
@@ -416,7 +416,7 @@ Theorem ZOdiv_plus_pow_digit :
   ZOdiv (u + v) (Zpower beta n) = (ZOdiv u (Zpower beta n) + ZOdiv v (Zpower beta n))%Z.
 Proof.
 intros u v n Huv Hd.
-rewrite <- (Zplus_0_r (u / beta ^ n + v / beta ^ n)).
+rewrite <- (Zplus_0_r (ZOdiv u (Zpower beta n) + ZOdiv v (Zpower beta n))).
 rewrite ZOdiv_plus with (1 := Huv).
 rewrite <- ZOmod_plus_pow_digit by assumption.
 apply f_equal.
@@ -467,7 +467,7 @@ now rewrite 3!Zdigit_lt.
 Qed.
 
 Definition Zscale n k :=
-  if Zle_bool 0 k then n * Zpower beta k else ZOdiv n (Zpower beta (-k)).
+  if Zle_bool 0 k then (n * Zpower beta k)%Z else ZOdiv n (Zpower beta (-k)).
 
 Theorem Zdigit_scale :
   forall n k k', (0 <= k')%Z ->
@@ -549,7 +549,7 @@ Definition Zslice n k1 k2 :=
   if Zle_bool 0 k2 then ZOmod (Zscale n (-k1)) (Zpower beta k2) else Z0.
 
 Theorem Zdigit_slice :
-  forall n k1 k2 k, (0 <= k < k2) ->
+  forall n k1 k2 k, (0 <= k < k2)%Z ->
   Zdigit (Zslice n k1 k2) k = Zdigit n (k1 + k).
 Proof.
 intros n k1 k2 k Hk.
@@ -642,7 +642,7 @@ Qed.
 
 Theorem Zslice_div_pow :
   forall n k k1 k2, (0 <= k)%Z -> (0 <= k1)%Z ->
-  Zslice (n / Zpower beta k) k1 k2 = Zslice n (k1 + k) k2.
+  Zslice (ZOdiv n (Zpower beta k)) k1 k2 = Zslice n (k1 + k) k2.
 Proof.
 intros n k k1 k2 Hk Hk1.
 unfold Zslice.
@@ -678,7 +678,7 @@ Qed.
 
 Theorem Zslice_div_pow_scale :
   forall n k k1 k2, (0 <= k)%Z ->
-  Zslice (n / Zpower beta k) k1 k2 = Zscale (Zslice n k (k1 + k2)) (-k1).
+  Zslice (ZOdiv n (Zpower beta k)) k1 k2 = Zscale (Zslice n k (k1 + k2)) (-k1).
 Proof.
 intros n k k1 k2 Hk.
 apply Zdigit_ext.
@@ -876,7 +876,7 @@ intros n Zn.
 apply Zdigit_not_0.
 apply Zlt_0_le_0_pred.
 now apply Zdigits_gt_0.
-ring_simplify (Zdigits n - 1 + 1).
+ring_simplify (Zdigits n - 1 + 1)%Z.
 apply Zdigits_correct.
 Qed.
 
@@ -887,7 +887,7 @@ Proof.
 intros n k l Hl.
 unfold Zslice.
 rewrite Zle_bool_true with (1 := Hl).
-destruct (Zdigits_correct (Zscale n (- k) mod beta ^ l)) as (H1,H2).
+destruct (Zdigits_correct (ZOmod (Zscale n (- k)) (Zpower beta l))) as (H1,H2).
 apply Zpower_lt_Zpower with beta.
 apply Zle_lt_trans with (1 := H1).
 rewrite <- (Zabs_eq (beta ^ l)) at 2 by apply Zpower_ge_0.

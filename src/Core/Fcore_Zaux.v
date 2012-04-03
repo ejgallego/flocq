@@ -165,7 +165,7 @@ Theorem Zpower_nat_S :
 Proof.
 intros b e.
 rewrite (Zpower_nat_is_exp 1 e).
-apply (f_equal (fun x => x * _)).
+apply (f_equal (fun x => x * _)%Z).
 apply Zmult_1_r.
 Qed.
 
@@ -193,7 +193,7 @@ rewrite Zpower_exp.
 rewrite Zeven_mult.
 replace (Zeven (b ^ 1)) with true.
 apply Bool.orb_true_r.
-unfold Zpower, Zpower_pos, iter_pos.
+unfold Zpower, Zpower_pos. simpl.
 now rewrite Zmult_1_r.
 omega.
 discriminate.
@@ -397,7 +397,7 @@ Theorem ZOmod_mod_mult :
   ZOmod (ZOmod n (a * b)) b = ZOmod n b.
 Proof.
 intros n a b.
-assert (ZOmod n (a * b) = n + - (n / (a * b) * a) * b)%Z.
+assert (ZOmod n (a * b) = n + - (ZOdiv n (a * b) * a) * b)%Z.
 rewrite <- Zopp_mult_distr_l.
 rewrite <- Zmult_assoc.
 apply ZOmod_eq.
@@ -440,7 +440,7 @@ intros n a b.
 destruct (Z_eq_dec a 0) as [Za|Za].
 rewrite Za.
 now rewrite 2!ZOdiv_0_r, ZOmod_0_l.
-assert (ZOmod n (a * b) = n + - (n / a / b * b) * a)%Z.
+assert (ZOmod n (a * b) = n + - (ZOdiv (ZOdiv n a) b * b) * a)%Z.
 rewrite (ZOmod_eq n (a * b)) at 1.
 rewrite ZOdiv_ZOdiv.
 ring.
@@ -495,7 +495,7 @@ destruct (Z_eq_dec c 0) as [Zc|Zc].
 now rewrite Zc, 4!ZOdiv_0_r.
 apply Zmult_reg_r with (1 := Zc).
 rewrite 2!Zmult_plus_distr_l.
-assert (forall d, (d / c) * c = d - d mod c)%Z.
+assert (forall d, ZOdiv d c * c = d - ZOmod d c)%Z.
 intros d.
 rewrite ZOmod_eq.
 ring.

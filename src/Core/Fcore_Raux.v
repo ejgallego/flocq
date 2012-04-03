@@ -1435,7 +1435,7 @@ Qed.
 Theorem bpow_1 :
   bpow 1 = Z2R r.
 Proof.
-unfold bpow, Zpower_pos, iter_pos.
+unfold bpow, Zpower_pos. simpl.
 now rewrite Zmult_1_r.
 Qed.
 
