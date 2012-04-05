@@ -776,10 +776,9 @@ rewrite Ropp_mult_distr_l_reverse.
 rewrite <- 2!bpow_plus.
 ring_simplify (e - fexp (e + 1) - 1 + - (e - fexp (e + 1) - 1))%Z.
 ring_simplify (- (e - fexp (e + 1) - 1) + (e - fexp (e + 1)))%Z.
-simpl.
+rewrite bpow_1.
 rewrite <- (Z2R_plus (-1) _).
 apply (Z2R_le 1).
-unfold Zpower_pos, iter_pos.
 generalize (Zle_bool_imp_le _ _ (radix_prop beta)).
 clear ; omega.
 rewrite <- (Rplus_0_r (bpow (e - fexp (e + 1)))) at 2.
