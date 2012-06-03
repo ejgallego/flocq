@@ -1,3 +1,9 @@
+Version 2.1.0:
+ - ensured compatibility with both Coq 8.3 and 8.4
+ - improved support for rounding toward and away from zero
+ - proved that formats are stable by arbitrary rounding or ulp addition
+ - generalized usage of ln_beta
+
 Version 2.0.0:
  - changed rounding modes from records to R -> Z functions as arguments
    to the round function
