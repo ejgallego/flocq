@@ -196,6 +196,15 @@ apply canonic_canonic_mantissa.
 now destruct (andb_prop _ _ Hx) as (H, _).
 Qed.
 
+Theorem FLT_format_B2R :
+  forall x,
+  FLT_format radix2 emin prec (B2R x).
+Proof.
+intros x.
+apply FLT_format_generic...
+apply generic_format_B2R.
+Qed.
+
 Theorem B2FF_inj :
   forall x y : binary_float,
   B2FF x = B2FF y ->
@@ -317,14 +326,11 @@ rewrite <- F2R_opp.
 now case sx.
 Qed.
 
-
 Theorem is_finite_Bopp: forall x,
   is_finite (Bopp x) = is_finite x.
 Proof.
 now intros [| | |].
 Qed.
-
-
 
 Theorem bounded_lt_emax :
   forall mx ex,
