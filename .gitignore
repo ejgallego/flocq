@@ -1,0 +1,14 @@
+aclocal.m4
+autom4te.cache
+ChangeLog
+config.log
+config.status
+configure
+install-sh
+Makefile.in
+Makefile
+missing
+src/Flocq_version.v
+*.vo
+*.vd
+*.glob
