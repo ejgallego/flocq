@@ -199,7 +199,7 @@ Qed.
 Theorem FLT_format_B2R :
   forall x,
   FLT_format radix2 emin prec (B2R x).
-Proof.
+Proof with auto with typeclass_instances.
 intros x.
 apply FLT_format_generic...
 apply generic_format_B2R.
