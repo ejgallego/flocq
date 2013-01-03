@@ -428,6 +428,7 @@ Qed.
 Variable rnd : R -> Z.
 Context { valid_rnd : Valid_rnd rnd }.
 
+(* TODO: remove *)
 Theorem relative_error_FLT_F2R_emin :
   forall m, let x := F2R (Float beta m (emin + prec - 1)) in
   (x <> 0)%R ->
@@ -448,15 +449,38 @@ apply relative_error with (emin + prec - 1)%Z...
 apply relative_error_FLT_aux.
 Qed.
 
+Theorem relative_error_FLT_F2R_emin' :
+  forall m, let x := F2R (Float beta m emin) in
+  (x <> 0)%R ->
+  (Rabs (round beta (FLT_exp emin prec) rnd x - x) < bpow (-prec + 1) * Rabs x)%R.
+Proof with auto with typeclass_instances.
+intros m x Zx.
+destruct (Rlt_or_le (Rabs x) (bpow (emin + prec - 1))) as [Hx|Hx].
+rewrite round_generic...
+unfold Rminus.
+rewrite Rplus_opp_r, Rabs_R0.
+apply Rmult_lt_0_compat.
+apply bpow_gt_0.
+now apply Rabs_pos_lt.
+apply generic_format_FLT_FIX...
+apply Rlt_le.
+apply Rlt_le_trans with (1 := Hx).
+apply bpow_le.
+apply Zle_pred.
+apply generic_format_FIX.
+now exists (Float beta m emin).
+now apply relative_error_FLT.
+Qed.
+
 Theorem relative_error_FLT_F2R_emin_ex' :
-  forall m, let x := F2R (Float beta m (emin + prec - 1)) in
+  forall m, let x := F2R (Float beta m emin) in
   exists eps,
   (Rabs eps < bpow (-prec + 1))%R /\ round beta (FLT_exp emin prec) rnd x = (x * (1 + eps))%R.
 Proof with auto with typeclass_instances.
 intros m x.
 apply relative_error_lt_conversion'...
 apply bpow_gt_0.
-now apply relative_error_FLT_F2R_emin.
+now apply relative_error_FLT_F2R_emin'.
 Qed.
 
 (* TODO: remove *)
@@ -467,7 +491,9 @@ Theorem relative_error_FLT_F2R_emin_ex :
   (Rabs eps < bpow (-prec + 1))%R /\ round beta (FLT_exp emin prec) rnd x = (x * (1 + eps))%R.
 Proof with auto with typeclass_instances.
 intros m x _.
-apply relative_error_FLT_F2R_emin_ex'.
+apply relative_error_lt_conversion'...
+apply bpow_gt_0.
+now apply relative_error_FLT_F2R_emin.
 Qed.
 
 (** 1+#&epsilon;# property in any rounding in FLT *)
@@ -522,6 +548,32 @@ apply relative_error_N_round with (emin + prec - 1)%Z...
 apply relative_error_FLT_aux.
 Qed.
 
+Theorem relative_error_N_FLT_F2R_emin' :
+  forall m, let x := F2R (Float beta m emin) in
+  (Rabs (round beta (FLT_exp emin prec) (Znearest choice) x - x) <= /2 * bpow (-prec + 1) * Rabs x)%R.
+Proof with auto with typeclass_instances.
+intros m x.
+destruct (Rlt_or_le (Rabs x) (bpow (emin + prec - 1))) as [Hx|Hx].
+rewrite round_generic...
+unfold Rminus.
+rewrite Rplus_opp_r, Rabs_R0.
+apply Rmult_le_pos.
+apply Rmult_le_pos.
+apply Rlt_le.
+apply (RinvN_pos 1).
+apply bpow_ge_0.
+apply Rabs_pos.
+apply generic_format_FLT_FIX...
+apply Rlt_le.
+apply Rlt_le_trans with (1 := Hx).
+apply bpow_le.
+apply Zle_pred.
+apply generic_format_FIX.
+now exists (Float beta m emin).
+now apply relative_error_N_FLT.
+Qed.
+
+(* TODO: remove *)
 Theorem relative_error_N_FLT_F2R_emin :
   forall m, let x := F2R (Float beta m (emin + prec - 1)) in
   (Rabs (round beta (FLT_exp emin prec) (Znearest choice) x - x) <= /2 * bpow (-prec + 1) * Rabs x)%R.
@@ -531,6 +583,21 @@ apply relative_error_N_F2R_emin...
 apply relative_error_FLT_aux.
 Qed.
 
+Theorem relative_error_N_FLT_F2R_emin_ex' :
+  forall m, let x := F2R (Float beta m emin) in
+  exists eps,
+  (Rabs eps <= /2 * bpow (-prec + 1))%R /\ round beta (FLT_exp emin prec) (Znearest choice) x = (x * (1 + eps))%R.
+Proof with auto with typeclass_instances.
+intros m x.
+apply relative_error_le_conversion...
+apply Rmult_le_pos.
+apply Rlt_le.
+apply (RinvN_pos 1).
+apply bpow_ge_0.
+now apply relative_error_N_FLT_F2R_emin'.
+Qed.
+
+(* TODO: remove *)
 Theorem relative_error_N_FLT_F2R_emin_ex :
   forall m, let x := F2R (Float beta m (emin + prec - 1)) in
   exists eps,
@@ -546,6 +613,33 @@ apply bpow_gt_0.
 now apply relative_error_N_FLT_F2R_emin.
 Qed.
 
+Theorem relative_error_N_FLT_round_F2R_emin' :
+  forall m, let x := F2R (Float beta m emin) in
+  (Rabs (round beta (FLT_exp emin prec) (Znearest choice) x - x) <= /2 * bpow (-prec + 1) * Rabs (round beta (FLT_exp emin prec) (Znearest choice) x))%R.
+Proof with auto with typeclass_instances.
+intros m x.
+destruct (Rlt_or_le (Rabs x) (bpow (emin + prec - 1))) as [Hx|Hx].
+rewrite round_generic...
+unfold Rminus.
+rewrite Rplus_opp_r, Rabs_R0.
+apply Rmult_le_pos.
+apply Rmult_le_pos.
+apply Rlt_le.
+apply (RinvN_pos 1).
+apply bpow_ge_0.
+apply Rabs_pos.
+apply generic_format_FLT_FIX...
+apply Rlt_le.
+apply Rlt_le_trans with (1 := Hx).
+apply bpow_le.
+apply Zle_pred.
+apply generic_format_FIX.
+now exists (Float beta m emin).
+apply relative_error_N_round with (emin := (emin + prec - 1)%Z)...
+apply relative_error_FLT_aux.
+Qed.
+
+(* TODO: remove *)
 Theorem relative_error_N_FLT_round_F2R_emin :
   forall m, let x := F2R (Float beta m (emin + prec - 1)) in
   (Rabs (round beta (FLT_exp emin prec) (Znearest choice) x - x) <= /2 * bpow (-prec + 1) * Rabs (round beta (FLT_exp emin prec) (Znearest choice) x))%R.
