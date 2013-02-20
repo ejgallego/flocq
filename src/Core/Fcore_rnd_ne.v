@@ -499,6 +499,25 @@ rewrite Zeven_plus.
 now rewrite eqb_sym.
 Qed.
 
+Lemma round_NE_abs:
+  forall x : R,
+  round beta fexp ZnearestE (Rabs x) = Rabs (round beta fexp ZnearestE x).
+Proof with auto with typeclass_instances.
+intros x.
+apply sym_eq.
+unfold Rabs at 2.
+destruct (Rcase_abs x) as [Hx|Hx].
+rewrite round_NE_opp.
+apply Rabs_left1.
+rewrite <- (round_0 beta fexp ZnearestE).
+apply round_le...
+now apply Rlt_le.
+apply Rabs_pos_eq.
+rewrite <- (round_0 beta fexp ZnearestE).
+apply round_le...
+now apply Rge_le.
+Qed.
+
 Theorem round_NE_pt :
   forall x,
   Rnd_NE_pt x (round beta fexp ZnearestE x).
