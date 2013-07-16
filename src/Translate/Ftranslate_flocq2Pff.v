@@ -24,6 +24,76 @@ Require Import Fcore.
 Require Import Fappli_IEEE.
 
 
+Section Bounds.
+
+
+Definition nat_to_N (n:nat) := match n with 
+   |  0    => N0
+   | (S m) => (Npos (P_of_succ_nat m))
+   end.
+
+Lemma nat_to_N_correct: forall n:nat, Z_of_N (nat_to_N n)=n.
+intros.
+intros; induction n; simpl; auto.
+Qed.
+
+
+Definition make_bound (p E:nat) := Bound 
+      (P_of_succ_nat (Peano.pred (Zabs_nat (Zpower_nat 2%Z p))))
+      (nat_to_N E).
+
+Lemma make_EGivesEmin: forall p E:nat, 
+        (Z_of_N (dExp (make_bound p E)))=E.
+intros; simpl; apply nat_to_N_correct.
+Qed.
+
+Lemma make_pGivesBound: forall p E:nat, 
+        Zpos (vNum (make_bound p E))=(Zpower_nat 2 p).
+intros.
+unfold make_bound, vNum.
+apply
+ trans_eq
+  with
+    (Z_of_nat
+       (nat_of_P
+          (P_of_succ_nat
+             (Peano.pred (Zabs_nat (Zpower_nat 2 p)))))).
+unfold Z_of_nat in |- *; rewrite nat_of_P_o_P_of_succ_nat_eq_succ;
+ auto with zarith.
+rewrite nat_of_P_o_P_of_succ_nat_eq_succ; auto with arith zarith.
+cut (Zabs (Zpower_nat 2 p) = Zpower_nat 2 p).
+intros H; pattern (Zpower_nat 2 p) at 2 in |- *; rewrite <- H.
+rewrite Zabs_absolu.
+rewrite <- (S_pred (Zabs_nat (Zpower_nat 2 p)) 0);
+ auto with arith zarith.
+apply lt_Zlt_inv; simpl in |- *; auto with zarith arith.
+rewrite <- Zabs_absolu; rewrite H; auto with arith zarith.
+apply Zabs_eq; auto with arith zarith.
+Qed.
+
+Definition bsingle := make_bound 24 149.
+
+Lemma psGreaterThanOne: 1 < 24.
+auto with arith.
+Qed.
+
+Lemma psGivesBound: Zpos (vNum bsingle) = Zpower_nat 2 24.
+unfold bsingle; apply make_pGivesBound.
+Qed.
+
+Definition bdouble := make_bound 53 1074.
+
+Lemma pdGreaterThanOne: 1 < 53.
+auto with arith.
+Qed.
+
+Lemma pdGivesBound: Zpos (vNum bdouble) = Zpower_nat 2 53.
+unfold bdouble; apply make_pGivesBound.
+Qed.
+
+End Bounds.
+
+
 Section Equiv.
 Variable b : Fbound.
 Variable p : nat.
@@ -250,5 +320,27 @@ apply RND_EvenClosest_correct; auto with zarith.
 apply equiv_RNDs_aux5.
 Qed.
 
-
 End Equiv.
+
+Section Equiv_instanc.
+
+Lemma equiv_RNDs_s: forall (r:R),
+   exists f:Float.float, (Fcanonic 2 bsingle f /\ (EvenClosest bsingle 2 24 r f) /\ 
+    FtoR 2 f =  round radix2 (FLT_exp (-149) 24) rndNE r).
+apply equiv_RNDs.
+apply psGivesBound.
+apply psGreaterThanOne.
+Qed.
+
+
+Lemma equiv_RNDs_d: forall (r:R),
+   exists f:Float.float, (Fcanonic 2 bdouble f /\ (EvenClosest bdouble 2 53 r f) /\ 
+    FtoR 2 f =  round radix2 (FLT_exp (-1074) 53) rndNE r).
+apply equiv_RNDs.
+apply pdGivesBound.
+apply pdGreaterThanOne.
+Qed.
+
+
+
+End Equiv_instanc.
