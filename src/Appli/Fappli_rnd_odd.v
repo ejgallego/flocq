@@ -1,6 +1,33 @@
-Require Import Fcore_rnd_ne.
+Require Import Fcore.
 
-Notation ZnearestE := (Znearest (fun x => negb (Zeven x))).
+Definition Zrnd_odd x :=  match Rcompare x (Z2R (Zfloor x))  with
+  | Eq => Zfloor x
+  | _  => match (Zeven (Zfloor x)) with
+      | true => Zceil x
+      | false => Zfloor x
+     end
+  end.
+
+
+Lemma Zrnd_odd_Zodd: forall x, x <> (Z2R (Zfloor x)) ->
+  (Zeven (Zrnd_odd x)) = false.
+Proof.
+intros x Hx; unfold Zrnd_odd.
+destruct (Rcompare_spec  x (Z2R (Zfloor x))).
+case_eq (Zeven (Zfloor x)).
+contradict H; apply Rle_not_lt.
+apply Zfloor_lb.
+trivial.
+now contradict H.
+case_eq (Zeven (Zfloor x)).
+(* difficult case *)
+intros H'.
+rewrite Zceil_floor_neq.
+rewrite Zeven_plus, H'.
+reflexivity.
+now apply sym_not_eq.
+trivial.
+Qed.
 
 Section Fcore_rnd_odd.
 
@@ -17,16 +44,32 @@ Notation format := (generic_format beta fexp).
 Notation canonic := (canonic beta fexp).
 
 
+
+
+
+Definition Rnd_DN_pt (F : R -> Prop) (x f : R) :=
+  F f /\ (f <= x)%R /\
+  forall g : R, F g -> (g <= x)%R -> (g <= f)%R.
+
+Definition Rnd_DN (F : R -> Prop) (rnd : R -> R) :=
+  forall x : R, Rnd_DN_pt F x (rnd x).
+
 Definition NE_prop (_ : R) f :=
   exists g : float beta, f = F2R g /\ canonic g /\ Zeven (Fnum g) = true.
 
 Definition Rnd_NE_pt :=
   Rnd_NG_pt format NE_prop.
 
+
+
 Theorem Rnd_NE_pt_total :
   round_pred_total Rnd_NE_pt.
+
+
 Theorem Rnd_NE_pt_monotone :
   round_pred_monotone Rnd_NE_pt.
+
+  
 Theorem Rnd_NE_pt_round :
   round_pred Rnd_NE_pt.
 split.
