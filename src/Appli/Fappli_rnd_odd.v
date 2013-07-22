@@ -294,9 +294,7 @@ reflexivity.
 apply round_generic...
 intros Y.
 replace  (Fnum {| Fnum := Zfloor (scaled_mantissa beta fexp x); Fexp := cexp x |})
-  
-
-
+   with (Fnum (Float beta 0 (fexp (ln_beta beta 0)))).
 generalize (DN_UP_parity_generic beta fexp)...
 unfold DN_UP_parity_prop.
 intros T; apply T with x; clear T.
@@ -310,30 +308,25 @@ assumption.
 apply Rmult_le_pos.
 now left.
 apply bpow_ge_0.
-unfold Fcore_generic_fmt.canonic.
-simpl.
-apply sym_eq, canonic_exp_DN...
+apply canonic_0.
 unfold Fcore_generic_fmt.canonic.
 rewrite <- H0; reflexivity.
-reflexivity.
+rewrite <- Y; unfold F2R; simpl; ring.
 apply trans_eq with (round beta fexp Ztrunc (round beta fexp Zceil x)).
 reflexivity.
 apply round_generic...
-intros Y.
 simpl.
-replace (scaled_mantissa beta fexp x) with (Z2R 0).
-rewrite Zfloor_Z2R; simpl.
-
-
-
-
-
-
-SearchAbout Fnum.
-
-
-
+apply eq_Z2R, Rmult_eq_reg_r with (bpow (cexp x)).
+unfold round, F2R in Y; simpl in Y; rewrite <- Y.
+simpl; ring.
+apply Rgt_not_eq, bpow_gt_0.
 (* . *)
+intros Y.
+case (Rle_lt_or_eq_dec 0 (round beta fexp Zfloor x)).
+rewrite <- round_0 with beta fexp Zfloor...
+apply round_le...
+now left.
+intros Hrx.
 set (ef := canonic_exp beta fexp x).
 set (mf := Zfloor (scaled_mantissa beta fexp x)).
 exists (Float beta mf ef).
@@ -342,21 +335,43 @@ repeat split; try assumption.
 simpl.
 apply trans_eq with (cexp (round beta fexp Zfloor x )).
 apply sym_eq, canonic_exp_DN...
-
-
-admit. (* dur mais ok *)
-
 reflexivity.
+intros Hrx; contradict Y.
+replace (Zfloor (scaled_mantissa beta fexp x)) with 0%Z.
+simpl; discriminate.
+apply eq_Z2R, Rmult_eq_reg_r with (bpow (cexp x)).
+unfold round, F2R in Hrx; simpl in Hrx; rewrite <- Hrx.
+simpl; ring.
+apply Rgt_not_eq, bpow_gt_0.
 Qed.
 
+End Fcore_rnd_odd.
+Section Odd_prop.
 
-assert (0 < round beta fexp Zfloor x)%R.
-case (Rle_lt_or_eq_dec 0 (round beta fexp Zfloor x)).
-rewrite <- round_0 with beta fexp Zfloor...
-apply round_le...
-now left.
-trivial.
+Variable beta : radix.
 
+Notation bpow e := (bpow beta e).
+
+Variable fexp : Z -> Z.
+Variable fexpe : Z -> Z.
+
+Context { valid_exp : Valid_exp fexp }.
+Context { exists_NE_ : Exists_NE beta fexp }.
+
+Context { valid_expe : Valid_exp fexpe }.
+Context { exists_NE_e : Exists_NE beta fexpe }.
+
+Hypothesis fexpe_fexp: forall e, (fexpe e <= fexp e -2)%Z. (*  ??? *)
+
+Theorem rnd_opp: forall x,
+  round beta fexp ZnearestE  (round beta fexpe Zrnd_odd x) = 
+               round beta fexp ZnearestE x.
+Proof with auto with typeclass_instances.
+intros x.
+apply round_unicity with (Rnd_NE_pt beta fexp) x...
+apply Rnd_NE_pt_monotone...
+2: apply round_NE_pt...
+TOTO.
 
 
 
