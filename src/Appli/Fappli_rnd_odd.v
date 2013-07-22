@@ -95,138 +95,249 @@ Notation cexp := (canonic_exp beta fexp).
 
 Definition Rnd_odd_pt (x f : R) :=
   format f /\ ((f = x)%R \/
-    ((Rnd_DN_pt format  f x \/ Rnd_UP_pt format f x) /\
+    ((Rnd_DN_pt format x f \/ Rnd_UP_pt format x f) /\
     exists g : float beta, f = F2R g /\ canonic g /\ Zeven (Fnum g) = false)).
 
 Definition Rnd_odd (rnd : R -> R) :=
   forall x : R, Rnd_odd_pt x (rnd x).
 
-
+(*
 Lemma Rmult_neq_reg_r: forall  r1 r2 r3:R, (r2 * r1 <> r3 * r1)%R -> r2 <> r3.
 intros r1 r2 r3 H1 H2.
 apply H1; rewrite H2; ring.
+Qed.*)
+
+Lemma Rmult_neq_compat_r: forall  r1 r2 r3:R, (r1 <> 0)%R -> (r2 <> r3)%R 
+   -> (r2 *r1 <> r3*r1)%R.
+intros r1 r2 r3 H H1 H2.
+now apply H1, Rmult_eq_reg_r with r1. 
+Qed.
+
+
+Theorem Rnd_odd_pt_sym :   forall x f : R,
+  Rnd_odd_pt (-x) (-f) -> Rnd_odd_pt x f.
+Proof with auto with typeclass_instances.
+intros x f (H1,H2).
+split.
+replace f with (-(-f))%R by ring.
+now apply generic_format_opp.
+destruct H2.
+left.
+replace f with (-(-f))%R by ring.
+rewrite H; ring.
+right.
+destruct H as (H2,(g,(Hg1,(Hg2,Hg3)))).
+split.
+destruct H2.
+right.
+replace f with (-(-f))%R by ring.
+replace x with (-(-x))%R by ring.
+apply Rnd_DN_UP_pt_sym...
+apply generic_format_opp.
+left.
+replace f with (-(-f))%R by ring.
+replace x with (-(-x))%R by ring.
+apply Rnd_UP_DN_pt_sym...
+apply generic_format_opp.
+exists (Float beta (-Fnum g) (Fexp g)).
+split.
+rewrite F2R_Zopp.
+replace f with (-(-f))%R by ring.
+rewrite Hg1; reflexivity.
+split.
+now apply canonic_opp.
+simpl.
+now rewrite Zeven_opp.
+Qed.
+
+
+Theorem round_odd_opp :
+  forall x,
+  (round beta fexp Zrnd_odd  (-x) = (- round beta fexp Zrnd_odd x))%R.
+Proof.
+intros x; unfold round.
+rewrite <- F2R_Zopp.
+unfold F2R; simpl.
+apply f_equal2; apply f_equal.
+rewrite scaled_mantissa_opp.
+generalize (scaled_mantissa beta fexp x); intros r.
+unfold Zrnd_odd.
+case (Req_EM_T (- r) (Z2R (Zfloor (- r)))).
+case (Req_EM_T r (Z2R (Zfloor r))).
+intros Y1 Y2.
+apply eq_Z2R.
+now rewrite Z2R_opp, <- Y1, <-Y2.
+intros Y1 Y2.
+absurd (r=Z2R (Zfloor r)); trivial.
+pattern r at 2; replace r with (-(-r))%R by ring.
+rewrite Y2, <- Z2R_opp.
+rewrite Zfloor_Z2R.
+rewrite Z2R_opp, <- Y2.
+ring.
+case (Req_EM_T r (Z2R (Zfloor r))).
+intros Y1 Y2.
+absurd (-r=Z2R (Zfloor (-r)))%R; trivial.
+pattern r at 2; rewrite Y1.
+rewrite <- Z2R_opp, Zfloor_Z2R.
+now rewrite Z2R_opp, <- Y1.
+intros Y1 Y2.
+unfold Zceil; rewrite Ropp_involutive.
+SearchAbout Zceil.
+replace  (Zeven (Zfloor (- r))) with (negb (Zeven (Zfloor r))).
+case (Zeven (Zfloor r));  simpl; ring.
+apply trans_eq with (Zeven (Zceil r)).
+rewrite Zceil_floor_neq.
+rewrite Zeven_plus.
+simpl; reflexivity.
+now apply sym_not_eq.
+rewrite <- (Zeven_opp (Zfloor (- r))).
+reflexivity.
+apply canonic_exp_opp.
+Qed.
+
+
+Theorem canonic_0: canonic (Float beta 0 (fexp (ln_beta beta 0%R))).
+unfold Fcore_generic_fmt.canonic; simpl.
+unfold canonic_exp.
+apply f_equal.
+replace (F2R {| Fnum := 0; Fexp := fexp (ln_beta beta 0) |}) with 0%R.
+reflexivity.
+unfold F2R; simpl; ring.
 Qed.
 
 
 
-Lemma round_odd_pt :
+Theorem round_odd_pt :
   forall x,
   Rnd_odd_pt x (round beta fexp Zrnd_odd x).
 Proof with auto with typeclass_instances.
-intros x.
+cut (forall x : R, (0 < x)%R -> Rnd_odd_pt x (round beta fexp Zrnd_odd x)).
+intros H x; case (Rle_or_lt 0 x).
+intros H1; destruct H1.
+now apply H.
+rewrite <- H0.
+rewrite round_0...
+split.
+apply generic_format_0.
+now left.
+intros Hx; apply Rnd_odd_pt_sym.
+rewrite <- round_odd_opp.
+apply H.
+auto with real.
+(* *)
+intros x Hxp.
 generalize (generic_format_round beta fexp Zrnd_odd x).
 set (o:=round beta fexp Zrnd_odd x).
 intros Ho.
 split.
 assumption.
+(* *)
 case (Req_dec o x); intros Hx.
 now left.
 right.
+assert (o=round beta fexp Zfloor x \/ o=round beta fexp Zceil x).
+unfold o, round, F2R;simpl.
+case (Zrnd_DN_or_UP Zrnd_odd  (scaled_mantissa beta fexp x))...
+intros H; rewrite H; now left.
+intros H; rewrite H; now right.
 split.
-
-admit. (* très facile *)
-
-BLOP.
-
-generalize (generic_format_round beta fexp Zfloor x).
-set (d:=round beta fexp Zfloor x).
-unfold generic_format.
-set (ed := canonic_exp beta fexp d).
-set (md := Ztrunc (scaled_mantissa beta fexp d)).
-intros Hd1.
-case_eq (Zeven md) ; [ intros He | intros Hee ].
-
-admit.
-
-
-exists (Float beta md ed).
-unfold Fcore_generic_fmt.canonic.
-rewrite <- Hd1.
-repeat split; try assumption.
-unfold d, o, Zrnd_odd, round.
-apply f_equal; apply f_equal2; try reflexivity.
-fold md.
-
-
-SearchRewrite (round _ _ _ _).
-
-
-
-
-left.
-generalize (proj1 Hu).
-unfold generic_format.
-set (eu := canonic_exp beta fexp u).
-set (mu := Ztrunc (scaled_mantissa beta fexp u)).
-intros Hu1.
-rewrite Hu1.
-eexists ; repeat split.
-unfold Fcore_generic_fmt.canonic.
-now rewrite <- Hu1.
-rewrite (DN_UP_parity_generic x (Float beta md ed) (Float beta mu eu)).
-simpl.
-now rewrite Ho.
-exact Hf.
-unfold Fcore_generic_fmt.canonic.
-now rewrite <- Hd1.
-unfold Fcore_generic_fmt.canonic.
-now rewrite <- Hu1.
-rewrite <- Hd1.
-apply Rnd_DN_pt_unicity with (1 := Hd).
-now apply round_DN_pt.
-rewrite <- Hu1.
-apply Rnd_UP_pt_unicity with (1 := Hu).
-now apply round_UP_pt.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-reflexivity.
-
-[reflexivity|split].
-reflexivity.
-simpl.
-apply Zrnd_odd_Zodd.
-apply Rmult_neq_reg_r with (bpow (canonic_exp beta fexp x)).
-rewrite scaled_mantissa_mult_bpow.
-apply sym_not_eq.
-replace ((Z2R (Zfloor (scaled_mantissa beta fexp x)) * bpow (canonic_exp beta fexp x)))%R with
-  (round beta fexp Zfloor x) by reflexivity.
-intros H; apply Hx; clear Hx.
-unfold round, Zrnd_odd in *.
+destruct H; rewrite H.
+left; apply round_DN_pt...
+right; apply round_UP_pt...
+(* *)
+unfold o, Zrnd_odd, round.
 case (Req_EM_T (scaled_mantissa beta fexp x)
-               (Z2R (Zfloor (scaled_mantissa beta fexp x)))); intros Hx.
-assumption.
-absurd (scaled_mantissa beta fexp x =
-     Z2R (Zfloor (scaled_mantissa beta fexp x))).
-assumption.
-unfold scaled_mantissa at 1.
-rewrite <- H at 1.
+     (Z2R (Zfloor (scaled_mantissa beta fexp x)))).
+intros T.
+absurd (o=x); trivial.
+apply round_generic...
+unfold generic_format, F2R; simpl.
+rewrite <- (scaled_mantissa_mult_bpow beta fexp) at 1.
+apply f_equal2; trivial; rewrite T at 1.
+apply f_equal, sym_eq, Ztrunc_floor.
+apply Rmult_le_pos.
+now left.
+apply bpow_ge_0.
+intros L.
+case_eq (Zeven (Zfloor (scaled_mantissa beta fexp x))).
+(* . *)
+generalize (generic_format_round beta fexp Zceil x).
+unfold generic_format.
+set (f:=round beta fexp Zceil x).
+set (ef := canonic_exp beta fexp f).
+set (mf := Ztrunc (scaled_mantissa beta fexp f)).
+exists (Float beta mf ef).
+unfold Fcore_generic_fmt.canonic.
+rewrite <- H0.
+repeat split; try assumption.
+apply trans_eq with (negb (Zeven (Zfloor (scaled_mantissa beta fexp x)))).
+2: rewrite H1; reflexivity.
+apply trans_eq with (negb (Zeven (Fnum 
+  (Float beta  (Zfloor (scaled_mantissa beta fexp x)) (cexp x))))).
+2: reflexivity.
+case (Rle_lt_or_eq_dec 0 (round beta fexp Zfloor x)).
+rewrite <- round_0 with beta fexp Zfloor...
+apply round_le...
+now left.
+intros Y.
+generalize (DN_UP_parity_generic beta fexp)...
+unfold DN_UP_parity_prop.
+intros T; apply T with x; clear T.
+unfold generic_format.
+rewrite <- (scaled_mantissa_mult_bpow beta fexp x) at 1.
 unfold F2R; simpl.
-rewrite Rmult_assoc, <- bpow_plus.
-ring_simplify (canonic_exp beta fexp x + - canonic_exp beta fexp x)%Z.
-apply Rmult_1_r.
+apply Rmult_neq_compat_r.
+apply Rgt_not_eq, bpow_gt_0.
+rewrite Ztrunc_floor.
+assumption.
+apply Rmult_le_pos.
+now left.
+apply bpow_ge_0.
+unfold Fcore_generic_fmt.canonic.
+simpl.
+apply sym_eq, canonic_exp_DN...
+unfold Fcore_generic_fmt.canonic.
+rewrite <- H0; reflexivity.
+reflexivity.
+apply trans_eq with (round beta fexp Ztrunc (round beta fexp Zceil x)).
+reflexivity.
+apply round_generic...
+intros Y.
+simpl.
+replace (scaled_mantissa beta fexp x) with (Z2R 0).
+rewrite Zfloor_Z2R; simpl.
+
+
+
+
+SearchAbout Fnum.
+
+
+
+(* . *)
+set (ef := canonic_exp beta fexp x).
+set (mf := Zfloor (scaled_mantissa beta fexp x)).
+exists (Float beta mf ef).
+unfold Fcore_generic_fmt.canonic.
+repeat split; try assumption.
+simpl.
+apply trans_eq with (cexp (round beta fexp Zfloor x )).
+apply sym_eq, canonic_exp_DN...
+
+
+admit. (* dur mais ok *)
+
+reflexivity.
 Qed.
+
+
+assert (0 < round beta fexp Zfloor x)%R.
+case (Rle_lt_or_eq_dec 0 (round beta fexp Zfloor x)).
+rewrite <- round_0 with beta fexp Zfloor...
+apply round_le...
+now left.
+trivial.
+
 
 
 
