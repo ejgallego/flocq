@@ -196,16 +196,6 @@ apply canonic_exp_opp.
 Qed.
 
 
-Theorem canonic_0: canonic (Float beta 0 (fexp (ln_beta beta 0%R))).
-unfold Fcore_generic_fmt.canonic; simpl.
-unfold canonic_exp.
-apply f_equal.
-replace (F2R {| Fnum := 0; Fexp := fexp (ln_beta beta 0) |}) with 0%R.
-reflexivity.
-unfold F2R; simpl; ring.
-Qed.
-
-
 
 Theorem round_odd_pt :
   forall x,
@@ -303,9 +293,38 @@ apply trans_eq with (round beta fexp Ztrunc (round beta fexp Zceil x)).
 reflexivity.
 apply round_generic...
 intros Y.
+replace  (Fnum {| Fnum := Zfloor (scaled_mantissa beta fexp x); Fexp := cexp x |})
+  
+
+
+generalize (DN_UP_parity_generic beta fexp)...
+unfold DN_UP_parity_prop.
+intros T; apply T with x; clear T.
+unfold generic_format.
+rewrite <- (scaled_mantissa_mult_bpow beta fexp x) at 1.
+unfold F2R; simpl.
+apply Rmult_neq_compat_r.
+apply Rgt_not_eq, bpow_gt_0.
+rewrite Ztrunc_floor.
+assumption.
+apply Rmult_le_pos.
+now left.
+apply bpow_ge_0.
+unfold Fcore_generic_fmt.canonic.
+simpl.
+apply sym_eq, canonic_exp_DN...
+unfold Fcore_generic_fmt.canonic.
+rewrite <- H0; reflexivity.
+reflexivity.
+apply trans_eq with (round beta fexp Ztrunc (round beta fexp Zceil x)).
+reflexivity.
+apply round_generic...
+intros Y.
 simpl.
 replace (scaled_mantissa beta fexp x) with (Z2R 0).
 rewrite Zfloor_Z2R; simpl.
+
+
 
 
 

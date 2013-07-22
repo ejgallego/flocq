@@ -175,6 +175,26 @@ unfold canonic.
 now rewrite F2R_Zopp, canonic_exp_opp.
 Qed.
 
+Theorem canonic_abs :
+  forall m e,
+  canonic (Float beta m e) ->
+  canonic (Float beta (Zabs m) e).
+Proof.
+intros m e H.
+unfold canonic.
+now rewrite F2R_Zabs, canonic_exp_abs.
+Qed.
+
+Theorem canonic_0: canonic (Float beta 0 (fexp (ln_beta beta 0%R))).
+Proof.
+unfold canonic; simpl; unfold canonic_exp.
+replace (F2R {| Fnum := 0; Fexp := fexp (ln_beta beta 0) |}) with 0%R.
+reflexivity.
+unfold F2R; simpl; ring.
+Qed.
+
+
+
 Theorem canonic_unicity :
   forall f1 f2,
   canonic f1 ->
