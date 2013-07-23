@@ -1139,4 +1139,145 @@ apply le_pred_lt_aux ; try easy.
 now split.
 Qed.
 
+(** Properties of rounding to nearest and ulp *)
+
+Theorem rnd_N_le_half_an_ulp: forall choice u v, 
+  F u -> (0 < u)%R -> (v < u + (ulp u)/2)%R 
+      -> (round beta fexp (Znearest choice)  v <= u)%R.
+Proof with auto with typeclass_instances.
+intros choice u v Fu Hu H.
+(* . *)
+assert (0 < ulp u / 2)%R.
+unfold Rdiv; apply Rmult_lt_0_compat.
+unfold ulp; apply bpow_gt_0.
+auto with real.
+(* . *)
+assert (ulp u / 2 < ulp u)%R.
+apply Rlt_le_trans with (ulp u *1)%R;[idtac|right; ring].
+unfold Rdiv; apply Rmult_lt_compat_l.
+apply bpow_gt_0.
+apply Rmult_lt_reg_l with 2%R.
+auto with real.
+apply Rle_lt_trans with 1%R.
+right; field.
+rewrite Rmult_1_r; auto with real.
+(* *)
+apply Rnd_N_pt_monotone with F v (u + ulp u / 2)%R...
+apply round_N_pt...
+apply Rnd_DN_pt_N with (u+ulp u)%R.
+pattern u at 3; replace u with (round beta fexp Zfloor (u + ulp u / 2)).
+apply round_DN_pt...
+apply round_DN_succ; try assumption.
+split; try left; assumption.
+replace (u+ulp u)%R with (round beta fexp Zceil (u + ulp u / 2)).
+apply round_UP_pt...
+apply round_UP_succ; try assumption...
+split; try left; assumption.
+right; field.
+Qed.
+
+
+Theorem rnd_N_ge_half_an_ulp_pred: forall choice u v, 
+ F u -> (0 < pred u)%R -> (u - (ulp (pred u))/2 < v)%R 
+      -> (u <= round beta fexp (Znearest choice)  v)%R.
+Proof with auto with typeclass_instances.
+intros choice u v Fu Hu H.
+(* . *)
+assert (0 < u)%R.
+apply Rlt_trans with (1:= Hu).
+apply pred_lt_id.
+assert (0 < ulp (pred u) / 2)%R.
+unfold Rdiv; apply Rmult_lt_0_compat.
+unfold ulp; apply bpow_gt_0.
+auto with real.
+assert (ulp (pred u) / 2 < ulp (pred u))%R.
+apply Rlt_le_trans with (ulp (pred u) *1)%R;[idtac|right; ring].
+unfold Rdiv; apply Rmult_lt_compat_l.
+apply bpow_gt_0.
+apply Rmult_lt_reg_l with 2%R.
+auto with real.
+apply Rle_lt_trans with 1%R.
+right; field.
+rewrite Rmult_1_r; auto with real.
+(* *)
+apply Rnd_N_pt_monotone with F (u - ulp (pred u) / 2)%R v...
+2: apply round_N_pt...
+apply Rnd_UP_pt_N with (pred u).
+pattern (pred u) at 2; replace (pred u) with (round beta fexp Zfloor (u - ulp (pred u) / 2)).
+apply round_DN_pt...
+replace  (u - ulp (pred u) / 2)%R  with (pred u + ulp (pred u) / 2)%R.
+apply round_DN_succ; try assumption.
+apply generic_format_pred; assumption.
+split; [left|idtac]; assumption.
+pattern u at 3; rewrite <- (pred_plus_ulp u); try assumption.
+field.
+now apply Rgt_not_eq.
+pattern u at 3; replace u with (round beta fexp Zceil (u - ulp (pred u) / 2)).
+apply round_UP_pt...
+replace  (u - ulp (pred u) / 2)%R  with (pred u + ulp (pred u) / 2)%R.
+apply trans_eq with (pred u +ulp(pred u))%R.
+apply round_UP_succ; try assumption...
+apply generic_format_pred; assumption.
+split; [idtac|left]; assumption.
+apply pred_plus_ulp; try assumption.
+now apply Rgt_not_eq.
+pattern u at 3; rewrite <- (pred_plus_ulp u); try assumption.
+field.
+now apply Rgt_not_eq.
+pattern u at 4; rewrite <- (pred_plus_ulp u); try assumption.
+right; field.
+now apply Rgt_not_eq.
+Qed.
+
+
+Theorem rnd_N_ge_half_an_ulp: forall choice u v, 
+  F u -> (0 < u)%R -> (u <> bpow (ln_beta beta u - 1))%R
+        -> (u - (ulp u)/2 < v)%R 
+        -> (u <= round beta fexp (Znearest choice) v)%R.
+Proof with auto with typeclass_instances.
+intros choice u v Fu Hupos Hu H.
+(* *)
+assert (bpow (ln_beta beta u-1) <= pred u)%R.
+apply le_pred_lt; try assumption.
+apply generic_format_bpow.
+assert (canonic_exp beta fexp u < ln_beta beta u)%Z.
+apply ln_beta_generic_gt; try assumption.
+now apply Rgt_not_eq.
+unfold canonic_exp in H0.
+ring_simplify (ln_beta beta u - 1 + 1)%Z.
+omega.
+destruct ln_beta as (e,He); simpl in *.
+assert (bpow (e - 1) <= Rabs u)%R.
+apply He.
+now apply Rgt_not_eq.
+rewrite Rabs_right in H0.
+case H0; auto.
+intros T; contradict T.
+now apply sym_not_eq.
+apply Rle_ge; now left.
+assert (Hu2:(ulp (pred u) = ulp u)).
+unfold ulp, canonic_exp.
+apply f_equal; apply f_equal.
+apply ln_beta_unique.
+rewrite Rabs_right.
+split.
+assumption.
+apply Rlt_trans with (1:=pred_lt_id _).
+destruct ln_beta as (e,He); simpl in *.
+rewrite Rabs_right in He.
+apply He.
+now apply Rgt_not_eq.
+apply Rle_ge; now left.
+apply Rle_ge, pred_ge_0; assumption.
+apply rnd_N_ge_half_an_ulp_pred; try assumption.
+apply Rlt_le_trans with (2:=H0).
+apply bpow_gt_0.
+rewrite Hu2; assumption.
+Qed.
+
+
+
+
+
+
 End Fcore_ulp.
