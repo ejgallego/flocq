@@ -1,4 +1,5 @@
 Require Import Fcore.
+Require Import Fcalc_ops.
 
 Definition Zrnd_odd x :=  match Req_EM_T x (Z2R (Zfloor x))  with
   | left _   => Zfloor x
@@ -350,6 +351,7 @@ End Fcore_rnd_odd.
 Section Odd_prop.
 
 Variable beta : radix.
+Hypothesis Even_beta: Zeven (radix_val beta)=true.
 
 Notation bpow e := (bpow beta e).
 
@@ -357,75 +359,159 @@ Variable fexp : Z -> Z.
 Variable fexpe : Z -> Z.
 
 Context { valid_exp : Valid_exp fexp }.
-Context { exists_NE_ : Exists_NE beta fexp }.
+(*Context { exists_NE_ : Exists_NE beta fexp }.*)
+Context { monotone_exp : Monotone_exp fexp }.
 
 Context { valid_expe : Valid_exp fexpe }.
 Context { exists_NE_e : Exists_NE beta fexpe }.
 
 Hypothesis fexpe_fexp: forall e, (fexpe e <= fexp e -2)%Z. (*  ??? *)
 
+
+Lemma generic_format_F2R_2: forall c, forall (x:R) (f:float beta),
+       x = F2R f -> ((x <> 0)%R -> 
+       (canonic_exp beta c x <= Fexp f)%Z) ->
+       generic_format beta c x.
+Proof.
+intros c x f H1 H2.
+rewrite H1; destruct f as (m,e).
+apply  generic_format_F2R.
+simpl in *; intros H3.
+rewrite <- H1; apply H2.
+intros Y; apply H3.
+apply F2R_eq_0_reg with beta e.
+now rewrite <- H1.
+Qed.
+
+
 Variable choice:Z->bool.
 Variable x:R.
-Hypothesis xPos: (0 < x)%R.
-
-Let d:= round beta fexp Zfloor x.
-Let u:= round beta fexp Zceil x.
-Let m:= ((d+u)/2)%R.
 
 
-Lemma toto:  (d<=x<m)%R -> 
-     round beta fexp (Znearest choice) x = d.
+Variable d u: float beta.
+Hypothesis Hd: Rnd_DN_pt (generic_format beta fexp) x (F2R d).
+Hypothesis Cd: canonic beta fexp d.
+Hypothesis Hu: Rnd_UP_pt (generic_format beta fexp) x (F2R u).
+Hypothesis Cu: canonic beta fexp u.
+
+Hypothesis dPos: (0 < F2R d)%R.
+
+
+Let m:= ((F2R d+F2R u)/2)%R.
+
+
+Lemma d_eq: F2R d= round beta fexp Zfloor x.
 Proof with auto with typeclass_instances.
-intros H.
-apply Rnd_N_pt_unicity with (generic_format beta fexp) x d u.
+apply Rnd_DN_pt_unicity with (generic_format beta fexp) x...
 apply round_DN_pt...
-apply round_UP_pt...
-intros Y.
-absurd (x < m)%R; try apply H.
-apply Rle_not_lt; right.
-apply Rplus_eq_reg_r with (-x)%R.
-apply trans_eq with (- (x-d)/2 + (u-x)/2)%R.
-unfold m; field.
-rewrite Y; field.
-apply round_N_pt...
-apply Rnd_DN_UP_pt_N with d u...
-apply generic_format_round...
-apply round_DN_pt...
-apply round_UP_pt...
-right; apply trans_eq with (-(d-x))%R;[idtac|ring].
-apply Rabs_left1.
-apply Rplus_le_reg_l with x; ring_simplify.
-apply H.
-rewrite Rabs_left1.
-apply Rplus_le_reg_l with (d+x)%R.
-apply Rmult_le_reg_l with (/2)%R.
+Qed.
+
+
+Lemma Fexp_d: Fexp d =fexp (ln_beta beta x).
+Proof with auto with typeclass_instances.
+apply bpow_inj with beta.
+apply sym_eq, trans_eq with (ulp beta fexp x).
+reflexivity.
+rewrite <- ulp_DN, Cd...
+rewrite d_eq; reflexivity.
+rewrite <- d_eq; assumption.
+Qed.
+
+Lemma Fexp_u:  (fexp (ln_beta beta x) <= Fexp u)%Z.
+rewrite Cu; unfold canonic_exp.
+apply monotone_exp.
+apply ln_beta_le.
+apply Rlt_le_trans with (1:=dPos).
+apply Hd.
+apply Hu.
+Qed.
+
+Lemma d_le_m: (F2R d <= m)%R.
+apply Rmult_le_reg_l with 2%R.
 auto with real.
+apply Rplus_le_reg_l with (-F2R d)%R.
+apply Rle_trans with (F2R d).
+right; ring.
+apply Rle_trans with (F2R u).
 apply Rle_trans with x.
-right; field.
-apply Rle_trans with m.
-now left.
+apply Hd.
+apply Hu.
 right; unfold m; field.
-apply Rplus_le_reg_l with x; ring_simplify.
-apply H.
-
-; ring_simplify.
+Qed.
 
 
 
-SearchAbout Znearest.
+Lemma ln_beta_m: (ln_beta beta m =ln_beta beta (F2R d) :>Z).
+Proof with auto with typeclass_instances.
+apply ln_beta_unique.
+rewrite Rabs_right.
+split.
+apply Rle_trans with (F2R d).
+destruct (ln_beta beta (F2R d)) as (e,He).
+simpl.
+rewrite Rabs_right in He.
+apply He.
+now apply Rgt_not_eq.
+apply Rle_ge; now left.
+apply d_le_m.
 
-SearchPattern (Rnd_N_pt _ _ _).
-Rnd_DN_UP_pt_N
-round_N_pt
-round_N_pt_unicity
+
+
+Lemma Fm: generic_format beta fexpe m.
+Proof with auto with typeclass_instances.
+specialize (Zeven_ex (radix_val beta)); rewrite Even_beta.
+intros (b, Hb); rewrite Zplus_0_r in Hb.
+assert (m=F2R (Fmult beta (Float beta b (-1)) (Fplus beta d u)))%R.
+rewrite F2R_mult, F2R_plus.
+unfold m; rewrite Rmult_comm.
+unfold Rdiv; apply f_equal.
+unfold F2R; simpl; unfold Z.pow_pos; simpl.
+rewrite Zmult_1_r, Hb, Z2R_mult.
+simpl; field.
+apply Rgt_not_eq, Rmult_lt_reg_l with (Z2R 2).
+simpl; auto with real.
+rewrite Rmult_0_r, <-Z2R_mult, <-Hb.
+apply radix_pos.
+apply generic_format_F2R_2 with (1:=H).
+intros Hm.
+apply Zle_trans with (Zmin (Fexp d) (Fexp u) -1)%Z.
+SearchAbout Z.min.
+rewrite Z.min_l.
+rewrite Fexp_d.
+rewrite <- Fexp_d, Cd.
+unfold canonic_exp.
+
+apply Zle_trans
 
 
 
-apply Rle_antisym.
-apply rnd_N_le_half_an_ulp...
-Rnd_DN_pt_N
 
- and rnd_N_ge_half_an_ulp
+
+2: apply Zle_trans with (-1+Fexp (Fplus beta d u))%Z.
+2: rewrite  Fexp_Fplus; omega.
+2: rewrite Zplus_comm; unfold Fmult; simpl; apply Zle_refl.
+
+rewrite  Fexp_Fplus.(Fplus beta d u
+
+apply Zle_refl.
+ Fexp_Fplus
+
+
+
+unfold Fmult; simpl.
+
+
+rewrite Fexp_Fmult.
+
+
+generic_format_F2R.
+rewrite <- H.
+
+
+
+Lemma Zm: 
+   exists g : float beta, m = F2R g /\ canonic g /\ Zeven (Fnum g) = true.
+Proof with auto with typeclass_instances.
 
 
 
@@ -436,6 +522,13 @@ Theorem rnd_opp: forall x,
                round beta fexp ZnearestE x.
 Proof with auto with typeclass_instances.
 intros x.
+
+Rle_or_lt x m
+
+round_N_UP_betw
+
+
+
 apply round_unicity with (Rnd_NE_pt beta fexp) x...
 apply Rnd_NE_pt_monotone...
 2: apply round_NE_pt...
