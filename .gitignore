@@ -5,10 +5,11 @@ config.log
 config.status
 configure
 install-sh
-Makefile.in
-Makefile
-missing
+Remakefile
+.remake
+remake
+remake.exe
+html
 src/Flocq_version.v
 *.vo
-*.vd
 *.glob
