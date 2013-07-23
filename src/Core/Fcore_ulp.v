@@ -1276,8 +1276,71 @@ rewrite Hu2; assumption.
 Qed.
 
 
+Lemma round_N_DN_betw: forall choice x d u, 
+   Rnd_DN_pt (generic_format beta fexp) x d ->
+   Rnd_UP_pt (generic_format beta fexp) x u ->
+     (d<=x<(d+u)/2)%R -> 
+     round beta fexp (Znearest choice) x = d.
+Proof with auto with typeclass_instances.
+intros choice x d u Hd Hu H.
+apply Rnd_N_pt_unicity with (generic_format beta fexp) x d u; try assumption.
+intros Y.
+absurd (x < (d+u)/2)%R; try apply H.
+apply Rle_not_lt; right.
+apply Rplus_eq_reg_r with (-x)%R.
+apply trans_eq with (- (x-d)/2 + (u-x)/2)%R.
+field.
+rewrite Y; field.
+apply round_N_pt...
+apply Rnd_DN_UP_pt_N with d u...
+apply Hd.
+right; apply trans_eq with (-(d-x))%R;[idtac|ring].
+apply Rabs_left1.
+apply Rplus_le_reg_l with x; ring_simplify.
+apply H.
+rewrite Rabs_left1.
+apply Rplus_le_reg_l with (d+x)%R.
+apply Rmult_le_reg_l with (/2)%R.
+auto with real.
+apply Rle_trans with x.
+right; field.
+apply Rle_trans with ((d+u)/2)%R.
+now left.
+right; field.
+apply Rplus_le_reg_l with x; ring_simplify.
+apply H.
+Qed.
 
 
+Lemma round_N_UP_betw: forall choice x d u, 
+   Rnd_DN_pt (generic_format beta fexp) x d ->
+   Rnd_UP_pt (generic_format beta fexp) x u ->
+     ((d+u)/2 < x <= u)%R -> 
+     round beta fexp (Znearest choice) x = u.
+Proof with auto with typeclass_instances.
+intros choice x d u Hd Hu H.
+rewrite <- (Ropp_involutive (round beta fexp (Znearest choice) x )),
+  <- (Ropp_involutive u) .
+apply f_equal.
+rewrite <- (Ropp_involutive x) .
+rewrite round_N_opp, Ropp_involutive.
+apply round_N_DN_betw with (-d)%R.
+replace u with (round beta fexp Zceil x).
+rewrite <- round_DN_opp.
+apply round_DN_pt...
+apply Rnd_UP_pt_unicity with (generic_format beta fexp) x...
+apply round_UP_pt...
+replace d with (round beta fexp Zfloor x).
+rewrite <- round_UP_opp.
+apply round_UP_pt...
+apply Rnd_DN_pt_unicity with (generic_format beta fexp) x...
+apply round_DN_pt...
+split.
+apply Ropp_le_contravar, H.
+apply Rlt_le_trans with (-((d + u) / 2))%R.
+apply Ropp_lt_contravar, H.
+unfold Rdiv; right; ring.
+Qed.
 
 
 End Fcore_ulp.
