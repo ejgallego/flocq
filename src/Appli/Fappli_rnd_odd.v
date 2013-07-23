@@ -346,6 +346,7 @@ apply Rgt_not_eq, bpow_gt_0.
 Qed.
 
 End Fcore_rnd_odd.
+
 Section Odd_prop.
 
 Variable beta : radix.
@@ -362,6 +363,73 @@ Context { valid_expe : Valid_exp fexpe }.
 Context { exists_NE_e : Exists_NE beta fexpe }.
 
 Hypothesis fexpe_fexp: forall e, (fexpe e <= fexp e -2)%Z. (*  ??? *)
+
+Variable choice:Z->bool.
+Variable x:R.
+Hypothesis xPos: (0 < x)%R.
+
+Let d:= round beta fexp Zfloor x.
+Let u:= round beta fexp Zceil x.
+Let m:= ((d+u)/2)%R.
+
+
+Lemma toto:  (d<=x<m)%R -> 
+     round beta fexp (Znearest choice) x = d.
+Proof with auto with typeclass_instances.
+intros H.
+apply Rnd_N_pt_unicity with (generic_format beta fexp) x d u.
+apply round_DN_pt...
+apply round_UP_pt...
+intros Y.
+absurd (x < m)%R; try apply H.
+apply Rle_not_lt; right.
+apply Rplus_eq_reg_r with (-x)%R.
+apply trans_eq with (- (x-d)/2 + (u-x)/2)%R.
+unfold m; field.
+rewrite Y; field.
+apply round_N_pt...
+apply Rnd_DN_UP_pt_N with d u...
+apply generic_format_round...
+apply round_DN_pt...
+apply round_UP_pt...
+right; apply trans_eq with (-(d-x))%R;[idtac|ring].
+apply Rabs_left1.
+apply Rplus_le_reg_l with x; ring_simplify.
+apply H.
+rewrite Rabs_left1.
+apply Rplus_le_reg_l with (d+x)%R.
+apply Rmult_le_reg_l with (/2)%R.
+auto with real.
+apply Rle_trans with x.
+right; field.
+apply Rle_trans with m.
+now left.
+right; unfold m; field.
+apply Rplus_le_reg_l with x; ring_simplify.
+apply H.
+
+; ring_simplify.
+
+
+
+SearchAbout Znearest.
+
+SearchPattern (Rnd_N_pt _ _ _).
+Rnd_DN_UP_pt_N
+round_N_pt
+round_N_pt_unicity
+
+
+
+apply Rle_antisym.
+apply rnd_N_le_half_an_ulp...
+Rnd_DN_pt_N
+
+ and rnd_N_ge_half_an_ulp
+
+
+
+
 
 Theorem rnd_opp: forall x,
   round beta fexp ZnearestE  (round beta fexpe Zrnd_odd x) = 

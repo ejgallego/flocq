@@ -15,7 +15,7 @@ Variable prec : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 
 Notation format := (generic_format beta (FLX_exp prec)).
-Notation round_flx :=(round beta (FLX_exp prec) ZnearestE).
+Notation round_flx :=(round beta (FLX_exp prec) ZnearestE). (*** choice ?? *)
 Notation ulp_flx :=(ulp beta (FLX_exp prec)).
 Notation pred_flx := (pred beta (FLX_exp prec)).
 
@@ -28,6 +28,7 @@ Hypothesis Fx: format x.
 Let y:=round_flx(x*x).
 Let z:=round_flx(sqrt y).
 
+(* -> Fcore_ulp : rnd_N_le_half_an_ulp and rnd_N_ge_half_an_ulp *)
 
 Theorem round_le_half_an_ulp: forall u v, format u -> 0 < u -> v < u + (ulp_flx u)/2 -> round_flx v <= u.
 Proof with auto with typeclass_instances.
