@@ -526,12 +526,28 @@ Let Hprec_emax : (24 < 128)%Z.
 apply refl_equal.
 Qed.
 
-Definition b32_opp := Bopp 24 128.
-Definition b32_plus := Bplus _ _ Hprec Hprec_emax.
-Definition b32_minus := Bminus _ _ Hprec Hprec_emax.
-Definition b32_mult := Bmult _ _ Hprec Hprec_emax.
-Definition b32_div := Bdiv _ _ Hprec Hprec_emax.
-Definition b32_sqrt := Bsqrt _ _ Hprec Hprec_emax.
+Definition default_nan_pl32 : bool * nan_pl 24 :=
+  (false, exist _ (nat_iter 22 xO xH) (refl_equal true)).
+
+Definition unop_nan_pl32 (f : binary32) : bool * nan_pl 24 :=
+  match f with
+  | B754_nan s pl => (s, pl)
+  | _ => default_nan_pl32
+  end.
+
+Definition binop_nan_pl32 (f1 f2 : binary32) : bool * nan_pl 24 :=
+  match f1, f2 with
+  | B754_nan s1 pl1, _ => (s1, pl1)
+  | _, B754_nan s2 pl2 => (s2, pl2)
+  | _, _ => default_nan_pl32
+  end.
+
+Definition b32_opp := Bopp 24 128 pair.
+Definition b32_plus := Bplus _ _ Hprec Hprec_emax binop_nan_pl32.
+Definition b32_minus := Bminus _ _ Hprec Hprec_emax binop_nan_pl32.
+Definition b32_mult := Bmult _ _ Hprec Hprec_emax binop_nan_pl32.
+Definition b32_div := Bdiv _ _ Hprec Hprec_emax binop_nan_pl32.
+Definition b32_sqrt := Bsqrt _ _ Hprec Hprec_emax unop_nan_pl32.
 
 Definition b32_of_bits : Z -> binary32 := binary_float_of_bits 23 8 (refl_equal _) (refl_equal _) (refl_equal _).
 Definition bits_of_b32 : binary32 -> Z := bits_of_binary_float 23 8.
@@ -551,12 +567,28 @@ Let Hprec_emax : (53 < 1024)%Z.
 apply refl_equal.
 Qed.
 
-Definition b64_opp := Bopp 53 1024.
-Definition b64_plus := Bplus _ _ Hprec Hprec_emax.
-Definition b64_minus := Bminus _ _ Hprec Hprec_emax.
-Definition b64_mult := Bmult _ _ Hprec Hprec_emax.
-Definition b64_div := Bdiv _ _ Hprec Hprec_emax.
-Definition b64_sqrt := Bsqrt _ _ Hprec Hprec_emax.
+Definition default_nan_pl64 : bool * nan_pl 53 :=
+  (false, exist _ (nat_iter 51 xO xH) (refl_equal true)).
+
+Definition unop_nan_pl64 (f : binary64) : bool * nan_pl 53 :=
+  match f with
+  | B754_nan s pl => (s, pl)
+  | _ => default_nan_pl64
+  end.
+
+Definition binop_nan_pl64 (pl1 pl2 : binary64) : bool * nan_pl 53 :=
+  match pl1, pl2 with
+  | B754_nan s1 pl1, _ => (s1, pl1)
+  | _, B754_nan s2 pl2 => (s2, pl2)
+  | _, _ => default_nan_pl64
+  end.
+
+Definition b64_opp := Bopp 53 1024 pair.
+Definition b64_plus := Bplus _ _ Hprec Hprec_emax binop_nan_pl64.
+Definition b64_minus := Bminus _ _ Hprec Hprec_emax binop_nan_pl64.
+Definition b64_mult := Bmult _ _ Hprec Hprec_emax binop_nan_pl64.
+Definition b64_div := Bdiv _ _ Hprec Hprec_emax binop_nan_pl64.
+Definition b64_sqrt := Bsqrt _ _ Hprec Hprec_emax unop_nan_pl64.
 
 Definition b64_of_bits : Z -> binary64 := binary_float_of_bits 52 11 (refl_equal _) (refl_equal _) (refl_equal _).
 Definition bits_of_b64 : binary64 -> Z := bits_of_binary_float 52 11.
