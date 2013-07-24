@@ -369,18 +369,50 @@ Hypothesis fexpe_fexp: forall e, (fexpe e <= fexp e -2)%Z. (*  ??? *)
 
 
 Lemma generic_format_F2R_2: forall c, forall (x:R) (f:float beta),
-       x = F2R f -> ((x <> 0)%R -> 
+       F2R f = x -> ((x <> 0)%R -> 
        (canonic_exp beta c x <= Fexp f)%Z) ->
        generic_format beta c x.
 Proof.
 intros c x f H1 H2.
-rewrite H1; destruct f as (m,e).
+rewrite <- H1; destruct f as (m,e).
 apply  generic_format_F2R.
 simpl in *; intros H3.
-rewrite <- H1; apply H2.
+rewrite H1; apply H2.
 intros Y; apply H3.
 apply F2R_eq_0_reg with beta e.
-now rewrite <- H1.
+now rewrite H1.
+Qed.
+
+
+Lemma exists_even_fexp_lt: forall (c:Z->Z), forall (x:R),
+      (exists f:float beta, F2R f = x /\ (c (ln_beta beta x) < Fexp f)%Z) ->
+      exists f:float beta, F2R f =x /\ canonic beta c f /\ Zeven (Fnum f) = true.   
+Proof with auto with typeclass_instances.
+intros c x (g,(Hg1,Hg2)).
+exists (Float beta 
+     (Fnum g*Z.pow (radix_val beta) (Fexp g - c (ln_beta beta x)))
+     (c (ln_beta beta x))).
+assert (F2R (Float beta 
+     (Fnum g*Z.pow (radix_val beta) (Fexp g - c (ln_beta beta x)))
+     (c (ln_beta beta x))) = x).
+unfold F2R; simpl.
+rewrite Z2R_mult, Z2R_Zpower.
+rewrite Rmult_assoc, <- bpow_plus.
+rewrite <- Hg1; unfold F2R.
+apply f_equal, f_equal.
+ring.
+omega.
+split; trivial.
+split.
+unfold canonic, canonic_exp.
+now rewrite H.
+simpl.
+rewrite Zeven_mult.
+rewrite Zeven_Zpower.
+rewrite Even_beta.
+apply Bool.orb_true_intro.
+now right.
+omega.
 Qed.
 
 
@@ -570,21 +602,46 @@ Qed.
 
 
 Lemma Zm: 
-   exists g : float beta, m = F2R g /\ canonic beta fexp g /\ Zeven (Fnum g) = true.
+   exists g : float beta, F2R g = m /\ canonic beta fexpe g /\ Zeven (Fnum g) = true.
 Proof with auto with typeclass_instances.
 destruct m_eq as (g,(Hg1,Hg2)).
-apply generic_format_F2R_2 with g.
+apply exists_even_fexp_lt.
+exists g; split; trivial.
+rewrite Hg2.
+rewrite ln_beta_m.
+rewrite <- Fexp_d.
+rewrite Cd.
+unfold canonic_exp.
+generalize (fexpe_fexp  (ln_beta beta (F2R d))).
+omega.
+Qed.
 
 
-
-
-Theorem rnd_opp: forall x,
+Theorem round_odd_prop: 
   round beta fexp ZnearestE  (round beta fexpe Zrnd_odd x) = 
                round beta fexp ZnearestE x.
 Proof with auto with typeclass_instances.
-intros x.
+case (Rle_or_lt  x m); intros Y;[destruct Y|idtac].
+(* . *)
+apply trans_eq with (F2R d).
+apply round_N_DN_betw with (F2R u)...
 
-Rle_or_lt x m
+needs:
+Rnd_DN_pt (generic_format beta fexp) (round beta fexpe Zrnd_odd x) (F2R d)
+Rnd_UP_pt (generic_format beta fexp) (round beta fexpe Zrnd_odd x) (F2R u)
+
+
+TOTO.
+
+apply sym_eq, round_N_DN_betw with (F2R u)...
+split.
+apply
+ Hd.
+exact H.
+(* . *)
+
+
+
 
 round_N_UP_betw
 
