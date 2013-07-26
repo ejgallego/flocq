@@ -1303,6 +1303,33 @@ rewrite <- mantissa_DN_small_pos with (1 := Hx) (2 := He).
 now rewrite <- canonic_exp_fexp_pos with (1 := Hx).
 Qed.
 
+
+Theorem round_DN_UP_lt :
+  forall x, ~ generic_format x ->
+  (round Zfloor x < x < round Zceil x)%R.
+Proof with auto with typeclass_instances.
+intros x Fx.
+assert (Hx:(round  Zfloor x <= x <= round Zceil x)%R).
+split.
+apply round_DN_pt.
+apply round_UP_pt.
+split.
+  destruct Hx as [Hx _].
+  apply Rnot_le_lt; intro Hle.
+  assert (x = round Zfloor x) by now apply Rle_antisym.
+  rewrite H in Fx.
+  contradict Fx.
+  apply generic_format_round...
+destruct Hx as [_ Hx].
+apply Rnot_le_lt; intro Hle.
+assert (x = round Zceil x) by now apply Rle_antisym.
+rewrite H in Fx.
+contradict Fx.
+apply generic_format_round...
+Qed.
+
+
+
 Theorem round_UP_small_pos :
   forall x ex,
   (bpow (ex - 1) <= x < bpow ex)%R ->

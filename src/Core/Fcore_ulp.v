@@ -1139,6 +1139,51 @@ apply le_pred_lt_aux ; try easy.
 now split.
 Qed.
 
+
+Theorem lt_UP_le_DN :
+  forall x y, F y ->
+  (y < round beta fexp Zceil x -> y <= round beta fexp Zfloor x)%R.
+Proof with auto with typeclass_instances.
+intros x y Fy Hlt.
+apply round_DN_pt...
+apply Rnot_lt_le.
+contradict Hlt.
+apply RIneq.Rle_not_lt.
+apply round_UP_pt...
+now apply Rlt_le.
+Qed.
+
+Theorem pred_UP_le_DN :
+  forall x, (0 < round beta fexp Zceil x)%R ->
+  (pred (round beta fexp Zceil x) <= round beta fexp Zfloor x)%R.
+Proof with auto with typeclass_instances.
+intros x Pxu.
+destruct (generic_format_EM beta fexp x) as [Fx|Fx].
+rewrite !round_generic...
+now apply Rlt_le; apply pred_lt_id.
+assert (let u := round beta fexp Zceil x in pred u < u)%R as Hup.
+  now apply pred_lt_id.
+apply lt_UP_le_DN...
+apply generic_format_pred...
+now apply round_UP_pt.
+Qed.
+
+Theorem pred_UP_eq_DN :
+  forall x, (0 < round beta fexp Zceil x)%R -> ~ F x ->
+  (pred (round beta fexp Zceil x) = round beta fexp Zfloor x)%R.
+Proof with auto with typeclass_instances.
+intros x Px Fx.
+apply Rle_antisym.
+now apply pred_UP_le_DN.
+apply le_pred_lt; try apply generic_format_round...
+pose proof round_DN_UP_lt _ _ _ Fx as HE.
+now apply Rlt_trans with (1 := proj1 HE) (2 := proj2 HE).
+Qed.
+
+
+
+
+
 (** Properties of rounding to nearest and ulp *)
 
 Theorem rnd_N_le_half_an_ulp: forall choice u v, 
