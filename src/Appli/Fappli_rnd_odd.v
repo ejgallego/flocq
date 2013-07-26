@@ -348,7 +348,7 @@ Qed.
 
 End Fcore_rnd_odd.
 
-Section Odd_prop.
+Section Odd_prop_aux.
 
 Variable beta : radix.
 Hypothesis Even_beta: Zeven (radix_val beta)=true.
@@ -359,13 +359,10 @@ Variable fexp : Z -> Z.
 Variable fexpe : Z -> Z.
 
 Context { valid_exp : Valid_exp fexp }.
-(*Context { exists_NE_ : Exists_NE beta fexp }.*)
-Context { monotone_exp : Monotone_exp fexp }.
-
 Context { valid_expe : Valid_exp fexpe }.
 Context { exists_NE_e : Exists_NE beta fexpe }.
 
-Hypothesis fexpe_fexp: forall e, (fexpe e <= fexp e -2)%Z. (*  ??? *)
+Hypothesis fexpe_fexp: forall e, (fexpe e <= fexp e -2)%Z.
 
 
 Lemma generic_format_F2R_2: forall c, forall (x:R) (f:float beta),
@@ -382,6 +379,21 @@ intros Y; apply H3.
 apply F2R_eq_0_reg with beta e.
 now rewrite H1.
 Qed.
+
+
+Lemma generic_format_fexpe_fexp: forall x,
+ generic_format beta fexp x ->  generic_format beta fexpe x.
+Proof.
+intros x Hx; unfold generic_format in Hx.
+apply generic_format_F2R_2 with 
+   (Float beta (Ztrunc (scaled_mantissa beta fexp x)) 
+      (canonic_exp beta fexp x)).
+now apply sym_eq.
+intros; simpl; unfold canonic_exp.
+generalize (fexpe_fexp (ln_beta beta x)).
+omega.
+Qed.
+
 
 
 Lemma exists_even_fexp_lt: forall (c:Z->Z), forall (x:R),
@@ -426,7 +438,7 @@ Hypothesis Cd: canonic beta fexp d.
 Hypothesis Hu: Rnd_UP_pt (generic_format beta fexp) x (F2R u).
 Hypothesis Cu: canonic beta fexp u.
 
-Hypothesis dPos: (0 < F2R d)%R.
+Hypothesis xPos: (0 < x)%R.
 
 
 Let m:= ((F2R d+F2R u)/2)%R.
@@ -446,8 +458,17 @@ apply round_UP_pt...
 Qed.
 
 
-Lemma Fexp_d: Fexp d =fexp (ln_beta beta x).
+Lemma d_ge_0: (0 <= F2R d)%R.
 Proof with auto with typeclass_instances.
+rewrite d_eq; apply round_ge_generic...
+apply generic_format_0.
+now left.
+Qed.
+
+
+Lemma Fexp_d: (0 < F2R d)%R -> Fexp d =fexp (ln_beta beta x).
+Proof with auto with typeclass_instances.
+intros Y.
 apply bpow_inj with beta.
 apply sym_eq, trans_eq with (ulp beta fexp x).
 reflexivity.
@@ -456,6 +477,35 @@ rewrite d_eq; reflexivity.
 rewrite <- d_eq; assumption.
 Qed.
 
+
+Lemma format_bpow_x: (0 < F2R d)%R 
+    -> generic_format beta fexp  (bpow (ln_beta beta x)).
+Proof with auto with typeclass_instances.
+intros Y.
+apply generic_format_bpow.
+apply valid_exp.
+rewrite <- Fexp_d; trivial.
+apply Zlt_le_trans with  (ln_beta beta (F2R d))%Z.
+rewrite Cd; apply ln_beta_generic_gt...
+now apply Rgt_not_eq.
+apply Hd.
+apply ln_beta_le; trivial.
+apply Hd.
+Qed.
+
+
+Lemma format_bpow_d: (0 < F2R d)%R ->
+  generic_format beta fexp (bpow (ln_beta beta (F2R d))).
+Proof with auto with typeclass_instances.
+intros Y; apply generic_format_bpow.
+apply valid_exp.
+apply ln_beta_generic_gt...
+now apply Rgt_not_eq.
+now apply generic_format_canonic.
+Qed.
+
+
+(*
 Lemma Fexp_u:  (fexp (ln_beta beta x) <= Fexp u)%Z.
 rewrite Cu; unfold canonic_exp.
 apply monotone_exp.
@@ -464,6 +514,7 @@ apply Rlt_le_trans with (1:=dPos).
 apply Hd.
 apply Hu.
 Qed.
+*)
 
 Lemma d_le_m: (F2R d <= m)%R.
 apply Rmult_le_reg_l with 2%R.
@@ -491,9 +542,9 @@ apply Hu.
 right; ring.
 Qed.
 
-Lemma ln_beta_m: (ln_beta beta m =ln_beta beta (F2R d) :>Z).
+Lemma ln_beta_m: (0 < F2R d)%R -> (ln_beta beta m =ln_beta beta (F2R d) :>Z).
 Proof with auto with typeclass_instances.
-apply ln_beta_unique.
+intros dPos; apply ln_beta_unique.
 rewrite Rabs_right.
 split.
 apply Rle_trans with (F2R d).
@@ -556,6 +607,89 @@ apply Hd.
 apply Hu.
 Qed.
 
+Lemma u'_eq:  exists f:float beta, F2R f = F2R u /\ (Fexp f = Fexp d)%Z.
+Proof with auto with typeclass_instances.
+case d_ge_0; intros Y.
+assert ((bpow (ln_beta beta x-1)) <= F2R u <= bpow(ln_beta beta x))%R.
+split.
+apply Rle_trans with x.
+destruct (ln_beta beta x) as (e,He); simpl; intros.
+rewrite Rabs_right in He.
+apply He, Rgt_not_eq.
+apply xPos.
+left; apply xPos.
+apply Hu.
+rewrite u_eq; apply round_le_generic...
+now apply format_bpow_x.
+destruct (ln_beta beta x) as (e,He); simpl; intros.
+rewrite Rabs_right in He.
+left; apply He, Rgt_not_eq.
+apply xPos.
+left; apply xPos.
+destruct H as (H1,H2); case H2; intros H3.
+exists u; split; trivial.
+rewrite Fexp_d, Cu.
+unfold canonic_exp; apply f_equal, ln_beta_unique.
+rewrite Rabs_right.
+split; assumption.
+apply Rle_ge; left; apply Rlt_le_trans with (1:=xPos).
+apply Hu.
+assumption.
+rewrite Fexp_d; trivial.
+exists (Float beta (Zpower beta (ln_beta beta x-fexp (ln_beta beta x))) 
+      (fexp (ln_beta beta x))).
+split;[idtac|reflexivity].
+rewrite H3; unfold F2R; simpl.
+rewrite Z2R_Zpower.
+rewrite <- bpow_plus.
+apply f_equal; ring.
+assert (fexp (ln_beta beta x) <= ln_beta beta x)%Z;[idtac|omega].
+replace (ln_beta_val beta x (ln_beta beta x))%Z with (ln_beta beta (F2R u)-1)%Z.
+apply TOTO.
+
+apply Zle_trans with (ln_beta beta (F2R u)); [idtac|omega].
+apply valid_exp.
+apply ln_beta_generic_gt...
+apply Rgt_not_eq.
+apply Rlt_le_trans with (1:=xPos).
+apply Hu.
+now apply generic_format_canonic.
+assert (ln_beta_val beta (F2R u) (ln_beta beta (F2R u)) = ln_beta beta x+1)%Z.
+(*;[idtac|omega].*)
+apply ln_beta_unique.
+rewrite H3, Rabs_right.
+split.
+apply bpow_le; omega.
+apply bpow_lt; omega.
+
+
+omega.
+
+
+Z2R_Zpower_nat
+
+
+replace  (bpow (ln_beta beta x)) with (bpow (ln_beta beta (F2R d)))%Z.
+apply generic_format_bpow.
+apply valid_exp.
+apply ln_beta_generic_gt...
+now apply Rgt_not_eq.
+apply Hd.
+apply f_equal.
+apply ln_beta_unique.
+rewrite Rabs_right.
+split.
+rewrite d_eq; apply round_ge_generic...
+apply generic_format_bpow.
+apply valid_exp.
+apply ln_beta_generic_gt...
+
+ewrite <- Fexp_d.
+ln_beta_generic_gt...
+
+
+
+rewrite Fexp_d.
 
 
 Lemma m_eq: exists f:float beta, F2R f = m /\ (Fexp f = fexp (ln_beta beta x) -1)%Z.
@@ -584,6 +718,8 @@ now rewrite Fexp_d.
 rewrite Fexp_d.
 apply Fexp_u.
 Qed.
+
+
 
 
 Lemma Fm: generic_format beta fexpe m.
@@ -617,176 +753,192 @@ omega.
 Qed.
 
 
-Theorem round_odd_prop: 
+Lemma DN_odd_d_aux: forall z, (F2R d< z< F2R u)%R ->
+    Rnd_DN_pt (generic_format beta fexp) z (F2R d).
+Proof with auto with typeclass_instances.
+intros z Hz1.
+split.
+apply Hd.
+split.
+left; apply Hz1.
+intros g Hg1 Hg2.
+case (Rle_or_lt g (F2R d)); trivial; intros Y.
+assert (F2R u <= g)%R.
+rewrite u_eq, ulp_DN_UP.
+replace  (ulp beta fexp x) with
+  (ulp beta fexp (round beta fexp Zfloor x)).
+apply succ_le_lt; try assumption.
+apply generic_format_round...
+rewrite <- d_eq; now split.
+unfold ulp, canonic_exp.
+now rewrite <- d_eq, <- Fexp_d, Cd.
+intros Z.
+absurd (F2R d < F2R u)%R.
+apply Rle_not_lt.
+right; rewrite d_eq, u_eq.
+rewrite round_generic...
+rewrite round_generic...
+apply Rlt_trans with z; apply Hz1.
+absurd (F2R u < F2R u)%R.
+auto with real.
+apply Rle_lt_trans with (1:=H); now apply Rle_lt_trans with (2:=proj2 Hz1).
+Qed.
+
+Lemma UP_odd_d_aux: forall z, (F2R d< z< F2R u)%R ->
+    Rnd_UP_pt (generic_format beta fexp) z (F2R u).
+Proof with auto with typeclass_instances.
+intros z Hz1.
+split.
+apply Hu.
+split.
+left; apply Hz1.
+intros g Hg1 Hg2.
+case (Rle_or_lt (F2R u) g); trivial; intros Y.
+assert (g <= F2R d)%R.
+apply Rle_trans with (pred beta fexp (F2R u)).
+apply le_pred_lt...
+apply Hu.
+apply Rlt_le_trans with (1:=dPos).
+apply Rle_trans with z; left; apply Hz1.
+right; rewrite d_eq, u_eq.
+apply pred_UP_eq_DN...
+apply Rlt_le_trans with (1:=dPos).
+apply Rle_trans with z; left.
+apply Hz1.
+rewrite <- u_eq; apply Hz1.
+intros T; absurd (F2R d < F2R u)%R.
+apply Rle_not_lt; right.
+rewrite u_eq, d_eq, round_generic, round_generic...
+now apply Rlt_trans with z.
+absurd (z < z)%R.
+auto with real.
+apply Rle_lt_trans with (1:=Hg2); now apply Rle_lt_trans with (2:=proj1 Hz1).
+Qed.
+
+
+
+(* SUPPRIMER MONOTONE_EXP ET D_POS *)
+
+
+Theorem round_odd_prop_pos: 
   round beta fexp ZnearestE  (round beta fexpe Zrnd_odd x) = 
                round beta fexp ZnearestE x.
 Proof with auto with typeclass_instances.
+set (o:=round beta fexpe Zrnd_odd x).
+case (generic_format_EM beta fexp x); intros Hx.
+replace o with x; trivial.
+unfold o; apply sym_eq, round_generic...
+now apply generic_format_fexpe_fexp.
+assert (K1:(F2R d <= o)%R).
+apply round_ge_generic...
+apply generic_format_fexpe_fexp, Hd.
+apply Hd.
+assert (K2:(o <= F2R u)%R).
+apply round_le_generic...
+apply generic_format_fexpe_fexp, Hu.
+apply Hu.
+destruct K1.
+destruct K2.
+assert (P:(x <> m -> o=m -> (forall P:Prop, P))).
+intros Y1 Y2.
+assert (Rnd_odd_pt beta fexpe x o).
+apply round_odd_pt...
+destruct H1 as (_,H1); destruct H1.
+absurd (x=m)%R; try trivial.
+now rewrite <- Y2, H1.
+destruct H1 as (_,(k,(Hk1,(Hk2,Hk3)))).
+destruct Zm as (k',(Hk'1,(Hk'2,Hk'3))).
+absurd (true=false).
+discriminate.
+rewrite <- Hk3, <- Hk'3.
+apply f_equal, f_equal.
+apply canonic_unicity with fexpe...
+now rewrite Hk'1, <- Y2.
 case (Rle_or_lt  x m); intros Y;[destruct Y|idtac].
 (* . *)
 apply trans_eq with (F2R d).
 apply round_N_DN_betw with (F2R u)...
-
-needs:
-Rnd_DN_pt (generic_format beta fexp) (round beta fexpe Zrnd_odd x) (F2R d)
-Rnd_UP_pt (generic_format beta fexp) (round beta fexpe Zrnd_odd x) (F2R u)
-
-
-TOTO.
-
+apply DN_odd_d_aux; now split.
+apply UP_odd_d_aux; now split.
+split.
+apply round_ge_generic...
+apply generic_format_fexpe_fexp, Hd.
+apply Hd.
+assert (o <= (F2R d + F2R u) / 2)%R.
+apply round_le_generic...
+apply Fm.
+now left.
+destruct H2; trivial.
+apply P.
+now apply Rlt_not_eq.
+trivial.
 apply sym_eq, round_N_DN_betw with (F2R u)...
 split.
-apply
- Hd.
-exact H.
+apply Hd.
+exact H1.
 (* . *)
-
-
-
-
-round_N_UP_betw
-
-
-
-apply round_unicity with (Rnd_NE_pt beta fexp) x...
-apply Rnd_NE_pt_monotone...
-2: apply round_NE_pt...
-TOTO.
-
-
-
-
-Theorem Rnd_NG_pt_unicity :
-  forall (F : R -> Prop) (P : R -> R -> Prop),
-  Rnd_NG_pt_unicity_prop F P ->
-  forall x f1 f2 : R,
-  Rnd_NG_pt F P x f1 -> Rnd_NG_pt F P x f2 ->
-  f1 = f2.
-
-Theorem Rnd_NG_pt_monotone :
-  forall (F : R -> Prop) (P : R -> R -> Prop),
-  Rnd_NG_pt_unicity_prop F P ->
-  round_pred_monotone (Rnd_NG_pt F P).
-
-Theorem Rnd_NG_pt_refl :
-  forall (F : R -> Prop) (P : R -> R -> Prop),
-  forall x, F x -> Rnd_NG_pt F P x x.
-Proof.
-intros F P x Hx.
+replace o with x.
+reflexivity.
+apply sym_eq, round_generic...
+rewrite H1; apply Fm.
+(* . *)
+apply trans_eq with (F2R u).
+apply round_N_UP_betw with (F2R d)...
+apply DN_odd_d_aux; now split.
+apply UP_odd_d_aux; now split.
 split.
-now apply Rnd_N_pt_refl.
-right.
-intros f2 Hf2.
-now apply Rnd_N_pt_idempotent with F.
-Qed.
-
-Theorem Rnd_NG_pt_sym :
-  forall (F : R -> Prop) (P : R -> R -> Prop),
-  ( forall x, F x -> F (-x) ) ->
-  ( forall x f, P x f -> P (-x) (-f) ) ->
-  forall x f : R,
-  Rnd_NG_pt F P (-x) (-f) -> Rnd_NG_pt F P x f.
-
-Theorem satisfies_any_imp_UP :
-  forall F : R -> Prop,
-  satisfies_any F ->
-  round_pred (Rnd_UP_pt F).
-
-Theorem Rnd_NE_pt_total :
-  round_pred_total Rnd_NE_pt.
-
-
-Theorem Rnd_NE_pt_monotone :
-  round_pred_monotone Rnd_NE_pt.
-
-  
-Theorem Rnd_NE_pt_round :
-  round_pred Rnd_NE_pt.
+assert ((F2R d + F2R u) / 2 <= o)%R.
+apply round_ge_generic...
+apply Fm.
+now left.
+destruct H1; trivial.
+apply P.
+now apply Rgt_not_eq.
+rewrite <- H1; trivial.
+apply round_le_generic...
+apply generic_format_fexpe_fexp, Hu.
+apply Hu.
+apply sym_eq, round_N_UP_betw with (F2R d)...
 split.
-apply Rnd_NE_pt_total.
-apply Rnd_NE_pt_monotone.
+exact Y.
+apply Hu.
+(* *)
+admit.
+admit.
+
 Qed.
 
 
+End Odd_prop_aux.
 
-Theorem round_NE_opp :
-  forall x,
-  round beta fexp ZnearestE (-x) = (- round beta fexp ZnearestE x)%R.
-Proof.
-Lemma round_NE_abs:
-  forall x : R,
-  round beta fexp ZnearestE (Rabs x) = Rabs (round beta fexp ZnearestE x).
+Section Odd_prop.
+
+Variable beta : radix.
+Hypothesis Even_beta: Zeven (radix_val beta)=true.
+
+Variable fexp : Z -> Z.
+Variable fexpe : Z -> Z.
+Variable choice:Z->bool.
+
+Context { valid_exp : Valid_exp fexp }.
+Context { valid_expe : Valid_exp fexpe }.
+Context { exists_NE_e : Exists_NE beta fexpe }.
+
+Hypothesis fexpe_fexp: forall e, (fexpe e <= fexp e -2)%Z.
+
+
+Theorem round_odd_prop: forall x, 
+  round beta fexp ZnearestE  (round beta fexpe Zrnd_odd x) = 
+               round beta fexp ZnearestE x.
 Proof with auto with typeclass_instances.
-Theorem round_NE_pt :
-  forall x,
-  Rnd_NE_pt x (round beta fexp ZnearestE x).
-
---------------------------------------------
-Definition To_Odd (r : R) (p : float) :=
-  Fbounded b p /\ 
-  ((r=p) \/
-  (((isMin b radix r p) \/ (isMax b radix r p)) /\ (FNodd b radix precision p))).
-
-Theorem ClosestStrictPred: forall (f:float) (z:R), 
-  (Fcanonic radix b f) -> (0 < f)%R -> 
-    (-Fulp b radix p (FNPred b radix p f) < 2%nat *(z - f) < Fulp b radix p f)%R
- ->  Closest b radix z f /\
-    (forall q : float, Closest b radix z q -> FtoR radix q = FtoR radix f).
+intros x.
+case (total_order_T x 0); intros H; [case H; clear H; intros H | idtac].
+admit.
 
 
-Theorem ClosestStrictPos: forall (f:float) (z:R), 
-  (Fcanonic radix b f) -> (0 < f)%R -> Fnum f <> nNormMin radix p
- -> (2%nat * Rabs (z - f) < Fulp b radix p f)%R
- ->  Closest b radix z f /\
-    (forall q : float, Closest b radix z q -> FtoR radix q = FtoR radix f).
+rewrite H; repeat rewrite round_0...
+
+apply round_odd_prop_pos.
 
 
-Theorem ClosestStrict: forall (f:float) (z0:R), 
-  (Fcanonic radix b f) -> Zabs (Fnum f) <> nNormMin radix p
- -> (2%nat * Rabs (z0 - f) < Fulp b radix p f)%R
- ->  Closest b radix z0 f /\
-    (forall q : float, Closest b radix z0 q -> FtoR radix q = FtoR radix f).
-
-Hypotheses By : (Fbounded be y).
-Hypotheses Bz : (Fbounded b  z).
-Hypotheses Bv : (Fbounded b  v).
-Hypotheses Cv : (Fcanonic radix b v).
-
-Hypotheses ydef : (To_Odd      be radix (plus p k) x y).
-Hypotheses zdef : (EvenClosest b  radix p          y z).
-Hypotheses vdef : (EvenClosest b  radix p          x v).
-
-Hypotheses rangeext: (-(dExp be) <= (Zpred (Zpred (-(dExp b)))))%Z.
-
-Hypotheses H:(Fnum v=(nNormMin radix p))%Z.
-Hypotheses H':(x<>y)%R.
-Hypotheses H1: (0 <= v)%R.
-
-
-Theorem To_Odd_Even_is_Even_nNormMin: EvenClosest b radix p y v.
-
-
-Let radix := 2%Z.
-Let FtoRradix := FtoR radix.
-Coercion FtoRradix : float >-> R.
-
-Hypotheses pGreaterThanOne :  (lt (S O) p).
-Hypotheses kGreaterThanOne :  (lt (S O) k).
-Hypotheses pGivesBound   :  (Zpos (vNum b)) = (Zpower_nat radix p).
-Hypotheses pkGivesBounde :  (Zpos (vNum be)) = (Zpower_nat radix (plus p k)).
-
-
-Hypotheses By : (Fbounded be y).
-Hypotheses Bz : (Fbounded b  z).
-Hypotheses Bv : (Fbounded b  v).
-Hypotheses Cv : (Fcanonic radix b v).
-
-Hypotheses ydef : (To_Odd      be radix (plus p k) x y).
-Hypotheses zdef : (EvenClosest b  radix p          y z).
-Hypotheses vdef : (EvenClosest b  radix p          x v).
-
-Hypotheses rangeext: (-(dExp be) <= (Zpred (Zpred (-(dExp b)))))%Z.
-
-
-Theorem To_Odd_Even_is_Even: ((FtoRradix v)=(FtoRradix z))%R.
-
-
+Section Odd_prop.
