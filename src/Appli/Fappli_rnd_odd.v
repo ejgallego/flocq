@@ -108,6 +108,7 @@ intros r1 r2 r3 H1 H2.
 apply H1; rewrite H2; ring.
 Qed.*)
 
+(* TODO déplacer *)
 Lemma Rmult_neq_compat_r: forall  r1 r2 r3:R, (r1 <> 0)%R -> (r2 <> r3)%R 
    -> (r2 *r1 <> r3*r1)%R.
 intros r1 r2 r3 H H1 H2.
@@ -364,7 +365,7 @@ Context { exists_NE_e : Exists_NE beta fexpe }.
 
 Hypothesis fexpe_fexp: forall e, (fexpe e <= fexp e -2)%Z.
 
-
+(* todo déplacer, renommer *)
 Lemma generic_format_F2R_2: forall c, forall (x:R) (f:float beta),
        F2R f = x -> ((x <> 0)%R -> 
        (canonic_exp beta c x <= Fexp f)%Z) ->
@@ -380,7 +381,7 @@ apply F2R_eq_0_reg with beta e.
 now rewrite H1.
 Qed.
 
-
+(*  todo utiliser le bon lemme *)
 Lemma generic_format_fexpe_fexp: forall x,
  generic_format beta fexp x ->  generic_format beta fexpe x.
 Proof.
@@ -466,16 +467,22 @@ now left.
 Qed.
 
 
+
+Lemma ln_beta_d:  (0< F2R d)%R -> 
+    (ln_beta beta (F2R d) = ln_beta beta x :>Z).
+Proof with auto with typeclass_instances.
+intros Y.
+rewrite d_eq; apply ln_beta_round_DN...
+now rewrite <- d_eq.
+Qed.
+
+
 Lemma Fexp_d: (0 < F2R d)%R -> Fexp d =fexp (ln_beta beta x).
 Proof with auto with typeclass_instances.
 intros Y.
-apply bpow_inj with beta.
-apply sym_eq, trans_eq with (ulp beta fexp x).
-reflexivity.
-rewrite <- ulp_DN, Cd...
-rewrite d_eq; reflexivity.
-rewrite <- d_eq; assumption.
+now rewrite Cd, <- ln_beta_d.
 Qed.
+
 
 
 Lemma format_bpow_x: (0 < F2R d)%R 
@@ -503,6 +510,7 @@ apply ln_beta_generic_gt...
 now apply Rgt_not_eq.
 now apply generic_format_canonic.
 Qed.
+
 
 
 (*
@@ -544,8 +552,7 @@ Qed.
 
 Lemma ln_beta_m: (0 < F2R d)%R -> (ln_beta beta m =ln_beta beta (F2R d) :>Z).
 Proof with auto with typeclass_instances.
-intros dPos; apply ln_beta_unique.
-rewrite Rabs_right.
+intros dPos; apply ln_beta_unique_pos.
 split.
 apply Rle_trans with (F2R d).
 destruct (ln_beta beta (F2R d)) as (e,He).
@@ -596,108 +603,87 @@ rewrite H; field.
 auto with real.
 apply Rgt_not_eq, Rlt_gt; auto with real.
 unfold m; rewrite <- H0; field.
-apply Rle_ge; unfold m; apply Rmult_le_pos.
-2: left; auto with real.
-apply Rle_trans with (0+0)%R;[right; ring|apply Rplus_le_compat].
-now left.
-apply Rle_trans with (F2R d).
-now left.
-apply Rle_trans with x.
-apply Hd.
-apply Hu.
 Qed.
 
-Lemma u'_eq:  exists f:float beta, F2R f = F2R u /\ (Fexp f = Fexp d)%Z.
+
+Lemma ln_beta_m_0: (0 = F2R d)%R 
+    -> (ln_beta beta m =ln_beta beta (F2R u)-1:>Z)%Z.
 Proof with auto with typeclass_instances.
-case d_ge_0; intros Y.
-assert ((bpow (ln_beta beta x-1)) <= F2R u <= bpow(ln_beta beta x))%R.
-split.
-apply Rle_trans with x.
-destruct (ln_beta beta x) as (e,He); simpl; intros.
+intros Y.
+apply ln_beta_unique_pos.
+unfold m; rewrite <- Y, Rplus_0_l.
+rewrite u_eq.
+destruct (ln_beta beta x) as (e,He).
 rewrite Rabs_right in He.
-apply He, Rgt_not_eq.
-apply xPos.
-left; apply xPos.
-apply Hu.
-rewrite u_eq; apply round_le_generic...
-now apply format_bpow_x.
-destruct (ln_beta beta x) as (e,He); simpl; intros.
-rewrite Rabs_right in He.
-left; apply He, Rgt_not_eq.
-apply xPos.
-left; apply xPos.
-destruct H as (H1,H2); case H2; intros H3.
-exists u; split; trivial.
-rewrite Fexp_d, Cu.
-unfold canonic_exp; apply f_equal, ln_beta_unique.
-rewrite Rabs_right.
-split; assumption.
-apply Rle_ge; left; apply Rlt_le_trans with (1:=xPos).
-apply Hu.
-assumption.
-rewrite Fexp_d; trivial.
-exists (Float beta (Zpower beta (ln_beta beta x-fexp (ln_beta beta x))) 
-      (fexp (ln_beta beta x))).
-split;[idtac|reflexivity].
-rewrite H3; unfold F2R; simpl.
-rewrite Z2R_Zpower.
-rewrite <- bpow_plus.
-apply f_equal; ring.
-assert (fexp (ln_beta beta x) <= ln_beta beta x)%Z;[idtac|omega].
-replace (ln_beta_val beta x (ln_beta beta x))%Z with (ln_beta beta (F2R u)-1)%Z.
-apply TOTO.
-
-apply Zle_trans with (ln_beta beta (F2R u)); [idtac|omega].
-apply valid_exp.
-apply ln_beta_generic_gt...
-apply Rgt_not_eq.
-apply Rlt_le_trans with (1:=xPos).
-apply Hu.
-now apply generic_format_canonic.
-assert (ln_beta_val beta (F2R u) (ln_beta beta (F2R u)) = ln_beta beta x+1)%Z.
-(*;[idtac|omega].*)
-apply ln_beta_unique.
-rewrite H3, Rabs_right.
+rewrite round_UP_small_pos with (ex:=e).
+rewrite ln_beta_bpow.
+ring_simplify (fexp e + 1 - 1)%Z.
 split.
-apply bpow_le; omega.
-apply bpow_lt; omega.
-
-
+unfold Zminus; rewrite bpow_plus.
+unfold Rdiv; apply Rmult_le_compat_l.
+apply bpow_ge_0.
+simpl; unfold Z.pow_pos; simpl.
+rewrite Zmult_1_r; apply Rinv_le.
+auto with real.
+apply (Z2R_le 2).
+specialize (radix_gt_1 beta).
 omega.
+apply Rlt_le_trans with (bpow (fexp e)*1)%R.
+2: right; ring.
+unfold Rdiv; apply Rmult_lt_compat_l.
+apply bpow_gt_0.
+
+TOTO.
+
+simpl; unfold Z.pow_pos; simpl.
+rewrite Zmult_1_r; apply Rinv_le.
 
 
-Z2R_Zpower_nat
+
+admit.
+
+now apply He, Rgt_not_eq.
+apply exp_small_round_0_pos with beta (Zfloor) x...
+now apply He, Rgt_not_eq.
+now rewrite <- d_eq, Y.
+now left.
+Qed.
 
 
-replace  (bpow (ln_beta beta x)) with (bpow (ln_beta beta (F2R d)))%Z.
-apply generic_format_bpow.
-apply valid_exp.
-apply ln_beta_generic_gt...
-now apply Rgt_not_eq.
-apply Hd.
-apply f_equal.
-apply ln_beta_unique.
+destruct (ln_beta beta (F2R u)).
+simpl.
+
+
+
 rewrite Rabs_right.
-split.
-rewrite d_eq; apply round_ge_generic...
-apply generic_format_bpow.
-apply valid_exp.
-apply ln_beta_generic_gt...
-
-ewrite <- Fexp_d.
-ln_beta_generic_gt...
+TOTO.
 
 
 
-rewrite Fexp_d.
 
 
-Lemma m_eq: exists f:float beta, F2R f = m /\ (Fexp f = fexp (ln_beta beta x) -1)%Z.
+
+Lemma u'_eq:  (0 < F2R d)%R -> exists f:float beta, F2R f = F2R u /\ (Fexp f = Fexp d)%Z.
+Proof with auto with typeclass_instances.
+intros Y.
+rewrite u_eq; unfold round.
+eexists; repeat split.
+simpl; now rewrite Fexp_d.
+Qed.
+
+
+
+
+Lemma m_eq: (0 < F2R d)%R ->  exists f:float beta, 
+   F2R f = m /\ (Fexp f = fexp (ln_beta beta x) -1)%Z.
+Proof with auto with typeclass_instances.
+intros Y.
 specialize (Zeven_ex (radix_val beta)); rewrite Even_beta.
 intros (b, Hb); rewrite Zplus_0_r in Hb.
-exists (Fmult beta (Float beta b (-1)) (Fplus beta d u))%R.
+destruct u'_eq as (u', (Hu'1,Hu'2)); trivial.
+exists (Fmult beta (Float beta b (-1)) (Fplus beta d u'))%R.
 split.
-rewrite F2R_mult, F2R_plus.
+rewrite F2R_mult, F2R_plus, Hu'1.
 unfold m; rewrite Rmult_comm.
 unfold Rdiv; apply f_equal.
 unfold F2R; simpl; unfold Z.pow_pos; simpl.
@@ -707,37 +693,75 @@ apply Rgt_not_eq, Rmult_lt_reg_l with (Z2R 2).
 simpl; auto with real.
 rewrite Rmult_0_r, <-Z2R_mult, <-Hb.
 apply radix_pos.
-apply trans_eq with (-1+Fexp (Fplus beta d u))%Z.
+apply trans_eq with (-1+Fexp (Fplus beta d u'))%Z.
 unfold Fmult.
-destruct  (Fplus beta d u); reflexivity.
+destruct  (Fplus beta d u'); reflexivity.
 rewrite Zplus_comm; unfold Zminus; apply f_equal2.
 2: reflexivity.
 rewrite Fexp_Fplus.
 rewrite Z.min_l.
 now rewrite Fexp_d.
-rewrite Fexp_d.
-apply Fexp_u.
+rewrite Hu'2; omega.
+Qed.
+
+Lemma m_eq_0: (0 = F2R d)%R ->  exists f:float beta, 
+   F2R f = m /\ (Fexp f = fexp (ln_beta beta (F2R u)) -1)%Z.
+Proof with auto with typeclass_instances.
+intros Y.
+specialize (Zeven_ex (radix_val beta)); rewrite Even_beta.
+intros (b, Hb); rewrite Zplus_0_r in Hb.
+exists (Fmult beta (Float beta b (-1)) u)%R.
+split.
+rewrite F2R_mult; unfold m; rewrite <- Y, Rplus_0_l.
+rewrite Rmult_comm.
+unfold Rdiv; apply f_equal.
+unfold F2R; simpl; unfold Z.pow_pos; simpl.
+rewrite Zmult_1_r, Hb, Z2R_mult.
+simpl; field.
+apply Rgt_not_eq, Rmult_lt_reg_l with (Z2R 2).
+simpl; auto with real.
+rewrite Rmult_0_r, <-Z2R_mult, <-Hb.
+apply radix_pos.
+apply trans_eq with (-1+Fexp u)%Z.
+unfold Fmult.
+destruct u; reflexivity.
+rewrite Zplus_comm, Cu; unfold Zminus; now apply f_equal2.
 Qed.
 
 
-
-
-Lemma Fm: generic_format beta fexpe m.
-destruct m_eq as (g,(Hg1,Hg2)).
+Lemma Fm:  generic_format beta fexpe m.
+case (d_ge_0); intros Y.
+(* *)
+destruct m_eq as (g,(Hg1,Hg2)); trivial.
 apply generic_format_F2R_2 with g.
 now apply sym_eq.
 intros H; unfold canonic_exp; rewrite Hg2.
-rewrite ln_beta_m.
+rewrite ln_beta_m; trivial.
+rewrite <- Fexp_d; trivial.
+rewrite Cd.
+unfold canonic_exp.
+generalize (fexpe_fexp  (ln_beta beta (F2R d))).
+omega.
+(* *)
+destruct m_eq_0 as (g,(Hg1,Hg2)); trivial.
+apply generic_format_F2R_2 with g.
+assumption.
+intros H; unfold canonic_exp; rewrite Hg2.
+rewrite <- Hg2, <- Hg1.
+
+
 rewrite <- Fexp_d.
 rewrite Cd.
 unfold canonic_exp.
 generalize (fexpe_fexp  (ln_beta beta (F2R d))).
 omega.
+
+
 Qed.
 
 
 
-Lemma Zm: 
+Lemma Zm: (0 < F2R d)%R ->
    exists g : float beta, F2R g = m /\ canonic beta fexpe g /\ Zeven (Fnum g) = true.
 Proof with auto with typeclass_instances.
 destruct m_eq as (g,(Hg1,Hg2)).
@@ -753,9 +777,12 @@ omega.
 Qed.
 
 
-Lemma DN_odd_d_aux: forall z, (F2R d< z< F2R u)%R ->
+Lemma DN_odd_d_aux: forall z, (F2R d<= z< F2R u)%R ->
     Rnd_DN_pt (generic_format beta fexp) z (F2R d).
 Proof with auto with typeclass_instances.
+Rnd_DN_UP_pt_split
+
+
 intros z Hz1.
 split.
 apply Hd.

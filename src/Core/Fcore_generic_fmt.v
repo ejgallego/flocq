@@ -776,6 +776,24 @@ refine (let H := _ in conj (proj1 H) (Rlt_le _ _ (proj2 H))).
 now apply mantissa_small_pos.
 Qed.
 
+
+Theorem exp_small_round_0_pos :
+  forall x ex, 
+ (bpow (ex - 1) <= x < bpow ex)%R ->  
+   round x =R0 -> (ex <= fexp ex)%Z .
+Proof.
+intros x ex H H1.
+case (Zle_or_lt ex (fexp ex)); trivial; intros V.
+contradict H1.
+apply Rgt_not_eq.
+apply Rlt_le_trans with (bpow (ex-1)).
+apply bpow_gt_0.
+apply  (round_bounded_large_pos); assumption.
+Qed.
+
+
+
+
 Theorem generic_format_round_pos :
   forall x,
   (0 < x)%R ->
@@ -1033,6 +1051,24 @@ clear rnd Hr x.
 intros rnd' Hr x.
 apply round_bounded_large_pos...
 Qed.
+
+Theorem exp_small_round_0 :
+  forall rnd {Hr : Valid_rnd rnd} x ex, 
+  (bpow (ex - 1) <= Rabs x < bpow ex)%R ->  
+   round rnd x =R0 -> (ex <= fexp ex)%Z .
+Proof.
+intros rnd Hr x ex H1 H2.
+generalize Rabs_R0.
+rewrite <- H2 at 1.
+apply (round_abs_abs' (fun t rt => forall (ex : Z),
+(bpow (ex - 1) <= t < bpow ex)%R ->
+rt = 0%R -> (ex <= fexp ex)%Z)); trivial.
+clear; intros rnd Hr x Hx.
+now apply exp_small_round_0_pos.
+Qed.
+
+
+
 
 Section monotone_abs.
 
