@@ -1140,6 +1140,31 @@ now split.
 Qed.
 
 
+Theorem pred_succ : forall { monotone_exp : Monotone_exp fexp }, 
+  forall x, F x -> (0 < x)%R -> pred (x + ulp x)=x.
+Proof.
+intros L x Fx Hx.
+assert (x <= pred (x + ulp x))%R.
+apply le_pred_lt.
+assumption.
+now apply generic_format_succ.
+replace 0%R with (0+0)%R by ring; apply Rplus_lt_compat; try apply Hx.
+apply bpow_gt_0.
+apply Rplus_lt_reg_r with (-x)%R; ring_simplify.
+apply bpow_gt_0.
+apply Rle_antisym; trivial.
+apply Rplus_le_reg_r with (ulp (pred (x + ulp x))).
+rewrite pred_plus_ulp.
+apply Rplus_le_compat_l.
+now apply ulp_le.
+replace 0%R with (0+0)%R by ring; apply Rplus_lt_compat; try apply Hx.
+apply bpow_gt_0.
+now apply generic_format_succ.
+apply Rgt_not_eq.
+now apply Rlt_le_trans with x.
+Qed.
+
+
 Theorem lt_UP_le_DN :
   forall x y, F y ->
   (y < round beta fexp Zceil x -> y <= round beta fexp Zfloor x)%R.
