@@ -165,6 +165,22 @@ now rewrite Ztrunc_Z2R.
 now apply Zle_left.
 Qed.
 
+Lemma generic_format_F2R_2: forall (x:R) (f:float beta),
+       F2R f = x -> ((x <> 0)%R -> 
+       (canonic_exp x <= Fexp f)%Z) ->
+       generic_format x.
+Proof.
+intros x f H1 H2.
+rewrite <- H1; destruct f as (m,e).
+apply  generic_format_F2R.
+simpl in *; intros H3.
+rewrite H1; apply H2.
+intros Y; apply H3.
+apply F2R_eq_0_reg with beta e.
+now rewrite H1.
+Qed.
+
+
 Theorem canonic_opp :
   forall m e,
   canonic (Float beta m e) ->

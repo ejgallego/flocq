@@ -1,3 +1,26 @@
+(**
+This file is part of the Flocq formalization of floating-point
+arithmetic in Coq: http://flocq.gforge.inria.fr/
+
+Copyright (C) 2010-2011 Sylvie Boldo
+#<br />#
+Copyright (C) 2010-2011 Guillaume Melquiond
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 3 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+COPYING file for more details.
+*)
+
+(** * Rounding to odd and its properties, including the equivalence 
+      between rnd_NE and double rounding with rnd_odd and then rnd_NE *)
+
+
 Require Import Fcore.
 Require Import Fcalc_ops.
 
@@ -101,19 +124,6 @@ Definition Rnd_odd_pt (x f : R) :=
 
 Definition Rnd_odd (rnd : R -> R) :=
   forall x : R, Rnd_odd_pt x (rnd x).
-
-(*
-Lemma Rmult_neq_reg_r: forall  r1 r2 r3:R, (r2 * r1 <> r3 * r1)%R -> r2 <> r3.
-intros r1 r2 r3 H1 H2.
-apply H1; rewrite H2; ring.
-Qed.*)
-
-(* TODO déplacer *)
-Lemma Rmult_neq_compat_r: forall  r1 r2 r3:R, (r1 <> 0)%R -> (r2 <> r3)%R 
-   -> (r2 *r1 <> r3*r1)%R.
-intros r1 r2 r3 H H1 H2.
-now apply H1, Rmult_eq_reg_r with r1. 
-Qed.
 
 
 Theorem Rnd_odd_pt_sym :   forall x f : R,
@@ -360,37 +370,18 @@ Variable fexp : Z -> Z.
 Variable fexpe : Z -> Z.
 
 Context { valid_exp : Valid_exp fexp }.
+Context { monotone_exp_ : Monotone_exp fexp }. (* grmbl Exp_not_FTZ ? *)
 Context { valid_expe : Valid_exp fexpe }.
 Context { exists_NE_e : Exists_NE beta fexpe }.
 
 Hypothesis fexpe_fexp: forall e, (fexpe e <= fexp e -2)%Z.
 
-(* todo déplacer, renommer *)
-Lemma generic_format_F2R_2: forall c, forall (x:R) (f:float beta),
-       F2R f = x -> ((x <> 0)%R -> 
-       (canonic_exp beta c x <= Fexp f)%Z) ->
-       generic_format beta c x.
-Proof.
-intros c x f H1 H2.
-rewrite <- H1; destruct f as (m,e).
-apply  generic_format_F2R.
-simpl in *; intros H3.
-rewrite H1; apply H2.
-intros Y; apply H3.
-apply F2R_eq_0_reg with beta e.
-now rewrite H1.
-Qed.
 
-(*  todo utiliser le bon lemme *)
 Lemma generic_format_fexpe_fexp: forall x,
  generic_format beta fexp x ->  generic_format beta fexpe x.
 Proof.
-intros x Hx; unfold generic_format in Hx.
-apply generic_format_F2R_2 with 
-   (Float beta (Ztrunc (scaled_mantissa beta fexp x)) 
-      (canonic_exp beta fexp x)).
-now apply sym_eq.
-intros; simpl; unfold canonic_exp.
+intros x Hx.
+apply generic_inclusion_ln_beta with fexp; trivial; intros Hx2.
 generalize (fexpe_fexp (ln_beta beta x)).
 omega.
 Qed.
@@ -511,18 +502,6 @@ now apply Rgt_not_eq.
 now apply generic_format_canonic.
 Qed.
 
-
-
-(*
-Lemma Fexp_u:  (fexp (ln_beta beta x) <= Fexp u)%Z.
-rewrite Cu; unfold canonic_exp.
-apply monotone_exp.
-apply ln_beta_le.
-apply Rlt_le_trans with (1:=dPos).
-apply Hd.
-apply Hu.
-Qed.
-*)
 
 Lemma d_le_m: (F2R d <= m)%R.
 apply Rmult_le_reg_l with 2%R.
@@ -714,13 +693,11 @@ Lemma fexp_m_eq_0:  (0 = F2R d)%R ->
   (fexp (ln_beta beta (F2R u)-1) < fexp (ln_beta beta (F2R u))+1)%Z.
 Proof with auto with typeclass_instances.
 intros Y.
-
-
-
-TOTO.
-
-Admitted. (********************************)
-
+assert ((fexp (ln_beta beta (F2R u) - 1) <= fexp (ln_beta beta (F2R u))))%Z.
+apply monotone_exp...
+omega.
+omega.
+Qed.
 
 Lemma Fm:  generic_format beta fexpe m.
 case (d_ge_0); intros Y.
@@ -931,6 +908,7 @@ Variable fexpe : Z -> Z.
 Variable choice:Z->bool.
 
 Context { valid_exp : Valid_exp fexp }.
+Context { monotone_exp_ : Monotone_exp fexp }. 
 Context { valid_expe : Valid_exp fexpe }.
 Context { exists_NE_e : Exists_NE beta fexpe }.
 
@@ -985,6 +963,4 @@ rewrite <- Hu1; apply round_UP_pt...
 Qed.
 
 
-(* TODO pred(succ)=x=succ(pred)
-
-Section Odd_prop.
+End Odd_prop.
