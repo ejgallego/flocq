@@ -194,7 +194,6 @@ rewrite <- Z2R_opp, Zfloor_Z2R.
 now rewrite Z2R_opp, <- Y1.
 intros Y1 Y2.
 unfold Zceil; rewrite Ropp_involutive.
-SearchAbout Zceil.
 replace  (Zeven (Zfloor (- r))) with (negb (Zeven (Zfloor r))).
 case (Zeven (Zfloor r));  simpl; ring.
 apply trans_eq with (Zeven (Zceil r)).
@@ -370,9 +369,9 @@ Variable fexp : Z -> Z.
 Variable fexpe : Z -> Z.
 
 Context { valid_exp : Valid_exp fexp }.
-Context { monotone_exp_ : Monotone_exp fexp }. (* grmbl Exp_not_FTZ ? *)
+Context { exists_NE_ : Exists_NE beta fexp }. (* for underflow reason *)
 Context { valid_expe : Valid_exp fexpe }.
-Context { exists_NE_e : Exists_NE beta fexpe }.
+Context { exists_NE_e : Exists_NE beta fexpe }. (* for defining rounding to odd *)
 
 Hypothesis fexpe_fexp: forall e, (fexpe e <= fexp e -2)%Z.
 
@@ -694,16 +693,30 @@ Lemma fexp_m_eq_0:  (0 = F2R d)%R ->
 Proof with auto with typeclass_instances.
 intros Y.
 assert ((fexp (ln_beta beta (F2R u) - 1) <= fexp (ln_beta beta (F2R u))))%Z.
-apply monotone_exp...
-omega.
-omega.
+2: omega.
+destruct (ln_beta beta x) as (e,He).
+rewrite Rabs_right in He.
+2: now left.
+assert (e <= fexp e)%Z.
+apply exp_small_round_0_pos with beta (Zfloor) x...
+now apply He, Rgt_not_eq.
+now rewrite <- d_eq, Y.
+rewrite u_eq, round_UP_small_pos with (ex:=e); trivial.
+2: now apply He, Rgt_not_eq.
+rewrite ln_beta_bpow.
+ring_simplify (fexp e + 1 - 1)%Z.
+replace (fexp (fexp e)) with (fexp e).
+case exists_NE_; intros V.
+contradict V; rewrite Even_beta; discriminate.
+rewrite (proj2 (V e)); omega.
+apply sym_eq, valid_exp; omega.
 Qed.
 
 Lemma Fm:  generic_format beta fexpe m.
 case (d_ge_0); intros Y.
 (* *)
 destruct m_eq as (g,(Hg1,Hg2)); trivial.
-apply generic_format_F2R_2 with g.
+apply generic_format_F2R' with g.
 now apply sym_eq.
 intros H; unfold canonic_exp; rewrite Hg2.
 rewrite ln_beta_m; trivial.
@@ -714,7 +727,7 @@ generalize (fexpe_fexp (ln_beta beta (F2R d))).
 omega.
 (* *)
 destruct m_eq_0 as (g,(Hg1,Hg2)); trivial.
-apply generic_format_F2R_2 with g.
+apply generic_format_F2R' with g.
 assumption.
 intros H; unfold canonic_exp; rewrite Hg2.
 rewrite ln_beta_m_0; try assumption.
@@ -908,9 +921,9 @@ Variable fexpe : Z -> Z.
 Variable choice:Z->bool.
 
 Context { valid_exp : Valid_exp fexp }.
-Context { monotone_exp_ : Monotone_exp fexp }. 
+Context { exists_NE_ : Exists_NE beta fexp }. (* for underflow reason *)
 Context { valid_expe : Valid_exp fexpe }.
-Context { exists_NE_e : Exists_NE beta fexpe }.
+Context { exists_NE_e : Exists_NE beta fexpe }. (* for defining rounding to odd *)
 
 Hypothesis fexpe_fexp: forall e, (fexpe e <= fexp e -2)%Z.
 

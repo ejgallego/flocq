@@ -165,7 +165,7 @@ now rewrite Ztrunc_Z2R.
 now apply Zle_left.
 Qed.
 
-Lemma generic_format_F2R_2: forall (x:R) (f:float beta),
+Lemma generic_format_F2R': forall (x:R) (f:float beta),
        F2R f = x -> ((x <> 0)%R -> 
        (canonic_exp x <= Fexp f)%Z) ->
        generic_format x.
