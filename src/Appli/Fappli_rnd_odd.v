@@ -803,8 +803,8 @@ Qed.
 
 
 Theorem round_odd_prop_pos: 
-  round beta fexp ZnearestE  (round beta fexpe Zrnd_odd x) = 
-               round beta fexp ZnearestE x.
+  round beta fexp (Znearest choice)  (round beta fexpe Zrnd_odd x) =
+               round beta fexp (Znearest choice) x.
 Proof with auto with typeclass_instances.
 set (o:=round beta fexpe Zrnd_odd x).
 case (generic_format_EM beta fexp x); intros Hx.
@@ -946,14 +946,14 @@ Qed.
 
 
 Theorem round_odd_prop: forall x, 
-  round beta fexp ZnearestE  (round beta fexpe Zrnd_odd x) = 
-               round beta fexp ZnearestE x.
+  round beta fexp (Znearest choice)  (round beta fexpe Zrnd_odd x) =
+               round beta fexp (Znearest choice) x.
 Proof with auto with typeclass_instances.
 intros x.
 case (total_order_T x 0); intros H; [case H; clear H; intros H | idtac].
 rewrite <- (Ropp_involutive x).
 rewrite round_odd_opp.
-rewrite 2!round_NE_opp.
+rewrite 2!round_N_opp.
 apply f_equal.
 destruct (canonizer (round beta fexp Zfloor (-x))) as (d,(Hd1,Hd2)).
 apply generic_format_round...
