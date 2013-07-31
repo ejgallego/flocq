@@ -1,3 +1,7 @@
+Version 2.2.0:
+ - added theorems about rounding to odd and double rounding
+ - improved handling of special values of IEEE-754 arithmetic
+
 Version 2.1.0:
  - ensured compatibility with both Coq 8.3 and 8.4
  - improved support for rounding toward and away from zero

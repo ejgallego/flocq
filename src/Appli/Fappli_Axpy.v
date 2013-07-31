@@ -62,8 +62,8 @@ now contradict H.
 Qed.
 
 
-Definition MinOrMax x f := 
-   ((f = round beta (FLX_exp prec) Zfloor x) 
+Definition MinOrMax x f :=
+   ((f = round beta (FLX_exp prec) Zfloor x)
      \/ (f = round beta (FLX_exp prec) Zceil x)).
 
 Theorem MinOrMax_opp: forall x f,
@@ -84,7 +84,7 @@ Qed.
 Theorem implies_DN_lt_ulp:
   forall x f, format f ->
   (0 < f <= x)%R ->
-  (Rabs (f-x) < ulp f)%R -> 
+  (Rabs (f-x) < ulp f)%R ->
   (f = round beta (FLX_exp prec) Zfloor x)%R.
 intros x f Hf Hxf1 Hxf2.
 apply sym_eq.
@@ -100,7 +100,7 @@ Qed.
 Theorem MinOrMax_ulp_pred:
   forall x f, format f ->
   (0 < f)%R ->
-  (Rabs (f-x) < ulp (pred beta (FLX_exp prec) f))%R -> 
+  (Rabs (f-x) < ulp (pred beta (FLX_exp prec) f))%R ->
   MinOrMax x f.
 intros x f Ff Zf Hf.
 case (Rlt_or_le x f); intros Hxf2.
@@ -141,7 +141,7 @@ Qed.
 Theorem implies_MinOrMax_bpow:
   forall x f, format f ->
   f = bpow (ln_beta beta f) ->
-  (Rabs (f-x) < /2* ulp f)%R -> 
+  (Rabs (f-x) < /2* ulp f)%R ->
   MinOrMax x f.
 intros x f Hf1 Hf2 Hxf.
 
@@ -165,18 +165,18 @@ Notation u := (round beta (FLX_exp prec) (Znearest choice) (t+y)).
 
 (*
 Axpy_aux1 : lemma Closest?(b)(a*x,t) => Closest?(b)(t+y,u) => 0 < u
-   => abs(t-a*x)          <=  Fulp(b)(Fpred(b)(u))/4 
+   => abs(t-a*x)          <=  Fulp(b)(Fpred(b)(u))/4
    => abs(y1-y+a1*x1-a*x) <   Fulp(b)(Fpred(b)(u))/4
    => MinOrMax?(y1+a1*x1,u)
 
 
 Axpy_aux1_aux1 : lemma Closest?(b)(a*x,t) => Closest?(b)(t+y,u) => 0 < u
   => Fnormal?(b)(t) => radix*abs(t) <= Fpred(b)(u)
-  => abs(t-a*x)  <=  Fulp(b)(Fpred(b)(u))/4 
+  => abs(t-a*x)  <=  Fulp(b)(Fpred(b)(u))/4
 
 Axpy_aux1_aux2 : lemma Closest?(b)(a*x,t) => Closest?(b)(t+y,u) => 0 < u
   => Fsubnormal?(b)(t) => 1-dExp(b) <= Fexp(Fpred(b)(u))
-  => abs(t-a*x) <=  Fulp(b)(Fpred(b)(u))/4 
+  => abs(t-a*x) <=  Fulp(b)(Fpred(b)(u))/4
 
 Axpy_aux2 : lemma Closest?(b)(a*x,t) => Closest?(b)(t+y,u) => 0 < u
   => Fsubnormal?(b)(t) => u=t+y
@@ -185,7 +185,7 @@ Axpy_aux2 : lemma Closest?(b)(a*x,t) => Closest?(b)(t+y,u) => 0 < u
 
 
 Axpy_aux3 : lemma Closest?(b)(a*x,t) => Closest?(b)(t+y,u) => 0 < u
-  => Fsubnormal?(b)(t) 
+  => Fsubnormal?(b)(t)
   => -dExp(b) = Fexp(Fpred(b)(u)) =>  1-dExp(b) <= Fexp(u)
   => abs(y1-y+a1*x1-a*x) < Fulp(b)(Fpred(b)(u))/4
   => MinOrMax?(y1+a1*x1,u)
@@ -196,29 +196,29 @@ AxpyPos : lemma Closest?(b)(a*x,t) => Closest?(b)(t+y,u) => 0 < u
   => abs(y1-y+a1*x1-a*x) < Fulp(b)(Fpred(b)(u))/4
   => MinOrMax?(y1+a1*x1,u)
 
-Axpy_opt_aux1_aux1 : lemma Fnormal?(b)(t) => Fnormal?(b)(u) => 0 < u 
-    => Prec(b) >= 3 => 
+Axpy_opt_aux1_aux1 : lemma Fnormal?(b)(t) => Fnormal?(b)(u) => 0 < u
+    => Prec(b) >= 3 =>
    (1+radix*(1+1/(2*abs(Fnum(u))))*(1+1/abs(Fnum(Fpred(b)(u)))))/(1-1/(2*abs(Fnum(t))))
       <= 1+radix+radix^(4-Prec(b))
 
 Axpy_opt_aux1 : lemma Closest?(b)(a*x,t) => Closest?(b)(t+y,u) => 0 < u
-  =>  Prec(b) >= 3 => Fnormal?(b)(t) 
+  =>  Prec(b) >= 3 => Fnormal?(b)(t)
   => (radix+1+radix^(4-Prec(b)))*abs(a*x) <= abs(y)
   =>  radix*abs(t) <= Fpred(b)(u)
 
 Axpy_opt_aux2 : lemma  Closest?(b)(a*x,t) => Closest?(b)(t+y,u) => 0 < u
-  =>  Prec(b) >= 6 =>  Fnormal?(b)(t) 
+  =>  Prec(b) >= 6 =>  Fnormal?(b)(t)
   => (radix+1+radix^(4-Prec(b)))*abs(a*x) <= abs(y)
   =>  abs(y)*radix^(1-Prec(b))/(radix+1) < Fulp(b)(Fpred(b)(u))
 
 Axpy_opt_aux3 : lemma  Closest?(b)(a*x,t) => Closest?(b)(t+y,u) => 0 < u
-  =>  Prec(b) >= 3  =>  Fsubnormal?(b)(t) 
+  =>  Prec(b) >= 3  =>  Fsubnormal?(b)(t)
   => (radix+1+radix^(4-Prec(b)))*abs(a*x) <= abs(y)
   =>  abs(y)*radix^(1-Prec(b))/(radix+radix/2) <= Fulp(b)(Fpred(b)(u))
 
 
 Axpy_optPos : lemma Closest?(b)(a*x,t) => Closest?(b)(t+y,u) => 0 < u
-  => Prec(b) >= 6 
+  => Prec(b) >= 6
   => (radix+1+radix^(4-Prec(b)))*abs(a*x) <= abs(y)
   => abs(y1-y+a1*x1-a*x) < abs(y)*radix^(1-Prec(b))/(6*radix)
   => MinOrMax?(y1+a1*x1,u)
@@ -235,7 +235,7 @@ Axpy_opt : lemma Closest?(b)(a*x,t) => Closest?(b)(t+y,u)
   => MinOrMax?(y1+a1*x1,u)
 
 Axpy_simpl : lemma Closest?(b)(a*x,t) => Closest?(b)(t+y,u)
-  => Prec(b) >= 24 => radix=2 
+  => Prec(b) >= 24 => radix=2
   => (3+1/100000)*abs(a*x) <= abs(y)
   => abs(y1-y+a1*x1-a*x) < abs(y)*2^(1-Prec(b))/12
   => MinOrMax?(y1+a1*x1,u)

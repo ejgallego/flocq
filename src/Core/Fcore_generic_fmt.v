@@ -166,7 +166,7 @@ now apply Zle_left.
 Qed.
 
 Lemma generic_format_F2R': forall (x:R) (f:float beta),
-       F2R f = x -> ((x <> 0)%R -> 
+       F2R f = x -> ((x <> 0)%R ->
        (canonic_exp x <= Fexp f)%Z) ->
        generic_format x.
 Proof.
@@ -794,8 +794,8 @@ Qed.
 
 
 Theorem exp_small_round_0_pos :
-  forall x ex, 
- (bpow (ex - 1) <= x < bpow ex)%R ->  
+  forall x ex,
+ (bpow (ex - 1) <= x < bpow ex)%R ->
    round x =R0 -> (ex <= fexp ex)%Z .
 Proof.
 intros x ex H H1.
@@ -1069,8 +1069,8 @@ apply round_bounded_large_pos...
 Qed.
 
 Theorem exp_small_round_0 :
-  forall rnd {Hr : Valid_rnd rnd} x ex, 
-  (bpow (ex - 1) <= Rabs x < bpow ex)%R ->  
+  forall rnd {Hr : Valid_rnd rnd} x ex,
+  (bpow (ex - 1) <= Rabs x < bpow ex)%R ->
    round rnd x =R0 -> (ex <= fexp ex)%Z .
 Proof.
 intros rnd Hr x ex H1 H2.

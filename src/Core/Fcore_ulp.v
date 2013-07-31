@@ -1140,7 +1140,7 @@ now split.
 Qed.
 
 
-Theorem pred_succ : forall { monotone_exp : Monotone_exp fexp }, 
+Theorem pred_succ : forall { monotone_exp : Monotone_exp fexp },
   forall x, F x -> (0 < x)%R -> pred (x + ulp x)=x.
 Proof.
 intros L x Fx Hx.
@@ -1211,8 +1211,8 @@ Qed.
 
 (** Properties of rounding to nearest and ulp *)
 
-Theorem rnd_N_le_half_an_ulp: forall choice u v, 
-  F u -> (0 < u)%R -> (v < u + (ulp u)/2)%R 
+Theorem rnd_N_le_half_an_ulp: forall choice u v,
+  F u -> (0 < u)%R -> (v < u + (ulp u)/2)%R
       -> (round beta fexp (Znearest choice)  v <= u)%R.
 Proof with auto with typeclass_instances.
 intros choice u v Fu Hu H.
@@ -1247,8 +1247,8 @@ right; field.
 Qed.
 
 
-Theorem rnd_N_ge_half_an_ulp_pred: forall choice u v, 
- F u -> (0 < pred u)%R -> (u - (ulp (pred u))/2 < v)%R 
+Theorem rnd_N_ge_half_an_ulp_pred: forall choice u v,
+ F u -> (0 < pred u)%R -> (u - (ulp (pred u))/2 < v)%R
       -> (u <= round beta fexp (Znearest choice)  v)%R.
 Proof with auto with typeclass_instances.
 intros choice u v Fu Hu H.
@@ -1300,9 +1300,9 @@ now apply Rgt_not_eq.
 Qed.
 
 
-Theorem rnd_N_ge_half_an_ulp: forall choice u v, 
+Theorem rnd_N_ge_half_an_ulp: forall choice u v,
   F u -> (0 < u)%R -> (u <> bpow (ln_beta beta u - 1))%R
-        -> (u - (ulp u)/2 < v)%R 
+        -> (u - (ulp u)/2 < v)%R
         -> (u <= round beta fexp (Znearest choice) v)%R.
 Proof with auto with typeclass_instances.
 intros choice u v Fu Hupos Hu H.
@@ -1346,10 +1346,10 @@ rewrite Hu2; assumption.
 Qed.
 
 
-Lemma round_N_DN_betw: forall choice x d u, 
+Lemma round_N_DN_betw: forall choice x d u,
    Rnd_DN_pt (generic_format beta fexp) x d ->
    Rnd_UP_pt (generic_format beta fexp) x u ->
-     (d<=x<(d+u)/2)%R -> 
+     (d<=x<(d+u)/2)%R ->
      round beta fexp (Znearest choice) x = d.
 Proof with auto with typeclass_instances.
 intros choice x d u Hd Hu H.
@@ -1382,10 +1382,10 @@ apply H.
 Qed.
 
 
-Lemma round_N_UP_betw: forall choice x d u, 
+Lemma round_N_UP_betw: forall choice x d u,
    Rnd_DN_pt (generic_format beta fexp) x d ->
    Rnd_UP_pt (generic_format beta fexp) x u ->
-     ((d+u)/2 < x <= u)%R -> 
+     ((d+u)/2 < x <= u)%R ->
      round beta fexp (Znearest choice) x = u.
 Proof with auto with typeclass_instances.
 intros choice x d u Hd Hu H.

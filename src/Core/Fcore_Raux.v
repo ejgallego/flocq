@@ -126,10 +126,10 @@ intros r1 r2 r3 H1 H2.
 apply H1; rewrite H2; ring.
 Qed.
 
-Lemma Rmult_neq_compat_r: forall  r1 r2 r3:R, (r1 <> 0)%R -> (r2 <> r3)%R 
+Lemma Rmult_neq_compat_r: forall  r1 r2 r3:R, (r1 <> 0)%R -> (r2 <> r3)%R
    -> (r2 *r1 <> r3*r1)%R.
 intros r1 r2 r3 H H1 H2.
-now apply H1, Rmult_eq_reg_r with r1. 
+now apply H1, Rmult_eq_reg_r with r1.
 Qed.
 
 

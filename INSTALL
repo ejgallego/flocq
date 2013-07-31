@@ -1,7 +1,7 @@
 Prerequisites
 -------------
 
-You will need the Coq proof assistant (>= 8.3) with a Reals theory
+You will need the Coq proof assistant (>= 8.4) with a Reals theory
 compiled in.
 
 The .tar.gz file is distributed with a working set of configure files. They

@@ -27,7 +27,7 @@ Require Import Fappli_IEEE.
 Section Bounds.
 
 
-Definition nat_to_N (n:nat) := match n with 
+Definition nat_to_N (n:nat) := match n with
    |  0    => N0
    | (S m) => (Npos (P_of_succ_nat m))
    end.
@@ -38,16 +38,16 @@ intros; induction n; simpl; auto.
 Qed.
 
 
-Definition make_bound (p E:nat) := Bound 
+Definition make_bound (p E:nat) := Bound
       (P_of_succ_nat (Peano.pred (Zabs_nat (Zpower_nat 2%Z p))))
       (nat_to_N E).
 
-Lemma make_EGivesEmin: forall p E:nat, 
+Lemma make_EGivesEmin: forall p E:nat,
         (Z_of_N (dExp (make_bound p E)))=E.
 intros; simpl; apply nat_to_N_correct.
 Qed.
 
-Lemma make_pGivesBound: forall p E:nat, 
+Lemma make_pGivesBound: forall p E:nat,
         Zpos (vNum (make_bound p E))=(Zpower_nat 2 p).
 intros.
 unfold make_bound, vNum.
@@ -97,7 +97,7 @@ End Bounds.
 Section Equiv.
 Variable b : Fbound.
 Variable p : nat.
- 
+
 Hypothesis pGivesBound : Zpos (vNum b) = Zpower_nat 2%Z p.
 Hypothesis precisionNotZero : 1 < p.
 
@@ -121,7 +121,7 @@ exact H0.
 Qed.
 
 
-Lemma equiv_RNDs_aux2: forall r, 
+Lemma equiv_RNDs_aux2: forall r,
   (generic_format radix2 (FLT_exp (-dExp b) p) r)
   -> exists f, FtoR 2 f = r /\ Fbounded b f.
 intros r Hr.
@@ -160,7 +160,7 @@ intros H; contradict H; auto.
 Qed.
 
 Lemma equiv_RNDs_aux4: forall f, Fcanonic 2 b f -> FtoR 2 f <> 0 ->
-  canonic radix2 (FLT_exp (- dExp b) p) 
+  canonic radix2 (FLT_exp (- dExp b) p)
     (Float radix2 (Float.Fnum f) (Float.Fexp f)).
 intros f Hf1 Hf2; unfold canonic; simpl.
 assert (K:(F2R (Float radix2 (Float.Fnum f) (Float.Fexp f)) = FtoR 2 f)).
@@ -242,7 +242,7 @@ Qed.
 
 
 Lemma equiv_RNDs_aux5: forall (r:R),
-   (FtoR 2 (RND_EvenClosest b 2 p r) 
+   (FtoR 2 (RND_EvenClosest b 2 p r)
      =  round radix2 (FLT_exp (-dExp b) p) rndNE r).
 intros.
 assert (Rnd_NE_pt radix2 (FLT_exp (-dExp b) p) r
@@ -309,7 +309,7 @@ Qed.
 
 
 Lemma equiv_RNDs: forall (r:R),
-   exists f:Float.float, (Fcanonic 2 b f /\ (EvenClosest b 2 p r f) /\ 
+   exists f:Float.float, (Fcanonic 2 b f /\ (EvenClosest b 2 p r f) /\
     FtoR 2 f =  round radix2 (FLT_exp (-dExp b) p) rndNE r).
 intros r.
 exists (RND_EvenClosest b 2 p r).
@@ -325,7 +325,7 @@ End Equiv.
 Section Equiv_instanc.
 
 Lemma equiv_RNDs_s: forall (r:R),
-   exists f:Float.float, (Fcanonic 2 bsingle f /\ (EvenClosest bsingle 2 24 r f) /\ 
+   exists f:Float.float, (Fcanonic 2 bsingle f /\ (EvenClosest bsingle 2 24 r f) /\
     FtoR 2 f =  round radix2 (FLT_exp (-149) 24) rndNE r).
 apply equiv_RNDs.
 apply psGivesBound.
@@ -334,7 +334,7 @@ Qed.
 
 
 Lemma equiv_RNDs_d: forall (r:R),
-   exists f:Float.float, (Fcanonic 2 bdouble f /\ (EvenClosest bdouble 2 53 r f) /\ 
+   exists f:Float.float, (Fcanonic 2 bdouble f /\ (EvenClosest bdouble 2 53 r f) /\
     FtoR 2 f =  round radix2 (FLT_exp (-1074) 53) rndNE r).
 apply equiv_RNDs.
 apply pdGivesBound.

@@ -17,7 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
-(** * Rounding to odd and its properties, including the equivalence 
+(** * Rounding to odd and its properties, including the equivalence
       between rnd_NE and double rounding with rnd_odd and then rnd_NE *)
 
 
@@ -30,7 +30,7 @@ Definition Zrnd_odd x :=  match Req_EM_T x (Z2R (Zfloor x))  with
       | true => Zceil x
       | false => Zfloor x
      end
-  end. 
+  end.
 
 
 
@@ -273,7 +273,7 @@ rewrite <- H0.
 repeat split; try assumption.
 apply trans_eq with (negb (Zeven (Zfloor (scaled_mantissa beta fexp x)))).
 2: rewrite H1; reflexivity.
-apply trans_eq with (negb (Zeven (Fnum 
+apply trans_eq with (negb (Zeven (Fnum
   (Float beta  (Zfloor (scaled_mantissa beta fexp x)) (cexp x))))).
 2: reflexivity.
 case (Rle_lt_or_eq_dec 0 (round beta fexp Zfloor x)).
@@ -389,13 +389,13 @@ Qed.
 
 Lemma exists_even_fexp_lt: forall (c:Z->Z), forall (x:R),
       (exists f:float beta, F2R f = x /\ (c (ln_beta beta x) < Fexp f)%Z) ->
-      exists f:float beta, F2R f =x /\ canonic beta c f /\ Zeven (Fnum f) = true.   
+      exists f:float beta, F2R f =x /\ canonic beta c f /\ Zeven (Fnum f) = true.
 Proof with auto with typeclass_instances.
 intros c x (g,(Hg1,Hg2)).
-exists (Float beta 
+exists (Float beta
      (Fnum g*Z.pow (radix_val beta) (Fexp g - c (ln_beta beta x)))
      (c (ln_beta beta x))).
-assert (F2R (Float beta 
+assert (F2R (Float beta
      (Fnum g*Z.pow (radix_val beta) (Fexp g - c (ln_beta beta x)))
      (c (ln_beta beta x))) = x).
 unfold F2R; simpl.
@@ -458,7 +458,7 @@ Qed.
 
 
 
-Lemma ln_beta_d:  (0< F2R d)%R -> 
+Lemma ln_beta_d:  (0< F2R d)%R ->
     (ln_beta beta (F2R d) = ln_beta beta x :>Z).
 Proof with auto with typeclass_instances.
 intros Y.
@@ -475,7 +475,7 @@ Qed.
 
 
 
-Lemma format_bpow_x: (0 < F2R d)%R 
+Lemma format_bpow_x: (0 < F2R d)%R
     -> generic_format beta fexp  (bpow (ln_beta beta x)).
 Proof with auto with typeclass_instances.
 intros Y.
@@ -584,7 +584,7 @@ unfold m; rewrite <- H0; field.
 Qed.
 
 
-Lemma ln_beta_m_0: (0 = F2R d)%R 
+Lemma ln_beta_m_0: (0 = F2R d)%R
     -> (ln_beta beta m =ln_beta beta (F2R u)-1:>Z)%Z.
 Proof with auto with typeclass_instances.
 intros Y.
@@ -634,7 +634,7 @@ Qed.
 
 
 
-Lemma m_eq: (0 < F2R d)%R ->  exists f:float beta, 
+Lemma m_eq: (0 < F2R d)%R ->  exists f:float beta,
    F2R f = m /\ (Fexp f = fexp (ln_beta beta x) -1)%Z.
 Proof with auto with typeclass_instances.
 intros Y.
@@ -664,7 +664,7 @@ now rewrite Fexp_d.
 rewrite Hu'2; omega.
 Qed.
 
-Lemma m_eq_0: (0 = F2R d)%R ->  exists f:float beta, 
+Lemma m_eq_0: (0 = F2R d)%R ->  exists f:float beta,
    F2R f = m /\ (Fexp f = fexp (ln_beta beta (F2R u)) -1)%Z.
 Proof with auto with typeclass_instances.
 intros Y.
@@ -688,7 +688,7 @@ destruct u; reflexivity.
 rewrite Zplus_comm, Cu; unfold Zminus; now apply f_equal2.
 Qed.
 
-Lemma fexp_m_eq_0:  (0 = F2R d)%R -> 
+Lemma fexp_m_eq_0:  (0 = F2R d)%R ->
   (fexp (ln_beta beta (F2R u)-1) < fexp (ln_beta beta (F2R u))+1)%Z.
 Proof with auto with typeclass_instances.
 intros Y.
@@ -803,7 +803,7 @@ Qed.
 
 
 Theorem round_odd_prop_pos: 
-  round beta fexp (Znearest choice)  (round beta fexpe Zrnd_odd x) =
+  round beta fexp (Znearest choice) (round beta fexpe Zrnd_odd x) =
                round beta fexp (Znearest choice) x.
 Proof with auto with typeclass_instances.
 set (o:=round beta fexpe Zrnd_odd x).
@@ -928,7 +928,7 @@ Context { exists_NE_e : Exists_NE beta fexpe }. (* for defining rounding to odd 
 Hypothesis fexpe_fexp: forall e, (fexpe e <= fexp e -2)%Z.
 
 
-Theorem canonizer: forall f, generic_format beta fexp f 
+Theorem canonizer: forall f, generic_format beta fexp f
    -> exists g : float beta, f = F2R g /\ canonic beta fexp g.
 Proof with auto with typeclass_instances.
 intros f Hf.
@@ -946,7 +946,7 @@ Qed.
 
 
 Theorem round_odd_prop: forall x, 
-  round beta fexp (Znearest choice)  (round beta fexpe Zrnd_odd x) =
+  round beta fexp (Znearest choice) (round beta fexpe Zrnd_odd x) =
                round beta fexp (Znearest choice) x.
 Proof with auto with typeclass_instances.
 intros x.

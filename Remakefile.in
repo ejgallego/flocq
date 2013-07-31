@@ -66,6 +66,11 @@ install:
 EXTRA_DIST = \
 	configure
 
+REMOVE_FROM_DIST = \
+	src/Appli/Fappli_Axpy.v \
+	src/Appli/Fappli_Muller.v \
+	src/Translate/
+
 dist: $(EXTRA_DIST)
 	PACK=@PACKAGE_TARNAME@-@PACKAGE_VERSION@
 	DIRS=`git ls-tree -d -r --name-only HEAD`
@@ -74,6 +79,7 @@ dist: $(EXTRA_DIST)
 	mkdir $PACK
 	for d in $DIRS; do mkdir $PACK/$d; done
 	for f in $FILES $(EXTRA_DIST); do cp $f $PACK/$f; done
+	for f in $(REMOVE_FROM_DIST) ; do rm -rf $PACK/$f; done
 	git log --pretty="format:%ad %s" --date=short > $PACK/ChangeLog
 	cat /dev/null > $PACK/ChangeLog
 	rm `find $PACK -name .gitignore`

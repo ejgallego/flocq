@@ -177,7 +177,7 @@ apply round_generic...
 apply sym_eq, sqrt_lem_1.
 apply bpow_ge_0.
 now left.
-rewrite Hx at 1. 
+rewrite Hx at 1.
 rewrite Rmult_comm; rewrite Hx at 1.
 apply trans_eq with ((sqrt (Z2R beta)*sqrt (Z2R beta)) * (bpow (ln_beta beta x-1)*bpow (ln_beta beta x-1))).
 ring.
@@ -188,7 +188,7 @@ replace (x*x) with (bpow (2 * ln_beta beta x - 1)).
 apply sym_eq, round_generic...
 apply generic_format_bpow.
 unfold FLX_exp; omega.
-apply sym_eq; rewrite Hx at 1. 
+apply sym_eq; rewrite Hx at 1.
 rewrite Rmult_comm; rewrite Hx at 1.
 apply trans_eq with ((sqrt (Z2R beta)*sqrt (Z2R beta)) * (bpow (ln_beta beta x-1)*bpow (ln_beta beta x-1))).
 ring.
@@ -426,7 +426,7 @@ apply Rle_ge; auto with real.
 Qed.
 
 
-Lemma ulp_sqr_ulp_lt: forall u, 0 < u -> 
+Lemma ulp_sqr_ulp_lt: forall u, 0 < u ->
    (u < sqrt (Z2R (radix_val beta)) * bpow (ln_beta beta u-1)) ->
     ulp_flx (u * u) + ulp_flx u * ulp_flx u / 2 < 2 * u * ulp_flx u.
 Proof with auto with typeclass_instances.
@@ -726,7 +726,7 @@ intros Hb.
 apply Rle_lt_trans with (sqrt (Z2R beta) * bpow (ln_beta beta x - 1)
     - Z2R k * ulp_flx x).
 unfold ulp, canonic_exp, FLX_exp.
-apply Rle_trans with (bpow (ln_beta beta x - 1) 
+apply Rle_trans with (bpow (ln_beta beta x - 1)
    *(sqrt (Z2R beta) -Z2R k * bpow (1-prec))).
 rewrite <- (Rmult_1_r (bpow (ln_beta beta x - 1))) at 1.
 apply Rmult_le_compat_l.
@@ -869,7 +869,7 @@ Qed.
 
 
 
-Theorem round_flx_sqr_sqrt_aux1: 
+Theorem round_flx_sqr_sqrt_aux1:
    (/ 2 * bpow (ln_beta beta x) <
       (2 * Z2R k + 1) * x -
            (Z2R k + / 2) * (Z2R k + / 2) * bpow (ln_beta beta x - prec)) ->
@@ -927,7 +927,7 @@ apply Rlt_le_trans with (x*x - /2*bpow (2 * ln_beta beta x  - prec)).
 unfold ulp, canonic_exp, FLX_exp.
 apply Rplus_lt_reg_r with (-x*x).
 apply Rle_lt_trans with
-  (- (bpow (ln_beta beta x - prec)*((2*Z2R k +1)*x - 
+  (- (bpow (ln_beta beta x - prec)*((2*Z2R k +1)*x -
             (Z2R k + / 2)*  (Z2R k + / 2) * bpow (ln_beta beta x - prec)))).
 right; field.
 apply Rlt_le_trans with (- (bpow (ln_beta beta x - prec)*
@@ -936,11 +936,11 @@ apply Ropp_lt_contravar.
 apply Rmult_lt_compat_l.
 apply bpow_gt_0.
 exact V.
-right; apply trans_eq with 
+right; apply trans_eq with
   ((-/2)*(bpow (ln_beta beta x - prec)*bpow (ln_beta beta x))).
 ring.
 rewrite <- bpow_plus.
-apply trans_eq with 
+apply trans_eq with
   ((-/2)*bpow (2 * ln_beta beta x - prec)).
 apply f_equal.
 apply f_equal; ring.
@@ -1002,7 +1002,7 @@ intros Hb.
 apply Rle_antisym.
 (* . *)
 apply round_flx_sqr_sqrt_le...
-(* . *) 
+(* . *)
 assert (((radix_val beta = 2)%Z \/ (radix_val beta=3)%Z) \/ (radix_val beta=4)%Z).
 generalize (radix_gt_1 beta); omega.
 destruct H.
@@ -1014,7 +1014,7 @@ omega.
 apply radix_gt_0.
 apply Rlt_le_trans with (x-/4*bpow (ln_beta beta x - prec)).
 2: right; simpl; field.
-apply Rle_lt_trans with (sqrt (Z2R beta) * bpow (ln_beta beta x - 1) 
+apply Rle_lt_trans with (sqrt (Z2R beta) * bpow (ln_beta beta x - 1)
    - / 4 * bpow (ln_beta beta x - prec)).
 2: apply Rplus_lt_compat_r; assumption.
 apply Rle_trans with ((Z2R beta / 2)*bpow (ln_beta beta x-1)).
@@ -1174,7 +1174,7 @@ Qed.
 
 
 (*
-Theorem round_flx_sqr_sqrt_aux: (4 < radix_val beta)%Z 
+Theorem round_flx_sqr_sqrt_aux: (4 < radix_val beta)%Z
  (sqrt (Z2R (radix_val beta)) * bpow (ln_beta beta x-1) < x) ->
   round_flx(x/z) <= 1.
 Proof with auto with typeclass_instances.
@@ -1266,7 +1266,7 @@ unfold Rdiv; apply Rmult_le_pos; try assumption.
 left; apply Rinv_0_lt_compat.
 apply Rlt_le_trans with (1:=H0); exact H.
 (* *)
-apply Rle_trans with 
+apply Rle_trans with
   (round_flx (x / round_flx (sqrt (round_flx (x * x))))).
 apply round_le...
 unfold Rdiv; apply Rmult_le_compat_l; try exact Hx.
@@ -1297,7 +1297,7 @@ apply Rle_trans with 0.
 auto with real.
 now apply Muller_pos.
 now apply Muller_pos.
-replace 
+replace
  (x / round_flx (sqrt (round_flx (round_flx (x * x) + round_flx (y * y))))) with
  (-(((-x) / round_flx (sqrt (round_flx (round_flx ((-x) * (-x)) + round_flx (y * y))))))).
 rewrite round_NE_opp.
