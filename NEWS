@@ -1,3 +1,6 @@
+Version 2.2.1:
+ - fixed regeneration of Flocq_version.v
+
 Version 2.2.0:
  - added theorems about rounding to odd and double rounding
  - improved handling of special values of IEEE-754 arithmetic

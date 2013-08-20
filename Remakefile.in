@@ -36,6 +36,9 @@ all: $(OBJS)
 Remakefile: Remakefile.in config.status
 	./config.status Remakefile
 
+src/Flocq_version.v: src/Flocq_version.v.in config.status
+	./config.status src/Flocq_version.v
+
 configure config.status: configure.in
 	autoconf
 	./config.status --recheck
