@@ -1147,34 +1147,31 @@ rewrite bpow_opp, bpow_1, H; reflexivity.
 Qed.
 
 
-Lemma Zceil_lt_0: forall x, 0 < x -> (0 < Zceil x)%Z.
-Admitted.
-
-
-Let k:=(Zceil (x*bpow (1-ln_beta beta x)/(2+bpow (1-prec))) -1)%Z.
+Let k:=(Zceil (x*bpow (1-ln_beta beta x)/2) -1)%Z.
 
 Lemma kpos: (0 <= k)%Z.
-assert (0 < x*bpow (1-ln_beta beta x)/(2+bpow (1-prec))).
+assert (0 < x*bpow (1-ln_beta beta x)/2).
 apply Fourier_util.Rlt_mult_inv_pos.
 apply Rmult_lt_0_compat.
 assumption.
 apply bpow_gt_0.
-rewrite Rplus_comm, <- Rplus_assoc; apply Rle_lt_0_plus_1.
-apply Rlt_le, Rle_lt_0_plus_1, bpow_ge_0.
-apply Zceil_lt_0 in H.
+apply Rle_lt_0_plus_1, Rlt_le, Rlt_0_1.
+assert (0 < Zceil (x * bpow (1 - ln_beta beta x) / 2))%Z.
+apply lt_Z2R; simpl (Z2R 0).
+apply Rlt_le_trans with (1:=H).
+apply Zceil_ub.
 unfold k; omega.
 Qed.
 
 Lemma kLe: (k < radix_val beta)%Z.
-cut (Zceil (x * bpow (1 - ln_beta beta x) / (2 + bpow (1 - prec))) <= beta)%Z.
+cut (Zceil (x * bpow (1 - ln_beta beta x) / 2) <= beta)%Z.
 unfold k; omega.
 apply Zceil_glb.
 apply Rle_trans with (bpow 1 / 1).
 unfold Rdiv; apply Rmult_le_compat.
 apply Rmult_le_pos; try apply bpow_ge_0; now left.
 apply Rlt_le, Rinv_0_lt_compat.
-rewrite Rplus_comm, <- Rplus_assoc; apply Rle_lt_0_plus_1.
-apply Rlt_le, Rle_lt_0_plus_1, bpow_ge_0.
+apply Rle_lt_0_plus_1, Rlt_le, Rlt_0_1.
 apply Rle_trans with (bpow (ln_beta beta x)*bpow (1 - ln_beta beta x)).
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
@@ -1185,21 +1182,19 @@ apply bpow_le; omega.
 apply Rinv_le.
 exact Rlt_0_1.
 apply Rplus_le_reg_l with (-1); ring_simplify.
-apply Rlt_le, Rle_lt_0_plus_1, bpow_ge_0.
+apply Rlt_le, Rlt_0_1.
 rewrite bpow_1; right; field.
 Qed.
 
 Lemma kLe2: (k <= Zceil (Z2R(radix_val beta)/ 2) -1)%Z.
-cut (Zceil (x * bpow (1 - ln_beta beta x) / (2 + bpow (1 - prec))) 
+cut (Zceil (x * bpow (1 - ln_beta beta x) / 2) 
    <= Zceil (Z2R(radix_val beta)/ 2))%Z.
 unfold k; omega.
 apply Zceil_glb.
 apply Rle_trans with (bpow 1 / 2).
-unfold Rdiv; apply Rmult_le_compat.
-apply Rmult_le_pos; try apply bpow_ge_0; now left.
+unfold Rdiv; apply Rmult_le_compat_r.
 apply Rlt_le, Rinv_0_lt_compat.
-rewrite Rplus_comm, <- Rplus_assoc; apply Rle_lt_0_plus_1.
-apply Rlt_le, Rle_lt_0_plus_1, bpow_ge_0.
+apply Rle_lt_0_plus_1, Rlt_le, Rlt_0_1.
 apply Rle_trans with (bpow (ln_beta beta x)*bpow (1 - ln_beta beta x)).
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
@@ -1207,10 +1202,6 @@ apply Rle_trans with (1:=RRle_abs _).
 left; apply bpow_ln_beta_gt.
 rewrite <- bpow_plus.
 apply bpow_le; omega.
-apply Rinv_le.
-apply Rle_lt_0_plus_1, Rlt_le, Rlt_0_1.
-apply Rplus_le_reg_l with (-2); ring_simplify.
-apply bpow_ge_0.
 rewrite bpow_1.
 apply Zceil_ub.
 Qed.
@@ -1241,27 +1232,63 @@ apply Rplus_lt_reg_r with ((Z2R k + / 2) * (Z2R k + / 2) * bpow (ln_beta beta x 
 apply Rlt_le_trans with ((2 * Z2R k + 1) * x).
 2: right; ring.
 apply Rle_lt_trans with 
- (((Z2R (Zceil (Z2R(radix_val beta)/ 2)) -/2)*(Z2R (Zceil (Z2R(radix_val beta)/ 2)) -/2))*bpow (ln_beta beta x - prec) +
-/ 2 * bpow (ln_beta beta x)).
+ (/4*bpow (2+(ln_beta beta x - prec)) + / 2 * bpow (ln_beta beta x)).
 apply Rplus_le_compat_r.
+rewrite bpow_plus, <- Rmult_assoc.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 assert (0 <= Z2R k + / 2).
 replace 0 with (Z2R 0+0) by (simpl;ring); apply Rplus_le_compat.
 apply Z2R_le, kpos.
 apply Rlt_le, Rinv_0_lt_compat, Rle_lt_0_plus_1, Rlt_le, Rlt_0_1.
-assert (Z2R k + / 2 <= Z2R (Zceil (Z2R beta / 2)) - / 2).
+assert (Z2R k + / 2 <= Z2R beta / 2).
 apply Rle_trans with ((Z2R (Zceil (Z2R beta / 2) - 1)) + /2).
 apply Rplus_le_compat_r.
 apply Z2R_le, kLe2.
 rewrite Z2R_minus; simpl.
-right; field.
+generalize (beta); intros n.
+case (Zeven_odd_dec n); intros V.
+apply Zeven_ex_iff in V; destruct V as (m, Hm).
+rewrite Hm, Z2R_mult.
+replace (Z2R 2*Z2R m/2) with (Z2R m).
+rewrite Zceil_Z2R.
+apply Rplus_le_reg_l with (-Z2R m + /2).
+field_simplify.
+unfold Rdiv; apply Rmult_le_compat_r.
+apply Rlt_le, Rinv_0_lt_compat.
+apply Rle_lt_0_plus_1, Rlt_le, Rlt_0_1.
+apply Rlt_le, Rlt_0_1.
+simpl; field.
+apply Zodd_ex_iff in V; destruct V as (m, Hm).
+rewrite Hm, Z2R_plus, Z2R_mult.
+replace ((Z2R 2*Z2R m+Z2R 1)/2) with (Z2R m+/2).
+replace (Zceil (Z2R m + / 2)) with (m+1)%Z.
+rewrite Z2R_plus; simpl; right; field.
+apply sym_eq, Zceil_imp.
+split.
+ring_simplify (m+1-1)%Z.
+apply Rplus_lt_reg_r with (-Z2R m).
+ring_simplify.
+apply Rinv_0_lt_compat.
+apply Rle_lt_0_plus_1, Rlt_le, Rlt_0_1.
+rewrite Z2R_plus; apply Rplus_le_compat_l.
+apply Rplus_le_reg_l with (-/2).
+simpl; field_simplify.
+unfold Rdiv; apply Rmult_le_compat_r.
+apply Rlt_le, Rinv_0_lt_compat.
+apply Rle_lt_0_plus_1, Rlt_le, Rlt_0_1.
+apply Rlt_le, Rlt_0_1.
+simpl; field.
+apply Rle_trans with ((Z2R beta / 2)*(Z2R beta / 2)).
 now apply Rmult_le_compat.
+simpl; unfold Z.pow_pos; simpl.
+rewrite Zmult_1_r, Z2R_mult.
+right; field.
 unfold k.
 destruct (ln_beta beta x) as (e,He).
 simpl (ln_beta_val beta x (Build_ln_beta_prop beta x e He)) in *.
-apply Rle_lt_trans with (bpow (e-1)*(bpow (1-prec)*Rsqr (Z2R (Zceil (Z2R beta / 2)) - / 2) + (Z2R beta) / 2)).
-rewrite Rmult_plus_distr_l.
+apply Rle_lt_trans with (bpow (e-1)*(/4*bpow (3-prec) + (Z2R beta) / 2)).
+rewrite (Rmult_plus_distr_l (bpow (e-1))).
 apply Rplus_le_compat.
 rewrite (Rmult_comm _ (bpow (e - prec))).
 rewrite <- (Rmult_assoc (bpow (e - 1))).
