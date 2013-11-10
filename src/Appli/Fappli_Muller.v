@@ -1218,8 +1218,6 @@ Qed.
 
 
 
-TOTO.
-
 Theorem round_flx_sqr_sqrt_aux: (4 < radix_val beta)%Z ->
  (sqrt (Z2R (radix_val beta)) * bpow (ln_beta beta x-1) < x) ->
   round_flx(x/z) <= 1.
@@ -1310,45 +1308,51 @@ unfold Zminus; rewrite bpow_plus, bpow_opp, bpow_1.
 right; field.
 apply Rgt_not_eq, radix_pos.
 apply Rle_lt_trans with
-   ((2 * (x * bpow (1 - e) / 2 - 1) + 1) * 
+   ((2 * (x * bpow (1 - e) / (2+bpow (1-prec)) - 1) + 1) * 
     (sqrt (Z2R beta) * bpow (e - 1))).
-apply Rle_trans with (bpow (e - 1)*((2 * (x * bpow (1 - e) / 2 - 1) + 1) *
+apply Rle_trans with (bpow (e - 1)*((2 * (x * bpow (1 - e) / (2+bpow (1-prec)) - 1) + 1) *
    sqrt (Z2R beta))).
 2: right; ring.
 apply Rmult_le_compat_l.
 apply bpow_ge_0.
 apply Rplus_le_reg_l with (-(Z2R beta/2)+sqrt (Z2R beta)).
 ring_simplify.
-apply Rle_trans with  (Z2R beta / 2).
+apply Rle_trans with  (Z2R beta *(2-bpow(1-prec))/ (2*(2+bpow (1-prec)))).
 
 
 admit. (* eq 2nd degré *)
 
 
-apply Rle_trans with (- (Z2R beta / 2) + Z2R (beta)).
+apply Rle_trans with (- (Z2R beta / 2) + Z2R (beta)*2/(2+bpow (1-prec))).
 right; field.
+apply Rgt_not_eq.
+rewrite Rplus_comm, <- Rplus_assoc.
+apply Rle_lt_0_plus_1, Rlt_le, Rle_lt_0_plus_1, bpow_ge_0.
 apply Rplus_le_compat_l.
-apply Rle_trans with (2*sqrt (Z2R beta) * ((sqrt (Z2R beta) * bpow (e - 1))*bpow (1 - e) /2)).
+apply Rle_trans with (2*sqrt (Z2R beta) * ((sqrt (Z2R beta) * bpow (e - 1))*bpow (1 - e) /(2+bpow (1-prec)))).
 apply Rle_trans with ((sqrt (Z2R beta) * sqrt (Z2R beta))
-   * (bpow (e - 1) * bpow (1 - e))).
+   * ((bpow (e - 1) * bpow (1 - e))) *(2/(2+bpow (1-prec)))).
 2: right; field.
 rewrite <- bpow_plus.
 rewrite sqrt_sqrt.
 ring_simplify (e-1+(1-e))%Z.
-right; simpl; ring.
+simpl; unfold Rdiv; right; simpl; ring.
 left; apply radix_pos.
+apply Rgt_not_eq; rewrite Rplus_comm, <- Rplus_assoc.
+apply Rle_lt_0_plus_1, Rlt_le, Rle_lt_0_plus_1, bpow_ge_0.
 apply Rmult_le_compat_l.
 apply Rmult_le_pos.
 apply Rlt_le, Rle_lt_0_plus_1, Rlt_le, Rlt_0_1.
 apply sqrt_pos.
 apply Rmult_le_compat_r.
 apply Rlt_le, Rinv_0_lt_compat.
-apply Rle_lt_0_plus_1, Rlt_le, Rlt_0_1.
+rewrite Rplus_comm, <- Rplus_assoc.
+apply Rle_lt_0_plus_1, Rlt_le, Rle_lt_0_plus_1, bpow_ge_0.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 now left.
 apply Rle_lt_trans with
-  ((2 * Z2R (Zceil (x * bpow (1 - e) / 2) - 1) + 1)*
+  ((2 * Z2R (Zceil (x * bpow (1 - e) / (2+bpow (1-prec))) - 1) + 1)*
     (sqrt (Z2R beta) * bpow (e - 1))).
 apply Rmult_le_compat_r.
 apply Rmult_le_pos.
@@ -1374,11 +1378,11 @@ apply kpos.
 unfold k, ulp, canonic_exp, FLX_exp.
 destruct (ln_beta beta x) as (e,He).
 simpl (ln_beta_val beta x (Build_ln_beta_prop beta x e He)) in *.
-apply Rle_lt_trans with (2 * Z2R (Zceil (x * bpow (1 - e) / 2) - 1) * 
+apply Rle_lt_trans with (2 * Z2R (Zceil (x * bpow (1 - e) / (2+bpow (1-prec))) - 1) * 
 (bpow (prec - 1) * bpow (e - prec)) * (1 + bpow (1 - prec) / 2)).
 right; ring.
 rewrite <- bpow_plus.
-apply Rlt_le_trans with (2 * (x * bpow (1 - e) / 2) *
+apply Rlt_le_trans with (2 * (x * bpow (1 - e) / (2+bpow (1-prec))) *
 bpow (prec - 1 + (e - prec)) * (1 + bpow (1 - prec) / 2)).
 apply Rmult_lt_compat_r.
 rewrite Rplus_comm; apply Rle_lt_0_plus_1.
@@ -1389,7 +1393,7 @@ apply Rmult_lt_compat_r.
 apply bpow_gt_0.
 apply Rmult_lt_compat_l.
 apply Rle_lt_0_plus_1, Rlt_le, Rlt_0_1.
-generalize ((x * bpow (1 - e) / 2)).
+generalize ((x * bpow (1 - e) / (2+bpow (1-prec)))).
 intros r; case (Req_dec (Z2R (Zfloor r)) r).
 intros V; rewrite <- V; rewrite  Zceil_Z2R.
 apply Z2R_lt; omega.
@@ -1398,14 +1402,11 @@ ring_simplify (Zfloor r+1-1)%Z.
 case (Zfloor_lb r); try trivial.
 intros W; now contradict W.
 apply Rle_trans with (x*(bpow (1 - e)*bpow (prec - 1 + (e - prec)))*
-   (2*(1 + bpow (1 - prec) / 2)/2)).
+   (2*(1 + bpow (1 - prec) / 2)/(2+bpow (1-prec)))).
 right; unfold Rdiv; ring.
 rewrite <- bpow_plus.
 ring_simplify (1 - e + (prec - 1 + (e - prec)))%Z.
 simpl (bpow 0); rewrite Rmult_1_r.
-apply Rle_trans with (x*1);[idtac|right; ring].
-apply Rmult_le_compat_l.
-now left.
 right; field.
 apply Rgt_not_eq.
 rewrite Rplus_comm, <- Rplus_assoc; apply Rle_lt_0_plus_1.
