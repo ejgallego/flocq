@@ -13,11 +13,14 @@ Notation bpow e := (bpow beta e).
 
 Variable prec : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
-Variable choice : Z -> bool.
-
+Variable choice1 : Z -> bool.
+Variable choice2 : Z -> bool.
+Variable choice3 : Z -> bool.
 
 Notation format := (generic_format beta (FLX_exp prec)).
-Notation round_flx :=(round beta (FLX_exp prec) (Znearest choice)). 
+Notation round_flx1 :=(round beta (FLX_exp prec) (Znearest choice1)). 
+Notation round_flx2 :=(round beta (FLX_exp prec) (Znearest choice2)). 
+Notation round_flx3 :=(round beta (FLX_exp prec) (Znearest choice3)). 
 Notation ulp_flx :=(ulp beta (FLX_exp prec)).
 Notation pred_flx := (pred beta (FLX_exp prec)).
 
@@ -27,13 +30,14 @@ Variables x:R.
 Hypothesis xPos: 0 < x.
 Hypothesis Fx: format x.
 
-Let y:=round_flx(x*x).
-Let z:=round_flx(sqrt y).
+Let y:=round_flx1(x*x).
+Let z:=round_flx2(sqrt y).
 
 
-Theorem round_le_half_an_ulp: forall u v, format u -> 0 < u -> v < u + (ulp_flx u)/2 -> round_flx v <= u.
+Theorem round_le_half_an_ulp: forall choice, forall u v, format u -> 0 < u -> v < u + (ulp_flx u)/2 
+    -> round beta (FLX_exp prec) (Znearest choice) v <= u.
 Proof with auto with typeclass_instances.
-intros u v Fu Hu H.
+intros choice u v Fu Hu H.
 (* . *)
 assert (0 < ulp_flx u / 2).
 unfold Rdiv; apply Rmult_lt_0_compat.
@@ -65,10 +69,10 @@ right; field.
 Qed.
 
 
-Theorem round_ge_half_an_ulp: forall u v, format u -> 0 < u -> u <> bpow (ln_beta beta u - 1)
- -> u - (ulp_flx u)/2 < v -> u <= round_flx v.
+Theorem round_ge_half_an_ulp: forall choice, forall u v, format u -> 0 < u -> u <> bpow (ln_beta beta u - 1)
+ -> u - (ulp_flx u)/2 < v -> u <= round beta (FLX_exp prec) (Znearest choice) v.
 Proof with auto with typeclass_instances.
-intros u v Fu Hupos Hu H.
+intros choice u v Fu Hupos Hu H.
 (* *)
 assert (Hu2:(ulp_flx (pred_flx u) = ulp_flx u)).
 unfold pred; case Req_bool_spec.
@@ -172,7 +176,7 @@ Theorem round_flx_sqr_sqrt_middle: x = sqrt (Z2R beta) * bpow (ln_beta beta x - 
 Proof with auto with typeclass_instances.
 intros Hx.
 unfold z, y.
-replace (round_flx (x * x)) with (bpow (2*ln_beta beta x -1)).
+replace (round_flx1 (x * x)) with (bpow (2*ln_beta beta x -1)).
 replace (sqrt (bpow (2 * ln_beta beta x - 1))) with x.
 apply round_generic...
 apply sym_eq, sqrt_lem_1.
@@ -620,7 +624,7 @@ Qed.
 Theorem round_flx_sqr_sqrt_aux2: forall n,
  (0 <= n)%Z ->
  (2*Z2R n * bpow (prec-1) * ulp_flx x * (1+bpow (1-prec)/2) < x) ->
-  round_flx(x/(x-Z2R n*ulp_flx x)) <= 1.
+  round_flx3(x/(x-Z2R n*ulp_flx x)) <= 1.
 Proof with auto with typeclass_instances.
 intros n Hnp Hn.
 apply round_le_half_an_ulp.
@@ -685,10 +689,12 @@ Notation bpow e := (bpow beta e).
 
 Variable prec : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
-Variable choice : Z -> bool.
+Variable choice1 : Z -> bool.
+Variable choice2 : Z -> bool.
 
 Notation format := (generic_format beta (FLX_exp prec)).
-Notation round_flx :=(round beta (FLX_exp prec) (Znearest choice)).
+Notation round_flx1 :=(round beta (FLX_exp prec) (Znearest choice1)).
+Notation round_flx2 :=(round beta (FLX_exp prec) (Znearest choice2)).
 Notation ulp_flx :=(ulp beta (FLX_exp prec)).
 Notation pred_flx := (pred beta (FLX_exp prec)).
 
@@ -706,8 +712,8 @@ Hypothesis kLe: (k < radix_val beta)%Z.
 Hypothesis kradix2 : (k = 0)%Z  \/  (2 < radix_val beta)%Z.
 
 
-Let y:=round_flx(x*x).
-Let z:=round_flx(sqrt y).
+Let y:=round_flx1(x*x).
+Let z:=round_flx2(sqrt y).
 Let xk :=  x-Z2R k*ulp_flx x.
 
 
@@ -1018,10 +1024,14 @@ Notation bpow e := (bpow beta e).
 
 Variable prec : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
-Variable choice : Z -> bool.
+Variable choice1 : Z -> bool.
+Variable choice2 : Z -> bool.
+Variable choice3 : Z -> bool.
 
 Notation format := (generic_format beta (FLX_exp prec)).
-Notation round_flx :=(round beta (FLX_exp prec) (Znearest choice)).
+Notation round_flx1 :=(round beta (FLX_exp prec) (Znearest choice1)).
+Notation round_flx2 :=(round beta (FLX_exp prec) (Znearest choice2)).
+Notation round_flx3 :=(round beta (FLX_exp prec) (Znearest choice3)).
 Notation ulp_flx :=(ulp beta (FLX_exp prec)).
 Notation pred_flx := (pred beta (FLX_exp prec)).
 
@@ -1034,8 +1044,8 @@ Hypothesis xPos: 0 < x.
 Hypothesis Fx: format x.
 Hypothesis Hx: (sqrt (Z2R (radix_val beta)) * bpow (ln_beta beta x-1) < x).
 
-Let y:=round_flx(x*x).
-Let z:=round_flx(sqrt y).
+Let y:=round_flx1(x*x).
+Let z:=round_flx2(sqrt y).
 
 
 Theorem round_flx_sqr_sqrt_exact_aux: (radix_val beta <= 4)%Z ->
@@ -1330,10 +1340,10 @@ Qed.
 Theorem round_flx_sqr_sqrt_aux: (4 < radix_val beta)%Z ->
  ((radix_val beta=5)%Z -> (3 < prec)%Z) ->
  (sqrt (Z2R (radix_val beta)) * bpow (ln_beta beta x-1) < x) ->
-  round_flx(x/z) <= 1.
+  round_flx3(x/z) <= 1.
 Proof with auto with typeclass_instances.
 intros Hbeta Hprec5 H1.
-apply Rle_trans with (round_flx (x/(x-Z2R k*ulp_flx x))).
+apply Rle_trans with (round_flx3 (x/(x-Z2R k*ulp_flx x))).
 apply round_le...
 unfold Rdiv; apply Rmult_le_compat_l.
 now left.
@@ -1522,7 +1532,7 @@ right; field.
 apply Rgt_not_eq.
 rewrite Rplus_comm, <- Rplus_assoc; apply Rle_lt_0_plus_1.
 apply Rlt_le, Rle_lt_0_plus_1, bpow_ge_0.
-Admitted.
+Qed.
 
 
 
@@ -1535,16 +1545,25 @@ Variable beta : radix.
 Notation bpow e := (bpow beta e).
 
 Variable prec : Z.
-Variable choice : Z -> bool.
+Variable choice1 : Z -> bool.
+Variable choice2 : Z -> bool.
+Variable choice3 : Z -> bool.
+Variable choice4 : Z -> bool.
+Variable choice5 : Z -> bool.
 
 Notation format := (generic_format beta (FLX_exp prec)).
-Notation round_flx :=(round beta (FLX_exp prec) (Znearest choice)).
+Notation round_flx1 :=(round beta (FLX_exp prec) (Znearest choice1)).
+Notation round_flx2 :=(round beta (FLX_exp prec) (Znearest choice2)).
+Notation round_flx3 :=(round beta (FLX_exp prec) (Znearest choice3)).
+Notation round_flx4 :=(round beta (FLX_exp prec) (Znearest choice4)).
+Notation round_flx5 :=(round beta (FLX_exp prec) (Znearest choice5)).
+
 Hypothesis pGt1: (2 < prec)%Z.
 
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 
 Theorem round_flx_sqr_sqrt_exact_pos: forall x, 0 < x -> format x -> (radix_val beta <= 4)%Z ->
-    round_flx(sqrt (round_flx(x*x))) = x.
+    round_flx2(sqrt (round_flx1(x*x))) = x.
 Proof with auto with typeclass_instances.
 intros x Hx Fx Hradix.
 case (Rle_or_lt x (sqrt (Z2R beta) * bpow (ln_beta beta x - 1))).
@@ -1560,7 +1579,7 @@ Qed.
 
 
 Theorem round_flx_sqr_sqrt_exact: forall x, format x -> (beta <= 4)%Z ->
-    round_flx(sqrt (round_flx(x*x))) = Rabs x.
+    round_flx2(sqrt (round_flx1(x*x))) = Rabs x.
 Proof with auto with typeclass_instances.
 intros x Fx Hradix.
 case (Rle_or_lt 0 x) as [H1|H1].
@@ -1583,11 +1602,11 @@ Hypothesis pradix5: (radix_val beta=5)%Z -> (3 < prec)%Z.
 
 Theorem round_flx_sqr_sqrt_pos: forall x, format x -> 0 < x -> (4 < radix_val beta)%Z ->
  ((radix_val beta=5)%Z -> (3 < prec)%Z) ->
-  round_flx(x/round_flx(sqrt (round_flx(x*x)))) <= 1.
+  round_flx3(x/round_flx2(sqrt (round_flx1(x*x)))) <= 1.
 Proof with auto with typeclass_instances.
 intros x Fx Hx Hr1 Hr2.
 case (Rle_or_lt x (sqrt (Z2R beta) * bpow (ln_beta beta x - 1))); intros H1.
-replace (round_flx (sqrt (round_flx (x * x)))) with x.
+replace (round_flx2 (sqrt (round_flx1 (x * x)))) with x.
 replace (x/x) with 1;[idtac|field; auto with real].
 right; apply round_generic...
 replace 1 with (bpow 0) by reflexivity.
@@ -1598,28 +1617,29 @@ rewrite round_flx_sqr_sqrt_exact_case1...
 omega.
 rewrite round_flx_sqr_sqrt_middle...
 omega.
-now apply round_flx_sqr_sqrt_aux.
+apply round_flx_sqr_sqrt_aux...
+omega.
 Qed.
 
 
 
 
 Theorem Muller_pos: forall x y:R, format x -> 0 <= x ->
-    0 <= round_flx (x / round_flx(sqrt (round_flx(round_flx(x*x)+round_flx(y*y))))) <= 1.
+    0 <= round_flx3 (x / round_flx2(sqrt (round_flx4(round_flx1(x*x)+round_flx5(y*y))))) <= 1.
 Proof with auto with typeclass_instances.
 intros x y Fx Hx.
 case Hx; intros Hx'.
-assert (round_flx (sqrt (round_flx (x * x))) <=
-        round_flx (sqrt (round_flx (round_flx (x * x) + round_flx (y * y))))).
+assert (round_flx2 (sqrt (round_flx1 (x * x))) <=
+        round_flx2 (sqrt (round_flx4 (round_flx1 (x * x) + round_flx5 (y * y))))).
 apply round_le...
 apply sqrt_le_1_alt.
 apply round_ge_generic...
 apply generic_format_round...
-apply Rplus_le_reg_l with (-(round_flx (x*x))); ring_simplify.
-rewrite <- round_0 with beta (FLX_exp prec) (Znearest choice)...
+apply Rplus_le_reg_l with (-(round_flx1 (x*x))); ring_simplify.
+rewrite <- round_0 with beta (FLX_exp prec) (Znearest choice5)...
 apply round_le...
 apply Rle_trans with (Rsqr y);[auto with real|right ; unfold Rsqr; ring].
-assert (0 < round_flx (sqrt (round_flx (x * x)))).
+assert (0 < round_flx2 (sqrt (round_flx1 (x * x)))).
 destruct (ln_beta beta x) as (e,He).
 apply Rlt_le_trans with (bpow (e-1)).
 apply bpow_gt_0.
@@ -1639,7 +1659,7 @@ rewrite Rabs_right in He by now apply Rle_ge.
 apply Rmult_le_compat; try apply bpow_ge_0; apply He; auto with real.
 split.
 (* *)
-replace 0 with (round_flx 0).
+replace 0 with (round_flx3 0).
 apply round_le...
 unfold Rdiv; apply Rmult_le_pos; try assumption.
 left; apply Rinv_0_lt_compat.
@@ -1647,7 +1667,7 @@ apply Rlt_le_trans with (1:=H0); exact H.
 apply round_0...
 (* *)
 apply Rle_trans with
-  (round_flx (x / round_flx (sqrt (round_flx (x * x))))).
+  (round_flx3 (x / round_flx2 (sqrt (round_flx1 (x * x))))).
 apply round_le...
 unfold Rdiv; apply Rmult_le_compat_l; try exact Hx.
 apply Rinv_le; assumption.
@@ -1676,38 +1696,51 @@ Variable beta : radix.
 Notation bpow e := (bpow beta e).
 
 Variable prec : Z.
-Variable choice : Z -> bool.
+Variable choice1 : Z -> bool.
+Variable choice2 : Z -> bool.
+Variable choice3 : Z -> bool.
+Variable choice4 : Z -> bool.
+Variable choice5 : Z -> bool.
+
 
 Notation format := (generic_format beta (FLX_exp prec)).
-Notation round_flx :=(round beta (FLX_exp prec) (Znearest choice)).
+Notation round_flx1 :=(round beta (FLX_exp prec) (Znearest choice1)).
+Notation round_flx2 :=(round beta (FLX_exp prec) (Znearest choice2)).
+Notation round_flx3 :=(round beta (FLX_exp prec) (Znearest choice3)).
+Notation round_flx4 :=(round beta (FLX_exp prec) (Znearest choice4)).
+Notation round_flx5 :=(round beta (FLX_exp prec) (Znearest choice5)).
+
 Hypothesis pGt1: (2 < prec)%Z.
 
-Context { prec_gt_0_ : Prec_gt_0 prec }.
 Hypothesis pradix5: (radix_val beta=5)%Z -> (3 < prec)%Z.
 
 
 Theorem Muller: forall x y:R, format x ->
-   -1 <=  round_flx (x / round_flx(sqrt (round_flx(round_flx(x*x)+round_flx(y*y))))) <= 1.
+   -1 <=  round_flx1 (x / round_flx2(sqrt (round_flx3(round_flx4(x*x)+round_flx5(y*y))))) <= 1.
 Proof with auto with typeclass_instances.
 intros x y Fx.
 case (Rle_or_lt 0 x); intros Hx.
 split.
 apply Rle_trans with 0.
 auto with real.
-now apply Muller_pos.
-now apply Muller_pos.
+apply Muller_pos...
+unfold Prec_gt_0; omega.
+apply Muller_pos...
+unfold Prec_gt_0; omega.
 replace
- (x / round_flx (sqrt (round_flx (round_flx (x * x) + round_flx (y * y))))) with
- (-(((-x) / round_flx (sqrt (round_flx (round_flx ((-x) * (-x)) + round_flx (y * y))))))).
+ (x / round_flx2 (sqrt (round_flx3 (round_flx4 (x * x) + round_flx5 (y * y))))) with
+ (-(((-x) / round_flx2 (sqrt (round_flx3 (round_flx4 ((-x) * (-x)) + round_flx5 (y * y))))))).
 rewrite round_N_opp.
 split.
 apply Ropp_le_contravar.
-apply (Muller_pos beta prec (fun t : Z => negb (choice (- (t + 1)))) pGt1 _ (-x) y).
+apply Muller_pos...
+unfold Prec_gt_0; omega.
 now apply generic_format_opp.
 auto with real.
 apply Rle_trans with (-0).
 apply Ropp_le_contravar.
-apply Muller_pos.
+apply Muller_pos...
+unfold Prec_gt_0; omega.
 now apply generic_format_opp.
 auto with real.
 rewrite Ropp_0; auto with real.
