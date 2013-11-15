@@ -13,9 +13,11 @@ Notation bpow e := (bpow beta e).
 
 Variable prec : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
+Variable choice : Z -> bool.
+
 
 Notation format := (generic_format beta (FLX_exp prec)).
-Notation round_flx :=(round beta (FLX_exp prec) ZnearestE). (*** choice ?? *)
+Notation round_flx :=(round beta (FLX_exp prec) (Znearest choice)). 
 Notation ulp_flx :=(ulp beta (FLX_exp prec)).
 Notation pred_flx := (pred beta (FLX_exp prec)).
 
@@ -49,7 +51,7 @@ right; field.
 rewrite Rmult_1_r; auto with real.
 (* *)
 apply Rnd_N_pt_monotone with format v (u + ulp_flx u / 2)...
-apply round_NE_pt...
+apply round_N_pt...
 apply Rnd_DN_pt_N with (u+ulp_flx u).
 pattern u at 3; replace u with (round beta (FLX_exp prec) Zfloor (u + ulp_flx u / 2)).
 apply round_DN_pt...
@@ -117,7 +119,7 @@ apply He; auto with real.
 apply Rle_ge; auto with real.
 (* *)
 apply Rnd_N_pt_monotone with format (u - ulp_flx (pred_flx u) / 2) v...
-2: apply round_NE_pt...
+2: apply round_N_pt...
 2: rewrite Hu2; assumption.
 (* . *)
 assert (0 < pred_flx u).
@@ -683,9 +685,10 @@ Notation bpow e := (bpow beta e).
 
 Variable prec : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
+Variable choice : Z -> bool.
 
 Notation format := (generic_format beta (FLX_exp prec)).
-Notation round_flx :=(round beta (FLX_exp prec) ZnearestE).
+Notation round_flx :=(round beta (FLX_exp prec) (Znearest choice)).
 Notation ulp_flx :=(ulp beta (FLX_exp prec)).
 Notation pred_flx := (pred beta (FLX_exp prec)).
 
@@ -1015,9 +1018,10 @@ Notation bpow e := (bpow beta e).
 
 Variable prec : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
+Variable choice : Z -> bool.
 
 Notation format := (generic_format beta (FLX_exp prec)).
-Notation round_flx :=(round beta (FLX_exp prec) ZnearestE).
+Notation round_flx :=(round beta (FLX_exp prec) (Znearest choice)).
 Notation ulp_flx :=(ulp beta (FLX_exp prec)).
 Notation pred_flx := (pred beta (FLX_exp prec)).
 
@@ -1531,9 +1535,10 @@ Variable beta : radix.
 Notation bpow e := (bpow beta e).
 
 Variable prec : Z.
+Variable choice : Z -> bool.
 
 Notation format := (generic_format beta (FLX_exp prec)).
-Notation round_flx :=(round beta (FLX_exp prec) ZnearestE).
+Notation round_flx :=(round beta (FLX_exp prec) (Znearest choice)).
 Hypothesis pGt1: (2 < prec)%Z.
 
 Context { prec_gt_0_ : Prec_gt_0 prec }.
@@ -1554,7 +1559,7 @@ omega.
 Qed.
 
 
-Theorem round_flx_sqr_sqrt_exact: forall x, format x -> (radix_val beta <= 4)%Z ->
+Theorem round_flx_sqr_sqrt_exact: forall x, format x -> (beta <= 4)%Z ->
     round_flx(sqrt (round_flx(x*x))) = Rabs x.
 Proof with auto with typeclass_instances.
 intros x Fx Hradix.
@@ -1611,7 +1616,7 @@ apply sqrt_le_1_alt.
 apply round_ge_generic...
 apply generic_format_round...
 apply Rplus_le_reg_l with (-(round_flx (x*x))); ring_simplify.
-rewrite <- round_0 with beta (FLX_exp prec) ZnearestE...
+rewrite <- round_0 with beta (FLX_exp prec) (Znearest choice)...
 apply round_le...
 apply Rle_trans with (Rsqr y);[auto with real|right ; unfold Rsqr; ring].
 assert (0 < round_flx (sqrt (round_flx (x * x)))).
@@ -1634,19 +1639,12 @@ rewrite Rabs_right in He by now apply Rle_ge.
 apply Rmult_le_compat; try apply bpow_ge_0; apply He; auto with real.
 split.
 (* *)
-apply round_pred_ge_0 with (Rnd_NE_pt beta (FLX_exp prec))
-   (x / round_flx (sqrt (round_flx (round_flx (x * x) + round_flx (y * y))))); auto...
-apply Rnd_NE_pt_monotone; auto...
-apply exists_NE_FLX.
-right; omega.
-apply Rnd_NG_pt_refl.
-apply generic_format_0.
-apply round_NE_pt...
-apply exists_NE_FLX.
-right; omega.
+replace 0 with (round_flx 0).
+apply round_le...
 unfold Rdiv; apply Rmult_le_pos; try assumption.
 left; apply Rinv_0_lt_compat.
 apply Rlt_le_trans with (1:=H0); exact H.
+apply round_0...
 (* *)
 apply Rle_trans with
   (round_flx (x / round_flx (sqrt (round_flx (x * x))))).
@@ -1670,6 +1668,23 @@ Qed.
 
 
 
+End Sec4.
+Section Sec5.
+Open Scope R_scope.
+
+Variable beta : radix.
+Notation bpow e := (bpow beta e).
+
+Variable prec : Z.
+Variable choice : Z -> bool.
+
+Notation format := (generic_format beta (FLX_exp prec)).
+Notation round_flx :=(round beta (FLX_exp prec) (Znearest choice)).
+Hypothesis pGt1: (2 < prec)%Z.
+
+Context { prec_gt_0_ : Prec_gt_0 prec }.
+Hypothesis pradix5: (radix_val beta=5)%Z -> (3 < prec)%Z.
+
 
 Theorem Muller: forall x y:R, format x ->
    -1 <=  round_flx (x / round_flx(sqrt (round_flx(round_flx(x*x)+round_flx(y*y))))) <= 1.
@@ -1684,10 +1699,10 @@ now apply Muller_pos.
 replace
  (x / round_flx (sqrt (round_flx (round_flx (x * x) + round_flx (y * y))))) with
  (-(((-x) / round_flx (sqrt (round_flx (round_flx ((-x) * (-x)) + round_flx (y * y))))))).
-rewrite round_NE_opp.
+rewrite round_N_opp.
 split.
 apply Ropp_le_contravar.
-apply Muller_pos.
+apply (Muller_pos beta prec (fun t : Z => negb (choice (- (t + 1)))) pGt1 _ (-x) y).
 now apply generic_format_opp.
 auto with real.
 apply Rle_trans with (-0).
