@@ -1,3 +1,6 @@
+Version 2.2.2:
+ - fixed install target for case-insensitive filesystems
+
 Version 2.2.1:
  - fixed regeneration of Flocq_version.v
 
