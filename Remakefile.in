@@ -31,6 +31,8 @@ FILES = \
 
 OBJS = $(addprefix src/,$(addsuffix o,$(FILES)))
 
+.PHONY: all clean dist doc install
+
 all: $(OBJS)
 
 Remakefile: Remakefile.in config.status
