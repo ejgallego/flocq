@@ -20,17 +20,34 @@ if test ${COQBIN##*/}; then COQBIN=$COQBIN/; fi
 
 AC_ARG_VAR(COQC, [Coq compiler command [coqc]])
 AC_MSG_CHECKING([for coqc])
-if test ! "$COQC"; then COQC=`which ${COQBIN}coqc`; fi
+if test ! "$COQC"; then
+   COQC=`which ${COQBIN}coqc`
+   if test ! "$COQC"; then
+      AC_MSG_RESULT([not found])
+      AC_MSG_ERROR([missing Coq compiler])
+   fi
+fi
 AC_MSG_RESULT([$COQC])
 
 AC_ARG_VAR(COQDEP, [Coq dependency analyzer command [coqdep]])
 AC_MSG_CHECKING([for coqdep])
-if test ! "$COQDEP"; then COQDEP=`which ${COQBIN}coqdep`; fi
+if test ! "$COQDEP"; then
+   COQDEP=`which ${COQBIN}coqdep`
+   if test ! "$COQDEP"; then
+      AC_MSG_RESULT([not found])
+      AC_MSG_ERROR([missing Coq dependency analyzer])
+   fi
+fi
 AC_MSG_RESULT([$COQDEP])
 
 AC_ARG_VAR(COQDOC, [Coq documentation generator command [coqdoc]])
 AC_MSG_CHECKING([for coqdoc])
-if test ! "$COQDOC"; then COQDOC=`which ${COQBIN}coqdoc`; fi
+if test ! "$COQDOC"; then
+   COQDOC=`which ${COQBIN}coqdoc`
+   if test ! "$COQDOC"; then
+      AC_MSG_RESULT([not found])
+   fi
+fi
 AC_MSG_RESULT([$COQDOC])
 
 if test "$libdir" = '${exec_prefix}/lib'; then
