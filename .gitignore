@@ -13,3 +13,7 @@ html
 src/Flocq_version.v
 *.vo
 *.glob
+.*.aux
+N*.cm*
+N*.native
+N*.o

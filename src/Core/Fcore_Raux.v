@@ -73,6 +73,24 @@ apply Rplus_eq_reg_l with r.
 now rewrite 2!(Rplus_comm r).
 Qed.
 
+Theorem Rplus_lt_reg_l :
+  forall r r1 r2 : R,
+  (r + r1 < r + r2)%R -> (r1 < r2)%R.
+Proof.
+intros.
+solve [ apply Rplus_lt_reg_l with (1 := H) |
+        apply Rplus_lt_reg_r with (1 := H) ].
+Qed.
+
+Theorem Rplus_lt_reg_r :
+  forall r r1 r2 : R,
+  (r1 + r < r2 + r)%R -> (r1 < r2)%R.
+Proof.
+intros.
+apply Rplus_lt_reg_l with r.
+now rewrite 2!(Rplus_comm r).
+Qed.
+
 Theorem Rplus_le_reg_r :
   forall r r1 r2 : R,
   (r1 + r <= r2 + r)%R -> (r1 <= r2)%R.

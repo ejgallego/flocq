@@ -1793,7 +1793,7 @@ rewrite Z2R_plus. simpl.
 destruct (Rcompare_spec (x - Z2R (Zfloor x)) (/ 2)) as [H1|H1|H1] ; apply sym_eq.
 (* . *)
 apply Rcompare_Lt.
-apply Rplus_lt_reg_r with (x - Z2R (Zfloor x))%R.
+apply Rplus_lt_reg_l with (x - Z2R (Zfloor x))%R.
 replace (x - Z2R (Zfloor x) + (x - Z2R (Zfloor x)))%R with ((x - Z2R (Zfloor x)) * 2)%R by ring.
 replace (x - Z2R (Zfloor x) + (Z2R (Zfloor x) + 1 - x))%R with (/2 * 2)%R by field.
 apply Rmult_lt_compat_r with (2 := H1).
@@ -1805,7 +1805,7 @@ rewrite H1.
 field.
 (* . *)
 apply Rcompare_Gt.
-apply Rplus_lt_reg_r with (x - Z2R (Zfloor x))%R.
+apply Rplus_lt_reg_l with (x - Z2R (Zfloor x))%R.
 replace (x - Z2R (Zfloor x) + (x - Z2R (Zfloor x)))%R with ((x - Z2R (Zfloor x)) * 2)%R by ring.
 replace (x - Z2R (Zfloor x) + (Z2R (Zfloor x) + 1 - x))%R with (/2 * 2)%R by field.
 apply Rmult_lt_compat_r with (2 := H1).
@@ -1823,7 +1823,7 @@ rewrite Z2R_plus. simpl.
 destruct (Rcompare_spec (Z2R (Zfloor x) + 1 - x) (/ 2)) as [H1|H1|H1] ; apply sym_eq.
 (* . *)
 apply Rcompare_Lt.
-apply Rplus_lt_reg_r with (Z2R (Zfloor x) + 1 - x)%R.
+apply Rplus_lt_reg_l with (Z2R (Zfloor x) + 1 - x)%R.
 replace (Z2R (Zfloor x) + 1 - x + (Z2R (Zfloor x) + 1 - x))%R with ((Z2R (Zfloor x) + 1 - x) * 2)%R by ring.
 replace (Z2R (Zfloor x) + 1 - x + (x - Z2R (Zfloor x)))%R with (/2 * 2)%R by field.
 apply Rmult_lt_compat_r with (2 := H1).
@@ -1835,7 +1835,7 @@ rewrite H1.
 field.
 (* . *)
 apply Rcompare_Gt.
-apply Rplus_lt_reg_r with (Z2R (Zfloor x) + 1 - x)%R.
+apply Rplus_lt_reg_l with (Z2R (Zfloor x) + 1 - x)%R.
 replace (Z2R (Zfloor x) + 1 - x + (Z2R (Zfloor x) + 1 - x))%R with ((Z2R (Zfloor x) + 1 - x) * 2)%R by ring.
 replace (Z2R (Zfloor x) + 1 - x + (x - Z2R (Zfloor x)))%R with (/2 * 2)%R by field.
 apply Rmult_lt_compat_r with (2 := H1).
@@ -1861,11 +1861,11 @@ rewrite Zceil_floor_neq.
 rewrite Z2R_plus.
 simpl.
 apply Ropp_lt_cancel.
-apply Rplus_lt_reg_r with R1.
+apply Rplus_lt_reg_l with R1.
 replace (1 + -/2)%R with (/2)%R by field.
 now replace (1 + - (Z2R (Zfloor x) + 1 - x))%R with (x - Z2R (Zfloor x))%R by ring.
 apply Rlt_not_eq.
-apply Rplus_lt_reg_r with (- Z2R (Zfloor x))%R.
+apply Rplus_lt_reg_l with (- Z2R (Zfloor x))%R.
 apply Rlt_trans with (/2)%R.
 rewrite Rplus_opp_l.
 apply Rinv_0_lt_compat.
@@ -1897,7 +1897,7 @@ rewrite Hx.
 rewrite Rabs_minus_sym.
 now replace (1 - /2)%R with (/2)%R by field.
 apply Rlt_not_eq.
-apply Rplus_lt_reg_r with (- Z2R (Zfloor x))%R.
+apply Rplus_lt_reg_l with (- Z2R (Zfloor x))%R.
 rewrite Rplus_opp_l, Rplus_comm.
 fold (x - Z2R (Zfloor x))%R.
 rewrite Hx.

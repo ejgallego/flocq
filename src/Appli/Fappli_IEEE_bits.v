@@ -25,6 +25,12 @@ Require Import Fappli_IEEE.
 
 Section Binary_Bits.
 
+Implicit Arguments exist [[A] [P]].
+Implicit Arguments B754_zero [[prec] [emax]].
+Implicit Arguments B754_infinity [[prec] [emax]].
+Implicit Arguments B754_nan [[prec] [emax]].
+Implicit Arguments B754_finite [[prec] [emax]].
+
 (** Number of bits for the fraction and exponent *)
 Variable mw ew : Z.
 Hypothesis Hmw : (0 < mw)%Z.
@@ -516,6 +522,8 @@ End Binary_Bits.
 (** Specialization for IEEE single precision operations *)
 Section B32_Bits.
 
+Implicit Arguments B754_nan [[prec] [emax]].
+
 Definition binary32 := binary_float 24 128.
 
 Let Hprec : (0 < 24)%Z.
@@ -527,7 +535,7 @@ apply refl_equal.
 Qed.
 
 Definition default_nan_pl32 : bool * nan_pl 24 :=
-  (false, exist _ (nat_iter 22 xO xH) (refl_equal true)).
+  (false, exist _ (iter_nat 22 _ xO xH) (refl_equal true)).
 
 Definition unop_nan_pl32 (f : binary32) : bool * nan_pl 24 :=
   match f with
@@ -557,6 +565,8 @@ End B32_Bits.
 (** Specialization for IEEE double precision operations *)
 Section B64_Bits.
 
+Implicit Arguments B754_nan [[prec] [emax]].
+
 Definition binary64 := binary_float 53 1024.
 
 Let Hprec : (0 < 53)%Z.
@@ -568,7 +578,7 @@ apply refl_equal.
 Qed.
 
 Definition default_nan_pl64 : bool * nan_pl 53 :=
-  (false, exist _ (nat_iter 51 xO xH) (refl_equal true)).
+  (false, exist _ (iter_nat 51 _ xO xH) (refl_equal true)).
 
 Definition unop_nan_pl64 (f : binary64) : bool * nan_pl 53 :=
   match f with

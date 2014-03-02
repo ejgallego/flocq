@@ -46,6 +46,8 @@ End AnyRadix.
 
 Section Binary.
 
+Implicit Arguments exist [[A] [P]].
+
 (** prec is the number of bits of the mantissa including the implicit one
     emax is the exponent of the infinities
     Typically p=24 and emax = 128 in single precision *)
@@ -89,7 +91,7 @@ Definition FF2B x :=
   | F754_finite s m e => B754_finite s m e
   | F754_infinity s => fun _ => B754_infinity s
   | F754_zero s => fun _ => B754_zero s
-  | F754_nan b pl => fun H => B754_nan b (exist _ pl H)
+  | F754_nan b pl => fun H => B754_nan b (exist pl H)
   end.
 
 Definition B2FF x :=
@@ -601,7 +603,7 @@ induction (nat_of_P n).
 simpl.
 rewrite Zplus_0_r.
 now destruct l as [|[| |]].
-simpl iter_nat.
+simpl nat_rect.
 rewrite inj_S.
 unfold Zsucc.
 rewrite  Zplus_assoc.
