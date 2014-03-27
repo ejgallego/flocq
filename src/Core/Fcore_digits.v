@@ -1012,4 +1012,117 @@ generalize (Zpower_gt_Zdigits e x).
 omega.
 Qed.
 
+(** Characterizes the number digits of a product.
+
+This strong version is needed for proofs of division and square root
+algorithms, since they involve operation remainders.
+*)
+
+Theorem Zdigits_mult_strong :
+  forall x y,
+  (0 <= x)%Z -> (0 <= y)%Z ->
+  (Zdigits (x + y + x * y) <= Zdigits x + Zdigits y)%Z.
+Proof.
+intros x y Hx Hy.
+apply Zdigits_le_Zpower.
+rewrite Zabs_eq.
+apply Zlt_le_trans with ((x + 1) * (y + 1))%Z.
+ring_simplify.
+apply Zle_lt_succ, Zle_refl.
+rewrite Zpower_plus by apply Zdigits_ge_0.
+apply Zmult_le_compat.
+apply Zlt_le_succ.
+rewrite <- (Zabs_eq x) at 1 by easy.
+apply Zdigits_correct.
+apply Zlt_le_succ.
+rewrite <- (Zabs_eq y) at 1 by easy.
+apply Zdigits_correct.
+clear -Hx ; omega.
+clear -Hy ; omega.
+change Z0 with (0 + 0 + 0)%Z.
+apply Zplus_le_compat.
+now apply Zplus_le_compat.
+now apply Zmult_le_0_compat.
+Qed.
+
+Theorem Zdigits_mult :
+  forall x y,
+  (Zdigits (x * y) <= Zdigits x + Zdigits y)%Z.
+Proof.
+intros x y.
+rewrite <- Zdigits_abs.
+rewrite <- (Zdigits_abs x).
+rewrite <- (Zdigits_abs y).
+apply Zle_trans with (Zdigits (Zabs x + Zabs y + Zabs x * Zabs y)).
+apply Zdigits_le.
+apply Zabs_pos.
+rewrite Zabs_Zmult.
+generalize (Zabs_pos x) (Zabs_pos y).
+omega.
+apply Zdigits_mult_strong ; apply Zabs_pos.
+Qed.
+
+Theorem Zdigits_mult_ge :
+  forall x y,
+  (x <> 0)%Z -> (y <> 0)%Z ->
+  (Zdigits x + Zdigits y - 1 <= Zdigits (x * y))%Z.
+Proof.
+intros x y Zx Zy.
+cut ((Zdigits x - 1) + (Zdigits y - 1) < Zdigits (x * y))%Z. omega.
+apply Zdigits_gt_Zpower.
+rewrite Zabs_Zmult.
+rewrite Zpower_exp.
+apply Zmult_le_compat.
+apply Zpower_le_Zdigits.
+apply Zlt_pred.
+apply Zpower_le_Zdigits.
+apply Zlt_pred.
+apply Zpower_ge_0.
+apply Zpower_ge_0.
+generalize (Zdigits_gt_0 x). omega.
+generalize (Zdigits_gt_0 y). omega.
+Qed.
+
+Theorem Zdigits_div_Zpower :
+  forall m e,
+  (0 <= m)%Z ->
+  (0 <= e <= Zdigits m)%Z ->
+  Zdigits (m / Zpower beta e) = (Zdigits m - e)%Z.
+Proof.
+intros m e Hm He.
+assert (H := Zdigits_correct m).
+apply Zdigits_unique.
+destruct (Zle_lt_or_eq _ _ (proj2 He)) as [He'|He'].
+  rewrite Zabs_eq in H by easy.
+  destruct H as [H1 H2].
+  rewrite Zabs_eq.
+  split.
+  replace (Zdigits m - e - 1)%Z with (Zdigits m - 1 - e)%Z by ring.
+  rewrite Z.pow_sub_r.
+  2: apply Zgt_not_eq, radix_gt_0.
+  2: clear -He He' ; omega.
+  apply Z_div_le with (2 := H1).
+  now apply Zlt_gt, Zpower_gt_0.
+  apply Zmult_lt_reg_r with (Zpower beta e).
+  now apply Zpower_gt_0.
+  apply Zle_lt_trans with m.
+  rewrite Zmult_comm.
+  apply Z_mult_div_ge.
+  now apply Zlt_gt, Zpower_gt_0.
+  rewrite <- Zpower_plus.
+  now replace (Zdigits m - e + e)%Z with (Zdigits m) by ring.
+  now apply Zle_minus_le_0.
+  apply He.
+  apply Z_div_pos with (2 := Hm).
+  now apply Zlt_gt, Zpower_gt_0.
+rewrite He'.
+rewrite (Zeq_minus _ (Zdigits m)) by reflexivity.
+simpl.
+rewrite Zdiv_small.
+easy.
+split.
+exact Hm.
+now rewrite <- (Zabs_eq m) at 1.
+Qed.
+
 End Fcore_digits.
