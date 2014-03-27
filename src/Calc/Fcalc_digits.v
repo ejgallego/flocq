@@ -29,8 +29,6 @@ Section Fcalc_digits.
 Variable beta : radix.
 Notation bpow e := (bpow beta e).
 
-
-
 Theorem Zdigits_ln_beta :
   forall n,
   n <> Z0 ->
@@ -60,35 +58,6 @@ rewrite ln_beta_F2R with (1 := Hm).
 apply (f_equal (fun v => Zplus v e)).
 apply sym_eq.
 now apply Zdigits_ln_beta.
-Qed.
-
-Theorem Zdigits_mult_Zpower :
-  forall m e,
-  m <> Z0 -> (0 <= e)%Z ->
-  Zdigits beta (m * Zpower beta e) = (Zdigits beta m + e)%Z.
-Proof.
-intros m e Hm He.
-rewrite <- ln_beta_F2R_Zdigits with (1 := Hm).
-rewrite Zdigits_ln_beta.
-rewrite Z2R_mult.
-now rewrite Z2R_Zpower with (1 := He).
-contradict Hm.
-apply Zmult_integral_l with (2 := Hm).
-apply neq_Z2R.
-rewrite Z2R_Zpower with (1 := He).
-apply Rgt_not_eq.
-apply bpow_gt_0.
-Qed.
-
-Theorem Zdigits_Zpower :
-  forall e,
-  (0 <= e)%Z ->
-  Zdigits beta (Zpower beta e) = (e + 1)%Z.
-Proof.
-intros e He.
-rewrite <- (Zmult_1_l (Zpower beta e)).
-rewrite Zdigits_mult_Zpower ; try easy.
-apply Zplus_comm.
 Qed.
 
 Theorem Zdigits_le :

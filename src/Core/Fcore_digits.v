@@ -755,6 +755,7 @@ Fixpoint Zdigits_aux (nb pow : Z) (n : nat) { struct n } : Z :=
   end.
 
 End digits_aux.
+
 (** Number of digits of an integer *)
 Definition Zdigits n :=
   match n with
@@ -820,6 +821,20 @@ now ring_simplify (1 + v - 1)%Z.
 now rewrite Zplus_assoc.
 easy.
 apply Zle_succ_le with (1 := Hv).
+Qed.
+
+Theorem Zdigits_unique :
+  forall n d,
+  (Zpower beta (d - 1) <= Zabs n < Zpower beta d)%Z ->
+  Zdigits n = d.
+Proof.
+intros n d Hd.
+assert (Hd' := Zdigits_correct n).
+apply Zle_antisym.
+apply (Zpower_lt_Zpower beta).
+now apply Zle_lt_trans with (Zabs n).
+apply (Zpower_lt_Zpower beta).
+now apply Zle_lt_trans with (Zabs n).
 Qed.
 
 Theorem Zdigits_abs :
@@ -894,6 +909,41 @@ rewrite <- (Zabs_eq (beta ^ l)) at 2 by apply Zpower_ge_0.
 apply Zrem_lt.
 apply Zgt_not_eq.
 now apply Zpower_gt_0.
+Qed.
+
+Theorem Zdigits_mult_Zpower :
+  forall m e,
+  m <> Z0 -> (0 <= e)%Z ->
+  Zdigits (m * Zpower beta e) = (Zdigits m + e)%Z.
+Proof.
+intros m e Hm He.
+assert (H := Zdigits_correct m).
+apply Zdigits_unique.
+rewrite Z.abs_mul, Z.abs_pow, (Zabs_eq beta).
+2: now apply Zlt_le_weak, radix_gt_0.
+split.
+replace (Zdigits m + e - 1)%Z with (Zdigits m - 1 + e)%Z by ring.
+rewrite Zpower_plus with (2 := He).
+apply Zmult_le_compat_r.
+apply H.
+apply Zpower_ge_0.
+now apply Zlt_0_le_0_pred, Zdigits_gt_0.
+rewrite Zpower_plus with (2 := He).
+apply Zmult_lt_compat_r.
+now apply Zpower_gt_0.
+apply H.
+now apply Zlt_le_weak, Zdigits_gt_0.
+Qed.
+
+Theorem Zdigits_Zpower :
+  forall e,
+  (0 <= e)%Z ->
+  Zdigits (Zpower beta e) = (e + 1)%Z.
+Proof.
+intros e He.
+rewrite <- (Zmult_1_l (Zpower beta e)).
+rewrite Zdigits_mult_Zpower ; try easy.
+apply Zplus_comm.
 Qed.
 
 End Fcore_digits.
