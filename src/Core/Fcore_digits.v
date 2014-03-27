@@ -946,4 +946,70 @@ rewrite Zdigits_mult_Zpower ; try easy.
 apply Zplus_comm.
 Qed.
 
+Theorem Zdigits_le :
+  forall x y,
+  (0 <= x)%Z -> (x <= y)%Z ->
+  (Zdigits x <= Zdigits y)%Z.
+Proof.
+intros x y Zx Hxy.
+assert (Hx := Zdigits_correct x).
+assert (Hy := Zdigits_correct y).
+apply (Zpower_lt_Zpower beta).
+zify ; omega.
+Qed.
+
+Theorem lt_Zdigits :
+  forall x y,
+  (0 <= y)%Z ->
+  (Zdigits x < Zdigits y)%Z ->
+  (x < y)%Z.
+Proof.
+intros x y Hy.
+cut (y <= x -> Zdigits y <= Zdigits x)%Z. omega.
+now apply Zdigits_le.
+Qed.
+
+Theorem Zpower_le_Zdigits :
+  forall e x,
+  (e < Zdigits x)%Z ->
+  (Zpower beta e <= Zabs x)%Z.
+Proof.
+intros e x Hex.
+destruct (Zdigits_correct x) as [H1 H2].
+apply Zle_trans with (2 := H1).
+apply Zpower_le.
+clear -Hex ; omega.
+Qed.
+
+Theorem Zdigits_le_Zpower :
+  forall e x,
+  (Zabs x < Zpower beta e)%Z ->
+  (Zdigits x <= e)%Z.
+Proof.
+intros e x.
+generalize (Zpower_le_Zdigits e x).
+omega.
+Qed.
+
+Theorem Zpower_gt_Zdigits :
+  forall e x,
+  (Zdigits x <= e)%Z ->
+  (Zabs x < Zpower beta e)%Z.
+Proof.
+intros e x Hex.
+destruct (Zdigits_correct x) as [H1 H2].
+apply Zlt_le_trans with (1 := H2).
+now apply Zpower_le.
+Qed.
+
+Theorem Zdigits_gt_Zpower :
+  forall e x,
+  (Zpower beta e <= Zabs x)%Z ->
+  (e < Zdigits x)%Z.
+Proof.
+intros e x Hex.
+generalize (Zpower_gt_Zdigits e x).
+omega.
+Qed.
+
 End Fcore_digits.
