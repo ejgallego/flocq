@@ -1603,7 +1603,7 @@ Definition Fsqrt_core_binary m e :=
     | Zpos p => (m * Zpower_pos 2 p)%Z
     | _ => m
     end in
-  let (q, r) := Zsqrt m' in
+  let (q, r) := Z.sqrtrem m' in
   let l :=
     if Zeq_bool r 0 then loc_Exact
     else loc_Inexact (if Zle_bool r q then Lt else Gt) in
