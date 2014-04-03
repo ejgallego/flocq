@@ -1,11 +1,8 @@
 Require Import Fcore.
-(*Require Import Fprop_relative.
-Require Import Fprop_Sterbenz.
-Require Import Fcalc_ops.
-Require Import Fcalc_digits.*)
 Require Import Interval_tactic.
 
 Section Sec1.
+
 Open Scope R_scope.
 
 Variable beta : radix.
@@ -18,9 +15,9 @@ Variable choice2 : Z -> bool.
 Variable choice3 : Z -> bool.
 
 Notation format := (generic_format beta (FLX_exp prec)).
-Notation round_flx1 :=(round beta (FLX_exp prec) (Znearest choice1)). 
-Notation round_flx2 :=(round beta (FLX_exp prec) (Znearest choice2)). 
-Notation round_flx3 :=(round beta (FLX_exp prec) (Znearest choice3)). 
+Notation round_flx1 :=(round beta (FLX_exp prec) (Znearest choice1)).
+Notation round_flx2 :=(round beta (FLX_exp prec) (Znearest choice2)).
+Notation round_flx3 :=(round beta (FLX_exp prec) (Znearest choice3)).
 Notation ulp_flx :=(ulp beta (FLX_exp prec)).
 Notation pred_flx := (pred beta (FLX_exp prec)).
 
@@ -33,9 +30,9 @@ Hypothesis Fx: format x.
 Let y:=round_flx1(x*x).
 Let z:=round_flx2(sqrt y).
 
-
-Theorem round_le_half_an_ulp: forall choice, forall u v, format u -> 0 < u -> v < u + (ulp_flx u)/2 
-    -> round beta (FLX_exp prec) (Znearest choice) v <= u.
+Theorem round_le_half_an_ulp:
+  forall choice, forall u v, format u -> 0 < u -> v < u + (ulp_flx u)/2
+  -> round beta (FLX_exp prec) (Znearest choice) v <= u.
 Proof with auto with typeclass_instances.
 intros choice u v Fu Hu H.
 (* . *)
@@ -68,9 +65,9 @@ split; try left; assumption.
 right; field.
 Qed.
 
-
-Theorem round_ge_half_an_ulp: forall choice, forall u v, format u -> 0 < u -> u <> bpow (ln_beta beta u - 1)
- -> u - (ulp_flx u)/2 < v -> u <= round beta (FLX_exp prec) (Znearest choice) v.
+Theorem round_ge_half_an_ulp:
+  forall choice, forall u v, format u -> 0 < u -> u <> bpow (ln_beta beta u - 1)
+  -> u - (ulp_flx u)/2 < v -> u <= round beta (FLX_exp prec) (Znearest choice) v.
 Proof with auto with typeclass_instances.
 intros choice u v Fu Hupos Hu H.
 (* *)
@@ -171,7 +168,6 @@ right; field.
 auto with real.
 Qed.
 
-
 Theorem round_flx_sqr_sqrt_middle: x = sqrt (Z2R beta) * bpow (ln_beta beta x - 1) -> z=x.
 Proof with auto with typeclass_instances.
 intros Hx.
@@ -201,9 +197,6 @@ rewrite <- bpow_plus, sqrt_def, <- bpow_1, <- bpow_plus.
 apply f_equal; ring.
 left; apply radix_pos.
 Qed.
-
-
-
 
 Theorem round_flx_sqr_sqrt_le: (beta <= 4)%Z -> z <= x.
 Proof with auto with typeclass_instances.
@@ -430,10 +423,9 @@ now left.
 apply Rle_ge; auto with real.
 Qed.
 
-
 Lemma ulp_sqr_ulp_lt: forall u, 0 < u ->
-   (u < sqrt (Z2R (radix_val beta)) * bpow (ln_beta beta u-1)) ->
-    ulp_flx (u * u) + ulp_flx u * ulp_flx u / 2 < 2 * u * ulp_flx u.
+  (u < sqrt (Z2R (radix_val beta)) * bpow (ln_beta beta u-1)) ->
+  ulp_flx (u * u) + ulp_flx u * ulp_flx u / 2 < 2 * u * ulp_flx u.
 Proof with auto with typeclass_instances.
 intros u Hu; unfold ulp, canonic_exp, FLX_exp.
 (* *)
@@ -492,7 +484,6 @@ apply bpow_ge_0.
 apply Rmult_le_compat_l; auto with real.
 apply He2.
 Qed.
-
 
 Theorem round_flx_sqr_sqrt_exact_case1:
   (x < sqrt (Z2R (radix_val beta)) * bpow (ln_beta beta x-1)) ->
@@ -619,8 +610,6 @@ apply Rmult_le_pos; apply bpow_ge_0.
 right; field.
 Qed.
 
-
-
 Theorem round_flx_sqr_sqrt_aux2: forall n,
  (0 <= n)%Z ->
  (2*Z2R n * bpow (prec-1) * ulp_flx x * (1+bpow (1-prec)/2) < x) ->
@@ -679,9 +668,10 @@ right; field.
 unfold ulp; apply Rgt_not_eq, bpow_gt_0.
 Qed.
 
-
 End Sec1.
+
 Section Sec2.
+
 Open Scope R_scope.
 
 Variable beta : radix.
@@ -705,19 +695,17 @@ Hypothesis xPos: 0 < x.
 Hypothesis Fx: format x.
 Hypothesis Hx: (sqrt (Z2R (radix_val beta)) * bpow (ln_beta beta x-1) < x).
 
-
 Variable k:Z.
 Hypothesis kpos: (0 <= k)%Z.
 Hypothesis kLe: (k < radix_val beta)%Z.
 Hypothesis kradix2 : (k = 0)%Z  \/  (2 < radix_val beta)%Z.
 
-
 Let y:=round_flx1(x*x).
 Let z:=round_flx2(sqrt y).
 Let xk :=  x-Z2R k*ulp_flx x.
 
-
 Lemma xkgt:  bpow (ln_beta beta x - 1) < xk.
+Proof.
 unfold xk.
 case kradix2.
 intros V; rewrite V; simpl; ring_simplify.
@@ -813,8 +801,8 @@ apply Rplus_lt_compat_r.
 assumption.
 Qed.
 
-
 Lemma xklt: xk < bpow (ln_beta beta x).
+Proof.
 apply Rle_lt_trans with x.
 apply Rplus_le_reg_l with (-xk); unfold xk; ring_simplify.
 apply Rmult_le_pos.
@@ -825,12 +813,11 @@ apply Rle_lt_trans with (1:=RRle_abs _).
 apply bpow_ln_beta_gt.
 Qed.
 
-
 Lemma xkpos: 0  < xk.
+Proof.
 apply Rle_lt_trans with (2:=xkgt).
 apply bpow_ge_0.
 Qed.
-
 
 Lemma format_xminusk: format xk.
 Proof with auto with typeclass_instances.
@@ -875,10 +862,8 @@ apply f_equal.
 apply Rmult_comm; apply f_equal.
 Qed.
 
-
-
 Theorem round_flx_sqr_sqrt_aux1:
-   (/ 2 * bpow (ln_beta beta x) <
+  (/ 2 * bpow (ln_beta beta x) <
       (2 * Z2R k + 1) * x -
            (Z2R k + / 2) * (Z2R k + / 2) * bpow (ln_beta beta x - prec)) ->
   xk <= z.
@@ -974,12 +959,11 @@ apply Rmult_le_0_lt_compat; try apply Rabs_pos; apply bpow_ln_beta_gt.
 Qed.
 
 Theorem round_flx_sqr_sqrt_aux1_simpl:
-   (/ 2 * bpow (ln_beta beta x) + bpow (2+ln_beta beta x - prec) <= (2 * Z2R k + 1) * x) 
-      -> xk <= z.
+  (/ 2 * bpow (ln_beta beta x) + bpow (2+ln_beta beta x - prec) <= (2 * Z2R k + 1) * x)
+  -> xk <= z.
 Proof.
 intros H; apply round_flx_sqr_sqrt_aux1.
 apply Rplus_lt_reg_r with (bpow (2 + ln_beta beta x - prec)).
-rewrite Rplus_comm.
 apply Rle_lt_trans with (1:=H).
 apply Rplus_lt_reg_r with (-(2 * Z2R k + 1) * x + (Z2R k + / 2) * (Z2R k + / 2) * bpow (ln_beta beta x - prec)).
 apply Rle_lt_trans with (((Z2R k + / 2) * (Z2R k + / 2) )* bpow (ln_beta beta x - prec)).
@@ -1015,8 +999,8 @@ Qed.
 
 End Sec2.
 
-
 Section Sec3.
+
 Open Scope R_scope.
 
 Variable beta : radix.
@@ -1046,7 +1030,6 @@ Hypothesis Hx: (sqrt (Z2R (radix_val beta)) * bpow (ln_beta beta x-1) < x).
 
 Let y:=round_flx1(x*x).
 Let z:=round_flx2(sqrt y).
-
 
 Theorem round_flx_sqr_sqrt_exact_aux: (radix_val beta <= 4)%Z ->
     z=x.
@@ -1203,7 +1186,7 @@ rewrite bpow_1; right; field.
 Qed.
 
 Lemma kLe2: (k <= Zceil (Z2R(radix_val beta)/ 2) -1)%Z.
-cut (Zceil (x * bpow (1 - ln_beta beta x) / (2+bpow (1-prec))) 
+cut (Zceil (x * bpow (1 - ln_beta beta x) / (2+bpow (1-prec)))
    <= Zceil (Z2R(radix_val beta)/ 2))%Z.
 unfold k; omega.
 apply Zceil_glb.
@@ -1356,10 +1339,10 @@ apply round_flx_sqr_sqrt_aux1...
 apply kpos.
 apply kLe.
 right; omega.
-apply Rplus_lt_reg_r with ((Z2R k + / 2) * (Z2R k + / 2) * bpow (ln_beta beta x - prec)).
+apply Rplus_lt_reg_l with ((Z2R k + / 2) * (Z2R k + / 2) * bpow (ln_beta beta x - prec)).
 apply Rlt_le_trans with ((2 * Z2R k + 1) * x).
 2: right; ring.
-apply Rle_lt_trans with 
+apply Rle_lt_trans with
  (/4*bpow (2+(ln_beta beta x - prec)) + / 2 * bpow (ln_beta beta x)).
 apply Rplus_le_compat_r.
 rewrite bpow_plus, <- Rmult_assoc.
@@ -1424,11 +1407,11 @@ apply Rlt_le, Rinv_0_lt_compat.
 apply Rmult_lt_0_compat; apply Rle_lt_0_plus_1, Rlt_le, Rlt_0_1.
 rewrite <- bpow_plus.
 right; apply f_equal; ring.
-unfold Zminus; rewrite bpow_plus, bpow_opp, bpow_1. 
+unfold Zminus; rewrite bpow_plus, bpow_opp, bpow_1.
 right; field.
 apply Rgt_not_eq, radix_pos.
 apply Rle_lt_trans with
-   ((2 * (x * bpow (1 - e) / (2+bpow (1-prec)) - 1) + 1) * 
+   ((2 * (x * bpow (1 - e) / (2+bpow (1-prec)) - 1) + 1) *
     (sqrt (Z2R beta) * bpow (e - 1))).
 apply Rle_trans with (bpow (e - 1)*((2 * (x * bpow (1 - e) / (2+bpow (1-prec)) - 1) + 1) *
    sqrt (Z2R beta))).
@@ -1499,7 +1482,7 @@ apply kpos.
 unfold k, ulp, canonic_exp, FLX_exp.
 destruct (ln_beta beta x) as (e,He).
 simpl (ln_beta_val beta x (Build_ln_beta_prop beta x e He)) in *.
-apply Rle_lt_trans with (2 * Z2R (Zceil (x * bpow (1 - e) / (2+bpow (1-prec))) - 1) * 
+apply Rle_lt_trans with (2 * Z2R (Zceil (x * bpow (1 - e) / (2+bpow (1-prec))) - 1) *
 (bpow (prec - 1) * bpow (e - prec)) * (1 + bpow (1 - prec) / 2)).
 right; ring.
 rewrite <- bpow_plus.
@@ -1534,11 +1517,10 @@ rewrite Rplus_comm, <- Rplus_assoc; apply Rle_lt_0_plus_1.
 apply Rlt_le, Rle_lt_0_plus_1, bpow_ge_0.
 Qed.
 
-
-
 End Sec3.
 
 Section Sec4.
+
 Open Scope R_scope.
 
 Variable beta : radix.
@@ -1562,8 +1544,9 @@ Hypothesis pGt1: (2 < prec)%Z.
 
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 
-Theorem round_flx_sqr_sqrt_exact_pos: forall x, 0 < x -> format x -> (radix_val beta <= 4)%Z ->
-    round_flx2(sqrt (round_flx1(x*x))) = x.
+Theorem round_flx_sqr_sqrt_exact_pos:
+  forall x, 0 < x -> format x -> (radix_val beta <= 4)%Z ->
+  round_flx2(sqrt (round_flx1(x*x))) = x.
 Proof with auto with typeclass_instances.
 intros x Hx Fx Hradix.
 case (Rle_or_lt x (sqrt (Z2R beta) * bpow (ln_beta beta x - 1))).
@@ -1577,9 +1560,9 @@ apply round_flx_sqr_sqrt_exact_aux...
 omega.
 Qed.
 
-
-Theorem round_flx_sqr_sqrt_exact: forall x, format x -> (beta <= 4)%Z ->
-    round_flx2(sqrt (round_flx1(x*x))) = Rabs x.
+Theorem round_flx_sqr_sqrt_exact:
+  forall x, format x -> (beta <= 4)%Z ->
+  round_flx2(sqrt (round_flx1(x*x))) = Rabs x.
 Proof with auto with typeclass_instances.
 intros x Fx Hradix.
 case (Rle_or_lt 0 x) as [H1|H1].
@@ -1597,11 +1580,11 @@ auto with real.
 now apply generic_format_opp.
 Qed.
 
-
 Hypothesis pradix5: (radix_val beta=5)%Z -> (3 < prec)%Z.
 
-Theorem round_flx_sqr_sqrt_pos: forall x, format x -> 0 < x -> (4 < radix_val beta)%Z ->
- ((radix_val beta=5)%Z -> (3 < prec)%Z) ->
+Theorem round_flx_sqr_sqrt_pos:
+  forall x, format x -> 0 < x -> (4 < radix_val beta)%Z ->
+  ((radix_val beta=5)%Z -> (3 < prec)%Z) ->
   round_flx3(x/round_flx2(sqrt (round_flx1(x*x)))) <= 1.
 Proof with auto with typeclass_instances.
 intros x Fx Hx Hr1 Hr2.
@@ -1621,10 +1604,7 @@ apply round_flx_sqr_sqrt_aux...
 omega.
 Qed.
 
-
-
-
-Theorem Muller_pos: forall x y:R, format x -> 0 <= x ->
+Theorem sqrt_sqr_pos: forall x y:R, format x -> 0 <= x ->
     0 <= round_flx3 (x / round_flx2(sqrt (round_flx4(round_flx1(x*x)+round_flx5(y*y))))) <= 1.
 Proof with auto with typeclass_instances.
 intros x y Fx Hx.
@@ -1686,10 +1666,10 @@ rewrite round_0...
 auto with real.
 Qed.
 
-
-
 End Sec4.
+
 Section Sec5.
+
 Open Scope R_scope.
 
 Variable beta : radix.
@@ -1702,7 +1682,6 @@ Variable choice3 : Z -> bool.
 Variable choice4 : Z -> bool.
 Variable choice5 : Z -> bool.
 
-
 Notation format := (generic_format beta (FLX_exp prec)).
 Notation round_flx1 :=(round beta (FLX_exp prec) (Znearest choice1)).
 Notation round_flx2 :=(round beta (FLX_exp prec) (Znearest choice2)).
@@ -1714,8 +1693,7 @@ Hypothesis pGt1: (2 < prec)%Z.
 
 Hypothesis pradix5: (radix_val beta=5)%Z -> (3 < prec)%Z.
 
-
-Theorem Muller: forall x y:R, format x ->
+Theorem sqrt_sqr: forall x y:R, format x ->
    -1 <=  round_flx1 (x / round_flx2(sqrt (round_flx3(round_flx4(x*x)+round_flx5(y*y))))) <= 1.
 Proof with auto with typeclass_instances.
 intros x y Fx.
@@ -1723,9 +1701,9 @@ case (Rle_or_lt 0 x); intros Hx.
 split.
 apply Rle_trans with 0.
 auto with real.
-apply Muller_pos...
+apply sqrt_sqr_pos...
 unfold Prec_gt_0; omega.
-apply Muller_pos...
+apply sqrt_sqr_pos...
 unfold Prec_gt_0; omega.
 replace
  (x / round_flx2 (sqrt (round_flx3 (round_flx4 (x * x) + round_flx5 (y * y))))) with
@@ -1733,13 +1711,13 @@ replace
 rewrite round_N_opp.
 split.
 apply Ropp_le_contravar.
-apply Muller_pos...
+apply sqrt_sqr_pos...
 unfold Prec_gt_0; omega.
 now apply generic_format_opp.
 auto with real.
 apply Rle_trans with (-0).
 apply Ropp_le_contravar.
-apply Muller_pos...
+apply sqrt_sqr_pos...
 unfold Prec_gt_0; omega.
 now apply generic_format_opp.
 auto with real.
@@ -1748,5 +1726,4 @@ unfold Rdiv; rewrite Ropp_mult_distr_l_reverse, Ropp_involutive.
 repeat apply f_equal; apply f_equal2; apply f_equal; ring.
 Qed.
 
-
-End Sec4.
+End Sec5.

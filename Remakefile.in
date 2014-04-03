@@ -73,7 +73,6 @@ EXTRA_DIST = \
 
 REMOVE_FROM_DIST = \
 	src/Appli/Fappli_Axpy.v \
-	src/Appli/Fappli_Muller.v \
 	src/Translate/
 
 dist: $(EXTRA_DIST)
