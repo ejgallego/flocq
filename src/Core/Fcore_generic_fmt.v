@@ -1380,8 +1380,6 @@ contradict Fx.
 apply generic_format_round...
 Qed.
 
-
-
 Theorem round_UP_small_pos :
   forall x ex,
   (bpow (ex - 1) <= x < bpow ex)%R ->
@@ -2017,6 +2015,49 @@ apply Rmult_eq_reg_r with (bpow (canonic_exp x)).
 now rewrite 2!Rmult_minus_distr_r.
 apply Rgt_not_eq.
 apply bpow_gt_0.
+Qed.
+
+Lemma round_N_really_small_pos :
+  forall x,
+  forall ex,
+  (Fcore_Raux.bpow beta (ex - 1) <= x < Fcore_Raux.bpow beta ex)%R ->
+  (ex < fexp ex)%Z ->
+  (round Znearest x = 0)%R.
+Proof.
+intros x ex Hex Hf.
+unfold round, F2R, scaled_mantissa, canonic_exp; simpl.
+apply (Rmult_eq_reg_r (bpow (- fexp (ln_beta beta x))));
+  [|now apply Rgt_not_eq; apply bpow_gt_0].
+rewrite Rmult_0_l, Rmult_assoc, <- bpow_plus.
+replace (_ + - _)%Z with 0%Z by ring; simpl; rewrite Rmult_1_r.
+change 0%R with (Z2R 0); apply f_equal.
+apply Znearest_imp.
+simpl; unfold Rminus; rewrite Ropp_0; rewrite Rplus_0_r.
+assert (H : (x >= 0)%R).
+{ apply Rle_ge; apply Rle_trans with (bpow (ex - 1)); [|exact (proj1 Hex)].
+  now apply bpow_ge_0. }
+assert (H' : (x * bpow (- fexp (ln_beta beta x)) >= 0)%R).
+{ apply Rle_ge; apply Rmult_le_pos.
+  - now apply Rge_le.
+  - now apply bpow_ge_0. }
+rewrite Rabs_right; [|exact H'].
+apply (Rmult_lt_reg_r (bpow (fexp (ln_beta beta x)))); [now apply bpow_gt_0|].
+rewrite Rmult_assoc, <- bpow_plus.
+replace (- _ + _)%Z with 0%Z by ring; simpl; rewrite Rmult_1_r.
+apply (Rlt_le_trans _ _ _ (proj2 Hex)).
+apply Rle_trans with (bpow (fexp (ln_beta beta x) - 1)).
+- apply bpow_le.
+  rewrite (ln_beta_unique beta x ex); [omega|].
+  now rewrite Rabs_right.
+- unfold Zminus; rewrite bpow_plus.
+  rewrite Rmult_comm.
+  apply Rmult_le_compat_r; [now apply bpow_ge_0|].
+  unfold Fcore_Raux.bpow, Z.pow_pos; simpl.
+  rewrite Zmult_1_r.
+  apply Rinv_le; [exact Rlt_0_2|].
+  change 2%R with (Z2R 2); apply Z2R_le.
+  destruct beta as (beta_val,beta_prop).
+  now apply Zle_bool_imp_le.
 Qed.
 
 End Znearest.
