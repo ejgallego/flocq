@@ -2095,6 +2095,58 @@ replace (ex - 1 - 1)%Z with (ex - 2)%Z by ring.
 now apply Rabs_ge; right.
 Qed.
 
+Lemma ln_beta_div :
+  forall x y : R,
+  (0 < x)%R -> (0 < y)%R ->
+  (ln_beta x - ln_beta y <= ln_beta (x / y) <= ln_beta x - ln_beta y + 1)%Z.
+Proof.
+intros x y Px Py.
+destruct (ln_beta x) as (ex,Hex).
+destruct (ln_beta y) as (ey,Hey).
+simpl.
+unfold Rdiv.
+rewrite Rabs_right in Hex; [|now apply Rle_ge; apply Rlt_le].
+rewrite Rabs_right in Hey; [|now apply Rle_ge; apply Rlt_le].
+assert (Heiy : (bpow (- ey) < / y <= bpow (- ey + 1))%R).
+{ split.
+  - rewrite bpow_opp.
+    apply Rinv_lt_contravar.
+    + apply Rmult_lt_0_compat; [exact Py|].
+      now apply bpow_gt_0.
+    + apply Hey.
+      now apply Rgt_not_eq.
+  - replace (_ + _)%Z with (- (ey - 1))%Z by ring.
+    rewrite bpow_opp.
+    apply Rinv_le; [now apply bpow_gt_0|].
+    apply Hey.
+    now apply Rgt_not_eq. }
+split.
+- apply ln_beta_ge_bpow.
+  apply Rabs_ge; right.
+  replace (_ - _)%Z with (ex - 1 - ey)%Z by ring.
+  unfold Zminus at 1; rewrite bpow_plus.
+  apply Rmult_le_compat.
+  + now apply bpow_ge_0.
+  + now apply bpow_ge_0.
+  + apply Hex.
+    now apply Rgt_not_eq.
+  + apply Rlt_le; apply Heiy.
+- assert (Pxy : (0 < x * / y)%R).
+  { apply Rmult_lt_0_compat; [exact Px|].
+    now apply Rinv_0_lt_compat. }
+  apply ln_beta_le_bpow.
+  + now apply Rgt_not_eq.
+  + rewrite Rabs_right; [|now apply Rle_ge; apply Rlt_le].
+    replace (_ + 1)%Z with (ex + (- ey + 1))%Z by ring.
+    rewrite bpow_plus.
+    apply Rlt_le_trans with (bpow ex * / y)%R.
+    * apply Rmult_lt_compat_r; [now apply Rinv_0_lt_compat|].
+      apply Hex.
+      now apply Rgt_not_eq.
+    * apply Rmult_le_compat_l; [now apply bpow_ge_0|].
+      apply Heiy.
+Qed. 
+
 Lemma ln_beta_sqrt :
   forall x,
   (0 < x)%R ->

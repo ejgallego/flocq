@@ -2365,6 +2365,37 @@ End Generic.
 
 Notation ZnearestA := (Znearest (Zle_bool 0)).
 
+Section rndNA_opp.
+
+Lemma round_NA_opp :
+  forall beta : radix,
+  forall (fexp : Z -> Z),
+  forall x,
+  (round beta fexp ZnearestA (- x) = - round beta fexp ZnearestA x)%R.
+Proof.
+intros beta fexp x.
+rewrite round_N_opp.
+apply Ropp_eq_compat.
+apply round_ext.
+clear x; intro x.
+unfold Znearest.
+case_eq (Rcompare (x - Z2R (Zfloor x)) (/ 2)); intro C;
+[|reflexivity|reflexivity].
+apply Rcompare_Eq_inv in C.
+assert (H : negb (0 <=? - (Zfloor x + 1))%Z = (0 <=? Zfloor x)%Z);
+  [|now rewrite H].
+rewrite negb_Zle_bool.
+case_eq (0 <=? Zfloor x)%Z; intro C'.
+- apply Zle_bool_imp_le in C'.
+  apply Zlt_bool_true.
+  omega.
+- rewrite Z.leb_gt in C'.
+  apply Zlt_bool_false.
+  omega.
+Qed.
+
+End rndNA_opp.
+
 (** Notations for backward-compatibility with Flocq 1.4. *)
 Notation rndDN := Zfloor (only parsing).
 Notation rndUP := Zceil (only parsing).

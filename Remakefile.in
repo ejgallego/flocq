@@ -27,7 +27,8 @@ FILES = \
 	Prop/Fprop_Sterbenz.v \
 	Appli/Fappli_rnd_odd.v \
 	Appli/Fappli_IEEE.v \
-	Appli/Fappli_IEEE_bits.v
+	Appli/Fappli_IEEE_bits.v \
+	Appli/Fappli_double_round.v
 
 OBJS = $(addprefix src/,$(addsuffix o,$(FILES)))
 
