@@ -3736,27 +3736,20 @@ omega.
 Qed.
 
 Definition double_round_div_hyp fexp1 fexp2 :=
-  ((forall ex ey, (fexp1 ex < ex)%Z -> (fexp1 ey < ey)%Z ->
-                  (fexp1 (ex - ey) <= ex - ey + 1)%Z ->
-                  (fexp2 (ex - ey) <= fexp1 ex - ey)%Z)
-   /\ (forall ex ey, (fexp1 ex < ex)%Z -> (fexp1 ey < ey)%Z ->
-                     (fexp1 (ex - ey + 1) <= ex - ey + 1 + 1)%Z ->
-                     (fexp2 (ex - ey + 1) <= fexp1 ex - ey)%Z))
-  /\ (forall ex, (fexp2 ex <= fexp1 ex - 1)%Z)
-  /\ ((forall ex ey, (fexp1 ex < ex)%Z -> (fexp1 ey < ey)%Z ->
-                     (fexp1 (ex - ey) <= ex - ey)%Z ->
-                     (fexp2 (ex - ey) <= fexp1 (ex - ey)
-                                         + fexp1 ey - ey))%Z
-      /\ (forall ex ey, (fexp1 ex < ex)%Z -> (fexp1 ey < ey)%Z ->
-                        (fexp1 (ex - ey + 1) <= ex - ey + 1)%Z ->
-                        (fexp2 (ex - ey + 1) <= fexp1 (ex - ey + 1)
-                                                + fexp1 ey - ey)%Z))
-  /\ ((forall ex ey, (fexp1 ex < ex)%Z -> (fexp1 ey < ey)%Z ->
-                     (fexp1 (ex - ey) = ex - ey + 1)%Z ->
-                     (fexp2 (ex - ey) <= ex - ey - ey + fexp1 ey)%Z)
-      /\ (forall ex ey, (fexp1 ex < ex)%Z -> (fexp1 ey < ey)%Z ->
-                        (fexp1 (ex - ey + 1) = ex - ey + 1 + 1)%Z ->
-                        (fexp2 (ex - ey + 1) <= ex - ey + 1 - ey + fexp1 ey)%Z)).
+  (forall ex, (fexp2 ex <= fexp1 ex - 1)%Z)
+  /\ (forall ex ey, (fexp1 ex < ex)%Z -> (fexp1 ey < ey)%Z ->
+                    (fexp1 (ex - ey) <= ex - ey + 1)%Z ->
+                    (fexp2 (ex - ey) <= fexp1 ex - ey)%Z)
+  /\ (forall ex ey, (fexp1 ex < ex)%Z -> (fexp1 ey < ey)%Z ->
+                    (fexp1 (ex - ey + 1) <= ex - ey + 1 + 1)%Z ->
+                    (fexp2 (ex - ey + 1) <= fexp1 ex - ey)%Z)
+  /\ (forall ex ey, (fexp1 ex < ex)%Z -> (fexp1 ey < ey)%Z ->
+                    (fexp1 (ex - ey) <= ex - ey)%Z ->
+                    (fexp2 (ex - ey) <= fexp1 (ex - ey)
+                                        + fexp1 ey - ey)%Z)
+  /\ (forall ex ey, (fexp1 ex < ex)%Z -> (fexp1 ey < ey)%Z ->
+                    (fexp1 (ex - ey) = ex - ey + 1)%Z ->
+                    (fexp2 (ex - ey) <= ex - ey - ey + fexp1 ey)%Z).
 
 Lemma double_round_div_aux0 :
   forall fexp1 fexp2 : Z -> Z,
@@ -3836,8 +3829,15 @@ destruct (Zle_or_lt Z0 (fexp1 (ln_beta x) - ln_beta (x / y)
     * unfold u2, p, ulp, canonic_exp; bpow_simplify; apply bpow_le.
       apply (Zplus_le_reg_r _ _ (- ln_beta y)); ring_simplify.
       rewrite (Zplus_comm (- _)); fold (Zminus (ln_beta (x / y)) (ln_beta y)).
-      now destruct (ln_beta_div_disj x y Px Py) as [Hxy|Hxy]; rewrite Hxy;
-      (apply Hexp; [| |rewrite <- Hxy]).
+      destruct (ln_beta_div_disj x y Px Py) as [Hxy|Hxy]; rewrite Hxy;
+      [now apply Hexp; [| |rewrite <- Hxy]|].
+      replace (_ - _ + 1)%Z with ((ln_beta x + 1) - ln_beta y)%Z by ring.
+      apply Hexp.
+      { now assert (fexp1 (ln_beta x + 1) <= ln_beta x)%Z;
+        [apply valid_exp|omega]. }
+      { assumption. }
+      replace (_ + 1 - _)%Z with (ln_beta x - ln_beta y + 1)%Z by ring.
+      now rewrite <- Hxy.
 - (* fexp1 (ln_beta x) < ln_beta (x / y) + fexp1 (ln_beta y) *)
   apply Rle_lt_trans with (p * y - bpow (fexp1 (ln_beta x))).
   + rewrite Fx at 1; rewrite Fy at 1.
@@ -3997,8 +3997,15 @@ destruct (Zle_or_lt Z0 (fexp1 (ln_beta x) - fexp1 (ln_beta (x / y))
     * unfold u2, ulp, canonic_exp; bpow_simplify; apply bpow_le.
       apply (Zplus_le_reg_r _ _ (- ln_beta y)); ring_simplify.
       rewrite <- Zplus_assoc; rewrite (Zplus_comm (- _)).
-      now destruct (ln_beta_div_disj x y Px Py) as [Hxy|Hxy]; rewrite Hxy;
-      (apply Hexp; [| |rewrite <- Hxy]).
+      destruct (ln_beta_div_disj x y Px Py) as [Hxy|Hxy]; rewrite Hxy;
+      [now apply Hexp; [| |rewrite <- Hxy]|].
+      replace (_ - _ + 1)%Z with ((ln_beta x + 1) - ln_beta y)%Z by ring.
+      apply Hexp.
+      { now assert (fexp1 (ln_beta x + 1) <= ln_beta x)%Z;
+        [apply valid_exp|omega]. }
+      { assumption. }
+      replace (_ + 1 - _)%Z with (ln_beta x - ln_beta y + 1)%Z by ring.
+      now rewrite <- Hxy.
 - (* fexp1 (ln_beta x) < fexp1 (ln_beta (x / y)) + fexp1 (ln_beta y) *)
   apply Rle_lt_trans with (2 * x' * y + u1 * y - bpow (fexp1 (ln_beta x))).
   + rewrite Fx at 1; rewrite Fy at 1 2.
@@ -4126,8 +4133,15 @@ destruct (Zle_or_lt Z0 (fexp1 (ln_beta x) - fexp1 (ln_beta (x / y))
     * unfold u2, ulp, canonic_exp; bpow_simplify; apply bpow_le.
       apply (Zplus_le_reg_r _ _ (- ln_beta y)); ring_simplify.
       rewrite <- Zplus_assoc; rewrite (Zplus_comm (- _)).
-      now destruct (ln_beta_div_disj x y Px Py) as [Hxy|Hxy]; rewrite Hxy;
-      (apply Hexp; [| |rewrite <- Hxy]).
+      destruct (ln_beta_div_disj x y Px Py) as [Hxy|Hxy]; rewrite Hxy;
+      [now apply Hexp; [| |rewrite <- Hxy]|].
+      replace (_ - _ + 1)%Z with ((ln_beta x + 1) - ln_beta y)%Z by ring.
+      apply Hexp.
+      { now assert (fexp1 (ln_beta x + 1) <= ln_beta x)%Z;
+        [apply valid_exp|omega]. }
+      { assumption. }
+      replace (_ + 1 - _)%Z with (ln_beta x - ln_beta y + 1)%Z by ring.
+      now rewrite <- Hxy.
   + apply Rge_le; rewrite Fx at 1; apply Rle_ge.
     replace (u1 * y) with (u1 * (Z2R my * bpow (fexp1 (ln_beta y))));
       [|now apply eq_sym; rewrite Fy at 1].
@@ -4368,9 +4382,8 @@ intros Hprec.
 unfold Prec_gt_0 in prec_gt_0_.
 unfold FLX_exp.
 unfold double_round_div_hyp.
-split; [now split; intros ex ey; omega|].
 split; [now intro ex; omega|].
-split; split; intros ex ey; omega.  
+split; [|split; [|split]]; intros ex ey; omega.
 Qed.
 
 Theorem double_round_div_FLX :
@@ -4414,18 +4427,8 @@ Proof.
 intros Hemin Hprec.
 unfold FLT_exp.
 unfold Prec_gt_0 in prec_gt_0_.
-unfold double_round_div_hyp; split; split;
-[intros ex ey|intros ex ey|intro ex|split; split; intros ex ey].
-- generalize (Zmax_spec (ex - prec) emin).
-  generalize (Zmax_spec (ey - prec) emin).
-  generalize (Zmax_spec (ex - ey - prec) emin).
-  generalize (Zmax_spec (ex - ey - prec') emin').
-  omega.
-- generalize (Zmax_spec (ex - prec) emin).
-  generalize (Zmax_spec (ey - prec) emin).
-  generalize (Zmax_spec (ex - ey + 1 - prec) emin).
-  generalize (Zmax_spec (ex - ey + 1 - prec') emin').
-  omega.
+unfold double_round_div_hyp.
+split; [intro ex|split; [|split; [|split]]; intros ex ey].
 - generalize (Zmax_spec (ex - prec') emin').
   generalize (Zmax_spec (ex - prec) emin).
   omega.
@@ -4446,8 +4449,8 @@ unfold double_round_div_hyp; split; split;
   omega.
 - generalize (Zmax_spec (ex - prec) emin).
   generalize (Zmax_spec (ey - prec) emin).
-  generalize (Zmax_spec (ex - ey + 1 - prec) emin).
-  generalize (Zmax_spec (ex - ey + 1 - prec') emin').
+  generalize (Zmax_spec (ex - ey - prec) emin).
+  generalize (Zmax_spec (ex - ey - prec') emin').
   omega.
 Qed.
 
@@ -4495,18 +4498,8 @@ intros Hemin Hprec.
 unfold FTZ_exp.
 unfold Prec_gt_0 in prec_gt_0_.
 unfold Prec_gt_0 in prec_gt_0_.
-unfold double_round_div_hyp; split; split;
-[intros ex ey|intros ex ey|intro ex|split; split; intros ex ey].
-- destruct (Z.ltb_spec (ex - prec) emin);
-  destruct (Z.ltb_spec (ey - prec) emin);
-  destruct (Z.ltb_spec (ex - ey - prec) emin);
-  destruct (Z.ltb_spec (ex - ey - prec') emin');
-  omega.
-- destruct (Z.ltb_spec (ex - prec) emin);
-  destruct (Z.ltb_spec (ey - prec) emin);
-  destruct (Z.ltb_spec (ex - ey + 1 - prec) emin);
-  destruct (Z.ltb_spec (ex - ey + 1 - prec') emin');
-  omega.
+unfold double_round_div_hyp.
+split; [intro ex|split; [|split; [|split]]; intros ex ey].
 - destruct (Z.ltb_spec (ex - prec') emin');
   destruct (Z.ltb_spec (ex - prec) emin);
   omega.
@@ -4527,8 +4520,8 @@ unfold double_round_div_hyp; split; split;
   omega.
 - destruct (Z.ltb_spec (ex - prec) emin);
   destruct (Z.ltb_spec (ey - prec) emin);
-  destruct (Z.ltb_spec (ex - ey + 1 - prec) emin);
-  destruct (Z.ltb_spec (ex - ey + 1 - prec') emin');
+  destruct (Z.ltb_spec (ex - ey - prec) emin);
+  destruct (Z.ltb_spec (ex - ey - prec') emin');
   omega.
 Qed.
 
