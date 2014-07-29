@@ -27,9 +27,12 @@ FILES = \
 	Prop/Fprop_Sterbenz.v \
 	Appli/Fappli_rnd_odd.v \
 	Appli/Fappli_IEEE.v \
-	Appli/Fappli_IEEE_bits.v
+	Appli/Fappli_IEEE_bits.v \
+	Appli/Fappli_double_round.v
 
 OBJS = $(addprefix src/,$(addsuffix o,$(FILES)))
+
+.PHONY: all clean dist doc install
 
 all: $(OBJS)
 
@@ -71,7 +74,6 @@ EXTRA_DIST = \
 
 REMOVE_FROM_DIST = \
 	src/Appli/Fappli_Axpy.v \
-	src/Appli/Fappli_Muller.v \
 	src/Translate/
 
 dist: $(EXTRA_DIST)
