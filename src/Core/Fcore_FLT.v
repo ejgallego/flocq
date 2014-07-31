@@ -104,6 +104,19 @@ apply Zle_max_l.
 apply Zle_max_r.
 Qed.
 
+
+Theorem FLT_format_bpow :
+  forall e, (emin <= e)%Z -> generic_format beta FLT_exp (bpow e).
+Proof.
+intros e He.
+apply generic_format_bpow; unfold FLT_exp.
+apply Z.max_case; try assumption.
+unfold Prec_gt_0 in prec_gt_0_; omega.
+Qed.
+
+
+
+
 Theorem FLT_format_satisfies_any :
   satisfies_any FLT_format.
 Proof.
