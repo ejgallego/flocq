@@ -1427,7 +1427,7 @@ Definition Fdiv_core_binary m1 e1 m2 e2 :=
     | Zpos p => (m1 * Zpower_pos 2 p, e + Zneg p)%Z
     | _ => (m1, e)
     end in
-  let '(q, r) :=  Zdiv_eucl m m2 in
+  let '(q, r) :=  Zfast_div_eucl m m2 in
   (q, e', new_location m2 r loc_Exact).
 
 Lemma Bdiv_correct_aux :
@@ -1449,7 +1449,6 @@ Lemma Bdiv_correct_aux :
 Proof.
 intros m sx mx ex sy my ey.
 replace (Fdiv_core_binary (Zpos mx) ex (Zpos my) ey) with (Fdiv_core radix2 prec (Zpos mx) ex (Zpos my) ey).
-2: now unfold Fdiv_core_binary ; rewrite 2!Zdigits2_Zdigits.
 refine (_ (Fdiv_core_correct radix2 prec (Zpos mx) ex (Zpos my) ey _ _ _)) ; try easy.
 destruct (Fdiv_core radix2 prec (Zpos mx) ex (Zpos my) ey) as ((mz, ez), lz).
 intros (Pz, Bz).
@@ -1526,6 +1525,15 @@ now apply F2R_ge_0_compat.
 apply Rlt_le.
 apply Rinv_0_lt_compat.
 now apply F2R_gt_0_compat.
+unfold Fdiv_core_binary, Fdiv_core.
+rewrite 2!Zdigits2_Zdigits.
+change 2%Z with (radix_val radix2).
+destruct (match (Zdigits radix2 (Z.pos my) + prec - Zdigits radix2 (Z.pos mx))%Z with
+     | 0%Z => (Z.pos mx, (ex - ey)%Z)
+     | Z.pos p => ((Z.pos mx * Z.pow_pos radix2 p)%Z, (ex - ey + Z.neg p)%Z)
+     | Z.neg _ => (Z.pos mx, (ex - ey)%Z)
+     end) as [m' e'].
+now rewrite Zfast_div_eucl_correct.
 Qed.
 
 Definition Bdiv div_nan m x y :=
