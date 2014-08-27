@@ -69,7 +69,7 @@ Definition bounded m e :=
 Definition valid_binary x :=
   match x with
   | F754_finite _ m e => bounded m e
-  | F754_nan _ pl => (Z_of_nat' (S (digits2_Pnat pl)) <? prec)%Z
+  | F754_nan _ pl => (Z_of_nat (S (digits2_Pnat pl)) <? prec)%Z
   | _ => true
   end.
 
@@ -77,7 +77,7 @@ Definition valid_binary x :=
     Note that there is exactly one such object per FP datum.
     NaNs do not have any payload. They cannot be distinguished. *)
 
-Definition nan_pl := {pl | (Z_of_nat' (S (digits2_Pnat pl)) <? prec)%Z  = true}.
+Definition nan_pl := {pl | (Z_of_nat (S (digits2_Pnat pl)) <? prec)%Z  = true}.
 
 Inductive binary_float :=
   | B754_zero : bool -> binary_float

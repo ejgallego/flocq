@@ -287,7 +287,7 @@ Local Open Scope Z_scope.
 - apply J; omega.
 - apply J; omega. 
 - destruct n as [pl pl_range]. apply Z.ltb_lt in pl_range.
-  apply J. apply D. unfold prec, Z_of_nat' in pl_range; omega. omega.
+  apply J. apply D. unfold prec in pl_range; omega. omega.
 - unfold bounded in e0. apply Bool.andb_true_iff in e0; destruct e0 as [A B].
   apply Z.leb_le in B.
   unfold canonic_mantissa, FLT_exp in A. apply Zeq_bool_eq in A. 
