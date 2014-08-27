@@ -61,7 +61,7 @@ Instance fexp_correct : Valid_exp fexp := FLT_exp_valid emin prec.
 Instance fexp_monotone : Monotone_exp fexp := FLT_exp_monotone emin prec.
 
 Definition canonic_mantissa m e :=
-  Zeq_bool (fexp (Z_of_nat (S (digits2_Pnat m)) + e)) e.
+  Zeq_bool (fexp (Zpos (digits2_pos m) + e)) e.
 
 Definition bounded m e :=
   andb (canonic_mantissa m e) (Zle_bool e (emax - prec)).
@@ -69,7 +69,7 @@ Definition bounded m e :=
 Definition valid_binary x :=
   match x with
   | F754_finite _ m e => bounded m e
-  | F754_nan _ pl => (Z_of_nat (S (digits2_Pnat pl)) <? prec)%Z
+  | F754_nan _ pl => (Zpos (digits2_pos pl) <? prec)%Z
   | _ => true
   end.
 
@@ -77,7 +77,7 @@ Definition valid_binary x :=
     Note that there is exactly one such object per FP datum.
     NaNs do not have any payload. They cannot be distinguished. *)
 
-Definition nan_pl := {pl | (Z_of_nat (S (digits2_Pnat pl)) <? prec)%Z  = true}.
+Definition nan_pl := {pl | (Zpos (digits2_pos pl) <? prec)%Z  = true}.
 
 Inductive binary_float :=
   | B754_zero : bool -> binary_float
@@ -184,7 +184,7 @@ pattern ex at 2 ; rewrite <- Hx.
 apply (f_equal fexp).
 rewrite ln_beta_F2R_Zdigits.
 rewrite <- Zdigits_abs.
-rewrite Z_of_nat_S_digits2_Pnat.
+rewrite Zpos_digits2_pos.
 now case sx.
 now case sx.
 Qed.
@@ -442,7 +442,7 @@ now apply F2R_gt_0_compat.
 apply bpow_le.
 rewrite H. 2: discriminate.
 revert H1. clear -H2.
-rewrite Z_of_nat_S_digits2_Pnat.
+rewrite Zpos_digits2_pos.
 unfold fexp, FLT_exp.
 generalize (Zdigits radix2 (Zpos mx)).
 intros ; zify ; subst.
@@ -471,7 +471,7 @@ split.
 unfold canonic_mantissa.
 unfold canonic, Fexp in Cx.
 rewrite Cx at 2.
-rewrite Z_of_nat_S_digits2_Pnat.
+rewrite Zpos_digits2_pos.
 unfold canonic_exp.
 rewrite ln_beta_F2R_Zdigits. 2: discriminate.
 now apply -> Zeq_is_eq_bool.
@@ -816,7 +816,7 @@ apply andb_true_intro.
 split.
 unfold canonic_mantissa.
 apply Zeq_bool_true.
-rewrite Z_of_nat_S_digits2_Pnat.
+rewrite Zpos_digits2_pos.
 rewrite <- ln_beta_F2R_Zdigits.
 apply sym_eq.
 now rewrite H3 in H4.
@@ -836,7 +836,7 @@ unfold valid_binary, bounded.
 rewrite Zle_bool_refl.
 rewrite Bool.andb_true_r.
 apply Zeq_bool_true.
-rewrite Z_of_nat_S_digits2_Pnat.
+rewrite Zpos_digits2_pos.
 replace (Zdigits radix2 (Zpos (match (Zpower 2 prec - 1)%Z with Zpos p => p | _ => xH end))) with prec.
 unfold fexp, FLT_exp, emin.
 generalize (prec_gt_0 prec).
@@ -928,7 +928,7 @@ assert (forall m e, bounded m e = true -> fexp (Zdigits radix2 (Zpos m) + e) = e
 clear. intros m e Hb.
 destruct (andb_prop _ _ Hb) as (H,_).
 apply Zeq_bool_eq.
-now rewrite <- Z_of_nat_S_digits2_Pnat.
+now rewrite <- Zpos_digits2_pos.
 generalize (H _ _ Hx) (H _ _ Hy).
 clear x y sx sy Hx Hy H.
 unfold fexp, FLT_exp.
@@ -1084,7 +1084,7 @@ apply refl_equal.
 Qed.
 
 Definition shl_align_fexp mx ex :=
-  shl_align mx ex (fexp (Z_of_nat (S (digits2_Pnat mx)) + ex)).
+  shl_align mx ex (fexp (Zpos (digits2_pos mx) + ex)).
 
 Theorem shl_align_fexp_correct :
   forall mx ex,
@@ -1094,8 +1094,8 @@ Theorem shl_align_fexp_correct :
 Proof.
 intros mx ex.
 unfold shl_align_fexp.
-generalize (shl_align_correct mx ex (fexp (Z_of_nat (S (digits2_Pnat mx)) + ex))).
-rewrite Z_of_nat_S_digits2_Pnat.
+generalize (shl_align_correct mx ex (fexp (Zpos (digits2_pos mx) + ex))).
+rewrite Zpos_digits2_pos.
 case shl_align.
 intros mx' ex' (H1, H2).
 split.

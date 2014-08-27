@@ -62,6 +62,38 @@ Hypothesis Hmax : (prec < emax)%Z.
 Definition join_bits (s : bool) m e :=
   (((if s then Zpower 2 ew else 0) + e) * Zpower 2 mw + m)%Z.
 
+Lemma join_bits_range :
+  forall s m e,
+  (0 <= m < 2^mw)%Z ->
+  (0 <= e < 2^ew)%Z ->
+  (0 <= join_bits s m e < 2 ^ (mw + ew + 1))%Z.
+Proof.
+intros s m e Hm He.
+unfold join_bits.
+split.
+- apply (Zplus_le_compat 0 _ 0) with (2 := proj1 Hm).
+  rewrite <- (Zmult_0_l (2^mw)).
+  apply Zmult_le_compat_r.
+  case s.
+  clear -He ; omega.
+  now rewrite Zmult_0_l.
+  clear -Hm ; omega.
+- apply Zlt_le_trans with (((if s then 2 ^ ew else 0) + e + 1) * 2 ^ mw)%Z.
+  rewrite (Zmult_plus_distr_l _ 1).
+  apply Zplus_lt_compat_l.
+  now rewrite Zmult_1_l.
+  rewrite <- (Zplus_assoc mw), (Zplus_comm mw), Zpower_plus.
+  apply Zmult_le_compat_r.
+  rewrite Zpower_plus.
+  change (2^1)%Z with 2%Z.
+  case s ; clear -He ; omega.
+  now apply Zlt_le_weak.
+  easy.
+  clear -Hm ; omega.
+  clear -Hew ; omega.
+  now apply Zlt_le_weak.
+Qed.
+
 Definition split_bits x :=
   let mm := Zpower 2 mw in
   let em := Zpower 2 ew in
@@ -206,6 +238,7 @@ intros [sx|sx|sx [plx Hplx]|sx mx ex Hx] ;
   try ( simpl ; apply split_join_bits ; split ; try apply Zle_refl ; try apply Zlt_pred ; trivial ; omega ).
 simpl. apply split_join_bits; split; try (zify; omega).
 destruct (digits2_Pnat_correct plx).
+rewrite Zpos_digits2_pos, <- Z_of_nat_S_digits2_Pnat in Hplx.
 rewrite Zpower_nat_Z in H0.
 eapply Zlt_le_trans. apply H0.
 change 2%Z with (radix_val radix2). apply Zpower_le.
@@ -216,7 +249,7 @@ unfold bits_of_binary_float, split_bits_of_binary_float.
 assert (Hf: (emin <= ex /\ Zdigits radix2 (Zpos mx) <= prec)%Z).
 destruct (andb_prop _ _ Hx) as (Hx', _).
 unfold canonic_mantissa in Hx'.
-rewrite Z_of_nat_S_digits2_Pnat in Hx'.
+rewrite Zpos_digits2_pos in Hx'.
 generalize (Zeq_bool_eq _ _ Hx').
 unfold FLT_exp.
 unfold emin.
@@ -256,52 +289,44 @@ Qed.
 Theorem bits_of_binary_float_range:
   forall x, (0 <= bits_of_binary_float x < 2^(mw+ew+1))%Z.
 Proof.
-  intros. 
-Local Open Scope Z_scope.
-  assert (J: forall s m e,
-          0 <= m < 2^mw -> 0 <= e < 2^ew ->
-          0 <= join_bits s m e < 2^(mw+ew+1)).
-  {
-    intros. unfold join_bits. 
-    set (se := (if s then 2 ^ ew else 0) + e).
-    assert (0 <= se < 2^(ew+1)).
-    { rewrite (Zpower_plus radix2) by omega. change (radix2^1) with 2. simpl.
-      unfold se. destruct s; omega. }
-    assert (0 <= se * 2^mw <= (2^(ew+1) - 1) * 2^mw).
-    { split. apply Zmult_gt_0_le_0_compat; omega.
-      apply Zmult_le_compat_r; omega. }
-    rewrite Z.mul_sub_distr_r in H2.
-    replace (mw + ew + 1) with ((ew + 1) + mw) by omega. 
-    rewrite (Zpower_plus radix2) by omega. simpl. omega.
-  }
-  assert (D: forall p n, Z.of_nat (S (digits2_Pnat p)) <= n ->
-             0 <= Z.pos p < 2^n).
-  {
-    intros.  
-    generalize (digits2_Pnat_correct p). simpl. rewrite ! Zpower_nat_Z. intros [A B].
-    split. zify; omega. eapply Zlt_le_trans. eassumption. 
-    apply (Zpower_le radix2); auto.
-  } 
-  destruct x; unfold bits_of_binary_float.
-- apply J; omega.
-- apply J; omega. 
-- destruct n as [pl pl_range]. apply Z.ltb_lt in pl_range.
-  apply J. apply D. unfold prec in pl_range; omega. omega.
-- unfold bounded in e0. apply Bool.andb_true_iff in e0; destruct e0 as [A B].
+unfold bits_of_binary_float.
+intros [sx|sx|sx [pl pl_range]|sx mx ex H].
+- apply join_bits_range ; now split.
+- apply join_bits_range.
+  now split.
+  clear -He_gt_0 ; omega.
+- apply Z.ltb_lt in pl_range.
+  apply join_bits_range.
+  split.
+  easy.
+  apply (Zpower_gt_Zdigits radix2 _ (Zpos pl)).
+  apply Z.lt_succ_r.
+  now rewrite <- Zdigits2_Zdigits.
+  clear -He_gt_0 ; omega.
+- unfold bounded in H.
+  apply Bool.andb_true_iff in H ; destruct H as [A B].
   apply Z.leb_le in B.
-  unfold canonic_mantissa, FLT_exp in A. apply Zeq_bool_eq in A. 
-  assert (G: Z.of_nat (S (digits2_Pnat m)) <= prec) by (zify; omega).
-  assert (M: emin <= e) by (unfold emin; zify; omega). 
-  generalize (Zle_bool_spec (2^mw) (Z.pos m)); intro SPEC; inversion SPEC.
-  + apply J. 
-    * split. omega. generalize (D _ _ G). unfold prec. 
-      rewrite (Zpower_plus radix2) by omega.
-      change (radix2^1) with 2. simpl radix_val. omega.
-    * split. omega. unfold emin. replace (2^ew) with (2 * emax). omega.
-      symmetry. replace ew with (1 + (ew - 1)) by omega. 
-      apply (Zpower_plus radix2); omega.
-  + apply J. zify; omega. omega. 
-Local Close Scope Z_scope.
+  unfold canonic_mantissa, FLT_exp in A. apply Zeq_bool_eq in A.
+  case Zle_bool_spec ; intros H.
+  + apply join_bits_range.
+    * split.
+      clear -H ; omega.
+      rewrite Zpos_digits2_pos in A.
+      cut (Zpos mx < 2 ^ prec)%Z.
+      unfold prec.
+      rewrite Zpower_plus by (clear -Hmw ; omega).
+      change (2^1)%Z with 2%Z.
+      clear ; omega.
+      apply (Zpower_gt_Zdigits radix2 _ (Zpos mx)).
+      clear -A ; zify ; omega.
+    * split.
+      unfold emin ; clear -A ; zify ; omega.
+      replace ew with ((ew - 1) + 1)%Z by ring.
+      rewrite Zpower_plus by (clear - Hew ; omega).
+      unfold emin, emax in *.
+      change (2^1)%Z with 2%Z.
+      clear -B ; omega.
+  + apply join_bits_range ; now split.
 Qed.
 
 Definition binary_float_of_bits_aux x :=
@@ -365,7 +390,7 @@ case Zeq_bool_spec ; intros He2.
 case_eq (x mod 2 ^ mw)%Z; try easy.
 (* nan *)
 intros plx Eqplx. apply Z.ltb_lt.
-rewrite Z_of_nat_S_digits2_Pnat.
+rewrite Zpos_digits2_pos.
 assert (forall a b, a <= b -> a < b+1)%Z by (intros; omega). apply H. clear H.
 apply Zdigits_le_Zpower. simpl.
 rewrite <- Eqplx. edestruct Z_mod_lt; eauto.
@@ -493,7 +518,7 @@ discriminate.
 clear -Hew ; omega.
 destruct (andb_prop _ _ Bx) as (H1, _).
 generalize (Zeq_bool_eq _ _ H1).
-rewrite Z_of_nat_S_digits2_Pnat.
+rewrite Zpos_digits2_pos.
 unfold FLT_exp, emin.
 generalize (Zdigits radix2 (Zpos mx)).
 clear.
@@ -504,7 +529,7 @@ simpl.
 apply f_equal.
 destruct (andb_prop _ _ Bx) as (H1, _).
 generalize (Zeq_bool_eq _ _ H1).
-rewrite Z_of_nat_S_digits2_Pnat.
+rewrite Zpos_digits2_pos.
 unfold FLT_exp, emin, prec.
 generalize (Zdigits_le_Zpower radix2 _ (Zpos mx) Hm).
 generalize (Zdigits radix2 (Zpos mx)).
