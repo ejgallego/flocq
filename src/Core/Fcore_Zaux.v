@@ -772,3 +772,32 @@ now apply Zabs_eq.
 Qed.
 
 End cond_Zopp.
+
+Section fast_pow_pos.
+
+Fixpoint Zfast_pow_pos (v : Z) (e : positive) : Z :=
+  match e with
+  | xH => v
+  | xO e' => Z.square (Zfast_pow_pos v e')
+  | xI e' => Zmult v (Z.square (Zfast_pow_pos v e'))
+  end.
+
+Theorem Zfast_pow_pos_correct :
+  forall v e, Zfast_pow_pos v e = Zpower_pos v e.
+Proof.
+intros v e.
+rewrite <- (Zmult_1_r (Zfast_pow_pos v e)).
+unfold Z.pow_pos.
+generalize 1%Z.
+revert v.
+induction e ; intros v f ; simpl.
+- rewrite <- 2!IHe.
+  rewrite Z.square_spec.
+  ring.
+- rewrite <- 2!IHe.
+  rewrite Z.square_spec.
+  apply eq_sym, Zmult_assoc.
+- apply eq_refl.
+Qed.
+
+End fast_pow_pos.
