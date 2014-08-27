@@ -746,7 +746,6 @@ Qed.
 Section digits_aux.
 
 Variable p : Z.
-Hypothesis Hp : (0 <= p)%Z.
 
 Fixpoint Zdigits_aux (nb pow : Z) (n : nat) { struct n } : Z :=
   match n with
@@ -1126,3 +1125,21 @@ now rewrite <- (Zabs_eq m) at 1.
 Qed.
 
 End Fcore_digits.
+
+Section Zdigits2.
+
+Theorem Z_of_nat_S_digits2_Pnat :
+  forall m : positive,
+  Z_of_nat (S (digits2_Pnat m)) = Zdigits radix2 (Zpos m).
+Proof.
+intros m.
+apply eq_sym, Zdigits_unique.
+rewrite <- Zpower_nat_Z.
+rewrite Nat2Z.inj_succ.
+change (_ - 1)%Z with (Zpred (Zsucc (Z.of_nat (digits2_Pnat m)))).
+rewrite <- Zpred_succ.
+rewrite <- Zpower_nat_Z.
+apply digits2_Pnat_correct.
+Qed.
+
+End Zdigits2.

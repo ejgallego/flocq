@@ -102,8 +102,6 @@ Definition B2FF x :=
   | B754_nan b (exist pl _) => F754_nan b pl
   end.
 
-Definition radix2 := Build_radix 2 (refl_equal true).
-
 Definition B2R f :=
   match f with
   | B754_finite s m e _ => F2R (Float radix2 (cond_Zopp s (Zpos m)) e)
@@ -445,7 +443,6 @@ apply bpow_le.
 rewrite H. 2: discriminate.
 revert H1. clear -H2.
 rewrite Z_of_nat_S_digits2_Pnat.
-change Fcalc_digits.radix2 with radix2.
 unfold fexp, FLT_exp.
 generalize (Zdigits radix2 (Zpos mx)).
 intros ; zify ; subst.
@@ -475,7 +472,6 @@ unfold canonic_mantissa.
 unfold canonic, Fexp in Cx.
 rewrite Cx at 2.
 rewrite Z_of_nat_S_digits2_Pnat.
-change Fcalc_digits.radix2 with radix2.
 unfold canonic_exp.
 rewrite ln_beta_F2R_Zdigits. 2: discriminate.
 now apply -> Zeq_is_eq_bool.
@@ -853,7 +849,6 @@ rewrite Zle_bool_refl.
 rewrite Bool.andb_true_r.
 apply Zeq_bool_true.
 rewrite Z_of_nat_S_digits2_Pnat.
-change Fcalc_digits.radix2 with radix2.
 replace (Zdigits radix2 (Zpos (match (Zpower 2 prec - 1)%Z with Zpos p => p | _ => xH end))) with prec.
 unfold fexp, FLT_exp, emin.
 generalize (prec_gt_0 prec).

@@ -233,6 +233,8 @@ apply f_equal.
 apply eqbool_irrelevance.
 Qed.
 
+Definition radix2 := Build_radix 2 (refl_equal _).
+
 Variable r : radix.
 
 Theorem radix_gt_0 : (0 < r)%Z.

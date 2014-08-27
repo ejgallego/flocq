@@ -219,7 +219,6 @@ unfold canonic_mantissa in Hx'.
 rewrite Z_of_nat_S_digits2_Pnat in Hx'.
 generalize (Zeq_bool_eq _ _ Hx').
 unfold FLT_exp.
-change (Fcalc_digits.radix2) with radix2.
 unfold emin.
 clear ; zify ; omega.
 destruct (Zle_bool_spec (2^mw) (Zpos mx)) as [H|H] ;
@@ -496,7 +495,6 @@ destruct (andb_prop _ _ Bx) as (H1, _).
 generalize (Zeq_bool_eq _ _ H1).
 rewrite Z_of_nat_S_digits2_Pnat.
 unfold FLT_exp, emin.
-change Fcalc_digits.radix2 with radix2.
 generalize (Zdigits radix2 (Zpos mx)).
 clear.
 intros ; zify ; omega.
@@ -508,7 +506,6 @@ destruct (andb_prop _ _ Bx) as (H1, _).
 generalize (Zeq_bool_eq _ _ H1).
 rewrite Z_of_nat_S_digits2_Pnat.
 unfold FLT_exp, emin, prec.
-change Fcalc_digits.radix2 with radix2.
 generalize (Zdigits_le_Zpower radix2 _ (Zpos mx) Hm).
 generalize (Zdigits radix2 (Zpos mx)).
 clear.
