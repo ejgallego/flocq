@@ -616,18 +616,6 @@ intros (m, r, s) Hm.
 now destruct m as [|[m|m|]|m] ; try (now elim Hm) ; destruct r as [|] ; destruct s as [|].
 Qed.
 
-Definition Zdigits2 m :=
-  match m with Z0 => m | Zpos p => Z_of_nat (S (digits2_Pnat p)) | Zneg p => Z_of_nat (S (digits2_Pnat p)) end.
-
-Theorem Zdigits2_Zdigits :
-  forall m,
-  Zdigits2 m = Zdigits radix2 m.
-Proof.
-unfold Zdigits2.
-intros [|m|m] ; try apply Z_of_nat_S_digits2_Pnat.
-easy.
-Qed.
-
 Definition shr_fexp m e l :=
   shr (shr_record_of_loc m l) e (fexp (Zdigits2 m + e) - e).
 

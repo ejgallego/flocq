@@ -1142,4 +1142,37 @@ rewrite <- Zpower_nat_Z.
 apply digits2_Pnat_correct.
 Qed.
 
+Fixpoint digits2_pos (n : positive) : positive :=
+  match n with
+  | xH => xH
+  | xO p => Psucc (digits2_pos p)
+  | xI p => Psucc (digits2_pos p)
+  end.
+
+Theorem Zpos_digits2_pos :
+  forall m : positive,
+  Zpos (digits2_pos m) = Zdigits radix2 (Zpos m).
+Proof.
+intros m.
+rewrite <- Z_of_nat_S_digits2_Pnat.
+unfold Z.of_nat.
+apply f_equal.
+induction m ; simpl ; try easy ;
+  apply f_equal, IHm.
+Qed.
+
+Definition Zdigits2 n :=
+  match n with
+  | Z0 => n
+  | Zpos p => Zpos (digits2_pos p)
+  | Zneg p => Zpos (digits2_pos p)
+  end.
+
+Lemma Zdigits2_Zdigits :
+  forall n, Zdigits2 n = Zdigits radix2 n.
+Proof.
+intros [|p|p] ; try easy ;
+  apply Zpos_digits2_pos.
+Qed.
+
 End Zdigits2.
