@@ -803,3 +803,127 @@ induction e ; intros v f ; simpl.
 Qed.
 
 End fast_pow_pos.
+
+Section faster_div.
+
+Lemma Zdiv_eucl_unique :
+  forall a b,
+  Zdiv_eucl a b = (Zdiv a b, Zmod a b).
+Proof.
+intros a b.
+unfold Zdiv, Zmod.
+now case Zdiv_eucl.
+Qed.
+
+Fixpoint Zpos_div_eucl_aux1 (a b : positive) {struct b} :=
+  match b with
+  | xO b' =>
+    match a with
+    | xO a' => let (q, r) := Zpos_div_eucl_aux1 a' b' in (q, 2 * r)%Z
+    | xI a' => let (q, r) := Zpos_div_eucl_aux1 a' b' in (q, 2 * r + 1)%Z
+    | xH => (Z0, Zpos a)
+    end
+  | xH => (Zpos a, Z0)
+  | xI _ => Z.pos_div_eucl a (Zpos b)
+  end.
+
+Lemma Zpos_div_eucl_aux1_correct :
+  forall a b,
+  Zpos_div_eucl_aux1 a b = Z.pos_div_eucl a (Zpos b).
+Proof.
+intros a b.
+revert a.
+induction b ; intros a.
+- easy.
+- change (Z.pos_div_eucl a (Zpos b~0)) with (Zdiv_eucl (Zpos a) (Zpos b~0)).
+  rewrite Zdiv_eucl_unique.
+  change (Zpos b~0) with (2 * Zpos b)%Z.
+  rewrite Z.rem_mul_r by easy.
+  rewrite <- Zdiv_Zdiv by easy.
+  destruct a as [a|a|].
+  + change (Zpos_div_eucl_aux1 a~1 b~0) with (let (q, r) := Zpos_div_eucl_aux1 a b in (q, 2 * r + 1)%Z).
+    rewrite IHb. clear IHb.
+    change (Z.pos_div_eucl a (Zpos b)) with (Zdiv_eucl (Zpos a) (Zpos b)).
+    rewrite Zdiv_eucl_unique.
+    change (Zpos a~1) with (1 + 2 * Zpos a)%Z.
+    rewrite (Zmult_comm 2 (Zpos a)).
+    rewrite Z_div_plus_full by easy.
+    apply f_equal.
+    rewrite Z_mod_plus_full.
+    apply Zplus_comm.
+  + change (Zpos_div_eucl_aux1 a~0 b~0) with (let (q, r) := Zpos_div_eucl_aux1 a b in (q, 2 * r)%Z).
+    rewrite IHb. clear IHb.
+    change (Z.pos_div_eucl a (Zpos b)) with (Zdiv_eucl (Zpos a) (Zpos b)).
+    rewrite Zdiv_eucl_unique.
+    change (Zpos a~0) with (2 * Zpos a)%Z.
+    rewrite (Zmult_comm 2 (Zpos a)).
+    rewrite Z_div_mult_full by easy.
+    apply f_equal.
+    now rewrite Z_mod_mult.
+  + easy.
+- change (Z.pos_div_eucl a 1) with (Zdiv_eucl (Zpos a) 1).
+  rewrite Zdiv_eucl_unique.
+  now rewrite Zdiv_1_r, Zmod_1_r.
+Qed.
+
+Definition Zpos_div_eucl_aux (a b : positive) :=
+  match Pos.compare a b with
+  | Lt => (Z0, Zpos a)
+  | Eq => (1%Z, Z0)
+  | Gt => Zpos_div_eucl_aux1 a b
+  end.
+
+Lemma Zpos_div_eucl_aux_correct :
+  forall a b,
+  Zpos_div_eucl_aux a b = Z.pos_div_eucl a (Zpos b).
+Proof.
+intros a b.
+unfold Zpos_div_eucl_aux.
+change (Z.pos_div_eucl a (Zpos b)) with (Zdiv_eucl (Zpos a) (Zpos b)).
+rewrite Zdiv_eucl_unique.
+case Pos.compare_spec ; intros H.
+now rewrite H, Z_div_same, Z_mod_same.
+now rewrite Zdiv_small, Zmod_small by (split ; easy).
+rewrite Zpos_div_eucl_aux1_correct.
+change (Z.pos_div_eucl a (Zpos b)) with (Zdiv_eucl (Zpos a) (Zpos b)).
+apply Zdiv_eucl_unique.
+Qed.
+
+Definition Zfast_div_eucl (a b : Z) :=
+  match a with
+  | Z0 => (0, 0)%Z
+  | Zpos a' =>
+    match b with
+    | Z0 => (0, 0)%Z
+    | Zpos b' => Zpos_div_eucl_aux a' b'
+    | Zneg b' =>
+      let (q, r) := Zpos_div_eucl_aux a' b' in
+      match r with
+      | Z0 => (-q, 0)%Z
+      | Zpos _ => (-(q + 1), (b + r))%Z
+      | Zneg _ => (-(q + 1), (b + r))%Z
+      end
+    end
+  | Zneg a' =>
+    match b with
+    | Z0 => (0, 0)%Z
+    | Zpos b' =>
+      let (q, r) := Zpos_div_eucl_aux a' b' in
+      match r with
+      | Z0 => (-q, 0)%Z
+      | Zpos _ => (-(q + 1), (b - r))%Z
+      | Zneg _ => (-(q + 1), (b - r))%Z
+      end
+    | Zneg b' => let (q, r) := Zpos_div_eucl_aux a' b' in (q, (-r)%Z)
+    end
+  end.
+
+Theorem Zfast_div_eucl_correct :
+  forall a b : Z,
+  Zfast_div_eucl a b = Zdiv_eucl a b.
+Proof.
+unfold Zfast_div_eucl.
+intros [|a|a] [|b|b] ; try rewrite Zpos_div_eucl_aux_correct ; easy.
+Qed.
+
+End faster_div.
