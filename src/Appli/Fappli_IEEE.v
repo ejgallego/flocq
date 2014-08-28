@@ -1424,7 +1424,7 @@ Definition Fdiv_core_binary m1 e1 m2 e2 :=
   let e := (e1 - e2)%Z in
   let (m, e') :=
     match (d2 + prec - d1)%Z with
-    | Zpos p => (m1 * Zpower_pos 2 p, e + Zneg p)%Z
+    | Zpos p => (Z.shiftl m1 (Zpos p), e + Zneg p)%Z
     | _ => (m1, e)
     end in
   let '(q, r) :=  Zfast_div_eucl m m2 in
@@ -1525,14 +1525,14 @@ now apply F2R_ge_0_compat.
 apply Rlt_le.
 apply Rinv_0_lt_compat.
 now apply F2R_gt_0_compat.
+(* *)
 unfold Fdiv_core_binary, Fdiv_core.
 rewrite 2!Zdigits2_Zdigits.
 change 2%Z with (radix_val radix2).
-destruct (match (Zdigits radix2 (Z.pos my) + prec - Zdigits radix2 (Z.pos mx))%Z with
-     | 0%Z => (Z.pos mx, (ex - ey)%Z)
-     | Z.pos p => ((Z.pos mx * Z.pow_pos radix2 p)%Z, (ex - ey + Z.neg p)%Z)
-     | Z.neg _ => (Z.pos mx, (ex - ey)%Z)
-     end) as [m' e'].
+destruct (Zdigits radix2 (Z.pos my) + prec - Zdigits radix2 (Z.pos mx))%Z as [|p|p].
+now rewrite Zfast_div_eucl_correct.
+rewrite Z.shiftl_mul_pow2 by easy.
+now rewrite Zfast_div_eucl_correct.
 now rewrite Zfast_div_eucl_correct.
 Qed.
 
@@ -1591,7 +1591,7 @@ Definition Fsqrt_core_binary m e :=
   let (s', e'') := if Zeven e' then (s, e') else (s + 1, e' - 1)%Z in
   let m' :=
     match s' with
-    | Zpos p => (m * Zpower_pos 2 p)%Z
+    | Zpos p => Z.shiftl m (Zpos p)
     | _ => m
     end in
   let (q, r) := Z.sqrtrem m' in
@@ -1615,7 +1615,6 @@ Lemma Bsqrt_correct_aux :
 Proof with auto with typeclass_instances.
 intros m mx ex Hx.
 replace (Fsqrt_core_binary (Zpos mx) ex) with (Fsqrt_core radix2 prec (Zpos mx) ex).
-2: now unfold Fsqrt_core_binary ; rewrite Zdigits2_Zdigits.
 simpl.
 refine (_ (Fsqrt_core_correct radix2 prec (Zpos mx) ex _)) ; try easy.
 destruct (Fsqrt_core radix2 prec (Zpos mx) ex) as ((mz, ez), lz).
@@ -1710,6 +1709,11 @@ apply Rle_trans with R0.
 apply F2R_le_0_compat.
 now case mz.
 apply sqrt_ge_0.
+(* *)
+unfold Fsqrt_core, Fsqrt_core_binary.
+rewrite Zdigits2_Zdigits.
+destruct (if Zeven _ then _ else _) as [[|s'|s'] e''] ; try easy.
+now rewrite Z.shiftl_mul_pow2.
 Qed.
 
 Definition Bsqrt sqrt_nan m x :=

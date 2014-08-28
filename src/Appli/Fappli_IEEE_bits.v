@@ -60,7 +60,7 @@ Qed.
 Hypothesis Hmax : (prec < emax)%Z.
 
 Definition join_bits (s : bool) m e :=
-  (((if s then Zpower 2 ew else 0) + e) * Zpower 2 mw + m)%Z.
+  (Z.shiftl ((if s then Zpower 2 ew else 0) + e) mw + m)%Z.
 
 Lemma join_bits_range :
   forall s m e,
@@ -70,6 +70,7 @@ Lemma join_bits_range :
 Proof.
 intros s m e Hm He.
 unfold join_bits.
+rewrite Z.shiftl_mul_pow2 by now apply Zlt_le_weak.
 split.
 - apply (Zplus_le_compat 0 _ 0) with (2 := proj1 Hm).
   rewrite <- (Zmult_0_l (2^mw)).
@@ -107,6 +108,7 @@ Theorem split_join_bits :
 Proof.
 intros s m e Hm He.
 unfold split_bits, join_bits.
+rewrite Z.shiftl_mul_pow2 by now apply Zlt_le_weak.
 apply f_equal2.
 apply f_equal2.
 (* *)
@@ -152,6 +154,7 @@ Theorem join_split_bits :
 Proof.
 intros x Hx.
 unfold split_bits, join_bits.
+rewrite Z.shiftl_mul_pow2 by now apply Zlt_le_weak.
 pattern x at 4 ; rewrite Z_div_mod_eq_full with x (2^mw)%Z.
 apply (f_equal (fun v => (v + _)%Z)).
 rewrite Zmult_comm.
@@ -212,8 +215,9 @@ Definition bits_of_binary_float (x : binary_float) :=
   | B754_infinity sx => join_bits sx 0 (Zpower 2 ew - 1)
   | B754_nan sx (exist plx _) => join_bits sx (Zpos plx) (Zpower 2 ew - 1)
   | B754_finite sx mx ex _ =>
-    if Zle_bool (Zpower 2 mw) (Zpos mx) then
-      join_bits sx (Zpos mx - Zpower 2 mw) (ex - emin + 1)
+    let m := (Zpos mx - Zpower 2 mw)%Z in
+    if Zle_bool 0 m then
+      join_bits sx m (ex - emin + 1)
     else
       join_bits sx (Zpos mx) 0
   end.
@@ -224,8 +228,9 @@ Definition split_bits_of_binary_float (x : binary_float) :=
   | B754_infinity sx => (sx, 0, Zpower 2 ew - 1)%Z
   | B754_nan sx (exist plx _) => (sx, Zpos plx, Zpower 2 ew - 1)%Z
   | B754_finite sx mx ex _ =>
-    if Zle_bool (Zpower 2 mw) (Zpos mx) then
-      (sx, Zpos mx - Zpower 2 mw, ex - emin + 1)%Z
+    let m := (Zpos mx - Zpower 2 mw)%Z in
+    if Zle_bool 0 m then
+      (sx, m, ex - emin + 1)%Z
     else
       (sx, Zpos mx, 0)%Z
   end.
@@ -254,7 +259,8 @@ generalize (Zeq_bool_eq _ _ Hx').
 unfold FLT_exp.
 unfold emin.
 clear ; zify ; omega.
-destruct (Zle_bool_spec (2^mw) (Zpos mx)) as [H|H] ;
+case Zle_bool_spec ; intros H ;
+  [ apply -> Z.le_0_sub in H | apply -> Z.lt_sub_0 in H ] ;
   apply split_join_bits ; try now split.
 (* *)
 split.
@@ -326,7 +332,8 @@ intros [sx|sx|sx [pl pl_range]|sx mx ex H].
       unfold emin, emax in *.
       change (2^1)%Z with 2%Z.
       clear -B ; omega.
-  + apply join_bits_range ; now split.
+  + apply -> Z.lt_sub_0 in H.
+    apply join_bits_range ; now split.
 Qed.
 
 Definition binary_float_of_bits_aux x :=
@@ -531,6 +538,7 @@ destruct (andb_prop _ _ Bx) as (H1, _).
 generalize (Zeq_bool_eq _ _ H1).
 rewrite Zpos_digits2_pos.
 unfold FLT_exp, emin, prec.
+apply -> Z.lt_sub_0 in Hm.
 generalize (Zdigits_le_Zpower radix2 _ (Zpos mx) Hm).
 generalize (Zdigits radix2 (Zpos mx)).
 clear.
@@ -564,6 +572,7 @@ now rewrite He1 in Jx.
 intros px Hm Jx _.
 rewrite Zle_bool_false.
 now rewrite <- He1.
+apply <- Z.lt_sub_0.
 now rewrite <- Hm.
 intros px Hm _ _.
 apply False_ind.
@@ -584,7 +593,7 @@ intros p Hm Jx Cx.
 rewrite <- Hm.
 rewrite Zle_bool_true.
 now ring_simplify (mx + 2^mw - 2^mw)%Z (ex + emin - 1 - emin + 1)%Z.
-now apply (Zplus_le_compat_r 0).
+now ring_simplify.
 intros p Hm.
 apply False_ind.
 clear -Bm Hm ; zify ; omega.
