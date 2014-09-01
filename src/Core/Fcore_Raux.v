@@ -2145,7 +2145,7 @@ split.
       now apply Rgt_not_eq.
     * apply Rmult_le_compat_l; [now apply bpow_ge_0|].
       apply Heiy.
-Qed. 
+Qed.
 
 Lemma ln_beta_sqrt :
   forall x,

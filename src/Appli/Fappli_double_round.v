@@ -244,7 +244,7 @@ assert (H : Rabs (x * bpow (- fexp1 (ln_beta x)) -
   unfold scaled_mantissa, canonic_exp in Hx.
   rewrite <- (Rabs_right (bpow (fexp1 _))) at 1;
     [|now apply Rle_ge; apply bpow_ge_0].
-  rewrite <- Rabs_mult.  
+  rewrite <- Rabs_mult.
   rewrite Rmult_minus_distr_r.
   bpow_simplify.
   apply Rabs_lt.
@@ -359,7 +359,7 @@ destruct (Req_dec x'' 0) as [Zx''|Nzx''].
     - apply ln_beta_le_bpow; [exact Nzx''|].
       rewrite Rabs_right; [exact Hx1|apply Rle_ge].
       apply round_ge_generic.
-      + exact Vfexp2.      
+      + exact Vfexp2.
       + now apply valid_rnd_N.
       + apply generic_format_0.
       + now apply Rlt_le.
@@ -509,7 +509,7 @@ assert (H : Rabs (Z2R (Zceil (x * bpow (- fexp1 (ln_beta x))))
   unfold scaled_mantissa, canonic_exp in Hx.
   rewrite <- (Rabs_right (bpow (fexp1 _))) at 1;
     [|now apply Rle_ge; apply bpow_ge_0].
-  rewrite <- Rabs_mult.  
+  rewrite <- Rabs_mult.
   rewrite Rmult_minus_distr_r.
   bpow_simplify.
   apply Rabs_lt.
@@ -955,7 +955,7 @@ assert (UB : y * bpow (- fexp (ln_beta x)) < / Z2R (beta ^ k)).
 { apply Rlt_le_trans with (bpow (ln_beta y) * bpow (- fexp (ln_beta x))).
   - apply Rmult_lt_compat_r; [now apply bpow_gt_0|].
     rewrite <- (Rabs_right y) at 1; [|now apply Rle_ge; apply Rlt_le].
-    apply bpow_ln_beta_gt. 
+    apply bpow_ln_beta_gt.
   - apply Rle_trans with (bpow (fexp (ln_beta x) - k)
                           * bpow (- fexp (ln_beta x)))%R.
     + apply Rmult_le_compat_r; [now apply bpow_ge_0|].
@@ -984,7 +984,7 @@ rewrite (Zfloor_imp mx).
     rewrite bpow_opp.
     apply Rinv_le; [now apply bpow_gt_0|].
     now rewrite Z2R_Zpower; [right|omega]. }
-split.  
+split.
 - rewrite <- Rplus_0_r at 1; apply Rplus_le_compat_l.
   now apply Rlt_le.
 - rewrite Z2R_plus; apply Rplus_lt_compat_l.
@@ -1334,7 +1334,7 @@ destruct (Rlt_or_le (bpow (ln_beta x - 1)) x) as [Hx|Hx].
     apply Rmult_le_compat_l; [now apply Rlt_le|].
     now apply bpow_ge_0. }
   lra.
-Qed.    
+Qed.
 
 (* ln_beta y <= fexp1 (ln_beta x) - 2 :
  * ln_beta y <= fexp1 (ln_beta (x - y)) - 2 :
@@ -2144,7 +2144,7 @@ apply double_round_gt_mid.
     * unfold Fcore_Raux.bpow, Z.pow_pos; simpl.
       rewrite Zmult_1_r; apply Rinv_le; [lra|].
       now change 3 with (Z2R 3); apply Z2R_le.
-Qed.    
+Qed.
 
 (* double_round_minus_aux{0,1,2} together *)
 Lemma double_round_minus_beta_ge_3_aux3 :
@@ -3658,7 +3658,7 @@ split.
   apply Rplus_lt_le_compat; [exact Hx|].
   apply Rabs_le_inv.
   now apply ulp_half_error.
-Qed.  
+Qed.
 
 Lemma double_round_all_mid_cases :
   forall fexp1 fexp2 : Z -> Z,
