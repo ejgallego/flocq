@@ -1,3 +1,8 @@
+Version 2.4.0:
+ - moved some lemmas from Fcalc_digits to Fcore_digits and made them axiom-free
+ - added theorems about double rounding being innocuous (Fappli_double_round.v)
+ - improved a bit the efficiency of IEEE-754 arithmetic
+
 Version 2.3.0:
  - moved some lemmas from Fcalc_digits to Fcore_digits and made them axiom-free
  - used the square root from the standard library instead of a custom one
