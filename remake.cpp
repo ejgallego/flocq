@@ -74,6 +74,7 @@ Usage: <tt>remake <i>options</i> <i>targets</i></tt>
 
 Options:
 
+- <tt>-B</tt>, <tt>--always-make</tt>: Unconditionally make all targets.
 - <tt>-d</tt>: Echo script commands.
 - <tt>-f FILE</tt>: Read <tt>FILE</tt> as <b>Remakefile</b>.
 - <tt>-j[N]</tt>, <tt>--jobs=[N]</tt>: Allow <tt>N</tt> jobs at once;
@@ -511,6 +512,7 @@ enum status_e
 	Todo,     ///< Target is missing or obsolete.
 	Recheck,  ///< Target has an obsolete dependency.
 	Running,  ///< Target is being rebuilt.
+	RunningRecheck, ///< Static prerequisites are being rebuilt.
 	Remade,   ///< Target was successfully rebuilt.
 	Failed    ///< Build failed for target.
 };
@@ -733,6 +735,11 @@ static bool changed_prefix_dir;
  */
 static bool propagate_vars = false;
 
+/**
+ * Whether targets are unconditionally obsolete.
+ */
+static bool obsolete_targets = false;
+
 #ifndef WINDOWS
 static volatile sig_atomic_t got_SIGCHLD = 0;
 
@@ -776,7 +783,7 @@ struct log
 	}
 };
 
-log debug;
+static log debug;
 
 struct log_auto_close
 {
@@ -1935,6 +1942,13 @@ static status_t const &get_status(std::string const &target)
 		ts.last = s.st_mtime;
 		return ts;
 	}
+	if (obsolete_targets)
+	{
+		DEBUG_close << "forcefully obsolete\n";
+		ts.status = Todo;
+		ts.last = 0;
+		return ts;
+	}
 	dependency_t const &dep = *j->second;
 	status_e st = Uptodate;
 	time_t latest = 0;
@@ -2017,10 +2031,10 @@ static void update_status(std::string const &target)
  */
 static bool still_need_rebuild(std::string const &target)
 {
-	DEBUG_open << "Rechecking obsoleteness of " << target << "... ";
 	status_map::const_iterator i = status.find(target);
 	assert(i != status.end());
-	if (i->second.status != Recheck) return true;
+	if (i->second.status != RunningRecheck) return true;
+	DEBUG_open << "Rechecking obsoleteness of " << target << "... ";
 	dependency_map::const_iterator j = dependencies.find(target);
 	assert(j != dependencies.end());
 	dependency_t const &dep = *j->second;
@@ -2301,10 +2315,14 @@ static status_e start(std::string const &target, client_list::iterator &current)
 		std::cerr << "No rule for building " << target << std::endl;
 		return Failed;
 	}
+	bool has_deps = !job.rule.deps.empty() || !job.rule.wdeps.empty();
+	status_e st = Running;
+	if (has_deps && status[target].status == Recheck)
+		st = RunningRecheck;
 	for (string_list::const_iterator i = job.rule.targets.begin(),
 	     i_end = job.rule.targets.end(); i != i_end; ++i)
 	{
-		status[*i].status = Running;
+		status[*i].status = st;
 	}
 	if (propagate_vars) job.vars = current->vars;
 	for (assign_map::const_iterator i = job.rule.assigns.begin(),
@@ -2324,7 +2342,7 @@ static status_e start(std::string const &target, client_list::iterator &current)
 		else if (!k.second) v.clear();
 		v.insert(v.end(), i->second.value.begin(), i->second.value.end());
 	}
-	if (!job.rule.deps.empty() || !job.rule.wdeps.empty())
+	if (has_deps)
 	{
 		current = clients.insert(current, client_t());
 		current->job_id = job_id;
@@ -2333,7 +2351,7 @@ static status_e start(std::string const &target, client_list::iterator &current)
 			job.rule.wdeps.begin(), job.rule.wdeps.end());
 		if (propagate_vars) current->vars = job.vars;
 		current->delayed = true;
-		return Recheck;
+		return RunningRecheck;
 	}
 	return run_script(job_id, job);
 }
@@ -2421,6 +2439,7 @@ static bool handle_clients()
 			switch (k->second.status)
 			{
 			case Running:
+			case RunningRecheck:
 				break;
 			case Failed:
 				i->failed = true;
@@ -2444,6 +2463,7 @@ static bool handle_clients()
 			switch (get_status(target).status)
 			{
 			case Running:
+			case RunningRecheck:
 				i->running.insert(target);
 				break;
 			case Failed:
@@ -2466,7 +2486,7 @@ static bool handle_clients()
 					j->running.insert(target);
 					if (!has_free_slots()) return true;
 					break;
-				case Recheck:
+				case RunningRecheck:
 					// Switch to the dependency client that was inserted.
 					j->running.insert(target);
 					i_next = j;
@@ -2931,12 +2951,13 @@ static void usage(int exit_status)
 {
 	std::cerr << "Usage: remake [options] [target] ...\n"
 		"Options\n"
+		"  -B, --always-make      Unconditionally make all targets.\n"
 		"  -d                     Echo script commands.\n"
 		"  -d -d                  Print lots of debugging information.\n"
 		"  -f FILE                Read FILE as Remakefile.\n"
 		"  -h, --help             Print this message and exit.\n"
 		"  -j[N], --jobs=[N]      Allow N jobs at once; infinite jobs with no arg.\n"
-		"  -k                     Keep going when some targets cannot be made.\n"
+		"  -k, --keep-going       Keep going when some targets cannot be made.\n"
 		"  -r                     Look up targets from the dependencies on stdin.\n"
 		"  -s, --silent, --quiet  Do not echo targets.\n";
 	exit(exit_status);
@@ -2976,6 +2997,8 @@ int main(int argc, char *argv[])
 			show_targets = false;
 		else if (arg == "-r")
 			indirect_targets = true;
+		else if (arg == "-B" || arg == "--always-make")
+			obsolete_targets = true;
 		else if (arg == "-f")
 		{
 			if (++i == argc) usage(EXIT_FAILURE);
