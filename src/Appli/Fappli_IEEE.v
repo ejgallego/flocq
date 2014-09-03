@@ -420,6 +420,60 @@ simpl.
 now case opp_nan.
 Qed.
 
+(** Absolute value *)
+
+Definition Babs abs_nan (x : binary_float) : binary_float :=
+  match x with
+  | B754_nan sx plx =>
+      let '(sres, plres) := abs_nan sx plx in B754_nan sres plres
+  | B754_infinity sx => B754_infinity false
+  | B754_finite sx mx ex Hx => B754_finite false mx ex Hx
+  | B754_zero sx => B754_zero false
+  end.
+
+Theorem B2R_Babs :
+  forall abs_nan x,
+  B2R (Babs abs_nan x) = Rabs (B2R x).
+Proof.
+  intros abs_nan [sx|sx|sx plx|sx mx ex Hx]; apply sym_eq ; try apply Rabs_R0.
+  simpl. destruct abs_nan. simpl. apply Rabs_R0.
+  simpl. rewrite <- F2R_abs. now destruct sx.
+Qed.
+
+Theorem is_finite_Babs :
+  forall abs_nan x,
+  is_finite (Babs abs_nan x) = is_finite x.
+Proof.
+  intros abs_nan [| | |] ; try easy.
+  intros s pl.
+  simpl.
+  now case abs_nan.
+Qed.
+
+Theorem Bsign_Babs :
+  forall abs_nan x,
+  is_nan x = false ->
+  Bsign (Babs abs_nan x) = false.
+Proof.
+  now intros abs_nan [| | |].
+Qed.
+
+Theorem Babs_idempotent :
+  forall abs_nan (x: binary_float),
+  is_nan x = false ->
+  Babs abs_nan (Babs abs_nan x) = Babs abs_nan x.
+Proof.
+  now intros abs_nan [sx|sx|sx plx|sx mx ex Hx].
+Qed.
+
+Theorem Babs_Bopp :
+  forall abs_nan opp_nan x,
+  is_nan x = false ->
+  Babs abs_nan (Bopp opp_nan x) = Babs abs_nan x.
+Proof.
+  now intros abs_nan opp_nan [| | |].
+Qed.
+
 Theorem bounded_lt_emax :
   forall mx ex,
   bounded mx ex = true ->
