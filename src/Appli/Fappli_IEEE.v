@@ -474,6 +474,105 @@ Proof.
   now intros abs_nan opp_nan [| | |].
 Qed.
 
+(** Comparison
+
+[Some c] means ordered as per [c]; [None] means unordered. *)
+
+Definition Bcompare (f1 f2 : binary_float) : option comparison :=
+  match f1, f2 with
+  | B754_nan _ _,_ | _,B754_nan _ _ => None
+  | B754_infinity true, B754_infinity true
+  | B754_infinity false, B754_infinity false => Some Eq
+  | B754_infinity true, _ => Some Lt
+  | B754_infinity false, _ => Some Gt
+  | _, B754_infinity true => Some Gt
+  | _, B754_infinity false => Some Lt
+  | B754_finite true _ _ _, B754_zero _ => Some Lt
+  | B754_finite false _ _ _, B754_zero _ => Some Gt
+  | B754_zero _, B754_finite true _ _ _ => Some Gt
+  | B754_zero _, B754_finite false _ _ _ => Some Lt
+  | B754_zero _, B754_zero _ => Some Eq
+  | B754_finite s1 m1 e1 _, B754_finite s2 m2 e2 _ =>
+    match s1, s2 with
+    | true, false => Some Lt
+    | false, true => Some Gt
+    | false, false =>
+      match Zcompare e1 e2 with
+      | Lt => Some Lt
+      | Gt => Some Gt
+      | Eq => Some (Pcompare m1 m2 Eq)
+      end
+    | true, true =>
+      match Zcompare e1 e2 with
+      | Lt => Some Gt
+      | Gt => Some Lt
+      | Eq => Some (CompOpp (Pcompare m1 m2 Eq))
+      end
+    end
+  end.
+
+Theorem Bcompare_correct :
+  forall f1 f2,
+  is_finite f1 = true -> is_finite f2 = true ->
+  Bcompare f1 f2 = Some (Rcompare (B2R f1) (B2R f2)).
+Proof.
+  Ltac apply_Rcompare :=
+    match goal with
+      | [ |- Some Lt = Some (Rcompare _ _) ] => f_equal; symmetry; apply Rcompare_Lt
+      | [ |- Some Eq = Some (Rcompare _ _) ] => f_equal; symmetry; apply Rcompare_Eq
+      | [ |- Some Gt = Some (Rcompare _ _) ] => f_equal; symmetry; apply Rcompare_Gt
+    end.
+  unfold Bcompare; intros.
+  destruct f1, f2 ; try easy.
+  now rewrite Rcompare_Eq.
+  destruct b0 ; apply_Rcompare.
+  now apply F2R_lt_0_compat.
+  now apply F2R_gt_0_compat.
+  destruct b ; apply_Rcompare.
+  now apply F2R_lt_0_compat.
+  now apply F2R_gt_0_compat.
+  simpl.
+  clear H H0.
+  apply andb_prop in e0; destruct e0; apply (canonic_canonic_mantissa false) in H.
+  apply andb_prop in e2; destruct e2; apply (canonic_canonic_mantissa false) in H1.
+  pose proof (Zcompare_spec e e1); unfold canonic, Fexp in H1, H.
+  assert (forall m1 m2 e1 e2,
+    let x := (Z2R (Zpos m1) * bpow radix2 e1)%R in
+    let y := (Z2R (Zpos m2) * bpow radix2 e2)%R in
+    (canonic_exp radix2 fexp x < canonic_exp radix2 fexp y)%Z -> (x < y)%R).
+  {
+  intros; apply Rnot_le_lt; intro; apply (ln_beta_le radix2) in H5.
+  apply Zlt_not_le with (1 := H4).
+  now apply fexp_monotone.
+  now apply (F2R_gt_0_compat _ (Float radix2 (Zpos m2) e2)).
+  }
+  assert (forall m1 m2 e1 e2, (Z2R (- Zpos m1) * bpow radix2 e1 < Z2R (Zpos m2) * bpow radix2 e2)%R).
+  {
+  intros; apply (Rlt_trans _ 0%R).
+  now apply (F2R_lt_0_compat _ (Float radix2 (Zneg m1) e0)).
+  now apply (F2R_gt_0_compat _ (Float radix2 (Zpos m2) e2)).
+  }
+  unfold F2R, Fnum, Fexp.
+  destruct b, b0; try (now apply_Rcompare; apply H5); inversion H3;
+    try (apply_Rcompare; apply H4; rewrite H, H1 in H7; assumption);
+    try (apply_Rcompare; do 2 rewrite Z2R_opp, Ropp_mult_distr_l_reverse;
+      apply Ropp_lt_contravar; apply H4; rewrite H, H1 in H7; assumption);
+    rewrite H7, Rcompare_mult_r, Rcompare_Z2R by (apply bpow_gt_0); reflexivity.
+Qed.
+
+Theorem Bcompare_swap :
+  forall x y,
+  Bcompare y x = match Bcompare x y with Some c => Some (CompOpp c) | None => None end.
+Proof.
+  intros.
+  destruct x as [ ? | [] | ? ? | [] mx ex Bx ];
+  destruct y as [ ? | [] | ? ? | [] my ey By ]; simpl; try easy.
+- rewrite <- (Zcompare_antisym ex ey). destruct (ex ?= ey)%Z; try easy.
+  now rewrite (Pcompare_antisym mx my).
+- rewrite <- (Zcompare_antisym ex ey). destruct (ex ?= ey)%Z; try easy.
+  now rewrite Pcompare_antisym.
+Qed.
+
 Theorem bounded_lt_emax :
   forall mx ex,
   bounded mx ex = true ->
