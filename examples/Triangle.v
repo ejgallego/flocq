@@ -1057,29 +1057,6 @@ End Hyp_ok.
 Section Delta_FLT.
 Open Scope R_scope.
 
-(* moved in Flocq core library... *)
-Lemma round_NE_abs:
-  forall (beta : radix) (fexp : Z -> Z),
-  Valid_exp fexp ->
-  forall x : R,
-  round beta fexp ZnearestE (Rabs x) = Rabs (round beta fexp ZnearestE x).
-Proof with auto with typeclass_instances.
-intros beta fexp H1 x.
-apply sym_eq.
-unfold Rabs at 2.
-destruct (Rcase_abs x) as [Hx|Hx].
-rewrite round_NE_opp.
-apply Rabs_left1.
-rewrite <- (round_0 beta fexp ZnearestE).
-apply round_le...
-now apply Rlt_le.
-apply Rabs_pos_eq.
-rewrite <- (round_0 beta fexp ZnearestE).
-apply round_le...
-now apply Rge_le.
-Qed.
-
-
 Variables a b c:R.
 
 Variable beta : radix.
