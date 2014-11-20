@@ -207,6 +207,27 @@ rewrite 3!(Rmult_comm r).
 now apply Rmult_min_distr_r.
 Qed.
 
+Lemma Rmin_opp: forall x y, (Rmin (-x) (-y) = - Rmax x y)%R.
+Proof.
+intros x y.
+apply Rmax_case_strong; intros H.
+rewrite Rmin_left; trivial.
+now apply Ropp_le_contravar.
+rewrite Rmin_right; trivial.
+now apply Ropp_le_contravar.
+Qed.
+
+Lemma Rmax_opp: forall x y, (Rmax (-x) (-y) = - Rmin x y)%R.
+Proof.
+intros x y.
+apply Rmin_case_strong; intros H.
+rewrite Rmax_left; trivial.
+now apply Ropp_le_contravar.
+rewrite Rmax_right; trivial.
+now apply Ropp_le_contravar.
+Qed.
+
+
 Theorem exp_le :
   forall x y : R,
   (x <= y)%R -> (exp x <= exp y)%R.

@@ -5,48 +5,6 @@ Open Scope R_scope.
 
 Section av1.
 
-Lemma Fnum_ge_0_compat: forall (beta : radix) (f : float beta), 
-  0 <= F2R f -> (0 <= Fnum f)%Z.
-Proof.
-intros beta f H.
-case (Zle_or_lt 0 (Fnum f)); trivial.
-intros H1; contradict H.
-apply Rlt_not_le.
-now apply F2R_lt_0_compat.
-Qed.
-
-Lemma Fnum_le_0_compat: forall (beta : radix) (f : float beta), 
-  F2R f <= 0 -> (Fnum f <= 0)%Z.
-Proof.
-intros beta f H.
-case (Zle_or_lt (Fnum f) 0); trivial.
-intros H1; contradict H.
-apply Rlt_not_le.
-now apply F2R_gt_0_compat.
-Qed.
-
-
-Lemma Rmin_opp: forall x y, Rmin (-x) (-y) = - Rmax x y.
-Proof.
-intros x y.
-apply Rmax_case_strong; intros H.
-rewrite Rmin_left; trivial.
-now apply Ropp_le_contravar.
-rewrite Rmin_right; trivial.
-now apply Ropp_le_contravar.
-Qed.
-
-Lemma Rmax_opp: forall x y, Rmax (-x) (-y) = - Rmin x y.
-Proof.
-intros x y.
-apply Rmin_case_strong; intros H.
-rewrite Rmax_left; trivial.
-now apply Ropp_le_contravar.
-rewrite Rmax_right; trivial.
-now apply Ropp_le_contravar.
-Qed.
-
-
 
 Definition radix2 := Build_radix 2 (refl_equal true).
 Notation bpow e := (bpow radix2 e).
@@ -913,14 +871,14 @@ right; rewrite J1,J2; reflexivity.
 apply Rle_trans with (1:=xLey).
 right; rewrite J3,J4; reflexivity.
 case same_sign; intros (L1,L2).
-rewrite J1 in L1; apply Fnum_ge_0_compat in L1; simpl in L1.
-rewrite J3 in L2; apply Fnum_ge_0_compat in L2; simpl in L2.
+rewrite J1 in L1; apply F2R_ge_0_reg in L1; simpl in L1.
+rewrite J3 in L2; apply F2R_ge_0_reg in L2; simpl in L2.
 left.
 rewrite Z.abs_eq in H0.
 omega.
 omega.
-rewrite J1 in L1; apply Fnum_le_0_compat in L1; simpl in L1.
-rewrite J3 in L2; apply Fnum_le_0_compat in L2; simpl in L2.
+rewrite J1 in L1; apply F2R_le_0_reg in L1; simpl in L1.
+rewrite J3 in L2; apply F2R_le_0_reg in L2; simpl in L2.
 right.
 rewrite Z.abs_neq in H0.
 omega.
