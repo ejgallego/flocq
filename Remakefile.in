@@ -34,7 +34,8 @@ OBJS = $(addprefix src/,$(addsuffix o,$(FILES)))
 
 EXAMPLES = \
 	Double_round_beta_odd.v \
-	Sqrt_sqr.v
+	Sqrt_sqr.v \
+	Triangle.v
 
 EOBJS = $(addprefix examples/,$(addsuffix o,$(EXAMPLES)))
 
