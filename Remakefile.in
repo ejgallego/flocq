@@ -33,18 +33,23 @@ FILES = \
 OBJS = $(addprefix src/,$(addsuffix o,$(FILES)))
 
 EXAMPLES = \
-	Double_round_beta_odd.v \
+	Average.v \
+	Double_round_beta_odd.v
+
+MORE_EXAMPLES = \
 	Sqrt_sqr.v \
-	average.v \
 	Triangle.v
 
 EOBJS = $(addprefix examples/,$(addsuffix o,$(EXAMPLES)))
+MOBJS = $(addprefix examples/,$(addsuffix o,$(MORE_EXAMPLES)))
 
-.PHONY: all clean dist doc install
+.PHONY: all check check-more clean dist doc install
 
 all: $(OBJS)
 
 check: $(EOBJS)
+
+check-more: $(MOBJS)
 
 Remakefile: Remakefile.in config.status
 	./config.status Remakefile
@@ -61,7 +66,7 @@ configure config.status: configure.in
 	@COQC@ -R src Flocq $<
 
 clean:
-	rm -f $(OBJS) $(EOBJS) src/*.glob examples/*.glob
+	rm -f $(OBJS) $(EOBJS) $(MOBJS) src/*.glob examples/*.glob
 
 html/index.html: $(OBJS)
 	rm -rf html
