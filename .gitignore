@@ -5,11 +5,12 @@ config.log
 config.status
 configure
 install-sh
+lia.cache
 Remakefile
 .remake
 remake
 remake.exe
-html
+html/
 src/Flocq_version.v
 *.vo
 *.glob
