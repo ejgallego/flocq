@@ -58,7 +58,7 @@ configure config.status: configure.in
 
 %.vo: %.v
 	@COQDEP@ -R src Flocq $< | @REMAKE@ -r $@
-	@COQC@ -R src Flocq -dont-load-proofs $<
+	@COQC@ -R src Flocq $<
 
 clean:
 	rm -f $(OBJS) $(EOBJS) src/*.glob examples/*.glob

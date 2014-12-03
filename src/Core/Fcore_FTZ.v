@@ -182,7 +182,6 @@ Theorem FTZ_format_FLXN :
   (bpow (emin + prec - 1) <= Rabs x)%R ->
   FLXN_format beta prec x -> FTZ_format x.
 Proof.
-clear prec_gt_0_.
 intros x Hx Fx.
 apply FTZ_format_generic.
 apply generic_format_FLXN in Fx.

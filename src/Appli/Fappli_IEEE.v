@@ -931,7 +931,6 @@ destruct (truncate radix2 fexp (Z0, e1, loc_Exact)) as ((m2, e2), l2).
 rewrite shr_m_shr_record_of_loc.
 intros Hm2.
 rewrite Hm2.
-intros z.
 repeat split.
 rewrite Rlt_bool_true.
 repeat split.
@@ -1482,7 +1481,7 @@ elim Rle_not_lt with (1 := Bz).
 generalize (bounded_lt_emax _ _ Hx) (bounded_lt_emax _ _ Hy) (andb_prop _ _ Hx) (andb_prop _ _ Hy).
 intros Bx By (Hx',_) (Hy',_).
 generalize (canonic_canonic_mantissa sx _ _ Hx') (canonic_canonic_mantissa sy _ _ Hy').
-clear -Bx By Hs.
+clear -Bx By Hs prec_gt_0_.
 intros Cx Cy.
 destruct sx.
 (* ... *)
