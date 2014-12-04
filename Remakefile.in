@@ -37,6 +37,7 @@ EXAMPLES = \
 	Double_round_beta_odd.v
 
 MORE_EXAMPLES = \
+	Cody_Waite.v \
 	Division_u16.v \
 	Sqrt_sqr.v \
 	Triangle.v
