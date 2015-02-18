@@ -697,7 +697,7 @@ Qed.
 
 Definition shr mrs e n :=
   match n with
-  | Zpos p => (iter_pos p _ shr_1 mrs, (e + n)%Z)
+  | Zpos p => (iter_pos shr_1 p mrs, (e + n)%Z)
   | _ => (mrs, e)
   end.
 
@@ -748,24 +748,24 @@ destruct n as [|n|n].
 now destruct l as [|[| |]].
 2: now destruct l as [|[| |]].
 unfold shr.
-rewrite iter_nat_of_P.
+rewrite iter_pos_nat.
 rewrite Zpos_eq_Z_of_nat_o_nat_of_P.
 induction (nat_of_P n).
 simpl.
 rewrite Zplus_0_r.
 now destruct l as [|[| |]].
-simpl nat_rect.
+rewrite iter_nat_S.
 rewrite inj_S.
 unfold Zsucc.
-rewrite  Zplus_assoc.
+rewrite Zplus_assoc.
 revert IHn0.
 apply inbetween_shr_1.
 clear -Hm.
 induction n0.
 now destruct l as [|[| |]].
-simpl.
+rewrite iter_nat_S.
 revert IHn0.
-generalize (iter_nat n0 shr_record shr_1 (shr_record_of_loc m l)).
+generalize (iter_nat shr_1 n0 (shr_record_of_loc m l)).
 clear.
 intros (m, r, s) Hm.
 now destruct m as [|[m|m|]|m] ; try (now elim Hm) ; destruct r as [|] ; destruct s as [|].
