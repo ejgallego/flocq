@@ -210,3 +210,54 @@ clear -Hs1 ; omega.
 Qed.
 
 End Compute.
+
+Goal
+  let beta := Build_radix 5 (eq_refl true) in
+  let prec := 5%Z in
+  forall c1 c2 mx,
+  let x := F2R (Float beta mx 0) in
+  (0 <= mx < 125)%Z ->
+  let rnd c := round beta (FLX_exp prec) (Znearest c) in
+  rnd c1 (R_sqrt.sqrt (rnd c2 (x * x)%R)) = x.
+Proof with auto with typeclass_instances.
+intros beta prec c1 c2 mx x Hm rnd.
+assert (Hprec: Prec_gt_0 prec) by easy.
+unfold x, rnd.
+set (r c (s : bool) m l := cond_incr (round_N (if s then negb (c (- (m + 1))%Z) else c m) l) m).
+rewrite mult_correct with (choice := r c2)...
+2: intros x' m l H ; now apply inbetween_int_N_sign.
+rewrite sqrt_correct with (prec := prec) (choice := r c1)...
+2: intros e ; apply Zle_refl.
+2: intros x' m l H ; now apply inbetween_int_N_sign.
+apply Rminus_diag_uniq.
+rewrite <- F2R_minus.
+set (f mx := let x := Float beta mx 0 in Fminus beta
+  (sqrt beta (FLX_exp prec) prec (r c1) (mult beta (FLX_exp prec) (r c2) x x)) x).
+fold (f mx).
+assert (Fnum (f mx) = Z0).
+clear x.
+revert mx Hm.
+set (g := fix g m := match m with O => true | S m => match Fnum (f (Z_of_nat m)) with Z0 => g m | _ => false end end).
+assert (g 125 = true) by now vm_compute.
+revert H.
+clearbody f.
+clear.
+change 125%Z with (Z_of_nat 125).
+induction (125).
+intros _ mx [H1 H2].
+elim (Zlt_irrefl 0).
+now apply Zle_lt_trans with mx.
+simpl g.
+rewrite inj_S.
+intros H mx [H1 H2].
+apply Zlt_succ_le in H2.
+destruct (Zle_lt_or_eq _ _ H2) as [H3|H3].
+destruct (Fnum (f (Z.of_nat n))) ; try easy.
+now apply IHn ; try split.
+rewrite H3.
+now destruct (Fnum (f (Z.of_nat n))).
+destruct (f mx).
+simpl in H.
+rewrite H.
+apply F2R_0.
+Qed.
