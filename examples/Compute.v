@@ -213,7 +213,7 @@ End Compute.
 
 Goal
   let beta := Build_radix 5 (eq_refl true) in
-  let prec := 5%Z in
+  let prec := 3%Z in
   forall c1 c2 mx,
   let x := F2R (Float beta mx 0) in
   (0 <= mx < 125)%Z ->
