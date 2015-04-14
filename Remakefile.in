@@ -34,6 +34,7 @@ OBJS = $(addprefix src/,$(addsuffix o,$(FILES)))
 
 EXAMPLES = \
 	Average.v \
+	Compute.v \
 	Double_round_beta_odd.v
 
 MORE_EXAMPLES = \
