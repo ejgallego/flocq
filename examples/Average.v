@@ -1,9 +1,78 @@
 Require Import Fcore.
 Require Import Fprop_plus_error.
+Require Import Fourier.
 
 Open Scope R_scope.
 
 Section av1.
+
+Lemma Fnum_ge_0_compat: forall (beta : radix) (f : float beta), 
+  0 <= F2R f -> (0 <= Fnum f)%Z.
+Proof.
+intros beta f H.
+case (Zle_or_lt 0 (Fnum f)); trivial.
+intros H1; contradict H.
+apply Rlt_not_le.
+now apply F2R_lt_0_compat.
+Qed.
+
+Lemma Fnum_le_0_compat: forall (beta : radix) (f : float beta), 
+  F2R f <= 0 -> (Fnum f <= 0)%Z.
+Proof.
+intros beta f H.
+case (Zle_or_lt (Fnum f) 0); trivial.
+intros H1; contradict H.
+apply Rlt_not_le.
+now apply F2R_gt_0_compat.
+Qed.
+
+
+Lemma Rmin_opp: forall x y, Rmin (-x) (-y) = - Rmax x y.
+Proof.
+intros x y.
+apply Rmax_case_strong; intros H.
+rewrite Rmin_left; trivial.
+now apply Ropp_le_contravar.
+rewrite Rmin_right; trivial.
+now apply Ropp_le_contravar.
+Qed.
+
+Lemma Rmax_opp: forall x y, Rmax (-x) (-y) = - Rmin x y.
+Proof.
+intros x y.
+apply Rmin_case_strong; intros H.
+rewrite Rmax_left; trivial.
+now apply Ropp_le_contravar.
+rewrite Rmax_right; trivial.
+now apply Ropp_le_contravar.
+Qed.
+
+Lemma Rmin_Rmax_overflow: forall x y z M, Rabs x <= M -> Rabs y <= M ->
+        Rmin x y <= z <= Rmax x y -> Rabs z <= M.
+Proof.
+intros x y z M Hx Hy H.
+case (Rle_or_lt 0 z); intros Hz.
+rewrite Rabs_right.
+apply Rle_trans with (1:=proj2 H).
+generalize (proj2 H).
+apply Rmax_case_strong.
+intros; apply Rle_trans with (2:=Hx).
+apply RRle_abs.
+intros; apply Rle_trans with (2:=Hy).
+apply RRle_abs.
+now apply Rle_ge.
+rewrite Rabs_left; try assumption.
+apply Rle_trans with (Rmax (-x) (-y)).
+rewrite Rmax_opp.
+apply Ropp_le_contravar, H.
+apply Rmax_case_strong.
+intros; apply Rle_trans with (2:=Hx).
+rewrite <- Rabs_Ropp.
+apply RRle_abs.
+intros; apply Rle_trans with (2:=Hy).
+rewrite <- Rabs_Ropp.
+apply RRle_abs.
+Qed.
 
 
 Definition radix2 := Build_radix 2 (refl_equal true).
@@ -16,6 +85,7 @@ Notation format := (generic_format radix2 (FLT_exp emin prec)).
 Notation round_flt :=(round radix2 (FLT_exp emin prec) ZnearestE). 
 Notation ulp_flt :=(ulp radix2 (FLT_exp emin prec)).
 Notation cexp := (canonic_exp radix2 (FLT_exp emin prec)).
+Notation pred_flt := (pred radix2 (FLT_exp emin prec)).
 
 Lemma FLT_format_double: forall u, format u -> format (2*u).
 Proof with auto with typeclass_instances.
@@ -63,6 +133,62 @@ rewrite <- Z2R_Zpower.
 now apply Z2R_lt.
 unfold Prec_gt_0 in prec_gt_0_; omega.
 Qed.
+
+
+Lemma FLT_round_half: forall z, bpow (prec+emin) <= Rabs z -> 
+   round_flt (z/2)= round_flt z /2.
+Proof with auto with typeclass_instances.
+intros z Hz.
+apply Rmult_eq_reg_l with 2.
+2: apply sym_not_eq; auto with real.
+apply trans_eq with (round_flt z).
+2: field.
+assert (z <> 0)%R.
+intros K; contradict Hz.
+rewrite K, Rabs_R0; apply Rlt_not_le.
+apply bpow_gt_0.
+assert (cexp (z/2) = cexp z -1)%Z.
+assert (prec+emin < ln_beta radix2 z)%Z.
+apply lt_bpow with radix2.
+destruct ln_beta as (e,He); simpl.
+apply Rle_lt_trans with (1:=Hz).
+now apply He.
+unfold canonic_exp, FLT_exp.
+replace ((ln_beta radix2 (z/2))-prec)%Z with ((ln_beta radix2 z -1) -prec)%Z.
+rewrite Z.max_l; try omega.
+rewrite Z.max_l; try omega.
+apply Zplus_eq_compat; try reflexivity.
+apply sym_eq, ln_beta_unique.
+destruct (ln_beta radix2 z) as (e,He); simpl.
+unfold Rdiv; rewrite Rabs_mult.
+rewrite (Rabs_right (/2)).
+split.
+apply Rmult_le_reg_l with (bpow 1).
+apply bpow_gt_0.
+rewrite <- bpow_plus.
+replace (1+(e-1-1))%Z with (e-1)%Z by ring.
+apply Rle_trans with (Rabs z).
+now apply He.
+right; simpl; field.
+apply Rmult_lt_reg_l with (bpow 1).
+apply bpow_gt_0.
+rewrite <- bpow_plus.
+replace (1+(e-1))%Z with e by ring.
+apply Rle_lt_trans with (Rabs z).
+right; simpl; field.
+now apply He.
+apply Rle_ge; auto with real.
+unfold round, scaled_mantissa, F2R.
+rewrite H0; simpl.
+rewrite Rmult_comm, Rmult_assoc.
+apply f_equal2.
+apply f_equal, f_equal.
+replace (-(cexp z -1))%Z with (-cexp z +1)%Z by ring.
+rewrite bpow_plus.
+simpl; field.
+unfold Zminus; rewrite bpow_plus.
+simpl; field.
+Qed. 
 
 
 
@@ -146,6 +272,143 @@ apply bpow_le; omega.
 Qed.
 
 
+Lemma round_plus_small_id_aux: forall f h, format f -> (bpow (prec+emin) <= f) -> 0 < f 
+   -> Rabs h < /4* ulp_flt f -> round_flt (f+h) = f.
+Proof with auto with typeclass_instances.
+intros f h Ff H1 H2 Hh.
+case (Rle_or_lt 0 h); intros H3;[destruct H3|idtac].
+(* 0 < h *)
+rewrite Rabs_right in Hh.
+2: now apply Rle_ge, Rlt_le.
+apply round_N_DN_betw with (f+ ulp_flt f)...
+pattern f at 2; rewrite <- (round_DN_succ radix2 (FLT_exp emin prec) f) with (eps:=h); try assumption.
+apply round_DN_pt...
+split.
+now left.
+apply Rlt_trans with (1:=Hh).
+rewrite <- (Rmult_1_l (ulp_flt f)) at 2.
+apply Rmult_lt_compat_r.
+apply bpow_gt_0.
+fourier.
+rewrite <- (round_UP_succ radix2 (FLT_exp emin prec) f) with (eps:=h); try assumption.
+apply round_UP_pt...
+split; trivial.
+left; apply Rlt_le_trans with (1:=Hh).
+rewrite <- (Rmult_1_l (ulp_flt f)) at 2.
+apply Rmult_le_compat_r.
+apply bpow_ge_0.
+fourier.
+split.
+apply Rplus_le_reg_l with (-f); ring_simplify.
+now left.
+apply Rplus_lt_reg_l with (-f); ring_simplify.
+apply Rlt_le_trans with (/2*ulp_flt f).
+2: right; field.
+apply Rlt_trans with (1:=Hh).
+apply Rmult_lt_compat_r.
+apply bpow_gt_0.
+fourier.
+(* h = 0 *)
+rewrite <- H, Rplus_0_r.
+apply round_generic...
+(* h < 0 *)
+(*  - assertions *)
+rewrite Rabs_left in Hh; try assumption.
+assert (0 < pred_flt f).
+apply Rlt_le_trans with (bpow emin).
+apply bpow_gt_0.
+apply le_pred_lt...
+apply FLT_format_bpow...
+omega.
+apply Rlt_le_trans with (2:=H1).
+apply bpow_lt.
+unfold Prec_gt_0 in prec_gt_0_; omega.
+assert (T1:(/2* ulp_flt f <= ulp_flt (pred_flt f))).
+apply Rmult_le_reg_l with 2.
+auto with real.
+apply Rle_trans with (ulp_flt f).
+right; field.
+apply Rle_trans with (2:=FLT_ulp_double (pred_flt f)).
+apply ulp_le...
+apply Rplus_le_reg_l with (-pred_flt f); ring_simplify.
+apply Rle_trans with (ulp_flt (pred_flt f)).
+right.
+pattern f at 2; rewrite <- (pred_plus_ulp radix2 (FLT_exp emin prec) f)...
+ring.
+now apply Rgt_not_eq.
+apply ulp_le_id...
+apply generic_format_pred...
+(*  - end of assertions *)
+apply round_N_UP_betw with (pred_flt f)...
+rewrite <- (round_DN_pred radix2 (FLT_exp emin prec) f) with (eps:=-h); try assumption.
+replace (f--h) with (f+h) by ring.
+apply round_DN_pt...
+split.
+auto with real.
+left; apply Rlt_le_trans with (1:=Hh).
+apply Rle_trans with (2:=T1).
+apply Rmult_le_compat_r.
+apply bpow_ge_0.
+fourier.
+replace (f+h) with (pred_flt f + (f-pred_flt f+h)) by ring.
+pattern f at 4; rewrite <- (round_UP_pred radix2 (FLT_exp emin prec) f) with (eps:=(f - pred_flt f + h)); try assumption.
+apply round_UP_pt...
+replace (f-pred_flt f) with (ulp_flt (pred_flt f)).
+split.
+apply Rplus_lt_reg_l with (-h); ring_simplify.
+apply Rlt_trans with (1:=Hh).
+apply Rlt_le_trans with (2:=T1).
+apply Rmult_lt_compat_r.
+apply bpow_gt_0.
+fourier.
+apply Rplus_le_reg_l with (-ulp_flt (pred_flt f)); ring_simplify.
+now left.
+pattern f at 2; rewrite <- (pred_plus_ulp radix2 (FLT_exp emin prec) f)...
+ring.
+now apply Rgt_not_eq.
+split.
+apply Rplus_lt_reg_l with (-f); ring_simplify.
+apply Rle_lt_trans with (-(/2 * ulp_flt (pred_flt f))).
+right.
+apply trans_eq with ((pred_flt f - f) / 2).
+field.
+pattern f at 2; rewrite <- (pred_plus_ulp radix2 (FLT_exp emin prec) f)...
+field.
+now apply Rgt_not_eq.
+replace h with (--h) by ring.
+apply Ropp_lt_contravar.
+apply Rlt_le_trans with (1:=Hh).
+apply Rle_trans with (/2*(/2*ulp_flt f)).
+right; field.
+apply Rmult_le_compat_l; try assumption.
+fourier.
+apply Rplus_le_reg_l with (-f); ring_simplify.
+now left.
+Qed.
+
+Lemma round_plus_small_id: forall f h, format f -> (bpow (prec+emin) <= Rabs f)  
+   -> Rabs h < /4* ulp_flt f -> round_flt (f+h) = f.
+intros f h Ff H1 H2.
+case (Rle_or_lt 0 f); intros V.
+case V; clear V; intros V.
+apply round_plus_small_id_aux; try assumption.
+rewrite Rabs_right in H1; try assumption.
+apply Rle_ge; now left.
+contradict H1.
+rewrite <- V, Rabs_R0.
+apply Rlt_not_le, bpow_gt_0.
+rewrite <- (Ropp_involutive f), <- (Ropp_involutive h).
+replace (--f + --h) with (-(-f+-h)) by ring.
+rewrite round_NE_opp.
+apply f_equal.
+apply round_plus_small_id_aux.
+now apply generic_format_opp.
+rewrite Rabs_left in H1; try assumption.
+auto with real.
+now rewrite Rabs_Ropp, ulp_opp.
+Qed.
+
+
 
 Definition average1 (x y : R) :=round_flt(round_flt(x+y)/2).
 
@@ -155,6 +418,30 @@ Hypothesis Fy: format y.
 
 Let a:=(x+y)/2.
 Let av:=average1 x y.
+
+Lemma average1_correct: av = round_flt a.
+Proof with auto with typeclass_instances.
+case (Rle_or_lt (bpow (prec + emin)) (Rabs (x+y))).
+(* normal case: division by 2 is exact *)
+intros H.
+unfold av,a,average1.
+rewrite round_generic...
+now apply sym_eq, FLT_round_half.
+apply FLT_format_half.
+apply generic_format_round...
+apply abs_round_ge_generic...
+apply FLT_format_bpow...
+unfold Prec_gt_0 in prec_gt_0_; omega.
+(* subnormal case: addition is exact, but division by 2 is not *)
+intros H.
+unfold av, average1.
+replace (round_flt (x + y)) with (x+y).
+reflexivity.
+apply sym_eq, round_generic...
+apply FLT_format_plus_small...
+left; assumption.
+Qed.
+
 
 
 Lemma average1_symmetry: forall u v, average1 u v = average1 v u.
@@ -175,78 +462,49 @@ Qed.
 Lemma average1_same_sign_1: 0 <= a -> 0 <= av.
 Proof with auto with typeclass_instances.
 intros H.
+rewrite average1_correct.
 apply round_ge_generic...
 apply generic_format_0.
-apply Rmult_le_pos.
-apply round_ge_generic...
-apply generic_format_0.
-apply Rmult_le_reg_r with (/2).
-auto with real.
-rewrite Rmult_0_l; exact H.
-auto with real.
 Qed.
 
 Lemma average1_same_sign_2: a <= 0-> av <= 0.
 Proof with auto with typeclass_instances.
 intros H.
+rewrite average1_correct.
 apply round_le_generic...
 apply generic_format_0.
-replace 0 with (0*/2) by ring.
-apply Rmult_le_compat_r.
-auto with real.
-apply round_le_generic...
-apply generic_format_0.
-apply Rmult_le_reg_r with (/2).
-auto with real.
-rewrite Rmult_0_l; exact H.
 Qed.
 
 Lemma average1_between: Rmin x y <= av <= Rmax x y.
 Proof with auto with typeclass_instances.
-assert (forall u v, format u -> format v -> u <= v -> u <= average1 u v <= v).
-(* *)
-intros u v Fu Fv H; split.
+rewrite average1_correct.
+split.
 apply round_ge_generic...
+now apply P_Rmin.
 apply Rmult_le_reg_l with 2.
 auto with real.
-apply Rle_trans with (round_flt (u + v)).
-2: right; field.
-apply round_ge_generic...
-now apply FLT_format_double.
-replace (2*u) with (u+u) by ring.
-now apply Rplus_le_compat_l.
+rewrite Rmult_plus_distr_r, Rmult_1_l.
+apply Rle_trans with (x+y);[idtac|right;unfold a; field].
+apply Rplus_le_compat.
+apply Rmin_l.
+apply Rmin_r.
+(* *)
 apply round_le_generic...
+now apply Rmax_case.
 apply Rmult_le_reg_l with 2.
 auto with real.
-apply Rle_trans with (round_flt (u + v)).
-right; field.
-apply round_le_generic...
-now apply FLT_format_double.
-replace (2*v) with (v+v) by ring.
-now apply Rplus_le_compat_r.
-(* *)
-case (Rle_or_lt x y); intros H1.
-rewrite Rmin_left; try exact H1.
-rewrite Rmax_right; try exact H1.
-now apply H.
-rewrite Rmin_right; try (left;exact H1).
-rewrite Rmax_left; try (left;exact H1).
-unfold av; rewrite average1_symmetry.
-apply H; trivial; left; exact H1.
+apply Rle_trans with (x+y);[right;unfold a; field|idtac].
+rewrite Rmult_plus_distr_r, Rmult_1_l.
+apply Rplus_le_compat.
+apply Rmax_l.
+apply Rmax_r.
 Qed.
 
 
 Lemma average1_zero: a = 0 -> av = 0.
 Proof with auto with typeclass_instances.
-intros H1; unfold av, average1.
-replace (x+y) with 0.
+intros H1; rewrite average1_correct, H1.
 rewrite round_0...
-unfold Rdiv; rewrite Rmult_0_l.
-rewrite round_0...
-apply Rmult_eq_reg_r with (/2).
-rewrite Rmult_0_l, <- H1; reflexivity.
-apply Rgt_not_eq, Rlt_gt.
-auto with real.
 Qed.
 
 
@@ -262,92 +520,22 @@ contradict H1.
 apply Rlt_not_le.
 apply bpow_gt_0.
 (* *)
+rewrite average1_correct.
 apply abs_round_ge_generic...
 apply FLT_format_bpow...
 omega.
-apply Rmult_le_reg_l with 2.
-auto with real.
-apply Rle_trans with (Rabs (round_flt (x + y))).
-apply abs_round_ge_generic...
-apply FLT_format_double.
-apply FLT_format_bpow...
-omega.
-apply Rmult_le_reg_l with (/2).
-auto with real.
-apply Rle_trans with (bpow emin).
-right; field.
-apply Rle_trans with (1:=H).
-right; unfold a.
-unfold Rdiv; rewrite Rabs_mult.
-rewrite (Rabs_right (/2)).
-ring.
-apply Rle_ge; auto with real.
-right; unfold Rdiv; rewrite Rabs_mult.
-rewrite (Rabs_right (/2)).
-field.
-apply Rle_ge; auto with real.
 Qed.
 
 
-Lemma average1_correct: Rabs (av -a) <= /2*ulp_flt a.
+Lemma average1_correct_weak1: Rabs (av -a) <= /2*ulp_flt a.
 Proof with auto with typeclass_instances.
-case (Rle_or_lt (bpow (prec + emin)) (Rabs (x+y))).
-(* normal case: division by 2 is exact *)
-intros H.
-replace av with (round_flt (x + y) / 2).
-apply Rmult_le_reg_l with 2.
-auto with real.
-apply Rle_trans with (Rabs (round_flt (x + y) - (x+y))).
-rewrite <- (Rabs_right 2) at 1.
-rewrite <- Rabs_mult.
-right; apply f_equal.
-unfold a; field.
-apply Rle_ge; auto with real.
-apply Rle_trans with (/2*ulp_flt (x+y)).
+rewrite average1_correct.
 apply ulp_half_error...
-right; apply trans_eq with (/2*(2*ulp_flt a)).
-2: ring.
-apply f_equal.
-unfold ulp, a.
-pattern 2 at 1; replace 2 with (bpow 1) by reflexivity.
-rewrite <- bpow_plus.
-apply f_equal.
-unfold Rdiv; replace (/2) with (bpow (-1)) by reflexivity.
-rewrite canonic_exp_FLT_FLX.
-rewrite canonic_exp_FLT_FLX.
-unfold canonic_exp, FLX_exp.
-rewrite ln_beta_mult_bpow.
-ring.
-intros H1; rewrite H1, Rabs_R0 in H.
-contradict H; apply Rlt_not_le, bpow_gt_0.
-rewrite Rabs_mult.
-rewrite (Rabs_right (bpow (-1))).
-unfold Zminus; rewrite bpow_plus.
-apply Rmult_le_compat_r.
-apply bpow_ge_0.
-rewrite Zplus_comm; exact H.
-apply Rle_ge, bpow_ge_0.
-apply Rle_trans with (2:=H).
-apply bpow_le; omega.
-apply sym_eq, round_generic...
-apply FLT_format_half.
-apply generic_format_round...
-apply abs_round_ge_generic...
-apply FLT_format_bpow...
-unfold Prec_gt_0 in prec_gt_0_; omega.
-(* subnormal case: addition is exact, but division by 2 is not *)
-intros H.
-unfold av, average1.
-replace (round_flt (x + y)) with (x+y).
-unfold a; apply ulp_half_error...
-apply sym_eq, round_generic...
-apply FLT_format_plus_small...
-left; assumption.
 Qed.
 
-Lemma average1_correct_weak: Rabs (av -a) <= 3/2*ulp_flt a.
+Lemma average1_correct_weak2: Rabs (av -a) <= 3/2*ulp_flt a.
 Proof with auto with typeclass_instances.
-apply Rle_trans with (1:=average1_correct).
+apply Rle_trans with (1:=average1_correct_weak1).
 apply Rmult_le_compat_r.
 unfold ulp; apply bpow_ge_0.
 apply Rle_trans with (1/2); unfold Rdiv.
@@ -362,6 +550,130 @@ Qed.
 
 (* Hypothesis diff_sign: (0 <= x /\ y <= 0) \/ (x <= 0 /\ 0 <= y).
   is useless for properties: only useful for preventing overflow *)
+
+
+
+
+
+Definition average2 (x y : R) :=round_flt(round_flt(x/2) + round_flt(y/2)).
+
+Let av2:=average2 x y.
+
+
+Lemma average2_correct: bpow (emin +prec+prec+2) <= Rabs x -> av2 = round_flt a.
+Proof with auto with typeclass_instances.
+intros Hx.
+assert (G:(0 < prec)%Z).
+unfold Prec_gt_0 in prec_gt_0_; assumption.
+unfold av2, average2.
+replace (round_flt (x/2)) with (x/2).
+2: apply sym_eq, round_generic...
+2: apply FLT_format_half; try assumption.
+2: apply Rle_trans with (2:=Hx).
+2: apply bpow_le; omega.
+case (Rle_or_lt (bpow (prec + emin)) (Rabs y)).
+(* y is big enough so that y/2 is correct *)
+intros Hy.
+replace (round_flt (y/2)) with (y/2).
+apply f_equal; unfold a; field.
+apply sym_eq, round_generic...
+apply FLT_format_half; assumption.
+(* y is a subnormal, then it is too small to impact the result *)
+intros Hy.
+assert (format (x/2)).
+apply FLT_format_half.
+assumption.
+apply Rle_trans with (2:=Hx).
+apply bpow_le.
+omega.
+assert (bpow (prec+emin) <= Rabs (x/2)).
+apply Rmult_le_reg_l with (bpow 1).
+apply bpow_gt_0.
+rewrite <- bpow_plus.
+apply Rle_trans with (Rabs x).
+apply Rle_trans with (2:=Hx).
+apply bpow_le.
+omega.
+rewrite <- (Rabs_right (bpow 1)).
+rewrite <- Rabs_mult.
+right; apply f_equal.
+simpl; field.
+apply Rle_ge, bpow_ge_0.
+(* . *)
+apply trans_eq with (x/2).
+apply round_plus_small_id; try assumption.
+apply Rle_lt_trans with (bpow (prec+emin-1)).
+apply abs_round_le_generic...
+apply FLT_format_bpow...
+omega.
+unfold Rdiv; rewrite Rabs_mult.
+unfold Zminus; rewrite bpow_plus.
+simpl; rewrite (Rabs_right (/2)).
+apply Rmult_le_compat_r.
+fourier.
+now left.
+fourier.
+unfold ulp.
+replace (/4) with (bpow (-2)) by reflexivity.
+rewrite <- bpow_plus.
+apply bpow_lt.
+unfold canonic_exp, FLT_exp.
+assert (emin+prec+prec+2 -1 < ln_beta radix2 (x/2))%Z.
+destruct (ln_beta radix2 (x/2)) as (e,He).
+simpl.
+apply lt_bpow with radix2.
+apply Rle_lt_trans with (Rabs (x/2)).
+unfold Rdiv; rewrite Rabs_mult.
+unfold Zminus; rewrite bpow_plus.
+simpl; rewrite (Rabs_right (/2)).
+apply Rmult_le_compat_r.
+fourier.
+exact Hx.
+fourier.
+apply He.
+intros K; contradict H0.
+rewrite K, Rabs_R0.
+apply Rlt_not_le, bpow_gt_0.
+rewrite Z.max_l.
+omega.
+omega.
+unfold a; apply sym_eq.
+replace ((x+y)/2) with (x/2+y/2) by field.
+apply round_plus_small_id; try assumption.
+apply Rle_lt_trans with (bpow (prec+emin-1)).
+unfold Rdiv; rewrite Rabs_mult.
+unfold Zminus; rewrite bpow_plus.
+simpl; rewrite (Rabs_right (/2)).
+apply Rmult_le_compat_r.
+fourier.
+now left.
+fourier.
+unfold ulp.
+replace (/4) with (bpow (-2)) by reflexivity.
+rewrite <- bpow_plus.
+apply bpow_lt.
+unfold canonic_exp, FLT_exp.
+assert (emin+prec+prec+2 -1 < ln_beta radix2 (x/2))%Z.
+destruct (ln_beta radix2 (x/2)) as (e,He).
+simpl.
+apply lt_bpow with radix2.
+apply Rle_lt_trans with (Rabs (x/2)).
+unfold Rdiv; rewrite Rabs_mult.
+unfold Zminus; rewrite bpow_plus.
+simpl; rewrite (Rabs_right (/2)).
+apply Rmult_le_compat_r.
+fourier.
+exact Hx.
+fourier.
+apply He.
+intros K; contradict H0.
+rewrite K, Rabs_R0.
+apply Rlt_not_le, bpow_gt_0.
+rewrite Z.max_l.
+omega.
+omega.
+Qed.
+
 
 
 End av1.
@@ -871,14 +1183,14 @@ right; rewrite J1,J2; reflexivity.
 apply Rle_trans with (1:=xLey).
 right; rewrite J3,J4; reflexivity.
 case same_sign; intros (L1,L2).
-rewrite J1 in L1; apply F2R_ge_0_reg in L1; simpl in L1.
-rewrite J3 in L2; apply F2R_ge_0_reg in L2; simpl in L2.
+rewrite J1 in L1; apply Fnum_ge_0_compat in L1; simpl in L1.
+rewrite J3 in L2; apply Fnum_ge_0_compat in L2; simpl in L2.
 left.
 rewrite Z.abs_eq in H0.
 omega.
 omega.
-rewrite J1 in L1; apply F2R_le_0_reg in L1; simpl in L1.
-rewrite J3 in L2; apply F2R_le_0_reg in L2; simpl in L2.
+rewrite J1 in L1; apply Fnum_le_0_compat in L1; simpl in L1.
+rewrite J3 in L2; apply Fnum_le_0_compat in L2; simpl in L2.
 right.
 rewrite Z.abs_neq in H0.
 omega.
@@ -1281,6 +1593,10 @@ Qed.
 
 End av3.
 
+
+
+
+
 Section average.
 
 Notation bpow e := (bpow radix2 e).
@@ -1477,8 +1793,8 @@ case (Rle_bool_spec (Rabs x) (Rabs y)); intros.
 apply average3_correct...
 rewrite Rplus_comm.
 apply average3_correct...
-apply average1_correct_weak...
-apply average1_correct_weak...
+apply average1_correct_weak2...
+apply average1_correct_weak2...
 case (Rle_bool_spec (Rabs x) (Rabs y)); intros.
 apply average3_correct...
 right; split; now left.
