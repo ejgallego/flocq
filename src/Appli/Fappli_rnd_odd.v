@@ -356,6 +356,80 @@ simpl; ring.
 apply Rgt_not_eq, bpow_gt_0.
 Qed.
 
+
+
+Theorem Rnd_odd_pt_unicity :
+  forall x f1 f2 : R,
+  Rnd_odd_pt x f1 -> Rnd_odd_pt x f2 ->
+  f1 = f2.
+Proof.
+intros x f1 f2 (Ff1,H1) (Ff2,H2).
+(* *)
+case (generic_format_EM beta fexp x); intros L.
+apply trans_eq with x.
+case H1; try easy.
+intros (J,_); case J; intros J'.
+apply Rnd_DN_pt_idempotent with format; assumption.
+apply Rnd_UP_pt_idempotent with format; assumption.
+case H2; try easy.
+intros (J,_); case J; intros J'; apply sym_eq.
+apply Rnd_DN_pt_idempotent with format; assumption.
+apply Rnd_UP_pt_idempotent with format; assumption.
+(* *)
+destruct H1 as [H1|(H1,H1')].
+contradict L; now rewrite <- H1.
+destruct H2 as [H2|(H2,H2')].
+contradict L; now rewrite <- H2.
+destruct H1 as [H1|H1]; destruct H2 as [H2|H2].
+apply Rnd_DN_pt_unicity with format x; assumption.
+destruct H1' as (ff,(K1,(K2,K3))).
+destruct H2' as (gg,(L1,(L2,L3))).
+absurd (true = false); try discriminate.
+rewrite <- L3.
+apply trans_eq with (negb (Zeven (Fnum ff))).
+rewrite K3; easy.
+apply sym_eq.
+generalize (DN_UP_parity_generic beta fexp).
+unfold DN_UP_parity_prop; intros T; apply (T x); clear T; try assumption...
+rewrite <- K1; apply Rnd_DN_pt_unicity with (generic_format beta fexp) x; try easy...
+now apply round_DN_pt...
+rewrite <- L1; apply Rnd_UP_pt_unicity with (generic_format beta fexp) x; try easy...
+now apply round_UP_pt...
+(* *)
+destruct H1' as (ff,(K1,(K2,K3))).
+destruct H2' as (gg,(L1,(L2,L3))).
+absurd (true = false); try discriminate.
+rewrite <- K3.
+apply trans_eq with (negb (Zeven (Fnum gg))).
+rewrite L3; easy.
+apply sym_eq.
+generalize (DN_UP_parity_generic beta fexp).
+unfold DN_UP_parity_prop; intros T; apply (T x); clear T; try assumption...
+rewrite <- L1; apply Rnd_DN_pt_unicity with (generic_format beta fexp) x; try easy...
+now apply round_DN_pt...
+rewrite <- K1; apply Rnd_UP_pt_unicity with (generic_format beta fexp) x; try easy...
+now apply round_UP_pt...
+apply Rnd_UP_pt_unicity with format x; assumption.
+Qed.
+
+
+
+Theorem Rnd_odd_pt_monotone :
+  round_pred_monotone (Rnd_odd_pt).
+Proof with auto with typeclass_instances.
+intros x y f g H1 H2 Hxy.
+apply Rle_trans with (round beta fexp Zrnd_odd x).
+right; apply Rnd_odd_pt_unicity with x; try assumption.
+apply round_odd_pt.
+apply Rle_trans with (round beta fexp Zrnd_odd y).
+apply round_le...
+right; apply Rnd_odd_pt_unicity with y; try assumption.
+apply round_odd_pt.
+Qed.
+
+
+
+
 End Fcore_rnd_odd.
 
 Section Odd_prop_aux.

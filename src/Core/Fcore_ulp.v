@@ -1163,6 +1163,90 @@ apply Rgt_not_eq.
 now apply Rlt_le_trans with x.
 Qed.
 
+(*
+Theorem: F x -> pred x < y < x -> ~ F y.
+
+Theorem: F x -> x < y < succ x -> ~ F y.
+
+Theorem pred_lt: forall x y,
+  F y -> (0 < x)%R -> (x < y)%R -> (x + ulp x < y + ulp y)%R.
+Proof.
+
+Theorem pred_lt: forall x y,
+  F y -> (0 < x)%R -> (x < y)%R -> (pred x < pred y)%R.
+Proof.
+*)
+
+
+
+
+
+Theorem pred_le: forall x y,
+   F x -> F y -> (0 < x)%R -> (x <= y)%R -> (pred x <= pred y)%R.
+Proof.
+intros x y Fx Fy Hx Hxy.
+apply le_pred_lt; try assumption.
+apply generic_format_pred; try assumption.
+now apply Rlt_le_trans with (1:=Hx).
+apply Rlt_le_trans with (2:=Hxy).
+apply pred_lt_id.
+Qed.
+
+Theorem succ_le:  forall { monotone_exp : Monotone_exp fexp }, forall x y,
+   (0 < x)%R -> (x <= y)%R -> (x + ulp x <= y + ulp y)%R.
+Proof.
+intros P x y Hx H.
+apply Rplus_le_compat.
+exact H.
+apply bpow_le, P.
+now apply ln_beta_le.
+Qed.
+(* virer monotone et ajouter Fx Fy *)
+
+
+Theorem le_pred: forall { monotone_exp : Monotone_exp fexp }, forall x y, 
+   F x -> F y -> (0 < pred x)%R -> (pred x <= pred y)%R -> (x <= y)%R.
+Proof.
+intros P x y Fx Fy Hx Hxy.
+rewrite <- (pred_plus_ulp x); try assumption.
+rewrite <- (pred_plus_ulp y); try assumption.
+now apply succ_le.
+apply Rlt_trans with (1:=Hx).
+apply Rle_lt_trans with (1:=Hxy).
+apply pred_lt_id.
+apply Rgt_not_eq, Rlt_gt.
+now apply Rlt_le_trans with (1:=Hx).
+apply Rlt_trans with (1:=Hx).
+apply pred_lt_id.
+now apply Rgt_not_eq, Rlt_gt.
+Qed.
+
+
+Theorem pred_inj: forall { monotone_exp : Monotone_exp fexp }, forall x y, F x -> F y -> 
+  (0 < pred x)%R -> pred x = pred y -> x = y.
+Proof.
+intros M x y Fx Fy Hx H.
+apply Rle_antisym; apply le_pred; try assumption.
+now right.
+now rewrite <- H.
+now right.
+Qed.
+
+
+
+Theorem le_succ: forall { monotone_exp : Monotone_exp fexp }, forall x y, 
+   (0 < y)%R -> (x + ulp x <= y + ulp y)%R -> (x <= y)%R.
+Proof.
+intros P x y Hy H.
+case (Rle_or_lt x y); trivial; intros H'.
+contradict H.
+apply Rlt_not_le.
+apply Rlt_le_trans with (x+ulp y)%R.
+now apply Rplus_lt_compat_r.
+apply Rplus_le_compat_l.
+apply ulp_le; trivial...
+now left.
+Qed.
 
 Theorem lt_UP_le_DN :
   forall x y, F y ->
@@ -1176,6 +1260,21 @@ apply RIneq.Rle_not_lt.
 apply round_UP_pt...
 now apply Rlt_le.
 Qed.
+
+Theorem lt_DN_le_UP :
+  forall x y, F y ->
+   (round beta fexp Zfloor x < y -> round beta fexp Zceil x <= y)%R.
+Proof with auto with typeclass_instances.
+intros x y Fy Hlt.
+apply round_UP_pt...
+apply Rnot_lt_le.
+contradict Hlt.
+apply RIneq.Rle_not_lt.
+apply round_DN_pt...
+now apply Rlt_le.
+Qed.
+
+
 
 Theorem pred_UP_le_DN :
   forall x, (0 < round beta fexp Zceil x)%R ->
@@ -1203,6 +1302,99 @@ apply le_pred_lt; try apply generic_format_round...
 pose proof round_DN_UP_lt _ _ _ Fx as HE.
 now apply Rlt_trans with (1 := proj1 HE) (2 := proj2 HE).
 Qed.
+
+
+Theorem succ_DN_eq_UP :
+  forall x, (0 < round beta fexp Zfloor x)%R -> ~ F x ->
+  (round beta fexp Zceil x = round beta fexp Zfloor x + ulp(round beta fexp Zfloor x))%R.
+Proof with auto with typeclass_instances.
+intros x Px Fx.
+assert (0 < round beta fexp Zceil x)%R.
+apply Rlt_le_trans with (1:=Px).
+apply Rle_trans with x.
+apply round_DN_pt...
+apply round_UP_pt...
+rewrite <- pred_UP_eq_DN; try assumption.
+rewrite pred_plus_ulp; try assumption.
+reflexivity.
+apply generic_format_round...
+rewrite pred_UP_eq_DN...
+now apply Rgt_not_eq.
+Qed.
+
+
+
+Theorem betw_eq_DN: forall x d, Monotone_exp fexp 
+     -> generic_format beta fexp d -> (0 < d)%R 
+     -> (d <= x < d + ulp d)%R 
+        -> d = round beta fexp Zfloor x.
+Proof with auto with typeclass_instances.
+intros x d P Fd Hd (Hxd1,Hxd2).
+generalize (round_DN_pt beta fexp x); intros (T1,(T2,T3)).
+assert (K:(0 < round beta fexp Zfloor x)%R).
+apply Rlt_le_trans with (1:=Hd).
+now apply T3.
+apply Rle_antisym.
+now apply T3.
+destruct (generic_format_EM beta fexp x) as [Fx|NFx].
+rewrite round_generic...
+rewrite <- (pred_succ d)...
+apply le_pred_lt...
+apply generic_format_succ...
+apply Rplus_lt_0_compat; try exact Hd.
+apply bpow_gt_0.
+apply Rplus_le_reg_r with (ulp (round beta fexp Zfloor x)).
+apply Rle_trans with (round beta fexp Zceil x).
+right.
+rewrite succ_DN_eq_UP...
+apply Rle_trans with (d + ulp d)%R.
+apply lt_DN_le_UP...
+apply generic_format_succ...
+apply Rle_lt_trans with (2:=Hxd2).
+apply round_DN_pt...
+apply Rplus_le_compat_l.
+rewrite ulp_DN...
+apply ulp_le...
+Qed.
+
+Theorem betw_eq_UP: forall x u, Monotone_exp fexp -> (0 < pred u)%R
+    -> generic_format beta fexp u 
+    -> (pred u < x <= u)%R 
+    -> u = round beta fexp Zceil x.
+Proof with auto with typeclass_instances.
+intros x u P Hu Fu Hux.
+assert (0 < u)%R.
+apply Rlt_trans with (1:=Hu).
+apply pred_lt_id.
+destruct (generic_format_EM beta fexp x) as [Fx|NFx].
+(* . *)
+rewrite round_generic...
+apply Rle_antisym.
+apply le_pred; try assumption.
+apply le_pred_lt...
+apply generic_format_pred...
+apply Rlt_trans with (1:=Hu); apply Hux.
+apply Hux.
+apply Hux.
+(* . *)
+apply pred_inj...
+apply generic_format_round...
+rewrite pred_UP_eq_DN...
+apply betw_eq_DN...
+apply generic_format_pred...
+split.
+left; apply Hux.
+rewrite pred_plus_ulp...
+case (proj2 Hux); trivial.
+intros V; contradict NFx.
+now rewrite V.
+now apply Rgt_not_eq.
+apply Rlt_trans with (1:=Hu).
+apply Rlt_le_trans with (1:=proj1 Hux).
+apply round_UP_pt...
+Qed.
+
+
 
 
 
@@ -1413,3 +1605,25 @@ Qed.
 
 
 End Fcore_ulp.
+
+
+(* 
+définir min_exp: fexp -> option Z (LPO inside)
+  -> Fcore_fmt_generic
+
+
+ulp x
+ =  radix^cexp(x) si x <> 0
+ = beta^min_exp si Some
+ = 0 sinon
+
+
+pred -> pred_pos
+succ x = x+ ulp x si x >=0 et -pred_pos(-x) sinon
+pred x = - succ (-x) 
+
+prouver valeur min_exp en FLT, FLX*)
+
+
+
+
