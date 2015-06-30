@@ -113,16 +113,15 @@ Theorem relative_error :
   forall x,
   (bpow emin <= Rabs x)%R ->
   (Rabs (round beta fexp rnd x - x) < bpow (-p + 1) * Rabs x)%R.
-Proof.
+Proof with auto with typeclass_instances.
 intros x Hx.
-apply Rlt_le_trans with (ulp beta fexp x)%R.
-now apply ulp_error.
-unfold ulp, canonic_exp.
 assert (Hx': (x <> 0)%R).
-intros H.
-apply Rlt_not_le with (2 := Hx).
-rewrite H, Rabs_R0.
-apply bpow_gt_0.
+intros T; contradict Hx; rewrite T, Rabs_R0.
+apply Rlt_not_le, bpow_gt_0.
+apply Rlt_le_trans with (ulp beta fexp x)%R.
+now apply ulp_error...
+rewrite ulp_neq_0; trivial.
+unfold canonic_exp.
 destruct (ln_beta beta x) as (ex, He).
 simpl.
 specialize (He Hx').
@@ -197,14 +196,13 @@ Theorem relative_error_round :
   (Rabs (round beta fexp rnd x - x) < bpow (-p + 1) * Rabs (round beta fexp rnd x))%R.
 Proof with auto with typeclass_instances.
 intros Hp x Hx.
+assert (Hx': (x <> 0)%R).
+intros T; contradict Hx; rewrite T, Rabs_R0.
+apply Rlt_not_le, bpow_gt_0.
 apply Rlt_le_trans with (ulp beta fexp x)%R.
 now apply ulp_error.
-assert (Hx': (x <> 0)%R).
-intros H.
-apply Rlt_not_le with (2 := Hx).
-rewrite H, Rabs_R0.
-apply bpow_gt_0.
-unfold ulp, canonic_exp.
+rewrite ulp_neq_0; trivial.
+unfold canonic_exp.
 destruct (ln_beta beta x) as (ex, He).
 simpl.
 specialize (He Hx').
@@ -268,7 +266,8 @@ intros H.
 apply Rlt_not_le with (2 := Hx).
 rewrite H, Rabs_R0.
 apply bpow_gt_0.
-unfold ulp, canonic_exp.
+rewrite ulp_neq_0; trivial.
+unfold canonic_exp.
 destruct (ln_beta beta x) as (ex, He).
 simpl.
 specialize (He Hx').
@@ -359,7 +358,8 @@ intros H.
 apply Rlt_not_le with (2 := Hx).
 rewrite H, Rabs_R0.
 apply bpow_gt_0.
-unfold ulp, canonic_exp.
+rewrite ulp_neq_0; trivial.
+unfold canonic_exp.
 destruct (ln_beta beta x) as (ex, He).
 simpl.
 specialize (He Hx').
@@ -685,7 +685,8 @@ apply Rle_trans with (/2*ulp beta (FLT_exp emin prec) x)%R.
 apply ulp_half_error.
 now apply FLT_exp_valid.
 apply Rmult_le_compat_l; auto with real.
-unfold ulp.
+rewrite ulp_neq_0.
+2: now apply Rgt_not_eq.
 apply bpow_le.
 unfold FLT_exp, canonic_exp.
 rewrite Zmax_right.

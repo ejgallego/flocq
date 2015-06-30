@@ -935,13 +935,9 @@ case K2; clear K2; intros K2.
 case (Rle_or_lt  x m); intros Y;[destruct Y|idtac].
 (* . *)
 apply trans_eq with (F2R d).
-apply round_N_DN_betw with (F2R u)...
+apply betw_eq_N_DN' with (F2R u)...
 apply DN_odd_d_aux; split; try left; assumption.
 apply UP_odd_d_aux; split; try left; assumption.
-split.
-apply round_ge_generic...
-apply generic_format_fexpe_fexp, Hd.
-apply Hd.
 assert (o <= (F2R d + F2R u) / 2)%R.
 apply round_le_generic...
 apply Fm.
@@ -950,10 +946,7 @@ destruct H1; trivial.
 apply P.
 now apply Rlt_not_eq.
 trivial.
-apply sym_eq, round_N_DN_betw with (F2R u)...
-split.
-apply Hd.
-exact H0.
+apply sym_eq, betw_eq_N_DN' with (F2R u)...
 (* . *)
 replace o with x.
 reflexivity.
@@ -961,10 +954,9 @@ apply sym_eq, round_generic...
 rewrite H0; apply Fm.
 (* . *)
 apply trans_eq with (F2R u).
-apply round_N_UP_betw with (F2R d)...
+apply betw_eq_N_UP' with (F2R d)...
 apply DN_odd_d_aux; split; try left; assumption.
 apply UP_odd_d_aux; split; try left; assumption.
-split.
 assert ((F2R d + F2R u) / 2 <= o)%R.
 apply round_ge_generic...
 apply Fm.
@@ -973,13 +965,7 @@ destruct H0; trivial.
 apply P.
 now apply Rgt_not_eq.
 rewrite <- H0; trivial.
-apply round_le_generic...
-apply generic_format_fexpe_fexp, Hu.
-apply Hu.
-apply sym_eq, round_N_UP_betw with (F2R d)...
-split.
-exact Y.
-apply Hu.
+apply sym_eq, betw_eq_N_UP' with (F2R d)...
 Qed.
 
 

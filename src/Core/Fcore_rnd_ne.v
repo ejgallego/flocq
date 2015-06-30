@@ -191,7 +191,8 @@ rewrite Rmult_plus_distr_r.
 rewrite Z2R_Zpower, <- bpow_plus.
 ring_simplify (ex - fexp ex + fexp ex)%Z.
 rewrite Hu2, Hud.
-unfold ulp, canonic_exp.
+rewrite ulp_neq_0;[idtac|now apply Rgt_not_eq].
+unfold canonic_exp.
 rewrite ln_beta_unique with beta x ex.
 unfold F2R.
 simpl. ring.
@@ -223,7 +224,8 @@ specialize (H ex).
 omega.
 (* - xu < bpow ex *)
 revert Hud.
-unfold ulp, F2R.
+rewrite ulp_neq_0;[idtac|now apply Rgt_not_eq].
+unfold F2R.
 rewrite Hd, Hu.
 unfold canonic_exp.
 rewrite ln_beta_unique with beta (F2R xu) ex.

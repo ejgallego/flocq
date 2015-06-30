@@ -25,6 +25,7 @@ Require Import Fcore_generic_fmt.
 Require Import Fcore_float_prop.
 Require Import Fcore_FLX.
 Require Import Fcore_FIX.
+Require Import Fcore_ulp.
 Require Import Fcore_rnd_ne.
 
 Section RND_FLT.
@@ -229,6 +230,33 @@ apply Zmax_lub.
 omega.
 apply Zle_refl.
 Qed.
+
+Theorem ulp_FLT_small: forall x, (Rabs x < bpow (emin+prec))%R ->
+    ulp beta FLT_exp x = bpow emin.
+Proof with auto with typeclass_instances.
+intros x Hx.
+unfold ulp; case Req_bool_spec; intros Hx2.
+(* x = 0 *)
+case (negligible_exp_spec FLT_exp).
+intros (_,T); specialize (T (emin-1)%Z); contradict T.
+apply Zle_not_lt; unfold FLT_exp.
+apply Zle_trans with (2:=Z.le_max_r _ _); omega.
+assert (V:FLT_exp emin = emin).
+unfold FLT_exp; apply Z.max_r.
+unfold Prec_gt_0 in prec_gt_0_; omega.
+intros (n,(H1,H2)); rewrite H1, <-V.
+apply f_equal, fexp_negligible_exp_eq...
+omega.
+(* x <> 0 *)
+apply f_equal; unfold canonic_exp, FLT_exp.
+apply Z.max_r.
+assert (ln_beta beta x-1 < emin+prec)%Z;[idtac|omega].
+destruct (ln_beta beta x) as (e,He); simpl.
+apply lt_bpow with beta.
+apply Rle_lt_trans with (2:=Hx).
+now apply He.
+Qed.
+
 
 (** FLT is a nice format: it has a monotone exponent... *)
 Global Instance FLT_exp_monotone : Monotone_exp FLT_exp.

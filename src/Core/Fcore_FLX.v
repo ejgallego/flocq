@@ -24,6 +24,7 @@ Require Import Fcore_rnd.
 Require Import Fcore_generic_fmt.
 Require Import Fcore_float_prop.
 Require Import Fcore_FIX.
+Require Import Fcore_ulp.
 Require Import Fcore_rnd_ne.
 
 Section RND_FLX.
@@ -210,6 +211,16 @@ split ; intros H.
 now apply FLXN_format_generic.
 now apply generic_format_FLXN.
 Qed.
+
+Theorem ulp_FLX_0: (ulp beta FLX_exp 0 = 0)%R.
+Proof.
+unfold ulp; rewrite Req_bool_true; trivial.
+case (negligible_exp_spec FLX_exp).
+intros (H1,H2); now rewrite H1.
+intros (n,(H1,H2)); contradict H2.
+unfold FLX_exp; unfold Prec_gt_0 in prec_gt_0_; omega.
+Qed.
+
 
 (** FLX is a nice format: it has a monotone exponent... *)
 Global Instance FLX_exp_monotone : Monotone_exp FLX_exp.

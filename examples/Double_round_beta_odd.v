@@ -111,7 +111,7 @@ induction n.
     * change 0 with (Z2R 0); apply Z2R_le; omega.
     * now apply bpow_ge_0.
   + rewrite <- Hlx'.
-    apply (ln_beta_succ beta (fun e => (e - (ln_beta x' - ex2'))%Z));
+    apply (ln_beta_plus_eps beta (fun e => (e - (ln_beta x' - ex2'))%Z));
       [| |split].
     * exact Px'.
     * unfold generic_format, F2R, scaled_mantissa, canonic_exp; simpl.
@@ -120,7 +120,8 @@ induction n.
       now apply Rmult_le_pos; [apply Rlt_le|apply bpow_ge_0].
     * apply Rmult_le_pos; [|now apply bpow_ge_0].
       change 0 with (Z2R 0); apply Z2R_le; omega.
-    * unfold u, ulp, ex2', canonic_exp; bpow_simplify.
+    * rewrite ulp_neq_0;[idtac| now apply Rgt_not_eq].
+      unfold u, ex2', canonic_exp; bpow_simplify.
       rewrite Zplus_comm; rewrite bpow_plus.
       apply Rmult_lt_compat_r; [now apply bpow_gt_0|].
       rewrite bpow_1.
@@ -203,6 +204,8 @@ Lemma neq_midpoint_beta_odd_aux1 :
   double_round_eq beta fexp1 fexp2 choice1 choice2 x.
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 x Px Hf2f1 Hx.
+unfold midp in Hx.
+rewrite 2!ulp_neq_0 in Hx; try now apply Rgt_not_eq.
 unfold double_round_eq.
 set (ex1 := fexp1 (ln_beta x)).
 set (ex2 := fexp2 (ln_beta x)).
@@ -246,8 +249,7 @@ assert (Hrx2' : rx1 <= rx2 < rx1 + / 2 * bpow ex1).
     apply Rplus_le_compat_l.
     apply Rmult_le_compat_l; [lra|].
     now apply bpow_le.
-  - change (_ + _) with (midp beta fexp1 x).
-    apply (Rle_lt_trans _ _ _ (proj1 Hx') (proj2 Hx)). }
+  - apply (Rle_lt_trans _ _ _ (proj1 Hx') (proj2 Hx)). }
 assert (Hrx2r : rx2 = round beta fexp2 Zfloor x).
 { unfold round, F2R, scaled_mantissa, canonic_exp; simpl.
   fold ex2; rewrite Hrx2.
@@ -317,6 +319,8 @@ Lemma neq_midpoint_beta_odd_aux2 :
   double_round_eq beta fexp1 fexp2 choice1 choice2 x.
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 x Px Hf2f1 Hx.
+unfold midp in Hx.
+rewrite 2!ulp_neq_0 in Hx; try now apply Rgt_not_eq.
 unfold double_round_eq.
 set (ex1 := fexp1 (ln_beta x)).
 set (ex2 := fexp2 (ln_beta x)).
@@ -341,11 +345,12 @@ assert (NF1x : ~ generic_format beta fexp1 x).
 { now intro H; apply NF2x, (generic_inclusion_ln_beta _ fexp1). }
 assert (Hrx1c : rx1c = rx1 + ulp beta fexp1 x).
 { now apply ulp_DN_UP. }
+rewrite ulp_neq_0 in Hrx1c; try now apply Rgt_not_eq.
 destruct (midpoint_beta_odd_remains rx1 Nnrx1 ex1 ex2 Hf2f1' Hrx1)
   as (rx2,(Nnrx2, (Hrx2, Hrx12))).
-set (rx2c := rx2 + ulp beta fexp2 x).
+set (rx2c := rx2 + bpow (fexp2 (ln_beta x))).
 assert (Hx' : rx2c - / 2 * bpow ex2 < x <= rx2c).
-{ unfold rx2c, ulp, canonic_exp; fold ex1; fold ex2; split.
+{ unfold rx2c, canonic_exp; fold ex1; fold ex2; split.
   - replace (_ - _) with (rx2 + / 2 * bpow ex2) by field.
     rewrite <- Hrx12; apply Hx.
   - replace (_ + _) with (rx2 + / 2 * bpow ex2 + / 2 * bpow ex2) by field.
@@ -379,7 +384,6 @@ assert (Hrx2' : rx1c - / 2 * bpow ex1 < rx2c <= rx1c).
 { split.
   - rewrite Hrx1c; unfold ulp, canonic_exp; fold ex1.
     replace (_ - _) with (rx1 + / 2 * bpow ex1) by field.
-    change (_ + _) with (midp beta fexp1 x).
     apply (Rlt_le_trans _ _ _ (proj1 Hx) (proj2 Hx')).
   - apply (Rplus_le_reg_r (- / 2 * bpow ex2)).
     unfold rx2c, ulp, canonic_exp; fold ex2.
@@ -471,7 +475,6 @@ assert (Hl2 : ln_beta rx2c = ln_beta x :> Z).
        replace (_ + _) with (rx2 + bpow ex2) by field].
   split.
   - rewrite <- Rplus_assoc.
-    change (_ + _) with (midp beta fexp1 x + / 2 * ulp beta fexp2 x).
     apply Rle_trans with x; [|now apply Hx].
     apply Rge_le; rewrite <- (Rabs_right x) at 1; [|now apply Rle_ge, Rlt_le];
     apply Rle_ge; destruct (ln_beta x) as (ex,Hex); simpl; apply Hex.
@@ -481,7 +484,9 @@ assert (Hl2 : ln_beta rx2c = ln_beta x :> Z).
       rewrite <- (Rmult_1_l (bpow ex1)) at 2.
       replace (1 * bpow ex1) with (/ 2 * bpow ex1 + / 2 * bpow ex1) by field.
       now apply Rplus_lt_compat_l, Rmult_lt_compat_l; [lra|apply bpow_lt].
-    + unfold ex1; rewrite <- Hl1; apply succ_le_bpow; [exact Prx1| |].
+    + unfold ex1; rewrite <- Hl1.
+      fold (canonic_exp beta fexp1 rx1); rewrite <- ulp_neq_0; try now apply Rgt_not_eq.
+      apply succ_le_bpow; [exact Prx1| |].
       * now apply generic_format_round; [|apply valid_rnd_DN].
       * destruct (ln_beta rx1) as (erx1, Herx1); simpl.
         rewrite <- (Rabs_right rx1) at 1; [|now apply Rle_ge, Rlt_le].
@@ -505,7 +510,7 @@ apply Rabs_lt; split.
 - apply (Rmult_lt_reg_r (bpow ex1)); [now apply bpow_gt_0|].
   rewrite Rmult_minus_distr_r; bpow_simplify.
   rewrite Z2R_plus, Rmult_plus_distr_r; simpl; rewrite Rmult_1_l.
-  change (Z2R _ * _ + _) with (rx1 + ulp beta fexp1 x).
+  change (Z2R _ * _ + _) with (rx1 + bpow (canonic_exp beta fexp1 x)).
   rewrite <- Hrx1c; lra.
 Qed.
 
@@ -592,6 +597,7 @@ destruct (Zle_or_lt (fexp1 ex) (fexp2 ex)) as [H2|H2].
   (* r2 <> 0 *)
   assert (B1 : Rabs (r2 - x) <= / 2 * ulp beta fexp2 x);
     [now apply ulp_half_error|].
+  rewrite ulp_neq_0 in B1; try now apply Rgt_not_eq.
   unfold round, F2R, scaled_mantissa, canonic_exp; simpl.
   apply (Rmult_eq_reg_r (bpow (- fexp1 (ln_beta r2))));
     [|now apply Rgt_not_eq, bpow_gt_0].
@@ -603,7 +609,7 @@ destruct (Zle_or_lt (fexp1 ex) (fexp2 ex)) as [H2|H2].
   bpow_simplify.
   replace r2 with (r2 - x + x) by ring.
   apply (Rle_lt_trans _ _ _ (Rabs_triang _ _)).
-  apply Rlt_le_trans with (/ 2 * ulp beta fexp2 x + bpow ex);
+  apply Rlt_le_trans with (/ 2 * bpow (canonic_exp beta fexp2 x) + bpow ex);
     [now apply Rplus_le_lt_compat;
       [|rewrite Rabs_right; [|apply Rle_ge, Rlt_le]]|].
   replace (_ - _ + _) with r2 by ring.
@@ -617,14 +623,14 @@ destruct (Zle_or_lt (fexp1 ex) (fexp2 ex)) as [H2|H2].
   { apply (ln_beta_le_bpow _ _ _ Nzr2).
     replace r2 with (r2 - x + x) by ring.
     apply (Rle_lt_trans _ _ _ (Rabs_triang _ _)).
-    apply Rlt_le_trans with (/ 2 * ulp beta fexp2 x + bpow ex);
+    apply Rlt_le_trans with (/ 2 * bpow (canonic_exp beta fexp2 x) + bpow ex);
       [now apply Rplus_le_lt_compat;
         [|rewrite Rabs_right; [|apply Rle_ge, Rlt_le]]|].
     apply Rle_trans with (2 * bpow (fexp1 ex - 1)).
     - rewrite Rmult_plus_distr_r, Rmult_1_l.
       apply Rplus_le_compat; [|now apply bpow_le; omega].
       apply Rle_trans with (bpow (fexp2 ex)); [|now apply bpow_le; omega].
-      rewrite <- (Rmult_1_l (bpow _)); unfold ulp, canonic_exp.
+      rewrite <- (Rmult_1_l (bpow (fexp2 _))); unfold canonic_exp.
       rewrite Hex'; apply Rmult_le_compat_r; [apply bpow_ge_0|lra].
     - rewrite <- (Rmult_1_l (bpow (fexp1 _))).
       unfold Zminus; rewrite Zplus_comm, bpow_plus, <- Rmult_assoc.
@@ -657,14 +663,16 @@ destruct (Zle_or_lt (fexp1 ex) (fexp2 ex)) as [H2|H2].
     now rewrite Hbeta'.
 Qed.
 
+(* argh: was 0 <= Z2R mx. This becomes incorrect in FLX with the new ulp. *)
 Lemma float_neq_midpoint_beta_odd :
   forall (mx ex : Z),
   forall (fexp : Z -> Z),
-  0 <= Z2R mx ->
+  0 < Z2R mx ->
   Z2R mx * bpow ex <> midp beta fexp (Z2R mx * bpow ex).
 Proof.
 intros mx ex fexp Hmx.
-unfold midp, round, ulp, F2R, scaled_mantissa, canonic_exp; simpl.
+unfold midp; rewrite ulp_neq_0.
+unfold round, F2R, scaled_mantissa, canonic_exp; simpl.
 set (exf := fexp (ln_beta (Z2R mx * bpow ex))).
 set (mxf := Zfloor (Z2R mx * bpow ex * bpow (- exf))).
 destruct (Zle_or_lt exf ex) as [Hm|Hm].
@@ -695,7 +703,7 @@ destruct (Zle_or_lt exf ex) as [Hm|Hm].
     change 0 with (Z2R 0); apply Z2R_le; unfold mxf.
     apply Zfloor_lub; simpl.
     apply Rmult_le_pos; [|now apply bpow_ge_0].
-    now apply Rmult_le_pos; [|apply bpow_ge_0]. }
+    now apply Rmult_le_pos; [now left|apply bpow_ge_0]. }
   destruct (midpoint_beta_odd_remains _ Nnmxy _ _ Hm')
     as (x',(_,(Hx',Hxx'))).
   { now bpow_simplify; rewrite Zfloor_Z2R. }
@@ -718,6 +726,9 @@ destruct (Zle_or_lt exf ex) as [Hm|Hm].
   apply (Zodd_not_Zeven 1); [now simpl|].
   rewrite <- H.
   now apply Zeven_mult_Zeven_l.
+- apply Rmult_integral_contrapositive_currified.
+  now apply Rgt_not_eq, Rlt_gt.
+  apply Rgt_not_eq, bpow_gt_0.
 Qed.
 
 Section Double_round_mult_beta_odd.
@@ -750,14 +761,14 @@ apply neq_midpoint_beta_odd; try assumption.
   with (Z2R mx * Z2R my * bpow (fexp1 ex) * bpow (fexp1 ey)) by ring.
   rewrite <- Z2R_mult, Rmult_assoc, <- bpow_plus.
   apply float_neq_midpoint_beta_odd.
-  apply (Rmult_le_reg_r (bpow (fexp1 ex))); [now apply bpow_gt_0|].
-  apply (Rmult_le_reg_r (bpow (fexp1 ey))); [now apply bpow_gt_0|].
+  apply (Rmult_lt_reg_r (bpow (fexp1 ex))); [now apply bpow_gt_0|].
+  apply (Rmult_lt_reg_r (bpow (fexp1 ey))); [now apply bpow_gt_0|].
   do 2 rewrite Rmult_0_l.
   rewrite Z2R_mult;
     replace (_ * _)
     with (Z2R mx * bpow (fexp1 ex) * (Z2R my * bpow (fexp1 ey))) by ring.
   rewrite <- Fx, <- Fy.
-  now apply Rmult_le_pos; apply Rlt_le.
+  now apply Rmult_lt_0_compat.
 Qed.
 
 Lemma double_round_mult_beta_odd_aux2 :
@@ -951,21 +962,21 @@ apply neq_midpoint_beta_odd; try assumption.
     rewrite <- Z2R_Zpower; [|now apply Zle_minus_le_0].
     rewrite <- Z2R_mult, <- Z2R_plus.
     apply float_neq_midpoint_beta_odd.
-    apply (Rmult_le_reg_r (bpow (fexp1 ex))); [now apply bpow_gt_0|].
+    apply (Rmult_lt_reg_r (bpow (fexp1 ex))); [now apply bpow_gt_0|].
     rewrite Z2R_plus, Z2R_mult, Z2R_Zpower; [|now apply Zle_minus_le_0].
     rewrite Rmult_0_l, Rmult_plus_distr_r; bpow_simplify.
     rewrite <- Fx, <- Fy.
-    now apply Rplus_le_le_0_compat; apply Rlt_le.
+    now apply Rplus_lt_0_compat.
   + replace (fexp1 ex) with (fexp1 ex - fexp1 ey + fexp1 ey)%Z by ring.
     rewrite bpow_plus, <- Rmult_assoc, <- Rmult_plus_distr_r.
     rewrite <- Z2R_Zpower; [|omega].
     rewrite <- Z2R_mult, <- Z2R_plus.
     apply float_neq_midpoint_beta_odd.
-    apply (Rmult_le_reg_r (bpow (fexp1 ey))); [now apply bpow_gt_0|].
+    apply (Rmult_lt_reg_r (bpow (fexp1 ey))); [now apply bpow_gt_0|].
     rewrite Z2R_plus, Z2R_mult, Z2R_Zpower; [|omega].
     rewrite Rmult_0_l, Rmult_plus_distr_r; bpow_simplify.
     rewrite <- Fx, <- Fy.
-    now apply Rplus_le_le_0_compat; apply Rlt_le.
+    now apply Rplus_lt_0_compat.
 Qed.
 
 Lemma double_round_plus_beta_odd_aux2 :
@@ -989,18 +1000,22 @@ destruct (Req_dec x 0) as [Zx|Nzx]; destruct (Req_dec y 0) as [Zy|Nzy].
   apply (neq_midpoint_beta_odd _ _ Vfexp1 Vfexp2 _ _ _ Py (Hfexp _)).
   rewrite Fy; unfold F2R, scaled_mantissa; simpl.
   apply float_neq_midpoint_beta_odd.
-  change 0 with (Z2R 0); apply Z2R_le.
-  rewrite <- (Ztrunc_Z2R 0); apply Ztrunc_le; simpl.
-  now apply Rmult_le_pos; [apply Rlt_le|apply bpow_ge_0].
+  apply Rmult_lt_reg_r with (bpow (canonic_exp beta fexp1 y)).
+  apply bpow_gt_0.
+  rewrite Rmult_0_l.
+  apply Rlt_le_trans with (1:=Py).
+  right; rewrite Fy at 1; unfold F2R, scaled_mantissa; now simpl.
 - (* 0 < x, y = 0 *)
   assert (Px : 0 < x); [lra|].
   rewrite Zy, Rplus_0_r.
   apply (neq_midpoint_beta_odd _ _ Vfexp1 Vfexp2 _ _ _ Px (Hfexp _)).
   rewrite Fx; unfold F2R, scaled_mantissa; simpl.
   apply float_neq_midpoint_beta_odd.
-  change 0 with (Z2R 0); apply Z2R_le.
-  rewrite <- (Ztrunc_Z2R 0); apply Ztrunc_le; simpl.
-  now apply Rmult_le_pos; [apply Rlt_le|apply bpow_ge_0].
+  apply Rmult_lt_reg_r with (bpow (canonic_exp beta fexp1 x)).
+  apply bpow_gt_0.
+  rewrite Rmult_0_l.
+  apply Rlt_le_trans with (1:=Px).
+  right; rewrite Fx at 1; unfold F2R, scaled_mantissa; now simpl.
 - (* 0 < x, 0 < y *)
   assert (Px : 0 < x); [lra|].
   assert (Py : 0 < y); [lra|].
@@ -1037,21 +1052,21 @@ apply neq_midpoint_beta_odd; try assumption.
     rewrite <- Z2R_Zpower; [|now apply Zle_minus_le_0].
     rewrite <- Z2R_mult, <- Z2R_minus.
     apply float_neq_midpoint_beta_odd.
-    apply (Rmult_le_reg_r (bpow (fexp1 ex))); [now apply bpow_gt_0|].
+    apply (Rmult_lt_reg_r (bpow (fexp1 ex))); [now apply bpow_gt_0|].
     rewrite Z2R_minus, Z2R_mult, Z2R_Zpower; [|now apply Zle_minus_le_0].
     rewrite Rmult_0_l, Rmult_minus_distr_r; bpow_simplify.
     rewrite <- Fx, <- Fy.
-    now apply Rle_0_minus, Rlt_le.
+    now apply Rlt_Rminus.
   + replace (fexp1 ex) with (fexp1 ex - fexp1 ey + fexp1 ey)%Z by ring.
     rewrite bpow_plus, <- Rmult_assoc, <- Rmult_minus_distr_r.
     rewrite <- Z2R_Zpower; [|omega].
     rewrite <- Z2R_mult, <- Z2R_minus.
     apply float_neq_midpoint_beta_odd.
-    apply (Rmult_le_reg_r (bpow (fexp1 ey))); [now apply bpow_gt_0|].
+    apply (Rmult_lt_reg_r (bpow (fexp1 ey))); [now apply bpow_gt_0|].
     rewrite Z2R_minus, Z2R_mult, Z2R_Zpower; [|omega].
     rewrite Rmult_0_l, Rmult_minus_distr_r; bpow_simplify.
     rewrite <- Fx, <- Fy.
-    now apply Rle_0_minus, Rlt_le.
+    now apply Rlt_Rminus.
 Qed.
 
 Lemma double_round_minus_beta_odd_aux2 :
@@ -1077,18 +1092,20 @@ destruct (Req_dec x 0) as [Zx|Nzx]; destruct (Req_dec y 0) as [Zy|Nzy].
   apply (neq_midpoint_beta_odd _ _ Vfexp1 Vfexp2 _ _ _ Py (Hfexp _)).
   rewrite Fy; unfold F2R, scaled_mantissa; simpl.
   apply float_neq_midpoint_beta_odd.
-  change 0 with (Z2R 0); apply Z2R_le.
-  rewrite <- (Ztrunc_Z2R 0); apply Ztrunc_le; simpl.
-  now apply Rmult_le_pos; [apply Rlt_le|apply bpow_ge_0].
+  apply Rmult_lt_reg_r with (bpow (canonic_exp beta fexp1 y)).
+  apply bpow_gt_0.
+  rewrite Rmult_0_l; apply Rlt_le_trans with (1:=Py).
+  right; rewrite Fy at 1; unfold F2R, scaled_mantissa; now simpl.
 - (* 0 < x, y = 0 *)
   assert (Px : 0 < x); [lra|].
   unfold Rminus; rewrite Zy, Ropp_0, Rplus_0_r.
   apply (neq_midpoint_beta_odd _ _ Vfexp1 Vfexp2 _ _ _ Px (Hfexp _)).
   rewrite Fx; unfold F2R, scaled_mantissa; simpl.
   apply float_neq_midpoint_beta_odd.
-  change 0 with (Z2R 0); apply Z2R_le.
-  rewrite <- (Ztrunc_Z2R 0); apply Ztrunc_le; simpl.
-  now apply Rmult_le_pos; [apply Rlt_le|apply bpow_ge_0].
+  apply Rmult_lt_reg_r with (bpow (canonic_exp beta fexp1 x)).
+  apply bpow_gt_0.
+  rewrite Rmult_0_l; apply Rlt_le_trans with (1:=Px).
+  right; rewrite Fx at 1; unfold F2R, scaled_mantissa; now simpl.
 - (* 0 < x, 0 < y *)
   assert (Px : 0 < x); [lra|].
   assert (Py : 0 < y); [lra|].
@@ -1305,14 +1322,15 @@ End Double_round_plus_beta_odd.
 
 Section Double_round_sqrt_beta_odd.
 
+(* argh: was forall x, but 0 may be a midpoint now *)
 Lemma sqrt_neq_midpoint :
   forall fexp : Z -> Z, Valid_exp fexp ->
-  forall x,
+  forall x, 0 < x ->
   generic_format beta fexp x ->
   sqrt x <> midp beta fexp (sqrt x).
 Proof.
-intros fexp Vfexp x Fx.
-destruct (Rle_or_lt x 0) as [Npx|Px].
+intros fexp Vfexp x Px Fx.
+(*destruct (Rle_or_lt x 0) as [Npx|Px].
 { (* x <= 0 *)
   rewrite (sqrt_neg _ Npx).
   unfold midp; rewrite round_0; [|apply valid_rnd_DN]; rewrite Rplus_0_l.
@@ -1320,12 +1338,14 @@ destruct (Rle_or_lt x 0) as [Npx|Px].
   apply (Rmult_eq_compat_l 2) in H; field_simplify in H.
   unfold Rdiv in H; rewrite Rinv_1 in H; do 2 rewrite Rmult_1_r in H.
   apply eq_sym in H.
-  revert H; apply Rgt_not_eq; apply bpow_gt_0. }
+  revert H; apply Rgt_not_eq; apply bpow_gt_0. } *)
 (* 0 < x *)
 unfold midp.
 set (r := round beta fexp Zfloor (sqrt x)).
 revert Fx.
-unfold generic_format, round, ulp, F2R, scaled_mantissa, canonic_exp; simpl.
+rewrite ulp_neq_0.
+2: now apply Rgt_not_eq, sqrt_lt_R0.
+unfold generic_format, round, F2R, scaled_mantissa, canonic_exp; simpl.
 set (m := Ztrunc (x * bpow (- fexp (ln_beta x)))).
 intro Fx.
 assert (Nnr : 0 <= r).
@@ -1633,8 +1653,9 @@ Lemma double_round_eq_mid_beta_odd_rna_aux1 :
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 x Px Hf2 Hf1.
 unfold midp.
+rewrite ulp_neq_0; try now apply Rgt_not_eq.
 set (rd := round beta fexp1 Zfloor x).
-set (u := ulp beta fexp1 x).
+set (u := bpow (fexp1 (ln_beta x))).
 intro Xmid.
 apply (Rplus_eq_compat_l (- rd)) in Xmid; ring_simplify in Xmid.
 rewrite Rplus_comm in Xmid; fold (x - rd) in Xmid.
@@ -1711,13 +1732,14 @@ destruct (Req_dec rd 0) as [Zrd|Nzrd].
         omega. }
   assert (Hl2 : ln_beta (x2 + / 2 * bpow (fexp2 (ln_beta x)))
                 = ln_beta x2 :> Z).
-  { apply (ln_beta_succ beta fexp2); [| |split].
+  { apply (ln_beta_plus_eps beta fexp2); [| |split].
     - exact Hx2_0.
     - unfold generic_format, F2R, scaled_mantissa, canonic_exp; simpl.
       rewrite Hx2_1, Hlx'', Ztrunc_floor; [exact Hx2_2|].
       now apply Rmult_le_pos; [apply Rlt_le|apply bpow_ge_0].
     - apply Rmult_le_pos; [lra|apply bpow_ge_0].
-    - unfold ulp, canonic_exp; rewrite Hx2_1; rewrite Hlx''.
+    - rewrite ulp_neq_0; try now apply Rgt_not_eq.
+      unfold canonic_exp; rewrite Hx2_1; rewrite Hlx''.
       rewrite <- Rmult_1_l; apply Rmult_lt_compat_r; [|lra].
       apply bpow_gt_0. }
   unfold round at 2, F2R, scaled_mantissa, canonic_exp; simpl.
@@ -1943,14 +1965,15 @@ destruct (Req_dec rd 0) as [Zrd|Nzrd].
   { rewrite Hx2b2.
     rewrite Hlr; rewrite Xmid'.
     rewrite Rplus_assoc.
-    apply (ln_beta_succ beta fexp1 rd Prd); [|split].
+    apply (ln_beta_plus_eps beta fexp1 rd Prd); [|split].
     - apply generic_format_round; [exact Vfexp1|apply valid_rnd_DN].
     - apply Rplus_le_le_0_compat; (apply Rmult_le_pos; [lra|apply bpow_ge_0]).
     - rewrite <- Rmult_plus_distr_l.
       apply (Rmult_lt_reg_l 2); [lra|].
       rewrite <- Rmult_assoc; replace (2 * / 2) with 1 by field;
       rewrite Rmult_1_l.
-      unfold ulp, canonic_exp; rewrite <- Hlr; change (bpow (fexp1 _)) with u.
+      rewrite ulp_neq_0; trivial.
+      unfold canonic_exp; rewrite <- Hlr; change (bpow (fexp1 _)) with u.
       rewrite Rmult_plus_distr_r; rewrite Rmult_1_l.
       apply Rplus_lt_compat_l; unfold u, ulp, canonic_exp, f2; apply bpow_lt.
       omega. }
@@ -2130,7 +2153,9 @@ destruct (Zle_or_lt (fexp1 ex) (fexp2 ex)) as [H2|H2].
     - rewrite Rmult_plus_distr_r, Rmult_1_l.
       apply Rplus_le_compat; [|now apply bpow_le; omega].
       apply Rle_trans with (bpow (fexp2 ex)); [|now apply bpow_le; omega].
-      rewrite <- (Rmult_1_l (bpow _)); unfold ulp, canonic_exp.
+      rewrite <- (Rmult_1_l (bpow _)).
+      rewrite ulp_neq_0; try now apply Rgt_not_eq.
+      unfold canonic_exp.
       rewrite Hex'; apply Rmult_le_compat_r; [apply bpow_ge_0|lra].
     - rewrite <- (Rmult_1_l (bpow (fexp1 _))).
       unfold Zminus; rewrite Zplus_comm, bpow_plus, <- Rmult_assoc.
@@ -2146,7 +2171,8 @@ destruct (Zle_or_lt (fexp1 ex) (fexp2 ex)) as [H2|H2].
   rewrite <- Rmult_plus_distr_l; apply Rmult_le_compat_l; [lra|].
   apply Rle_trans with (3 * bpow (fexp1 ex - 1)).
   + rewrite (Rmult_plus_distr_r _ 2); rewrite Rmult_1_l; apply Rplus_le_compat.
-    * apply bpow_le; unfold canonic_exp; rewrite Hex'; omega.
+    * rewrite ulp_neq_0; try now apply Rgt_not_eq.
+      apply bpow_le; unfold canonic_exp; rewrite Hex'; omega.
     * apply Rmult_le_compat_l; [lra|]; apply bpow_le; omega.
   + rewrite <- (Rmult_1_l (bpow (fexp1 _))).
     unfold Zminus; rewrite Zplus_comm, bpow_plus, <- Rmult_assoc.
