@@ -233,6 +233,18 @@ rewrite <- F2R_0 with (Fexp f).
 now apply F2R_lt_compat.
 Qed.
 
+Theorem F2R_neq_0_compat :
+ forall f : float beta,
+  (Fnum f <> 0)%Z ->
+  (F2R f <> 0)%R.
+Proof.
+intros f H H1.
+apply H.
+now apply F2R_eq_0_reg with (Fexp f).
+Qed.
+
+
+
 (** Floats and bpow *)
 Theorem F2R_bpow :
   forall e : Z,
