@@ -1496,7 +1496,7 @@ right.
 now rewrite Zmax_l with (1 := Zlt_le_weak _ _ He).
 Qed.
 
-Theorem ln_beta_round_DN :
+Theorem ln_beta_round_DN : (* TODO ln_beta_DN *)
   forall x,
   (0 < round Zfloor x)%R ->
   (ln_beta beta (round Zfloor x) = ln_beta beta x :> Z).

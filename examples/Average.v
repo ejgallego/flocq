@@ -5,6 +5,7 @@ Require Import Fourier.
 Open Scope R_scope.
 
 Section av1.
+(* TODO: bouger lemmes! *)
 
 Lemma Fnum_ge_0_compat: forall (beta : radix) (f : float beta), 
   0 <= F2R f -> (0 <= Fnum f)%Z.

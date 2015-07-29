@@ -1,6 +1,6 @@
 Version 2.5.0:
  - iter_pos?
- - LPO (?)
+
 
  - new definition of the ulp. ulp(0) is now 0 when there is no minimal
    exponent, such as in FLX, and beta^(fexp n) when there is a n such
@@ -20,11 +20,13 @@ Version 2.5.0:
    generic_format_pred, succ_le_lt, le_pred_lt, succ_pred, pred_inj,
    pred_monotone, pred_UP_eq_DN.
 
+- TODO: more examples (Average, Cody_Waite, Compute, Triangle, Division_u16)
 
 
 Version 2.4.0:
  - moved some lemmas from Fcalc_digits to Fcore_digits and made them axiom-free
  - added theorems about double rounding being innocuous (Fappli_double_round.v)
+ - added example about double rounding in odd radix
  - improved a bit the efficiency of IEEE-754 arithmetic
 
 Version 2.3.0:
