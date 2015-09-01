@@ -70,6 +70,9 @@ configure config.status: configure.in
 
 clean:
 	rm -f $(OBJS) $(EOBJS) $(MOBJS) src/*.glob examples/*.glob
+	for d in src src/Core src/Calc src/Prop src/Appli examples; do \
+	  rm -f $d/.coq-native/*.o $d/.coq-native/*.cm*; done
+	find . -type d -name ".coq-native" -empty -prune -exec rmdir "{}" \;
 
 html/index.html: $(OBJS)
 	rm -rf html
@@ -86,6 +89,7 @@ install:
 	mkdir -p @libdir@
 	for d in Core Calc Prop Appli; do mkdir -p @libdir@/$d; done
 	for f in $(OBJS); do cp $f @libdir@/${f#src/}; done
+	( cd src && find . -type d -name ".coq-native" -exec cp -RT "{}" "@libdir@/{}" \; )
 
 EXTRA_DIST = \
 	configure
