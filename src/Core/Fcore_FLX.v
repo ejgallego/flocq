@@ -221,6 +221,33 @@ intros (n,(H1,H2)); contradict H2.
 unfold FLX_exp; unfold Prec_gt_0 in prec_gt_0_; omega.
 Qed.
 
+Theorem ulp_FLX_le: forall x, (ulp beta FLX_exp x <= Rabs x * bpow (1-prec))%R.
+Proof.
+intros x; case (Req_dec x 0); intros Hx.
+rewrite Hx, ulp_FLX_0, Rabs_R0.
+right; ring.
+rewrite ulp_neq_0; try exact Hx.
+unfold canonic_exp, FLX_exp.
+replace (ln_beta beta x - prec)%Z with ((ln_beta beta x - 1) + (1-prec))%Z by ring.
+rewrite bpow_plus.
+apply Rmult_le_compat_r.
+apply bpow_ge_0.
+now apply bpow_ln_beta_le.
+Qed.
+
+
+Theorem ulp_FLX_ge: forall x, (Rabs x * bpow (-prec) <= ulp beta FLX_exp x)%R.
+Proof.
+intros x; case (Req_dec x 0); intros Hx.
+rewrite Hx, ulp_FLX_0, Rabs_R0.
+right; ring.
+rewrite ulp_neq_0; try exact Hx.
+unfold canonic_exp, FLX_exp.
+unfold Zminus; rewrite bpow_plus.
+apply Rmult_le_compat_r.
+apply bpow_ge_0.
+left; now apply bpow_ln_beta_gt.
+Qed.
 
 (** FLX is a nice format: it has a monotone exponent... *)
 Global Instance FLX_exp_monotone : Monotone_exp FLX_exp.

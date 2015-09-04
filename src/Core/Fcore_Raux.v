@@ -1951,6 +1951,16 @@ destruct (ln_beta x) as (ex, Ex) ; simpl.
 now apply Ex.
 Qed.
 
+Theorem bpow_ln_beta_le :
+  forall x, (x <> 0)%R ->
+    (bpow (ln_beta x-1) <= Rabs x)%R.
+Proof.
+intros x Hx.
+destruct (ln_beta x) as (ex, Ex) ; simpl.
+now apply Ex.
+Qed.
+
+
 Theorem ln_beta_le_Zpower :
   forall m e,
   m <> Z0 ->

@@ -257,6 +257,48 @@ apply Rle_lt_trans with (2:=Hx).
 now apply He.
 Qed.
 
+Theorem ulp_FLT_le: forall x, (bpow (emin+prec) <= Rabs x)%R ->
+  (ulp beta FLT_exp x <= Rabs x * bpow (1-prec))%R.
+Proof.
+intros x Hx.
+assert (x <> 0)%R.
+intros Z; contradict Hx; apply Rgt_not_le, Rlt_gt.
+rewrite Z, Rabs_R0; apply bpow_gt_0.
+rewrite ulp_neq_0; try assumption.
+unfold canonic_exp, FLT_exp.
+destruct (ln_beta beta x) as (e,He).
+apply Rle_trans with (bpow (e-1)*bpow (1-prec))%R.
+rewrite <- bpow_plus.
+right; apply f_equal.
+apply trans_eq with (e-prec)%Z;[idtac|ring].
+simpl; apply Z.max_l.
+assert (emin+prec <= e)%Z; try omega.
+apply le_bpow with beta.
+apply Rle_trans with (1:=Hx).
+left; now apply He.
+apply Rmult_le_compat_r.
+apply bpow_ge_0.
+now apply He.
+Qed.
+
+
+Theorem ulp_FLT_ge: forall x, (Rabs x * bpow (-prec) < ulp beta FLT_exp x)%R.
+Proof.
+intros x; case (Req_dec x 0); intros Hx.
+rewrite Hx, ulp_FLT_small, Rabs_R0, Rmult_0_l; try apply bpow_gt_0.
+rewrite Rabs_R0; apply bpow_gt_0.
+rewrite ulp_neq_0; try exact Hx.
+unfold canonic_exp, FLT_exp.
+apply Rlt_le_trans with (bpow (ln_beta beta x)*bpow (-prec))%R.
+apply Rmult_lt_compat_r.
+apply bpow_gt_0.
+now apply bpow_ln_beta_gt.
+rewrite <- bpow_plus.
+apply bpow_le.
+apply Z.le_max_l.
+Qed.
+
+
 
 (** FLT is a nice format: it has a monotone exponent... *)
 Global Instance FLT_exp_monotone : Monotone_exp FLT_exp.
