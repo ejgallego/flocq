@@ -199,12 +199,12 @@ Theorem ulp_FTZ_0: ulp beta FTZ_exp 0 = bpow (emin+prec-1).
 Proof with auto with typeclass_instances.
 unfold ulp; rewrite Req_bool_true; trivial.
 case (negligible_exp_spec FTZ_exp).
-intros (_,T); specialize (T (emin-1)%Z); contradict T.
+intros T; specialize (T (emin-1)%Z); contradict T.
 apply Zle_not_lt; unfold FTZ_exp; unfold Prec_gt_0 in prec_gt_0_.
 rewrite Zlt_bool_true; omega.
 assert (V:(FTZ_exp (emin+prec-1) = emin+prec-1)%Z).
 unfold FTZ_exp; rewrite Zlt_bool_true; omega.
-intros (n,(H1,H2)); rewrite H1, <-V.
+intros n H2; rewrite <-V.
 apply f_equal, fexp_negligible_exp_eq...
 omega.
 Qed.

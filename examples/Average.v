@@ -233,7 +233,7 @@ case (Req_bool_spec u 0); intros Hu'.
 rewrite Hu', Rmult_0_r.
 rewrite <- (Rmult_1_l (ulp_flt 0)) at 1.
 apply Rmult_le_compat_r.
-apply ulp_pos.
+apply ulp_ge_0.
 left; apply Rlt_plus_1.
 rewrite 2!ulp_neq_0; trivial.
 2: apply Rmult_integral_contrapositive_currified; trivial.
@@ -312,7 +312,7 @@ split; trivial.
 apply Rle_trans with (1:=Hh).
 rewrite <- (Rmult_1_l (ulp_flt f)) at 2.
 apply Rmult_le_compat_r.
-apply ulp_pos.
+apply ulp_ge_0.
 fourier.
 apply Rplus_lt_reg_l with (-f); ring_simplify.
 apply Rlt_le_trans with (/2*ulp_flt f).
@@ -345,7 +345,7 @@ apply Rle_ge; now left.
 assert (T1:(ulp_flt (pred_flt f) = ulp_flt f) 
      \/ ( ulp_flt (pred_flt f) = /2* ulp_flt f 
                /\ f = bpow (ln_beta radix2 f -1))).
-generalize H; rewrite pred_pos_eq; [idtac|now left].
+generalize H; rewrite pred_eq_pos; [idtac|now left].
 unfold pred_pos; case Req_bool_spec; intros K HH.
 (**)
 right; split; try assumption.
@@ -402,7 +402,7 @@ contradict H0.
 now apply sym_not_eq.
 apply Rle_ge; now left.
 assert (bpow (ln_beta radix2 f -1) + ulp_flt (bpow (ln_beta radix2 f-1)) <= f).
-rewrite <- succ_pos_eq;[idtac|apply bpow_ge_0].
+rewrite <- succ_eq_pos;[idtac|apply bpow_ge_0].
 apply succ_le_lt...
 apply FLT_format_bpow...
 unfold Prec_gt_0 in prec_gt_0_;omega.
@@ -464,13 +464,13 @@ auto with real.
 apply Rle_trans with (1:=Hh).
 apply Rle_trans with (/2*ulp_flt f).
 apply Rmult_le_compat_r.
-apply ulp_pos.
+apply ulp_ge_0.
 fourier.
 case H0.
 intros Y; rewrite Y.
 rewrite <- (Rmult_1_l (ulp_flt f)) at 2.
 apply Rmult_le_compat_r.
-apply ulp_pos.
+apply ulp_ge_0.
 fourier.
 intros Y; rewrite (proj1 Y); now right.
 replace (f+h) with (pred_flt f + (f-pred_flt f+h)) by ring.
@@ -489,11 +489,11 @@ fourier.
 apply Rlt_le_trans with (1:=Y2).
 rewrite Y1.
 apply Rmult_le_compat_r.
-apply ulp_pos.
+apply ulp_ge_0.
 fourier.
 apply Rplus_le_reg_l with (-ulp_flt (pred_flt f)); ring_simplify.
 now left.
-rewrite pred_pos_eq; try now left.
+rewrite pred_eq_pos; try now left.
 pattern f at 2; rewrite <- (pred_pos_plus_ulp radix2 (FLT_exp emin prec) f)...
 ring.
 apply Rplus_lt_reg_l with (-f); ring_simplify.
@@ -501,7 +501,7 @@ apply Rle_lt_trans with (-(/2 * ulp_flt (pred_flt f))).
 right.
 apply trans_eq with ((pred_flt f - f) / 2).
 field.
-rewrite pred_pos_eq; try now left.
+rewrite pred_eq_pos; try now left.
 pattern f at 2; rewrite <- (pred_pos_plus_ulp radix2 (FLT_exp emin prec) f)...
 field.
 replace h with (--h) by ring.
@@ -518,7 +518,7 @@ right; field.
 (* complex case: even choosing *)
 elim H0; intros  T1 (T2,T3); clear H0.
 assert (pred_flt f = bpow (ln_beta radix2 f - 1) - bpow (ln_beta radix2 f - 1 -prec)).
-rewrite pred_pos_eq; try now left.
+rewrite pred_eq_pos; try now left.
 unfold pred_pos; case Req_bool_spec.
 intros _; rewrite <- T2.
 apply f_equal, f_equal.
@@ -534,7 +534,7 @@ split.
 auto with real.
 rewrite T3, T1.
 apply Rmult_le_compat_r.
-apply ulp_pos.
+apply ulp_ge_0.
 fourier.
 assert (round radix2 (FLT_exp emin prec) Zceil (f+h) = f).
 replace (f+h) with (pred_flt f + /2*ulp_flt (pred_flt f)).
@@ -546,7 +546,7 @@ rewrite ulp_neq_0; try now apply Rgt_not_eq.
 apply bpow_gt_0.
 rewrite <- (Rmult_1_l (ulp_flt (pred_flt f))) at 2.
 apply Rmult_le_compat_r.
-apply ulp_pos.
+apply ulp_ge_0.
 fourier.
 rewrite T1, H0, <- T2.
 replace h with (--h) by ring; rewrite T3.
@@ -608,7 +608,7 @@ reflexivity.
 rewrite H5, H4.
 pattern f at 1; rewrite <- (pred_pos_plus_ulp radix2 (FLT_exp emin prec) f); try assumption.
 ring_simplify.
-rewrite <- pred_pos_eq;[idtac|now left].
+rewrite <- pred_eq_pos;[idtac|now left].
 rewrite T1.
 replace h with (--h) by ring.
 rewrite T3.
@@ -766,7 +766,7 @@ Lemma average1_correct_weak2: Rabs (av -a) <= 3/2*ulp_flt a.
 Proof with auto with typeclass_instances.
 apply Rle_trans with (1:=average1_correct_weak1).
 apply Rmult_le_compat_r.
-unfold ulp; apply ulp_pos.
+unfold ulp; apply ulp_ge_0.
 apply Rle_trans with (1/2); unfold Rdiv.
 right; ring.
 apply Rmult_le_compat_r.
@@ -1019,7 +1019,7 @@ case (round_DN_or_UP radix2 (FLT_exp emin prec) ZnearestE (y-x));
 apply Rplus_le_reg_l with (-round radix2 (FLT_exp emin prec) Zfloor (y - x)).
 ring_simplify.
 now left.
-rewrite ulp_DN_UP.
+rewrite round_UP_DN_ulp.
 apply Rplus_le_reg_l with (-round radix2 (FLT_exp emin prec) Zfloor (y - x)); ring_simplify.
 apply round_DN_pt...
 apply generic_format_ulp...
@@ -1739,7 +1739,7 @@ apply Rmult_le_pos.
 apply Rmult_le_pos.
 apply Fourier_util.Rle_zero_pos_plus1; now auto with real.
 now auto with real.
-apply ulp_pos.
+apply ulp_ge_0.
 Qed.
 
 

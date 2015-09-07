@@ -219,7 +219,7 @@ destruct (Req_dec x' 0) as [Zx'|Nzx'].
   assert (/ 2 * ulp beta fexp1 x <= ulp beta fexp1 x).
   rewrite <- (Rmult_1_l (ulp _ _ _)) at 2.
   apply Rmult_le_compat_r; [|lra].
-  apply ulp_pos.
+  apply ulp_ge_0.
   rewrite 2!ulp_neq_0 in Hx2;[|now apply Rgt_not_eq|now apply Rgt_not_eq].
   rewrite ulp_neq_0 in Hx';[|now apply Rgt_not_eq].
   rewrite ulp_neq_0 in H;[|now apply Rgt_not_eq].
@@ -825,7 +825,7 @@ split.
   apply Rle_trans with (bpow (ln_beta x - 1)
                         + ulp beta fexp (bpow (ln_beta x - 1))).
   + now apply Rplus_le_compat_l; apply Rlt_le.
-  + rewrite <- succ_pos_eq;[idtac|apply bpow_ge_0].
+  + rewrite <- succ_eq_pos;[idtac|apply bpow_ge_0].
     apply succ_le_lt; [apply Vfexp|idtac|exact Fx|assumption].
     apply (generic_format_bpow beta fexp (ln_beta x - 1)).
     replace (_ + _)%Z with (ln_beta x : Z) by ring.
@@ -2561,7 +2561,7 @@ destruct (generic_format_EM beta fexp1 x) as [Fx|Nfx].
   now apply (generic_inclusion_ln_beta beta fexp1); [omega|].
 - (* ~ generic_format beta fexp1 x *)
   assert (Hceil : round beta fexp1 Zceil x = rd + u1);
-  [now apply ulp_DN_UP|].
+  [now apply round_UP_DN_ulp|].
   assert (Hf2' : (fexp2 (ln_beta x) <= fexp1 (ln_beta x) - 1)%Z); [omega|].
   destruct (Rlt_or_le (x - rd) (/ 2 * (u1 - u2))).
   + (* x - rd < / 2 * (u1 - u2) *)
@@ -3751,7 +3751,7 @@ destruct (Ztrichotomy (ln_beta x) (fexp1 (ln_beta x) - 1)) as [Hlt|[Heq|Hgt]].
           now apply (generic_inclusion_ln_beta beta fexp1); [omega|].
         - (* ~ generic_format beta fexp1 x *)
           assert (Hceil : round beta fexp1 Zceil x = x' + u1);
-          [now apply ulp_DN_UP|].
+          [now apply round_UP_DN_ulp|].
           assert (Hf2' : (fexp2 (ln_beta x) <= fexp1 (ln_beta x) - 1)%Z);
             [omega|].
           assert (midp' fexp1 x + / 2 * ulp beta fexp2 x < x);

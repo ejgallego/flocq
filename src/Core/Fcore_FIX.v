@@ -90,9 +90,9 @@ Proof.
 intros x; unfold ulp.
 case Req_bool_spec; intros Zx.
 case (negligible_exp_spec FIX_exp).
-intros (_,T); specialize (T (emin-1)%Z); contradict T.
+intros T; specialize (T (emin-1)%Z); contradict T.
 unfold FIX_exp; omega.
-intros (n,(H1,_)); rewrite H1; reflexivity.
+intros n _; reflexivity.
 reflexivity.
 Qed.
 

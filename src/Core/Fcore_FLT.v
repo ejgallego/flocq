@@ -238,13 +238,13 @@ intros x Hx.
 unfold ulp; case Req_bool_spec; intros Hx2.
 (* x = 0 *)
 case (negligible_exp_spec FLT_exp).
-intros (_,T); specialize (T (emin-1)%Z); contradict T.
+intros T; specialize (T (emin-1)%Z); contradict T.
 apply Zle_not_lt; unfold FLT_exp.
 apply Zle_trans with (2:=Z.le_max_r _ _); omega.
 assert (V:FLT_exp emin = emin).
 unfold FLT_exp; apply Z.max_r.
 unfold Prec_gt_0 in prec_gt_0_; omega.
-intros (n,(H1,H2)); rewrite H1, <-V.
+intros n H2; rewrite <-V.
 apply f_equal, fexp_negligible_exp_eq...
 omega.
 (* x <> 0 *)

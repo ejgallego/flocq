@@ -164,7 +164,7 @@ now apply Rlt_le.
 assert (Hxe2 : (fexp (ex + 1) <= ex)%Z) by now apply valid_exp.
 assert (Hud: (F2R xu = F2R xd + ulp beta fexp x)%R).
 rewrite Hxu, Hxd.
-now apply ulp_DN_UP.
+now apply round_UP_DN_ulp.
 destruct (total_order_T (bpow ex) (F2R xu)) as [[Hu2|Hu2]|Hu2].
 (* - xu > bpow ex  *)
 elim (Rlt_not_le _ _ Hu2).

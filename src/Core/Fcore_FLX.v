@@ -216,8 +216,8 @@ Theorem ulp_FLX_0: (ulp beta FLX_exp 0 = 0)%R.
 Proof.
 unfold ulp; rewrite Req_bool_true; trivial.
 case (negligible_exp_spec FLX_exp).
-intros (H1,H2); now rewrite H1.
-intros (n,(H1,H2)); contradict H2.
+intros _; reflexivity.
+intros n H2; contradict H2.
 unfold FLX_exp; unfold Prec_gt_0 in prec_gt_0_; omega.
 Qed.
 

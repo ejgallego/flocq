@@ -344,7 +344,7 @@ assert (Hf2f1' : (fexp2 (ln_beta x) <= fexp1 (ln_beta x))%Z) by omega.
 assert (NF1x : ~ generic_format beta fexp1 x).
 { now intro H; apply NF2x, (generic_inclusion_ln_beta _ fexp1). }
 assert (Hrx1c : rx1c = rx1 + ulp beta fexp1 x).
-{ now apply ulp_DN_UP. }
+{ now apply round_UP_DN_ulp. }
 rewrite ulp_neq_0 in Hrx1c; try now apply Rgt_not_eq.
 destruct (midpoint_beta_odd_remains rx1 Nnrx1 ex1 ex2 Hf2f1' Hrx1)
   as (rx2,(Nnrx2, (Hrx2, Hrx12))).
@@ -545,7 +545,7 @@ destruct (Rle_or_lt x (midp beta fexp1 x)) as [H1|H1].
     now apply neq_midpoint_beta_odd_aux1; [| | | |split].
 - (* midp fexp1 x < x *)
   assert (Hm : midp' beta fexp1 x = midp beta fexp1 x).
-  { now unfold midp', midp; rewrite ulp_DN_UP; [field|]. }
+  { now unfold midp', midp; rewrite round_UP_DN_ulp; [field|]. }
   destruct (Zle_or_lt (fexp1 (ln_beta x)) (fexp2 (ln_beta x))) as [H3|H3].
   + (* fexp2 (ln_beta x) = fexp1 (ln_beta x) *)
     assert (H3' : fexp2 (ln_beta x) = fexp1 (ln_beta x));
