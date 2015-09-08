@@ -596,7 +596,7 @@ destruct (Zle_or_lt (fexp1 ex) (fexp2 ex)) as [H2|H2].
     now rewrite Zr2, round_0; [|apply valid_rnd_N]. }
   (* r2 <> 0 *)
   assert (B1 : Rabs (r2 - x) <= / 2 * ulp beta fexp2 x);
-    [now apply ulp_half_error|].
+    [now apply error_le_half_ulp|].
   rewrite ulp_neq_0 in B1; try now apply Rgt_not_eq.
   unfold round, F2R, scaled_mantissa, canonic_exp; simpl.
   apply (Rmult_eq_reg_r (bpow (- fexp1 (ln_beta r2))));
@@ -2120,7 +2120,7 @@ destruct (Zle_or_lt (fexp1 ex) (fexp2 ex)) as [H2|H2].
     now rewrite Zr2, round_0; [|apply valid_rnd_N]. }
   (* r2 <> 0 *)
   assert (B1 : Rabs (r2 - x) <= / 2 * ulp beta fexp2 x);
-    [now apply ulp_half_error|].
+    [now apply error_le_half_ulp|].
   unfold round, F2R, scaled_mantissa, canonic_exp; simpl.
   apply (Rmult_eq_reg_r (bpow (- fexp1 (ln_beta r2))));
     [|now apply Rgt_not_eq, bpow_gt_0].

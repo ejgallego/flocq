@@ -759,7 +759,7 @@ Qed.
 Lemma average1_correct_weak1: Rabs (av -a) <= /2*ulp_flt a.
 Proof with auto with typeclass_instances.
 rewrite average1_correct.
-apply ulp_half_error...
+apply error_le_half_ulp...
 Qed.
 
 Lemma average1_correct_weak2: Rabs (av -a) <= 3/2*ulp_flt a.
@@ -1537,7 +1537,7 @@ rewrite L, Rplus_0_l; assumption.
 (* . initial lemma *)
 assert (Y:(Rabs (round_flt (v - u) - (v-u)) <= ulp_flt b)).
 apply Rle_trans with (/2*ulp_flt (v-u)).
-apply ulp_half_error...
+apply error_le_half_ulp...
 apply Rmult_le_reg_l with 2.
 now auto with real.
 rewrite <- Rmult_assoc, Rinv_r, Rmult_1_l.
@@ -1587,7 +1587,7 @@ apply Rle_trans with (1:=Rabs_triang _ _).
 apply Rle_trans with (ulp_flt b+/2*ulp_flt b);[idtac|right; field].
 apply Rplus_le_compat.
 apply Rle_trans with (/2*ulp_flt (u + round_flt (v - u) / 2)).
-apply ulp_half_error...
+apply error_le_half_ulp...
 apply Rmult_le_reg_l with 2.
 auto with real.
 rewrite <- Rmult_assoc, Rinv_r, Rmult_1_l.
@@ -1670,7 +1670,7 @@ replace (u + round_flt ((v-u) / 2)) with (b+((round_flt ((v-u) / 2) - (v-u)/2)))
 pose (eps:=(round_flt ((v - u) / 2) - (v - u) / 2)%R); fold eps.
 assert (Rabs eps <= /2*bpow emin).
 unfold eps.
-apply Rle_trans with (1:=ulp_half_error _ _ _ _)...
+apply Rle_trans with (1:=error_le_half_ulp _ _ _ _)...
 right; apply f_equal.
 apply ulp_FLT_small...
 rewrite Zplus_comm; apply Rle_lt_trans with (2:=H1).
@@ -1688,7 +1688,7 @@ replace (round_flt (b + eps) - b) with ((round_flt (b+eps) -(b+eps)) + eps) by r
 apply Rle_trans with (1:=Rabs_triang _ _).
 apply Rle_trans with (/2*ulp_flt (b+eps) + /2*bpow emin).
 apply Rplus_le_compat.
-apply ulp_half_error...
+apply error_le_half_ulp...
 assumption.
 apply Rmult_le_reg_l with 2.
 now auto with real.

@@ -74,7 +74,7 @@ assert (Hx2 : x - round beta fexp1 Zfloor x
 set (x'' := round beta fexp2 (Znearest choice2) x).
 assert (Hr1 : Rabs (x'' - x) <= / 2 * bpow (fexp2 (ln_beta x))).
 apply Rle_trans with (/ 2 * ulp beta fexp2 x).
-now unfold x''; apply ulp_half_error...
+now unfold x''; apply error_le_half_ulp...
 rewrite ulp_neq_0;[now right|now apply Rgt_not_eq].
 assert (Pxx' : 0 <= x - x').
 { apply Rle_0_minus.
@@ -332,7 +332,7 @@ set (x'' := round beta fexp2 (Znearest choice2) x).
 intros Hx1 Hx2.
 assert (Hr1 : Rabs (x'' - x) <= / 2 * bpow (fexp2 (ln_beta x))).
   apply Rle_trans with (/2* ulp beta fexp2 x).
-  now unfold x''; apply ulp_half_error...
+  now unfold x''; apply error_le_half_ulp...
   rewrite ulp_neq_0;[now right|now apply Rgt_not_eq].
 assert (Px'x : 0 <= x' - x).
 { apply Rle_0_minus.
@@ -436,7 +436,7 @@ assert (Hx''pow : x'' = bpow (ln_beta x)).
   { apply Rle_lt_trans with (x + / 2 * ulp beta fexp2 x).
     - apply (Rplus_le_reg_r (- x)); ring_simplify.
       apply Rabs_le_inv.
-      apply ulp_half_error.
+      apply error_le_half_ulp.
       exact Vfexp2.
     - apply Rplus_lt_compat_r.
       rewrite <- Rabs_right at 1; [|now apply Rle_ge; apply Rlt_le].
@@ -462,7 +462,7 @@ assert (Hx''pow : x'' = bpow (ln_beta x)).
 assert (Hr : Rabs (x - x'') < / 2 * ulp beta fexp1 x).
 { apply Rle_lt_trans with (/ 2 * ulp beta fexp2 x).
   - rewrite Rabs_minus_sym.
-    apply ulp_half_error.
+    apply error_le_half_ulp.
     exact Vfexp2.
   - apply Rmult_lt_compat_l; [lra|].
     rewrite 2!ulp_neq_0; try now apply Rgt_not_eq.
@@ -2814,7 +2814,7 @@ destruct (Req_dec a 0) as [Za|Nza].
   + now apply Rle_trans with x.
 Qed.
 
-(* --> Fcore_Raux *)
+(* TODO --> Fcore_Raux *)
 Lemma sqrt_neg : forall x, x <= 0 -> sqrt x = 0.
 Proof.
 intros x Npx.
@@ -3694,7 +3694,7 @@ split.
   replace (bpow _) with (bpow (ln_beta x) - / 2 * u2 + / 2 * u2) by ring.
   apply Rplus_lt_le_compat; [exact Hx|].
   apply Rabs_le_inv.
-  now apply ulp_half_error.
+  now apply error_le_half_ulp.
 Qed.
 
 Lemma double_round_all_mid_cases :

@@ -119,7 +119,7 @@ assert (Hx': (x <> 0)%R).
 intros T; contradict Hx; rewrite T, Rabs_R0.
 apply Rlt_not_le, bpow_gt_0.
 apply Rlt_le_trans with (ulp beta fexp x)%R.
-now apply ulp_error...
+now apply error_lt_ulp...
 rewrite ulp_neq_0; trivial.
 unfold canonic_exp.
 destruct (ln_beta beta x) as (ex, He).
@@ -200,7 +200,7 @@ assert (Hx': (x <> 0)%R).
 intros T; contradict Hx; rewrite T, Rabs_R0.
 apply Rlt_not_le, bpow_gt_0.
 apply Rlt_le_trans with (ulp beta fexp x)%R.
-now apply ulp_error.
+now apply error_lt_ulp.
 rewrite ulp_neq_0; trivial.
 unfold canonic_exp.
 destruct (ln_beta beta x) as (ex, He).
@@ -255,7 +255,7 @@ Theorem relative_error_N :
 Proof.
 intros x Hx.
 apply Rle_trans with (/2 * ulp beta fexp x)%R.
-now apply ulp_half_error.
+now apply error_le_half_ulp.
 rewrite Rmult_assoc.
 apply Rmult_le_compat_l.
 apply Rlt_le.
@@ -347,7 +347,7 @@ Theorem relative_error_N_round :
 Proof with auto with typeclass_instances.
 intros Hp x Hx.
 apply Rle_trans with (/2 * ulp beta fexp x)%R.
-now apply ulp_half_error.
+now apply error_le_half_ulp.
 rewrite Rmult_assoc.
 apply Rmult_le_compat_l.
 apply Rlt_le.
@@ -682,7 +682,7 @@ auto with real.
 apply bpow_ge_0.
 split.
 apply Rle_trans with (/2*ulp beta (FLT_exp emin prec) x)%R.
-apply ulp_half_error.
+apply error_le_half_ulp.
 now apply FLT_exp_valid.
 apply Rmult_le_compat_l; auto with real.
 rewrite ulp_neq_0.

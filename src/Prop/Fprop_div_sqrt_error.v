@@ -135,7 +135,7 @@ now apply Rabs_pos_lt.
 rewrite Rabs_Ropp.
 replace (bpow (Fexp fr)) with (ulp beta (FLX_exp prec) (F2R fr)).
 rewrite <- Hr1.
-apply ulp_error_f...
+apply error_lt_ulp_round...
 apply Rmult_integral_contrapositive_currified; try apply Rinv_neq_0_compat; assumption.
 rewrite ulp_neq_0.
 2: now rewrite <- Hr1.
@@ -249,7 +249,7 @@ apply Rmult_le_compat_r.
 apply Rabs_pos.
 apply Rle_trans with (/2*ulp beta  (FLX_exp prec) (F2R fr))%R.
 rewrite <- Hr1.
-apply ulp_half_error_f...
+apply error_le_half_ulp_round...
 right; rewrite ulp_neq_0.
 2: now rewrite <- Hr1.
 apply f_equal.

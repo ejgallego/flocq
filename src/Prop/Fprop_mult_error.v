@@ -126,7 +126,7 @@ apply Zplus_le_compat_r.
 rewrite ln_beta_unique with (1 := Hexy).
 apply ln_beta_le_bpow with (1 := Hz).
 replace (bpow (exy - prec)) with (ulp beta (FLX_exp prec) (x * y)).
-apply ulp_error...
+apply error_lt_ulp...
 rewrite ulp_neq_0; trivial.
 unfold canonic_exp.
 now rewrite ln_beta_unique with (1 := Hexy).
