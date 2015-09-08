@@ -381,7 +381,7 @@ rewrite Ropp_0; ring.
 now rewrite 2!Ropp_involutive.
 Qed.
 
-Theorem succ_eq_pos: (* TODO succ_eq_pos *)
+Theorem succ_eq_pos:
   forall x, (0 <= x)%R -> (succ x = x + ulp x)%R.
 Proof.
 intros x Hx; unfold succ.
@@ -2046,7 +2046,7 @@ Qed.
 
 (** Properties of rounding to nearest and ulp *)
 
-Theorem rnd_N_le_half: forall choice u v, (* TODO round_N_le_midp *)
+Theorem round_N_le_midp: forall choice u v,
   F u -> (v < (u + succ u)/2)%R
       -> (round beta fexp (Znearest choice)  v <= u)%R.
 Proof with auto with typeclass_instances.
@@ -2099,7 +2099,7 @@ right; field.
 Qed.
 
 
-Theorem rnd_N_ge_half: forall choice u v, (* TODO round_N_ge_midp *)
+Theorem round_N_ge_midp: forall choice u v,
  F u ->  ((u + pred u)/2 < v)%R
       -> (u <= round beta fexp (Znearest choice)  v)%R.
 Proof with auto with typeclass_instances.
@@ -2108,7 +2108,7 @@ rewrite <- (Ropp_involutive v).
 rewrite round_N_opp.
 rewrite <- (Ropp_involutive u).
 apply Ropp_le_contravar.
-apply rnd_N_le_half.
+apply round_N_le_midp.
 now apply generic_format_opp.
 apply Ropp_lt_cancel.
 rewrite Ropp_involutive.
@@ -2118,7 +2118,7 @@ right; field.
 Qed.
 
 
-Lemma betw_eq_N_DN: forall choice x, (* TODO round_N_eq_DN  *)
+Lemma round_N_eq_DN: forall choice x,
        let d:=round beta fexp Zfloor x in
        let u:=round beta fexp Zceil x in
       (x<(d+u)/2)%R ->
@@ -2129,7 +2129,7 @@ apply Rle_antisym.
 destruct (generic_format_EM beta fexp x) as [Fx|Fx].
 rewrite round_generic...
 apply round_DN_pt; trivial; now right.
-apply rnd_N_le_half.
+apply round_N_le_midp.
 apply round_DN_pt...
 apply Rlt_le_trans with (1:=H).
 right; apply f_equal2; trivial; apply f_equal.
@@ -2137,7 +2137,7 @@ now apply sym_eq, succ_DN_eq_UP.
 apply round_ge_generic; try apply round_DN_pt...
 Qed.
 
-Lemma betw_eq_N_DN': forall choice x d u, (* TODO round_N_eq_DN_pt  *)
+Lemma round_N_eq_DN_pt: forall choice x d u,
       Rnd_DN_pt F x d -> Rnd_UP_pt F x u ->
       (x<(d+u)/2)%R ->
      round beta fexp (Znearest choice) x = d.
@@ -2147,13 +2147,13 @@ assert (H0:(d = round beta fexp Zfloor x)%R).
 apply Rnd_DN_pt_unicity with (1:=Hd).
 apply round_DN_pt...
 rewrite H0.
-apply betw_eq_N_DN.
+apply round_N_eq_DN.
 rewrite <- H0.
 rewrite Rnd_UP_pt_unicity with F x (round beta fexp Zceil x) u; try assumption.
 apply round_UP_pt...
 Qed.
 
-Lemma betw_eq_N_UP: forall choice x,(* TODO round_N_eq_UP  *)
+Lemma round_N_eq_UP: forall choice x,
       let d:=round beta fexp Zfloor x in
       let u:=round beta fexp Zceil x in
      ((d+u)/2 < x)%R ->
@@ -2165,14 +2165,14 @@ apply round_le_generic; try apply round_UP_pt...
 destruct (generic_format_EM beta fexp x) as [Fx|Fx].
 rewrite round_generic...
 apply round_UP_pt; trivial; now right.
-apply rnd_N_ge_half.
+apply round_N_ge_midp.
 apply round_UP_pt...
 apply Rle_lt_trans with (2:=H).
 right; apply f_equal2; trivial; rewrite Rplus_comm; apply f_equal2; trivial.
 now apply pred_UP_eq_DN.
 Qed.
 
-Lemma betw_eq_N_UP': forall choice x d u,(* TODO round_N_eq_UP_pt  *)
+Lemma round_N_eq_UP_pt: forall choice x d u,
       Rnd_DN_pt F x d -> Rnd_UP_pt F x u ->
       ((d+u)/2 < x)%R ->
      round beta fexp (Znearest choice) x = u.
@@ -2182,7 +2182,7 @@ assert (H0:(u = round beta fexp Zceil x)%R).
 apply Rnd_UP_pt_unicity with (1:=Hu).
 apply round_UP_pt...
 rewrite H0.
-apply betw_eq_N_UP.
+apply round_N_eq_UP.
 rewrite <- H0.
 rewrite Rnd_DN_pt_unicity with F x (round beta fexp Zfloor x) d; try assumption.
 apply round_DN_pt...
