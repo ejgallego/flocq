@@ -478,7 +478,7 @@ Qed.
 
 
 
-Lemma generic_format_pred_1: (* TODO aux *)
+Lemma generic_format_pred_aux1:
   forall x, (0 < x)%R -> F x ->
   x <> bpow (ln_beta beta x - 1) ->
   F (x - ulp x).
@@ -543,7 +543,7 @@ omega.
 now apply Rgt_not_eq.
 Qed.
 
-Lemma generic_format_pred_2 :(* TODO aux *)
+Lemma generic_format_pred_aux2 :
   forall x, (0 < x)%R -> F x ->
   let e := ln_beta_val beta x (ln_beta beta x) in
   x =  bpow (e - 1) ->
@@ -608,7 +608,7 @@ ring.
 Qed.
 
 
-Theorem generic_format_succ_1 : (* TODO aux *)
+Theorem generic_format_succ_aux1 :
   forall x, (0 < x)%R -> F x ->
   F (x + ulp x).
 Proof.
@@ -673,8 +673,8 @@ Theorem generic_format_pred_pos :
 Proof.
 intros x Fx Zx.
 unfold pred_pos; case Req_bool_spec; intros H.
-now apply generic_format_pred_2.
-now apply generic_format_pred_1.
+now apply generic_format_pred_aux2.
+now apply generic_format_pred_aux1.
 Qed.
 
 
@@ -685,7 +685,7 @@ Proof.
 intros x Fx.
 unfold succ; case Rle_bool_spec; intros Zx.
 destruct Zx as [Zx|Zx].
-now apply generic_format_succ_1.
+now apply generic_format_succ_aux1.
 rewrite <- Zx, Rplus_0_l.
 apply generic_format_ulp_0.
 apply generic_format_opp.
@@ -857,7 +857,7 @@ pattern x at 2 ; rewrite <- Rplus_0_r.
 now apply Rplus_lt_compat_l.
 rewrite Heps2.
 apply round_generic...
-now apply generic_format_succ_1.
+now apply generic_format_succ_aux1.
 (* . x=0 *)
 rewrite <- Zx1, 2!Rplus_0_l.
 intros Heps.
@@ -1000,7 +1000,7 @@ now left.
 Qed.
 
 
-Lemma pred_pos_plus_ulp_1 : (* TODO aux *)
+Lemma pred_pos_plus_ulp_aux1 :
   forall x, (0 < x)%R -> F x ->
   x <> bpow (ln_beta beta x - 1) ->
   ((x - ulp x) + ulp (x-ulp x) = x)%R.
@@ -1065,7 +1065,7 @@ now rewrite <- Fx.
 Qed.
 
 
-Lemma pred_pos_plus_ulp_2 : (* TODO aux *)
+Lemma pred_pos_plus_ulp_aux2 :
   forall x, (0 < x)%R -> F x ->
   let e := ln_beta_val beta x (ln_beta beta x) in
   x =  bpow (e - 1) ->
@@ -1120,7 +1120,7 @@ contradict Zp.
 rewrite Hxe, He; ring.
 Qed.
 
-Lemma pred_pos_plus_ulp_3 : (* TODO aux *)
+Lemma pred_pos_plus_ulp_aux3 :
   forall x, (0 < x)%R -> F x ->
   let e := ln_beta_val beta x (ln_beta beta x) in
   x =  bpow (e - 1) ->
@@ -1159,9 +1159,9 @@ unfold pred_pos.
 case Req_bool_spec; intros H.
 case (Req_EM_T (x - bpow (fexp (ln_beta_val beta x (ln_beta beta x) -1))) 0); intros H1.
 rewrite H1, Rplus_0_l.
-now apply pred_pos_plus_ulp_3.
-now apply pred_pos_plus_ulp_2.
-now apply pred_pos_plus_ulp_1.
+now apply pred_pos_plus_ulp_aux3.
+now apply pred_pos_plus_ulp_aux2.
+now apply pred_pos_plus_ulp_aux1.
 Qed.
 
 
