@@ -1882,7 +1882,7 @@ rewrite round_DN_opp; apply Ropp_0_gt_lt_contravar; apply Rlt_gt; assumption.
 Qed.
 
 
-Theorem pred_monotone: forall x y, (* TODO pred_le *)
+Theorem pred_le: forall x y,
    F x -> F y -> (x <= y)%R -> (pred x <= pred y)%R.
 Proof.
 intros x y Fx Fy Hxy.
@@ -1903,32 +1903,33 @@ apply Rle_lt_trans with (2:=V1).
 now apply pred_le_id.
 Qed.
 
-Theorem succ_monotone: forall x y,(* TODO succ_le *)
+Theorem succ_le: forall x y,
    F x -> F y -> (x <= y)%R -> (succ x <= succ y)%R.
 Proof.
 intros x y Fx Fy Hxy.
 rewrite 2!succ_eq_opp_pred_opp.
-apply Ropp_le_contravar, pred_monotone; try apply generic_format_opp; try assumption.
+apply Ropp_le_contravar, pred_le; try apply generic_format_opp; try assumption.
 now apply Ropp_le_contravar.
 Qed.
 
-Theorem pred_monotone_inv: forall x y, F x -> F y (* TODO pred_le_inv *)
+Theorem pred_le_inv: forall x y, F x -> F y
    -> (pred x <= pred y)%R -> (x <= y)%R.
 Proof.
 intros x y Fx Fy Hxy.
 rewrite <- (succ_pred x), <- (succ_pred y); try assumption.
-apply succ_monotone; trivial; now apply generic_format_pred.
+apply succ_le; trivial; now apply generic_format_pred.
 Qed.
 
-Theorem succ_monotone_inv: forall x y, F x -> F y (* TODO succ_le_inv *)
+Theorem succ_le_inv: forall x y, F x -> F y
    -> (succ x <= succ y)%R -> (x <= y)%R.
 Proof.
 intros x y Fx Fy Hxy.
 rewrite <- (pred_succ x), <- (pred_succ y); try assumption.
-apply pred_monotone; trivial; now apply generic_format_succ.
+apply pred_le; trivial; now apply generic_format_succ.
 Qed.
 
-Theorem lt_UP_le_DN : (* TODO le_round_DN_lt_UP*)
+(* was lt_UP_le_DN *)
+Theorem le_round_DN_lt_UP :
   forall x y, F y ->
   (y < round beta fexp Zceil x -> y <= round beta fexp Zfloor x)%R.
 Proof with auto with typeclass_instances.
@@ -1941,7 +1942,8 @@ apply round_UP_pt...
 now apply Rlt_le.
 Qed.
 
-Theorem lt_DN_le_UP :(* TODO round_UP_le_gt_DN*)
+(* was lt_DN_le_UP *)
+Theorem round_UP_le_gt_DN :
   forall x y, F y ->
    (round beta fexp Zfloor x < y -> round beta fexp Zceil x <= y)%R.
 Proof with auto with typeclass_instances.
@@ -1977,12 +1979,12 @@ absurd (round beta fexp Zceil x <= - bpow (fexp n))%R.
 apply Rlt_not_le.
 rewrite Zx, <- Ropp_0.
 apply Ropp_lt_contravar, bpow_gt_0.
-apply lt_DN_le_UP; try assumption.
+apply round_UP_le_gt_DN; try assumption.
 apply generic_format_opp, generic_format_bpow.
 now apply valid_exp.
 assert (let u := round beta fexp Zceil x in pred u < u)%R as Hup.
 now apply pred_lt_id.
-apply lt_UP_le_DN...
+apply le_round_DN_lt_UP...
 apply generic_format_pred...
 now apply round_UP_pt.
 Qed.
@@ -2020,10 +2022,10 @@ apply Rle_antisym.
 now apply T3.
 destruct (generic_format_EM beta fexp x) as [Fx|NFx].
 rewrite round_generic...
-apply succ_monotone_inv; try assumption.
+apply succ_le_inv; try assumption.
 apply succ_le_lt; try assumption.
 apply generic_format_succ...
-apply succ_monotone_inv; try assumption.
+apply succ_le_inv; try assumption.
 rewrite succ_DN_eq_UP; trivial.
 apply round_UP_pt...
 apply generic_format_succ...
