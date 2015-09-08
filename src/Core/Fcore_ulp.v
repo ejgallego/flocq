@@ -2012,13 +2012,14 @@ apply generic_format_round...
 Qed.
 
 
-Theorem betw_eq_DN: forall x d, F d (* TODO round_DN_eq_betw + changer sens *)
+(* was betw_eq_DN *)
+Theorem round_DN_eq_betw: forall x d, F d
      -> (d <= x < succ d)%R
-        -> d = round beta fexp Zfloor x.
+        -> round beta fexp Zfloor x = d.
 Proof with auto with typeclass_instances.
 intros x d Fd (Hxd1,Hxd2).
 generalize (round_DN_pt beta fexp x); intros (T1,(T2,T3)).
-apply Rle_antisym.
+apply sym_eq, Rle_antisym.
 now apply T3.
 destruct (generic_format_EM beta fexp x) as [Fx|NFx].
 rewrite round_generic...
@@ -2032,16 +2033,17 @@ apply generic_format_succ...
 now left.
 Qed.
 
-Theorem betw_eq_UP: forall x u, F u(* TODO round_UP_eq_betw + changer sens *)
+(* was betw_eq_UP *)
+Theorem round_UP_eq_betw: forall x u, F u
     -> (pred u < x <= u)%R
-    -> u = round beta fexp Zceil x.
+    -> round beta fexp Zceil x = u.
 Proof with auto with typeclass_instances.
 intros x u Fu Hux.
 rewrite <- (Ropp_involutive (round beta fexp Zceil x)).
 rewrite <- round_DN_opp.
 rewrite <- (Ropp_involutive u).
 apply f_equal.
-apply betw_eq_DN; try assumption.
+apply round_DN_eq_betw; try assumption.
 now apply generic_format_opp.
 split;[now apply Ropp_le_contravar|idtac].
 rewrite succ_opp.
@@ -2094,11 +2096,11 @@ apply round_N_pt...
 apply Rnd_DN_pt_N with (succ u)%R.
 pattern u at 3; replace u with (round beta fexp Zfloor ((u + succ u) / 2)).
 apply round_DN_pt...
-apply sym_eq, betw_eq_DN; trivial.
+apply round_DN_eq_betw; trivial.
 split; try left; assumption.
 pattern (succ u) at 2; replace (succ u) with (round beta fexp Zceil ((u + succ u) / 2)).
 apply round_UP_pt...
-apply sym_eq, betw_eq_UP; trivial.
+apply round_UP_eq_betw; trivial.
 apply generic_format_succ...
 rewrite pred_succ; trivial.
 split; try left; assumption.
