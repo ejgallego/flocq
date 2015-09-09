@@ -205,7 +205,7 @@ destruct (Req_dec x' 0) as [Zx'|Nzx'].
   { apply (Rplus_le_reg_r (ulp beta fexp1 x)); ring_simplify.
     rewrite <- ulp_DN.
     - change (round _ _ _ _) with x'.
-      apply succ_le_bpow.
+      apply id_p_ulp_le_bpow.
       + exact Px'.
       + change x' with (round beta fexp1 Zfloor x).
         now apply generic_format_round; [|apply valid_rnd_DN].
@@ -2733,7 +2733,7 @@ destruct (Req_dec a 0) as [Za|Nza].
         apply Rmult_lt_compat_r; [apply bpow_gt_0|lra].
       + apply Rle_trans with (a+ ulp beta fexp1 a).
         right; now rewrite ulp_neq_0.
-        apply (succ_le_bpow _ _ _ _ Pa Fa).
+        apply (id_p_ulp_le_bpow _ _ _ _ Pa Fa).
         apply Rabs_lt_inv, bpow_ln_beta_gt.
     - apply Rle_trans with (bpow (- 2) * u1 ^ 2).
       + unfold pow; rewrite Rmult_1_r.
@@ -2779,7 +2779,7 @@ destruct (Req_dec a 0) as [Za|Nza].
       unfold u1; fold (canonic_exp beta fexp1 (sqrt x)).
       rewrite <- canonic_exp_DN; [|exact Vfexp1|exact Pa]; fold a.
       rewrite <- ulp_neq_0; trivial.
-      apply succ_le_bpow.
+      apply id_p_ulp_le_bpow.
       + exact Pa.
       + now apply round_DN_pt.
       + apply Rle_lt_trans with (sqrt x).
@@ -3175,7 +3175,7 @@ destruct (Req_dec a 0) as [Za|Nza].
         rewrite <- (Rmult_1_l (ulp _ _ _)).
         rewrite ulp_neq_0; trivial.
         apply Rmult_lt_compat_r; [apply bpow_gt_0|lra].
-      + apply (succ_le_bpow _ _ _ _ Pa Fa).
+      + apply (id_p_ulp_le_bpow _ _ _ _ Pa Fa).
         apply Rabs_lt_inv, bpow_ln_beta_gt.
     - apply Rle_trans with (bpow (- 1) * u1 ^ 2).
       + unfold pow; rewrite Rmult_1_r.
@@ -3221,7 +3221,7 @@ destruct (Req_dec a 0) as [Za|Nza].
       unfold u1; fold (canonic_exp beta fexp1 (sqrt x)).
       rewrite <- canonic_exp_DN; [|exact Vfexp1|exact Pa]; fold a.
       rewrite <- ulp_neq_0; trivial.
-      apply succ_le_bpow.
+      apply id_p_ulp_le_bpow.
       + exact Pa.
       + now apply round_DN_pt.
       + apply Rle_lt_trans with (sqrt x).

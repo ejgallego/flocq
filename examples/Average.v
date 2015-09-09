@@ -294,7 +294,7 @@ case (Rle_or_lt 0 h); intros H3;[destruct H3|idtac].
 rewrite Rabs_right in Hh.
 2: now apply Rle_ge, Rlt_le.
 apply round_N_eq_DN_pt with (f+ ulp_flt f)...
-pattern f at 2; rewrite <- (round_DN_plus_eps radix2 (FLT_exp emin prec) f) with (eps:=h); try assumption.
+pattern f at 2; rewrite <- (round_DN_plus_eps_pos radix2 (FLT_exp emin prec) f) with (eps:=h); try assumption.
 apply round_DN_pt...
 now left.
 split.
@@ -305,7 +305,7 @@ apply Rmult_lt_compat_r.
 rewrite ulp_neq_0; try now apply Rgt_not_eq.
 apply bpow_gt_0.
 fourier.
-rewrite <- (round_UP_plus_eps radix2 (FLT_exp emin prec) f) with (eps:=h); try assumption.
+rewrite <- (round_UP_plus_eps_pos radix2 (FLT_exp emin prec) f) with (eps:=h); try assumption.
 apply round_UP_pt...
 now left.
 split; trivial.
@@ -456,7 +456,7 @@ clear T1.
 destruct T.
 (* normal case *)
 apply round_N_eq_UP_pt with (pred_flt f)...
-rewrite <- (round_DN_minus_eps radix2 (FLT_exp emin prec) f) with (eps:=-h); try assumption.
+rewrite <- (round_DN_minus_eps_pos radix2 (FLT_exp emin prec) f) with (eps:=-h); try assumption.
 replace (f--h) with (f+h) by ring.
 apply round_DN_pt...
 split.
@@ -474,7 +474,7 @@ apply ulp_ge_0.
 fourier.
 intros Y; rewrite (proj1 Y); now right.
 replace (f+h) with (pred_flt f + (f-pred_flt f+h)) by ring.
-pattern f at 4; rewrite <- (round_UP_pred_plus_eps radix2 (FLT_exp emin prec) f) with (eps:=(f - pred_flt f + h)); try assumption.
+pattern f at 4; rewrite <- (round_UP_pred_plus_eps_pos radix2 (FLT_exp emin prec) f) with (eps:=(f - pred_flt f + h)); try assumption.
 apply round_UP_pt...
 replace (f-pred_flt f) with (ulp_flt (pred_flt f)).
 split.
@@ -529,7 +529,7 @@ omega.
 intros Y; now contradict T2.
 assert (round radix2 (FLT_exp emin prec) Zfloor (f+h) = pred_flt f).
 replace (f+h) with (f-(-h)) by ring.
-apply round_DN_minus_eps...
+apply round_DN_minus_eps_pos...
 split.
 auto with real.
 rewrite T3, T1.
@@ -538,7 +538,7 @@ apply ulp_ge_0.
 fourier.
 assert (round radix2 (FLT_exp emin prec) Zceil (f+h) = f).
 replace (f+h) with (pred_flt f + /2*ulp_flt (pred_flt f)).
-apply round_UP_pred_plus_eps...
+apply round_UP_pred_plus_eps_pos...
 split.
 apply Rmult_lt_0_compat.
 fourier.

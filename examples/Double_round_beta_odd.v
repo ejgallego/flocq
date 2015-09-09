@@ -486,7 +486,7 @@ assert (Hl2 : ln_beta rx2c = ln_beta x :> Z).
       now apply Rplus_lt_compat_l, Rmult_lt_compat_l; [lra|apply bpow_lt].
     + unfold ex1; rewrite <- Hl1.
       fold (canonic_exp beta fexp1 rx1); rewrite <- ulp_neq_0; try now apply Rgt_not_eq.
-      apply succ_le_bpow; [exact Prx1| |].
+      apply id_p_ulp_le_bpow; [exact Prx1| |].
       * now apply generic_format_round; [|apply valid_rnd_DN].
       * destruct (ln_beta rx1) as (erx1, Herx1); simpl.
         rewrite <- (Rabs_right rx1) at 1; [|now apply Rle_ge, Rlt_le].
