@@ -72,18 +72,18 @@ assert (0 <= 1 + ulp_flx (x * x) / 2 / (x * x)).
 rewrite <- (Rplus_0_l 0).
 apply Rplus_le_compat; auto with real.
 unfold Rdiv; apply Rmult_le_pos.
-apply Rmult_le_pos; auto with real; apply ulp_pos.
+apply Rmult_le_pos; auto with real; apply ulp_ge_0.
 left; auto with real.
 assert (0 <= 1 + ulp_flx x / 2 / x).
 rewrite <- (Rplus_0_l 0).
 apply Rplus_le_compat; auto with real.
 unfold Rdiv; apply Rmult_le_pos.
-apply Rmult_le_pos; auto with real; apply ulp_pos.
+apply Rmult_le_pos; auto with real; apply ulp_ge_0.
 left; auto with real.
 (* *)
-apply rnd_N_le_half; try assumption...
+apply round_N_le_midp; try assumption...
 apply Rlt_le_trans with (x*(1+ulp_flx x / 2 / x)).
-2: right; rewrite succ_pos_eq; try now left.
+2: right; rewrite succ_eq_pos; try now left.
 2: field; auto with real.
 apply Rle_lt_trans with (sqrt ((x*x)*(1+ulp_flx (x*x)/2/(x*x)))).
 apply sqrt_le_1_alt.
@@ -91,7 +91,7 @@ apply Rplus_le_reg_l with (-x*x).
 apply Rle_trans with (y-x*x);[right; ring|idtac].
 apply Rle_trans with (/2*ulp_flx (x*x));[idtac|right; field; auto with real].
 apply Rle_trans with (1:=RRle_abs _).
-apply ulp_half_error...
+apply error_le_half_ulp...
 rewrite sqrt_mult; auto with real.
 rewrite sqrt_square; auto with real.
 apply Rmult_lt_compat_l.
@@ -112,7 +112,7 @@ apply Rplus_le_compat_l.
 apply Rplus_le_reg_r with (ulp_flx x * ulp_flx x / 2).
 apply Rle_trans with 0;[right; ring|idtac].
 apply Rle_trans with (ulp_flx x * ulp_flx x).
-apply Rmult_le_pos; apply ulp_pos.
+apply Rmult_le_pos; apply ulp_ge_0.
 right; field.
 rewrite 2!ulp_neq_0.
 2: now apply Rgt_not_eq.
@@ -251,7 +251,7 @@ right; apply f_equal; ring.
 apply Rle_ge, Rmult_le_pos.
 auto with real.
 apply bpow_ge_0.
-rewrite <- succ_pos_eq.
+rewrite <- succ_eq_pos.
 apply succ_le_lt...
 apply generic_format_FLX.
 exists (Float beta 2 (e-1)).
@@ -410,20 +410,20 @@ assert (0 <= 1 + ulp_flx x / 2 / x).
 rewrite <- (Rplus_0_l 0).
 apply Rplus_le_compat; auto with real.
 unfold Rdiv; apply Rmult_le_pos.
-apply Rmult_le_pos; auto with real; apply ulp_pos.
+apply Rmult_le_pos; auto with real; apply ulp_ge_0.
 left; auto with real.
 assert (0 <= 1 + ulp_flx (x * x) / 2 / (x * x)).
 rewrite <- (Rplus_0_l 0).
 apply Rplus_le_compat; auto with real.
 unfold Rdiv; apply Rmult_le_pos.
-apply Rmult_le_pos; auto with real; apply ulp_pos.
+apply Rmult_le_pos; auto with real; apply ulp_ge_0.
 left; auto with real.
 (* *)
 apply sym_eq, Rle_antisym.
 (* . *)
-apply rnd_N_ge_half; try assumption...
+apply round_N_ge_midp; try assumption...
 apply Rle_lt_trans with (x*(1-ulp_flx x / 2 / x)).
-rewrite pred_pos_eq;[idtac|now left].
+rewrite pred_eq_pos;[idtac|now left].
 unfold pred_pos; rewrite Req_bool_false; trivial.
 right; field; auto with real.
 apply Rlt_le_trans with (sqrt ((x*x)*(1-ulp_flx (x*x)/2/(x*x)))).
@@ -450,11 +450,11 @@ apply Rle_trans with (-(y-x*x));[right; field; auto with real|idtac].
 apply Rle_trans with (/2*ulp_flx (x*x));[idtac|right; field; auto with real].
 apply Rle_trans with (1:=RRle_abs _).
 rewrite Rabs_Ropp.
-apply ulp_half_error...
+apply error_le_half_ulp...
 (* . *)
-apply rnd_N_le_half; try assumption...
+apply round_N_le_midp; try assumption...
 apply Rlt_le_trans with (x*(1+ulp_flx x / 2 / x)).
-2: rewrite succ_pos_eq; try now left.
+2: rewrite succ_eq_pos; try now left.
 2: right; field; auto with real.
 apply Rle_lt_trans with (sqrt ((x*x)*(1+ulp_flx (x*x)/2/(x*x)))).
 apply sqrt_le_1_alt.
@@ -462,7 +462,7 @@ apply Rplus_le_reg_l with (-x*x).
 apply Rle_trans with (y-x*x);[right; ring|idtac].
 apply Rle_trans with (/2*ulp_flx (x*x));[idtac|right; field; auto with real].
 apply Rle_trans with (1:=RRle_abs _).
-apply ulp_half_error...
+apply error_le_half_ulp...
 rewrite sqrt_mult; auto with real.
 rewrite sqrt_square; auto with real.
 apply Rmult_lt_compat_l.
@@ -484,7 +484,7 @@ apply Rplus_le_compat_l.
 apply Rplus_le_reg_r with (ulp_flx x * ulp_flx x / 2).
 apply Rle_trans with 0;[right; ring|idtac].
 apply Rle_trans with (ulp_flx x * ulp_flx x).
-apply Rmult_le_pos; apply ulp_pos.
+apply Rmult_le_pos; apply ulp_ge_0.
 right; field.
 Qed.
 
@@ -494,7 +494,7 @@ Theorem round_flx_sqr_sqrt_aux2: forall n,
   round_flx3(x/(x-Z2R n*ulp_flx x)) <= 1.
 Proof with auto with typeclass_instances.
 intros n Hnp Hn.
-apply rnd_N_le_half...
+apply round_N_le_midp...
 replace 1 with (bpow 0) by reflexivity.
 apply generic_format_bpow.
 unfold FLX_exp; omega.
@@ -507,7 +507,7 @@ apply Rmult_le_compat_l.
 replace 0 with (Z2R 0) by reflexivity.
 now apply Z2R_le.
 apply Rmult_le_compat_l.
-unfold ulp; apply ulp_pos.
+unfold ulp; apply ulp_ge_0.
 apply Rmult_le_compat.
 rewrite Rmult_1_l; apply Rle_0_1.
 rewrite Rplus_0_r; apply Rle_0_1.
@@ -542,7 +542,7 @@ right; unfold Rdiv; ring.
 replace 1 with (bpow 0) by reflexivity.
 rewrite ulp_bpow.
 apply f_equal; unfold FLX_exp; omega.
-rewrite succ_pos_eq.
+rewrite succ_eq_pos.
 right; field.
 apply Rgt_not_eq.
 rewrite ulp_neq_0; try apply bpow_gt_0.
@@ -691,7 +691,7 @@ apply Rplus_le_reg_l with (-xk); unfold xk; ring_simplify.
 apply Rmult_le_pos.
 replace 0 with (Z2R 0) by reflexivity.
 apply Z2R_le, kpos.
-apply ulp_pos.
+apply ulp_ge_0.
 apply Rle_lt_trans with (1:=RRle_abs _).
 apply bpow_ln_beta_gt.
 Qed.
@@ -754,7 +754,7 @@ Theorem round_flx_sqr_sqrt_aux1:
   xk <= z.
 Proof with auto with typeclass_instances.
 intros V.
-apply rnd_N_ge_half...
+apply round_N_ge_midp...
 apply format_xminusk.
 assert (Z:(ln_beta_val beta xk (ln_beta beta xk) = ln_beta beta x)%Z).
 apply ln_beta_unique.
@@ -763,7 +763,7 @@ left; now apply xkgt.
 now apply xklt.
 apply Rle_ge; left; now apply xkpos.
 apply Rle_lt_trans with (x - Z2R k * ulp_flx x - ulp_flx x / 2).
-rewrite pred_pos_eq.
+rewrite pred_eq_pos.
 2: left; apply xkpos.
 unfold pred_pos; rewrite Req_bool_false.
 2: apply Rgt_not_eq, Rlt_gt.
@@ -783,7 +783,7 @@ apply Rle_trans with xk.
 apply Rle_trans with (1*bpow (ln_beta beta x - 1)).
 apply Rmult_le_compat.
 auto with real.
-apply ulp_pos.
+apply ulp_ge_0.
 interval.
 rewrite ulp_neq_0; try now apply Rgt_not_eq.
 unfold canonic_exp, FLX_exp.
@@ -825,7 +825,7 @@ apply Rle_trans with (-(y-x*x)).
 right; ring.
 apply Rle_trans with (1:=RRle_abs _).
 rewrite Rabs_Ropp.
-apply Rle_trans with (1:=ulp_half_error _ _ _ _)...
+apply Rle_trans with (1:=error_le_half_ulp _ _ _ _)...
 apply Rmult_le_compat_l.
 left; auto with real.
 rewrite ulp_neq_0.
@@ -992,7 +992,7 @@ replace 4 with (Z2R 4) by reflexivity.
 rewrite <- H, <- bpow_1, <- bpow_plus.
 right; apply f_equal; ring.
 rewrite H2, Rmult_1_l.
-rewrite <- succ_pos_eq;[idtac|now left].
+rewrite <- succ_eq_pos;[idtac|now left].
 apply succ_le_lt...
 apply generic_format_FLX.
 exists (Float beta 2 (ln_beta beta x -1)).
