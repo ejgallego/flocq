@@ -1,26 +1,19 @@
 Version 2.5.0:
  - iter_pos?
+TODO
 
-
- - new definition of the ulp. ulp(0) is now 0 when there is no minimal
-   exponent, such as in FLX, and beta^(fexp n) when there is a n such
-   that n <= fexp n. For instance, the value of ulp(O) is then
-   beta^emin in FIX and FLT. The main lemma to use is ulp_neq_0 that
-   is equivalent to the previous "unfold ulp" provided the value is
-   not zero.
-- added several lemmas in Fcore_ulp, including generic_format_ulp
-- changed ulp_le: it now works for any values. Please use ulp_le_pos
-   for the previous behavior.
-- changed ulp_error: it now requires x to be non zero, as ulp(0)
-  may now be zero.
-- pred has been renamed pred_pos
-- defined a predecessor and successor on both positive, negative and
-   zero values.
-- added useful lemmas about pred and succ, including
-   generic_format_pred, succ_le_lt, le_pred_lt, succ_pred, pred_inj,
-   pred_monotone, pred_UP_eq_DN.
-
-- TODO: more examples (Average, Cody_Waite, Compute, Triangle, Division_u16)
+ - new definition of the ulp with a nice ulp(0)
+ - changed named, generalized and added lemmas in Fcore_ulp
+ - defined a predecessor and successor on both positive, negative and
+   zero values (the previous pred has been renamed pred_pos)
+ - More examples have been added
+     * Average: proof on Sterbenz's average and correctly-rounded average
+TODO
+     * Cody_Waite
+     * Compute: effective FP computation inside Coq with an example of
+       (sqr (sqrt x)) in radix 5 and precision 3.
+     * Division_u16
+     * Triangle: Kahan's algorithm for the area of a triangle
 
 
 Version 2.4.0:

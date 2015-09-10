@@ -84,6 +84,12 @@ Qed.
 
 
 (** Definition and basic properties about the ulp *)
+(** Now includes a nice ulp(0): ulp(0) is now 0 when there is no minimal
+   exponent, such as in FLX, and beta^(fexp n) when there is a n such
+   that n <= fexp n. For instance, the value of ulp(O) is then
+   beta^emin in FIX and FLT. The main lemma to use is ulp_neq_0 that
+   is equivalent to the previous "unfold ulp" provided the value is
+   not zero. *)
 
 Definition ulp x := match Req_bool x 0 with
   | true   => match negligible_exp with
@@ -1209,19 +1215,21 @@ apply Ropp_lt_contravar.
 now apply Heps.
 Qed.
 
-(* TODO: Rmin -> Rle_bool x 0 *)
+
 Theorem round_DN_plus_eps:
   forall x, F x ->
-  forall eps, (0 <= eps < Rmin (ulp x) (ulp (pred (-x))))%R ->
+  forall eps, (0 <= eps < if (Rle_bool 0 x) then (ulp x)
+                                     else (ulp (pred (-x))))%R ->
   round beta fexp Zfloor (x + eps) = x.
 Proof.
 intros x Fx eps Heps.
 case (Rle_or_lt 0 x); intros Zx.
 apply round_DN_plus_eps_pos; try assumption.
 split; try apply Heps.
-apply Rlt_le_trans with (1:=proj2 Heps).
-apply Rmin_l.
+rewrite Rle_bool_true in Heps; trivial.
+now apply Heps.
 (* *)
+rewrite Rle_bool_false in Heps; trivial.
 rewrite <- (Ropp_involutive (x+eps)).
 pattern x at 2; rewrite <- (Ropp_involutive x).
 rewrite round_DN_opp.
@@ -1232,8 +1240,7 @@ now apply Ropp_0_gt_lt_contravar.
 now apply generic_format_opp.
 split.
 apply Rplus_lt_reg_l with eps; ring_simplify.
-apply Rlt_le_trans with (1:=proj2 Heps).
-apply Rmin_r.
+apply Heps.
 apply Rplus_le_reg_l with (eps-ulp (pred (- x)))%R; ring_simplify.
 apply Heps.
 unfold pred.
@@ -1246,20 +1253,20 @@ now apply Ropp_0_gt_lt_contravar.
 now apply generic_format_opp.
 Qed.
 
-(* TODO: Rmin -> Rle_bool x 0 *)
+
 Theorem round_UP_plus_eps :
   forall x, F x ->
-  forall eps, (0 < eps <= Rmin (ulp x) (ulp (pred (-x))))%R ->
+  forall eps, (0 < eps <= if (Rle_bool 0 x) then (ulp x)
+                                     else (ulp (pred (-x))))%R ->
   round beta fexp Zceil (x + eps) = (succ x)%R.
 Proof with auto with typeclass_instances.
 intros x Fx eps Heps.
 case (Rle_or_lt 0 x); intros Zx.
 rewrite succ_eq_pos; try assumption.
-apply round_UP_plus_eps_pos; try assumption.
-split; try apply Heps.
-apply Rle_trans with (1:=proj2 Heps).
-apply Rmin_l.
+rewrite Rle_bool_true in Heps; trivial.
+apply round_UP_plus_eps_pos; assumption.
 (* *)
+rewrite Rle_bool_false in Heps; trivial.
 rewrite <- (Ropp_involutive (x+eps)).
 rewrite <- (Ropp_involutive (succ x)).
 rewrite round_UP_opp.
@@ -1273,8 +1280,7 @@ now apply generic_format_opp.
 now apply generic_format_opp, generic_format_succ.
 split.
 apply Rplus_le_reg_l with eps; ring_simplify.
-apply Rle_trans with (1:=proj2 Heps).
-apply Rmin_r.
+apply Heps.
 unfold pred; rewrite Ropp_involutive.
 apply Rplus_lt_reg_l with (eps-ulp (- succ x))%R; ring_simplify.
 apply Heps.
@@ -1632,94 +1638,71 @@ now apply Ropp_0_gt_lt_contravar.
 Qed.
 
 
-
-(* TODO: Rmin -> Rle_bool x 0 *)
 Theorem round_UP_pred_plus_eps :
   forall x, F x ->
-  forall eps, (0 < eps <= Rmin (ulp x) (ulp (pred x)))%R ->
+  forall eps, (0 < eps <= if (Rle_bool x 0) then (ulp x)
+                                     else (ulp (pred x)))%R ->
   round beta fexp Zceil (pred x + eps) = x.
 Proof.
 intros x Fx eps Heps.
 rewrite round_UP_plus_eps.
 now apply succ_pred.
 now apply generic_format_pred.
-unfold pred at 3.
+unfold pred at 4.
 rewrite Ropp_involutive, pred_succ.
 rewrite ulp_opp.
-now rewrite Rmin_comm.
+generalize Heps; case (Rle_bool_spec x 0); intros H1 H2.
+rewrite Rle_bool_false; trivial.
+case H1; intros H1'.
+apply Rlt_le_trans with (2:=H1).
+apply pred_lt_id.
+now apply Rlt_not_eq.
+rewrite H1'; unfold pred, succ.
+rewrite Ropp_0; rewrite Rle_bool_true;[idtac|now right].
+rewrite Rplus_0_l.
+rewrite <- Ropp_0; apply Ropp_lt_contravar.
+apply Rlt_le_trans with (1:=proj1 H2).
+apply Rle_trans with (1:=proj2 H2).
+rewrite Ropp_0, H1'.
+now right.
+rewrite Rle_bool_true; trivial.
+now apply pred_ge_0.
 now apply generic_format_opp.
 Qed.
 
-(* TODO: Rmin -> Rle_bool x 0 *)
+
 Theorem round_DN_minus_eps:
   forall x,  F x ->
-  forall eps, (0 < eps <= Rmin (ulp x) (ulp (pred x)))%R ->
+  forall eps, (0 < eps <= if (Rle_bool x 0) then (ulp x)
+                                     else (ulp (pred x)))%R ->
   round beta fexp Zfloor (x - eps) = pred x.
 Proof.
 intros x Fx eps Heps.
-(* *)
-assert ( (0 < x /\ x - pred x = ulp (pred x))
-   \/    (x < 0) 
-   \/     ( x = 0 /\ pred x = - ulp 0))%R.
-case (Rle_or_lt 0 x); intros Zx.
-case Zx; intros Zx'.
-left; split; try assumption.
-rewrite pred_eq_pos; try assumption.
-pattern x at 1; rewrite <- (pred_pos_plus_ulp x); try assumption.
-ring.
-right; right; split.
-now rewrite Zx'.
-rewrite <- Zx'.
-rewrite pred_eq_pos.
-unfold pred_pos; rewrite Req_bool_false.
-ring.
-apply Rlt_not_eq, bpow_gt_0.
-now apply Req_le_sym.
-right; left; assumption.
-(* *)
-case H;[intros (H1,H2); clear H|idtac].
-(* . *)
-replace (x-eps)%R with (pred x + (x-pred x-eps))%R by ring.
-rewrite H2.
-apply round_DN_plus_eps_pos.
-now apply pred_ge_0.
-now apply generic_format_pred.
-split.
-apply Rplus_le_reg_l with eps; ring_simplify.
-apply Rle_trans with (1:=proj2 Heps).
-apply Rmin_r.
-apply Rplus_lt_reg_l with (eps-ulp(pred x))%R; ring_simplify.
-apply Heps.
-clear H; intros H; case H;[intros H1|intros (H1,H2)]; clear H.
-(* . *)
 replace (x-eps)%R with (-(-x+eps))%R by ring.
 rewrite round_DN_opp.
 unfold pred; apply f_equal.
 pattern (-x)%R at 1; rewrite <- (pred_succ (-x)).
-apply round_UP_pred_plus_eps_pos.
-apply Rlt_trans with (-x)%R.
-now apply Ropp_0_gt_lt_contravar.
-apply succ_gt_id.
-now apply Rgt_not_eq, Ropp_0_gt_lt_contravar.
+apply round_UP_pred_plus_eps.
 now apply generic_format_succ, generic_format_opp.
-rewrite pred_succ, ulp_opp.
-split;[apply Heps|idtac].
-apply Rle_trans with (1:=proj2 Heps).
-apply Rmin_l.
+rewrite pred_succ.
+rewrite ulp_opp.
+generalize Heps; case (Rle_bool_spec x 0); intros H1 H2.
+rewrite Rle_bool_false; trivial.
+case H1; intros H1'.
+apply Rlt_le_trans with (-x)%R.
+now apply Ropp_0_gt_lt_contravar.
+apply succ_ge_id.
+rewrite H1', Ropp_0, succ_eq_pos;[idtac|now right].
+rewrite Rplus_0_l.
+apply Rlt_le_trans with (1:=proj1 H2).
+rewrite H1' in H2; apply H2.
+rewrite Rle_bool_true.
+now rewrite succ_opp, ulp_opp.
+rewrite succ_opp.
+rewrite <- Ropp_0; apply Ropp_le_contravar.
+now apply pred_ge_0.
 now apply generic_format_opp.
 now apply generic_format_opp.
-(* . *)
-rewrite H1.
-unfold Rminus; rewrite Rplus_0_l.
-rewrite round_DN_opp.
-rewrite <- (Rplus_0_l eps).
-rewrite round_UP_plus_eps_pos.
-rewrite H1 in H2; rewrite H2; ring.
-now apply Req_le_sym.
-apply generic_format_0.
-split; try apply Heps.
-apply Rle_trans with (1:=proj2 Heps).
-rewrite H1; apply Rmin_l.
 Qed.
 
 (** Error of a rounding, expressed in number of ulps *)

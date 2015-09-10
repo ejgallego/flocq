@@ -2814,21 +2814,6 @@ destruct (Req_dec a 0) as [Za|Nza].
   + now apply Rle_trans with x.
 Qed.
 
-(* TODO --> Fcore_Raux *)
-Lemma sqrt_neg : forall x, x <= 0 -> sqrt x = 0.
-Proof.
-intros x Npx.
-destruct (Req_dec x 0) as [Zx|Nzx].
-- (* x = 0 *)
-  rewrite Zx.
-  exact sqrt_0.
-- (* x < 0 *)
-  unfold sqrt.
-  destruct Rcase_abs.
-  + reflexivity.
-  + casetype False.
-    now apply Nzx, Rle_antisym; [|apply Rge_le].
-Qed.
 
 Lemma double_round_sqrt :
   forall fexp1 fexp2 : Z -> Z,
