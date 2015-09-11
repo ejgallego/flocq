@@ -6,6 +6,7 @@ TODO
  - changed named, generalized and added lemmas in Fcore_ulp
  - defined a predecessor and successor on both positive, negative and
    zero values (the previous pred has been renamed pred_pos)
+ - removed some hypotheses on lemmas of Fprop_relative
  - More examples have been added
      * Average: proof on Sterbenz's average and correctly-rounded average
 TODO

@@ -536,7 +536,7 @@ Lemma ln_beta_d:  (0< F2R d)%R ->
     (ln_beta beta (F2R d) = ln_beta beta x :>Z).
 Proof with auto with typeclass_instances.
 intros Y.
-rewrite d_eq; apply ln_beta_round_DN...
+rewrite d_eq; apply ln_beta_DN...
 now rewrite <- d_eq.
 Qed.
 

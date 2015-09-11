@@ -95,9 +95,6 @@ intros e; apply Zle_refl.
 now rewrite F2R_opp, F2R_mult, <- Hr1, <- Hy1.
 (* *)
 destruct (relative_error_FLX_ex beta prec (prec_gt_0 prec) rnd (x / y)%R) as (eps,(Heps1,Heps2)).
-apply Rmult_integral_contrapositive_currified.
-exact Zx.
-now apply Rinv_neq_0_compat.
 rewrite Heps2.
 rewrite <- Rabs_Ropp.
 replace (-(x + - (x / y * (1 + eps) * y)))%R with (x * eps)%R by now field.

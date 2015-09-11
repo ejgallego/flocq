@@ -280,7 +280,7 @@ destruct (Rle_or_lt rx2 0) as [Nprx2|Prx2].
     now apply bpow_le. }
 (* 0 < rx2 *)
 assert (Hl2 : ln_beta rx2 = ln_beta x :> Z).
-{ now rewrite Hrx2r; apply ln_beta_round_DN; [|rewrite <- Hrx2r]. }
+{ now rewrite Hrx2r; apply ln_beta_DN; [|rewrite <- Hrx2r]. }
 assert (Hr12 : round beta fexp1 (Znearest choice1) rx2 = rx1).
 { unfold round, F2R, scaled_mantissa, canonic_exp; simpl.
   rewrite Hl2; fold ex1.
@@ -467,7 +467,7 @@ destruct (Rle_or_lt rx1 0) as [Nprx1|Prx1].
       [lra|apply bpow_ge_0|lra|apply bpow_lt]. }
 (* 0 < rx1 *)
 assert (Hl1 : ln_beta rx1 = ln_beta x :> Z).
-{ now apply ln_beta_round_DN. }
+{ now apply ln_beta_DN. }
 assert (Hl2 : ln_beta rx2c = ln_beta x :> Z).
 { apply ln_beta_unique; rewrite Rabs_right; [|now apply Rle_ge, Rlt_le].
   replace rx2c with (rx1 + (/ 2 * bpow ex1 + / 2 * bpow ex2));
@@ -1902,7 +1902,7 @@ destruct (Req_dec rd 0) as [Zrd|Nzrd].
     - now apply Rlt_le. }
   assert (Hlr : ln_beta x = ln_beta rd :> Z).
   { apply eq_sym.
-      apply ln_beta_round_DN; [exact Vfexp1|].
+      apply ln_beta_DN; [exact Vfexp1|].
       exact Prd. }
   destruct (midpoint_beta_odd_remains_pos rd Prd (fexp1 (ln_beta x))
                                           (fexp2 (ln_beta x)))

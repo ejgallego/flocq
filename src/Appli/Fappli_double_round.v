@@ -2715,7 +2715,7 @@ destruct (Req_dec a 0) as [Za|Nza].
 - (* a <> 0 *)
   assert (Pa : 0 < a); [lra|].
   assert (Hla : (ln_beta a = ln_beta (sqrt x) :> Z)).
-  { unfold a; apply ln_beta_round_DN.
+  { unfold a; apply ln_beta_DN.
     - exact Vfexp1.
     - now fold a. }
   assert (Hl' : 0 < - (u2 * a) + b * b).
@@ -3143,7 +3143,7 @@ destruct (Req_dec a 0) as [Za|Nza].
 - (* a <> 0 *)
   assert (Pa : 0 < a); [lra|].
   assert (Hla : (ln_beta a = ln_beta (sqrt x) :> Z)).
-  { unfold a; apply ln_beta_round_DN.
+  { unfold a; apply ln_beta_DN.
     - exact Vfexp1.
     - now fold a. }
   assert (Hl' : 0 < - (u2 * a) + b * b).
