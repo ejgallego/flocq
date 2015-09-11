@@ -1,5 +1,5 @@
 Require Import Reals Fcore.
-Require Import Gappa_tactic Interval_tactic.
+Require Import Gappa.Gappa_tactic Interval.Interval_tactic.
 
 Open Scope R_scope.
 

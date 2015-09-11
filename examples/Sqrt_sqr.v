@@ -1,5 +1,5 @@
 Require Import Fcore.
-Require Import Interval_tactic.
+Require Import Interval.Interval_tactic.
 
 Section Sec1.
 

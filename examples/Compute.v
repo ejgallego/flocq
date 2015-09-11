@@ -35,7 +35,7 @@ now apply F2R_ge_0_compat.
 Qed.
 
 Definition plus (x y : float beta) :=
-  let '(Float m e) := Fplus beta x y in
+  let (m, e) := Fplus beta x y in
   let s := Zlt_bool m 0 in
   let '(m', e', l) := truncate beta fexp (Zabs m, e, loc_Exact) in
   Float beta (cond_Zopp s (choice s m' l)) e'.
@@ -58,7 +58,7 @@ apply sym_eq, F2R_Zabs.
 Qed.
 
 Definition mult (x y : float beta) :=
-  let '(Float m e) := Fmult beta x y in
+  let (m, e) := Fmult beta x y in
   let s := Zlt_bool m 0 in
   let '(m', e', l) := truncate beta fexp (Zabs m, e, loc_Exact) in
   Float beta (cond_Zopp s (choice s m' l)) e'.
@@ -81,7 +81,7 @@ apply sym_eq, F2R_Zabs.
 Qed.
 
 Definition sqrt (x : float beta) :=
-  let '(Float m e) := x in
+  let (m, e) := x in
   if Zlt_bool 0 m then
     let '(m', e', l) := truncate beta fexp (Fsqrt_core beta prec m e) in
     Float beta (choice false m' l) e'
@@ -162,8 +162,8 @@ now elim Hy0.
 Qed.
 
 Definition div (x y : float beta) :=
-  let '(Float mx ex) := x in
-  let '(Float my ey) := y in
+  let (mx, ex) := x in
+  let (my, ey) := y in
   if Zeq_bool mx 0 then Float beta 0 0
   else
     let '(m, e, l) := truncate beta fexp (Fdiv_core beta prec (Zabs mx) ex (Zabs my) ey) in

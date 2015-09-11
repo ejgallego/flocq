@@ -1,5 +1,5 @@
 Require Import Reals Psatz.
-Require Import Fcore Gappa_tactic.
+Require Import Fcore Gappa.Gappa_tactic.
 
 Open Scope R_scope.
 

@@ -3,7 +3,7 @@ Require Import Fcore.
 Require Import Fprop_relative.
 Require Import Fprop_Sterbenz.
 Require Import Fcalc_ops.
-Require Import Interval_tactic.
+Require Import Interval.Interval_tactic.
 
 Section Delta_FLX.
 Open Scope R_scope.
