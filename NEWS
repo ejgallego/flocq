@@ -1,21 +1,18 @@
 Version 2.5.0:
- - iter_pos?
-TODO
-
- - new definition of the ulp with a nice ulp(0)
- - changed named, generalized and added lemmas in Fcore_ulp
- - defined a predecessor and successor on both positive, negative and
-   zero values (the previous pred has been renamed pred_pos)
+ - ensured compatibility with both Coq 8.4 and 8.5
+   (Flocq now provides its own version of iter_pos)
+ - redefined ulp, so that ulp(0) is meaningful
+ - renamed, generalized, and added lemmas in Fcore_ulp
+ - extended predecessor and successor to nonpositive values
+   (the previous definition of pred has been renamed pred_pos)
  - removed some hypotheses on lemmas of Fprop_relative
- - More examples have been added
-     * Average: proof on Sterbenz's average and correctly-rounded average
-TODO
-     * Cody_Waite
-     * Compute: effective FP computation inside Coq with an example of
-       (sqr (sqrt x)) in radix 5 and precision 3.
-     * Division_u16
-     * Triangle: Kahan's algorithm for the area of a triangle
-
+ - added more examples
+   . Average: proof on Sterbenz's average and correctly-rounded average
+   . Cody_Waite: Cody & Waite's approximation of exponential
+   . Compute: effective FP computations with an example of sqrt(sqr(x))
+     in radix 5 and precision 3
+   . Division_u16: integer division using floating-point FMA
+   . Triangle: Kahan's algorithm for the area of a triangle
 
 Version 2.4.0:
  - moved some lemmas from Fcalc_digits to Fcore_digits and made them axiom-free
