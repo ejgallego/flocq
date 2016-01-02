@@ -1,3 +1,6 @@
+Version 2.5.1:
+ - ensured compatibility with both Coq 8.4 and 8.5
+
 Version 2.5.0:
  - ensured compatibility with both Coq 8.4 and 8.5
    (Flocq now provides its own version of iter_pos)
