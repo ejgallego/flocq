@@ -281,6 +281,22 @@ apply bpow_ge_0.
 now apply He.
 Qed.
 
+Theorem ulp_FLT_le2: forall x, (bpow (emin+prec-1) <= Rabs x)%R ->
+  (ulp beta FLT_exp x <= Rabs x * bpow (1-prec))%R.
+Proof.
+intros x Hx.
+case (Rle_or_lt (bpow (emin+prec)) (Rabs x)); intros Hx2.
+now apply ulp_FLT_le.
+rewrite ulp_FLT_small; try exact Hx2.
+apply Rle_trans with (bpow (emin+prec-1)*bpow (1-prec))%R.
+rewrite <- bpow_plus.
+right; apply f_equal; ring.
+apply Rmult_le_compat_r.
+apply bpow_ge_0.
+exact Hx.
+Qed.
+
+
 
 Theorem ulp_FLT_ge: forall x, (Rabs x * bpow (-prec) < ulp beta FLT_exp x)%R.
 Proof.
