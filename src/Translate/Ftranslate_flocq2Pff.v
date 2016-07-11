@@ -27,7 +27,7 @@ Require Import Fappli_IEEE.
 Section Bounds.
 
 
-Definition nat_to_N (n:nat) := match n with
+(*Definition nat_to_N (n:nat) := match n with
    |  0    => N0
    | (S m) => (Npos (P_of_succ_nat m))
    end.
@@ -36,15 +36,20 @@ Lemma nat_to_N_correct: forall n:nat, Z_of_N (nat_to_N n)=n.
 intros.
 intros; induction n; simpl; auto.
 Qed.
+*)
 
+Definition make_bound (p E:Z) := Bound
+      (Z.to_pos (Zpower 2%Z p))
+      (Z.abs_N E).
 
-Definition make_bound (p E:nat) := Bound
-      (P_of_succ_nat (Peano.pred (Zabs_nat (Zpower_nat 2%Z p))))
-      (nat_to_N E).
-
-Lemma make_EGivesEmin: forall p E:nat,
+Lemma make_EGivesEmin: forall p E:Z,
         (Z_of_N (dExp (make_bound p E)))=E.
-intros; simpl; apply nat_to_N_correct.
+intros; simpl.
+OUIIIIIIIIIIIIIIIIIIIINNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN.
+emin n'est pas forcément positif en Flocq, alors qu'il l'est en pff...
+Zabs2N.abs_N_nonneg
+easy.
+nat_to_N_correct.
 Qed.
 
 Lemma make_pGivesBound: forall p E:nat,
@@ -102,7 +107,7 @@ Hypothesis pGivesBound : Zpos (vNum b) = Zpower_nat 2%Z p.
 Hypothesis precisionNotZero : 1 < p.
 
 
-Lemma equiv_RNDs_aux1: forall f, Fbounded b f ->
+Lemma pff_format_is_format: forall f, Fbounded b f ->
   (generic_format radix2 (FLT_exp (-dExp b) p) (FtoR 2 f)).
 intros f Hf.
 apply generic_format_FLT; auto with zarith.
@@ -121,7 +126,7 @@ exact H0.
 Qed.
 
 
-Lemma equiv_RNDs_aux2: forall r,
+Lemma format_is_pff_format: forall r,
   (generic_format radix2 (FLT_exp (-dExp b) p) r)
   -> exists f, FtoR 2 f = r /\ Fbounded b f.
 intros r Hr.
@@ -143,7 +148,7 @@ unfold Prec_gt_0;auto with zarith.
 Qed.
 
 
-Lemma equiv_RNDs_aux3: forall z, Zeven z = true -> Even z.
+Lemma equiv_RNDs_aux: forall z, Zeven z = true -> Even z.
 intros z; unfold Zeven, Even.
 case z.
 intros; exists 0%Z; auto with zarith.
@@ -159,7 +164,7 @@ exists (Zneg p1); auto with zarith.
 intros H; contradict H; auto.
 Qed.
 
-Lemma equiv_RNDs_aux4: forall f, Fcanonic 2 b f -> FtoR 2 f <> 0 ->
+Lemma pff_canonic_is_canonic: forall f, Fcanonic 2 b f -> FtoR 2 f <> 0 ->
   canonic radix2 (FLT_exp (- dExp b) p)
     (Float radix2 (Float.Fnum f) (Float.Fexp f)).
 intros f Hf1 Hf2; unfold canonic; simpl.
@@ -241,7 +246,7 @@ rewrite Z2R_IZR; reflexivity.
 Qed.
 
 
-Lemma equiv_RNDs_aux5: forall (r:R),
+Lemma pff_round_NE_is_round: forall (r:R),
    (FtoR 2 (RND_EvenClosest b 2 p r)
      =  round radix2 (FLT_exp (-dExp b) p) rndNE r).
 intros.
@@ -254,7 +259,7 @@ apply exists_NE_FLT.
 right; auto with zarith.
 unfold Rnd_NE_pt, Rnd_NG_pt, Rnd_N_pt, NE_prop in H.
 destruct H as ((H1,H2),H3).
-destruct (equiv_RNDs_aux2 _ H1) as (f,(Hf1,Hf2)).
+destruct (format_is_pff_format _ H1) as (f,(Hf1,Hf2)).
 rewrite <- Hf1.
 generalize (EvenClosestUniqueP b 2 p); unfold UniqueP; intros T.
 apply sym_eq; apply T with r; auto with zarith; clear T.
@@ -263,7 +268,7 @@ split.
 split; auto; intros g Hg.
 rewrite Hf1.
 apply H2.
-apply equiv_RNDs_aux1; auto.
+apply pff_format_is_format; auto.
 (* *)
 case (Req_dec (FtoR 2 (Fnormalize 2 b p f))  0%R); intros L.
 left.
@@ -280,13 +285,13 @@ destruct H3.
 destruct H as (g,(Hg1,(Hg2,Hg3))).
 left.
 unfold FNeven, Feven.
-apply equiv_RNDs_aux3.
+apply equiv_RNDs_aux.
 replace (Float.Fnum (Fnormalize 2 b p f)) with (Fnum g); try assumption.
 replace g with (Float radix2 (Float.Fnum (Fnormalize 2 b p f)) (Float.Fexp (Fnormalize 2 b p f))).
 easy.
 apply canonic_unicity with (FLT_exp (- dExp b) p).
 2: assumption.
-apply equiv_RNDs_aux4.
+apply pff_canonic_is_canonic.
 apply FnormalizeCanonic; auto with zarith real.
 exact L.
 rewrite <- Hg1, <- Hf1.
@@ -299,16 +304,16 @@ right; intros q (Hq1,Hq2).
 rewrite Hf1.
 apply H.
 split.
-apply equiv_RNDs_aux1; auto.
+apply pff_format_is_format; auto.
 intros g Hg.
-destruct (equiv_RNDs_aux2 _ Hg) as (v,(Hv1,Hv2)).
+destruct (format_is_pff_format _ Hg) as (v,(Hv1,Hv2)).
 rewrite <- Hv1.
 apply Hq2; auto.
 apply RND_EvenClosest_correct; auto with zarith.
 Qed.
 
 
-Lemma equiv_RNDs: forall (r:R),
+Lemma round_NE_is_pff_round: forall (r:R),
    exists f:Float.float, (Fcanonic 2 b f /\ (EvenClosest b 2 p r f) /\
     FtoR 2 f =  round radix2 (FLT_exp (-dExp b) p) rndNE r).
 intros r.
@@ -317,26 +322,26 @@ split.
 apply RND_EvenClosest_canonic; auto with zarith.
 split.
 apply RND_EvenClosest_correct; auto with zarith.
-apply equiv_RNDs_aux5.
+apply pff_round_NE_is_round.
 Qed.
 
 End Equiv.
 
 Section Equiv_instanc.
 
-Lemma equiv_RNDs_s: forall (r:R),
+Lemma round_NE_is_pff_round_b32: forall (r:R),
    exists f:Float.float, (Fcanonic 2 bsingle f /\ (EvenClosest bsingle 2 24 r f) /\
     FtoR 2 f =  round radix2 (FLT_exp (-149) 24) rndNE r).
-apply equiv_RNDs.
+apply round_NE_is_pff_round.
 apply psGivesBound.
 apply psGreaterThanOne.
 Qed.
 
 
-Lemma equiv_RNDs_d: forall (r:R),
+Lemma round_NE_is_pff_round_b64: forall (r:R),
    exists f:Float.float, (Fcanonic 2 bdouble f /\ (EvenClosest bdouble 2 53 r f) /\
     FtoR 2 f =  round radix2 (FLT_exp (-1074) 53) rndNE r).
-apply equiv_RNDs.
+apply round_NE_is_pff_round.
 apply pdGivesBound.
 apply pdGreaterThanOne.
 Qed.
