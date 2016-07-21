@@ -260,7 +260,8 @@ unfold F2R; now simpl.
 apply Zlt_le_trans with (4^1)%Z.
 simpl; unfold Z.pow_pos; simpl; omega.
 rewrite Hb.
-apply Interval_missing.Zpower_le_exp_compat; omega.
+apply (Zpower_le (Build_radix 4 eq_refl)).
+now apply Zlt_le_weak.
 apply Rle_lt_trans with (2:=Hx).
 replace (sqrt (Z2R beta)) with 2%R.
 now right.
@@ -1000,7 +1001,8 @@ simpl; split.
 unfold F2R; simpl; ring.
 rewrite H; apply Zlt_le_trans with (4^1)%Z.
 simpl; unfold Z.pow_pos; simpl; omega.
-apply Interval_missing.Zpower_le_exp_compat; omega.
+apply (Zpower_le (Build_radix 4 eq_refl)).
+now apply Zlt_le_weak.
 (* ... *)
 apply Rle_trans with (x-Z2R 0 * ulp_flx x).
 right; simpl; ring.
