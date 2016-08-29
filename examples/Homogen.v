@@ -13,7 +13,7 @@ Context {Hprec : Prec_gt_0 prec}.
 
 Notation fexp := (FLT_exp emin prec).
 
-Definition Bmin := bpow radix2 (emin + prec).
+Definition Bmin := bpow radix2 (emin + prec - 1).
 
 Definition hombnd (m M u v : R) (b B : float radix2) :=
   (0 <= F2R b)%R /\ (1 <= F2R B)%R /\
