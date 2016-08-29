@@ -198,7 +198,7 @@ apply Rle_trans with (1 := Rabs_triang _ _).
 now apply Rplus_le_compat.
 replace (2 * ((F2R b + F2R B) * F2R {| Fnum := 1; Fexp := - prec |} * M))%R
   with ((F2R b + F2R B) * M * bpow radix2 (1 - prec))%R.
-rewrite <- Rabs_pos_eq with (1 := H') at 2.
+rewrite <- (Rabs_pos_eq _ H') at 2.
 apply ulp_FLT_le.
 rewrite Rabs_pos_eq with (1 := H').
 apply Rle_trans with (1 := H).
