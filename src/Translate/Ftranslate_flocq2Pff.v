@@ -26,85 +26,59 @@ Require Import Fappli_IEEE.
 
 Section Bounds.
 
+Variable p E:Z.
+Hypothesis precisionNotZero : (1 < p)%Z.
 
-(*Definition nat_to_N (n:nat) := match n with
-   |  0    => N0
-   | (S m) => (Npos (P_of_succ_nat m))
-   end.
-
-Lemma nat_to_N_correct: forall n:nat, Z_of_N (nat_to_N n)=n.
-intros.
-intros; induction n; simpl; auto.
-Qed.
-*)
-
-Definition make_bound (p E:Z) := Bound
+Definition make_bound := Bound
       (Z.to_pos (Zpower 2%Z p))
       (Z.abs_N E).
 
-Lemma make_EGivesEmin: forall p E:Z,
-        (Z_of_N (dExp (make_bound p E)))=E.
-intros; simpl.
-OUIIIIIIIIIIIIIIIIIIIINNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN.
-emin n'est pas forcément positif en Flocq, alors qu'il l'est en pff...
-Zabs2N.abs_N_nonneg
-easy.
-nat_to_N_correct.
+Lemma make_bound_Emin: (E <= 0)%Z ->
+        ((Z_of_N (dExp (make_bound)))=-E)%Z.
+Proof.
+simpl.
+rewrite Zabs2N.id_abs.
+now apply Z.abs_neq.
 Qed.
 
-Lemma make_pGivesBound: forall p E:nat,
-        Zpos (vNum (make_bound p E))=(Zpower_nat 2 p).
-intros.
-unfold make_bound, vNum.
-apply
- trans_eq
-  with
-    (Z_of_nat
-       (nat_of_P
-          (P_of_succ_nat
-             (Peano.pred (Zabs_nat (Zpower_nat 2 p)))))).
-unfold Z_of_nat in |- *; rewrite nat_of_P_o_P_of_succ_nat_eq_succ;
- auto with zarith.
-rewrite nat_of_P_o_P_of_succ_nat_eq_succ; auto with arith zarith.
-cut (Zabs (Zpower_nat 2 p) = Zpower_nat 2 p).
-intros H; pattern (Zpower_nat 2 p) at 2 in |- *; rewrite <- H.
-rewrite Zabs_absolu.
-rewrite <- (S_pred (Zabs_nat (Zpower_nat 2 p)) 0);
- auto with arith zarith.
-apply lt_Zlt_inv; simpl in |- *; auto with zarith arith.
-rewrite <- Zabs_absolu; rewrite H; auto with arith zarith.
-apply Zabs_eq; auto with arith zarith.
+Lemma make_bound_p: 
+        Zpos (vNum (make_bound))=(Zpower_nat 2 (Zabs_nat p)).
+Proof.
+unfold make_bound, vNum; simpl.
+rewrite Z2Pos.id.
+apply Zpower_nat_Zpower.
+omega.
+generalize (Zpower_gt_0 radix2); simpl.
+intros T; apply T.
+omega.
 Qed.
 
-Definition bsingle := make_bound 24 149.
 
-Lemma psGreaterThanOne: 1 < 24.
-auto with arith.
-Qed.
+End Bounds.
+Section b_Bounds.
+
+Definition bsingle := make_bound 24 (-149)%Z.
 
 Lemma psGivesBound: Zpos (vNum bsingle) = Zpower_nat 2 24.
-unfold bsingle; apply make_pGivesBound.
+unfold bsingle; apply make_bound_p.
+omega.
 Qed.
 
 Definition bdouble := make_bound 53 1074.
 
-Lemma pdGreaterThanOne: 1 < 53.
-auto with arith.
-Qed.
-
 Lemma pdGivesBound: Zpos (vNum bdouble) = Zpower_nat 2 53.
-unfold bdouble; apply make_pGivesBound.
+unfold bdouble; apply make_bound_p.
+omega.
 Qed.
 
-End Bounds.
-
-
+End b_Bounds.
 Section Equiv.
-Variable b : Fbound.
-Variable p : nat.
 
-Hypothesis pGivesBound : Zpos (vNum b) = Zpower_nat 2%Z p.
-Hypothesis precisionNotZero : 1 < p.
+Variable b : Fbound.
+Variable p : Z.
+
+Hypothesis pGivesBound : Zpos (vNum b) = Zpower_nat 2%Z (Zabs_nat p).
+Hypothesis precisionNotZero : (1 < p)%Z.
 
 
 Lemma pff_format_is_format: forall f, Fbounded b f ->
@@ -121,7 +95,6 @@ split; destruct Hf.
 apply Zlt_le_trans with (1:=H).
 rewrite pGivesBound.
 rewrite Zpower_Zpower_nat; auto with zarith.
-rewrite Zabs_nat_Z_of_nat; auto with zarith.
 exact H0.
 Qed.
 
@@ -142,7 +115,6 @@ split.
 apply Zlt_le_trans with (1:=Hf2).
 rewrite pGivesBound.
 rewrite Zpower_Zpower_nat; auto with zarith.
-rewrite Zabs_nat_Z_of_nat; auto with zarith.
 exact Hf3.
 unfold Prec_gt_0;auto with zarith.
 Qed.
@@ -199,7 +171,7 @@ apply bpow_ge_0.
 apply Rmult_le_reg_l with (Z2R radix2).
 auto with real.
 rewrite <- bpow_plus1.
-replace (p-1+1)%Z with (Z_of_nat p) by ring.
+replace (p-1+1)%Z with (Z_of_nat (Zabs_nat p)).
 rewrite <- Z2R_Zpower_nat.
 simpl; rewrite <- pGivesBound, 2!Z2R_IZR.
 rewrite Rabs_Zabs.
@@ -210,10 +182,13 @@ replace 2%Z with (Zabs 2).
 rewrite <- Zabs.Zabs_Zmult.
 assumption.
 auto with zarith.
+rewrite inj_abs; try ring.
+omega.
 (* .. *)
 rewrite Zplus_comm, bpow_plus.
 apply Rmult_lt_compat_r.
 apply bpow_gt_0.
+rewrite <- (inj_abs p);[idtac|omega].
 rewrite <- Z2R_Zpower_nat.
 simpl; rewrite <- pGivesBound, 2!Z2R_IZR.
 rewrite Rabs_Zabs.
@@ -227,27 +202,34 @@ assert ((e-1) < p-dExp b)%Z;[idtac|omega].
 apply lt_bpow with radix2.
 apply Rle_lt_trans with (Rabs (FtoR 2 f)).
 apply He; auto.
-apply Rlt_le_trans with (FtoR 2 (firstNormalPos 2 b p)).
+apply Rlt_le_trans with (FtoR 2 (firstNormalPos 2 b (Zabs_nat p))).
 rewrite <- Fabs_correct.
 apply FsubnormalLtFirstNormalPos; auto with zarith.
+intros KK; absurd (1 < p)%Z; try assumption.
+apply Zle_not_lt; rewrite <- (inj_abs p); omega.
 apply FsubnormFabs; auto with zarith.
 split; [idtac|split]; assumption.
 rewrite Fabs_correct; auto with real zarith.
 auto with zarith.
 unfold firstNormalPos, FtoR, nNormMin.
 simpl.
-replace (IZR (Zpower_nat 2 (Peano.pred p))) with (bpow radix2 (Peano.pred p)).
+replace (IZR (Zpower_nat 2 (Peano.pred (Zabs_nat p)))) with (bpow radix2 (p-1)).
 rewrite <- (bpow_powerRZ radix2).
 rewrite <- bpow_plus.
 apply bpow_le.
-rewrite inj_pred; try unfold Zpred; auto with zarith arith.
+omega.
+replace (p-1)%Z with (Z_of_nat (Peano.pred (Zabs_nat p))).
 rewrite <- Z2R_Zpower_nat.
 rewrite Z2R_IZR; reflexivity.
+rewrite inj_pred; try omega.
+rewrite inj_abs; omega.
+intros KK; absurd (1 < p)%Z; try assumption.
+apply Zle_not_lt; rewrite <- (inj_abs p); omega.
 Qed.
 
 
 Lemma pff_round_NE_is_round: forall (r:R),
-   (FtoR 2 (RND_EvenClosest b 2 p r)
+   (FtoR 2 (RND_EvenClosest b 2 (Zabs_nat p) r)
      =  round radix2 (FLT_exp (-dExp b) p) rndNE r).
 intros.
 assert (Rnd_NE_pt radix2 (FLT_exp (-dExp b) p) r
@@ -261,8 +243,10 @@ unfold Rnd_NE_pt, Rnd_NG_pt, Rnd_N_pt, NE_prop in H.
 destruct H as ((H1,H2),H3).
 destruct (format_is_pff_format _ H1) as (f,(Hf1,Hf2)).
 rewrite <- Hf1.
-generalize (EvenClosestUniqueP b 2 p); unfold UniqueP; intros T.
+generalize (EvenClosestUniqueP b 2 (Zabs_nat p)); unfold UniqueP; intros T.
 apply sym_eq; apply T with r; auto with zarith; clear T.
+apply Nat2Z.inj_lt.
+rewrite inj_abs; simpl; omega.
 split.
 (* *)
 split; auto; intros g Hg.
@@ -270,13 +254,13 @@ rewrite Hf1.
 apply H2.
 apply pff_format_is_format; auto.
 (* *)
-case (Req_dec (FtoR 2 (Fnormalize 2 b p f))  0%R); intros L.
+case (Req_dec (FtoR 2 (Fnormalize 2 b (Zabs_nat p) f))  0%R); intros L.
 left.
 unfold FNeven, Feven, Even.
 exists 0%Z.
 rewrite Zmult_0_r.
 apply eq_IZR.
-apply Rmult_eq_reg_l with (powerRZ 2 (Float.Fexp (Fnormalize 2 b p f)))%R.
+apply Rmult_eq_reg_l with (powerRZ 2 (Float.Fexp (Fnormalize 2 b (Zabs_nat p) f)))%R.
 simpl (IZR 0); rewrite Rmult_0_r.
 rewrite <- L; unfold FtoR; simpl; ring.
 apply powerRZ_NOR; auto with zarith real.
@@ -286,16 +270,18 @@ destruct H as (g,(Hg1,(Hg2,Hg3))).
 left.
 unfold FNeven, Feven.
 apply equiv_RNDs_aux.
-replace (Float.Fnum (Fnormalize 2 b p f)) with (Fnum g); try assumption.
-replace g with (Float radix2 (Float.Fnum (Fnormalize 2 b p f)) (Float.Fexp (Fnormalize 2 b p f))).
+replace (Float.Fnum (Fnormalize 2 b (Zabs_nat p) f)) with (Fnum g); try assumption.
+replace g with (Float radix2 (Float.Fnum (Fnormalize 2 b (Zabs_nat p) f)) (Float.Fexp (Fnormalize 2 b (Zabs_nat p) f))).
 easy.
 apply canonic_unicity with (FLT_exp (- dExp b) p).
 2: assumption.
 apply pff_canonic_is_canonic.
 apply FnormalizeCanonic; auto with zarith real.
+intros KK; absurd (1 < p)%Z; try assumption.
+apply Zle_not_lt; rewrite <- (inj_abs p); omega.
 exact L.
 rewrite <- Hg1, <- Hf1.
-rewrite <- FnormalizeCorrect with 2%Z b p f; auto with zarith.
+rewrite <- FnormalizeCorrect with 2%Z b (Zabs_nat p) f; auto with zarith.
 unfold F2R, FtoR; simpl.
 rewrite Z2R_IZR, bpow_powerRZ.
 reflexivity.
@@ -310,18 +296,24 @@ destruct (format_is_pff_format _ Hg) as (v,(Hv1,Hv2)).
 rewrite <- Hv1.
 apply Hq2; auto.
 apply RND_EvenClosest_correct; auto with zarith.
+apply Nat2Z.inj_lt.
+rewrite inj_abs; simpl; omega.
 Qed.
 
 
 Lemma round_NE_is_pff_round: forall (r:R),
-   exists f:Float.float, (Fcanonic 2 b f /\ (EvenClosest b 2 p r f) /\
+   exists f:Float.float, (Fcanonic 2 b f /\ (EvenClosest b 2 (Zabs_nat p) r f) /\
     FtoR 2 f =  round radix2 (FLT_exp (-dExp b) p) rndNE r).
 intros r.
-exists (RND_EvenClosest b 2 p r).
+exists (RND_EvenClosest b 2 (Zabs_nat p) r).
 split.
 apply RND_EvenClosest_canonic; auto with zarith.
+apply Nat2Z.inj_lt.
+rewrite inj_abs; simpl; omega.
 split.
 apply RND_EvenClosest_correct; auto with zarith.
+apply Nat2Z.inj_lt.
+rewrite inj_abs; simpl; omega.
 apply pff_round_NE_is_round.
 Qed.
 
@@ -332,18 +324,18 @@ Section Equiv_instanc.
 Lemma round_NE_is_pff_round_b32: forall (r:R),
    exists f:Float.float, (Fcanonic 2 bsingle f /\ (EvenClosest bsingle 2 24 r f) /\
     FtoR 2 f =  round radix2 (FLT_exp (-149) 24) rndNE r).
-apply round_NE_is_pff_round.
+apply (round_NE_is_pff_round bsingle 24).
 apply psGivesBound.
-apply psGreaterThanOne.
+omega.
 Qed.
 
 
 Lemma round_NE_is_pff_round_b64: forall (r:R),
    exists f:Float.float, (Fcanonic 2 bdouble f /\ (EvenClosest bdouble 2 53 r f) /\
     FtoR 2 f =  round radix2 (FLT_exp (-1074) 53) rndNE r).
-apply round_NE_is_pff_round.
+apply (round_NE_is_pff_round bdouble 53).
 apply pdGivesBound.
-apply pdGreaterThanOne.
+omega.
 Qed.
 
 
