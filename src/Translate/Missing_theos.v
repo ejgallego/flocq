@@ -3,10 +3,172 @@ Require Import Fprop_plus_error.
 Require Import Fprop_mult_error.
 
 Require Import FmaErr.
-
 Require Import Ftranslate_flocq2Pff.
 
 Open Scope R_scope.
+
+Section Veltkamp.
+
+Variable beta : radix.
+Variable emin prec : Z.
+Variable s:Z.
+Hypothesis precisionGe3 : (3 <= prec)%Z.
+Context { prec_gt_0_ : Prec_gt_0 prec }.
+Hypothesis emin_neg: (emin <= 0)%Z.
+
+Notation format := (generic_format beta (FLT_exp emin prec)).
+Notation round_flt :=(round beta (FLT_exp emin prec) ZnearestE).
+Notation round_flt_s :=(round beta (FLT_exp emin (prec-s)) ZnearestE).
+Notation ulp_flt :=(ulp beta (FLT_exp emin prec)).
+Notation bpow e := (bpow beta e).
+
+(** inputs *)
+Hypothesis SLe: (2 <= s)%Z.
+Hypothesis SGe: (s <= prec-2)%Z.
+Variable x:R.
+Hypothesis Fx: format x.
+
+(** algorithm *)
+Let p := round_flt (x*(bpow s+1)).
+Let q:= round_flt (x-p).
+Let hx:=round_flt (q+p).
+Let tx:=round_flt (x-hx).
+
+
+(** Theorems *)
+Lemma precisionNotZero : (1 < prec)%Z.
+omega.
+Qed.
+
+Lemma C_format: format (bpow s +1).
+Proof with auto with typeclass_instances.
+apply generic_format_FLT.
+unfold FLT_format.
+exists (Fcore_defs.Float beta (Zpower beta s+1)%Z 0%Z).
+split; try split; simpl; try easy.
+unfold F2R; simpl.
+rewrite Z2R_plus, Z2R_Zpower; try omega.
+simpl; ring.
+rewrite Zabs_eq.
+apply Zle_lt_trans with (beta^s+beta^0)%Z.
+simpl; omega.
+apply Zle_lt_trans with (beta^s+beta^s)%Z.
+apply Zplus_le_compat_l.
+apply Zpower_le; omega.
+apply Zle_lt_trans with (2*beta^s)%Z.
+omega.
+apply Zle_lt_trans with (beta^1*beta^s)%Z.
+apply Zmult_le_compat_r.
+rewrite Z.pow_1_r. 
+apply Zle_bool_imp_le; apply beta.
+apply Zpower_ge_0.
+rewrite <- Zpower_plus; try omega.
+apply Zpower_lt; omega.
+apply Zle_trans with (beta^s)%Z; try omega.
+apply Zpower_ge_0.
+Qed.
+
+
+Theorem Veltkamp_Even: hx = round_flt_s x.
+Proof with auto with typeclass_instances.
+destruct (format_is_pff_format beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero x)
+  as (fx,(Hfx,Hfx')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega; assumption.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (x*(bpow s+1)))
+  as (fp,(Hfp, (Hfp',Hfp''))).
+rewrite make_bound_Emin in Hfp''; try assumption.
+replace (--emin)%Z with emin in Hfp'' by omega.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (x-p))
+  as (fq,(Hfq, (Hfq',Hfq''))).
+rewrite make_bound_Emin in Hfq''; try assumption.
+replace (--emin)%Z with emin in Hfq'' by omega.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (q+p))
+  as (fhx,(Hfhx, (Hfhx',Hfhx''))).
+rewrite make_bound_Emin in Hfhx''; try assumption.
+replace (--emin)%Z with emin in Hfhx'' by omega.
+(* *)
+destruct VeltkampEven with beta (make_bound beta prec emin) (Zabs_nat s) 
+   (Zabs_nat prec) fx fp fq fhx as (hx', (H1,H2)); try assumption.
+apply radix_gt_1.
+apply make_bound_p; omega.
+replace 2%nat with (Zabs_nat 2) by easy.
+apply Zabs_nat_le; omega.
+apply Nat2Z.inj_le.
+rewrite inj_abs; try omega.
+rewrite inj_minus, Zmax_r; rewrite inj_abs; simpl; omega.
+rewrite Hfx; rewrite inj_abs; try omega.
+rewrite bpow_powerRZ in Hfp'; rewrite Z2R_IZR in Hfp'; exact Hfp'.
+rewrite Hfx, Hfp''; assumption.
+rewrite Hfp'', Hfq''; assumption.
+(* *)
+unfold hx; rewrite <- Hfhx'', <- H1.
+apply trans_eq with (FtoR beta (RND_EvenClosest 
+ (make_bound beta (prec-s) emin) beta (Zabs_nat (prec-s)) x)).
+generalize (EvenClosestUniqueP (make_bound beta (prec-s) emin) beta 
+   (Zabs_nat (prec-s))); unfold UniqueP; intros T.
+apply T with x; clear T.
+apply radix_gt_1.
+apply Nat2Z.inj_lt.
+rewrite inj_abs; simpl; omega.
+apply make_bound_p; omega.
+rewrite <- Hfx.
+replace (Zabs_nat (prec-s)) with (Zabs_nat prec - Zabs_nat s)%nat.
+replace (make_bound beta (prec - s) emin) with
+  (Bound  (Pos.of_succ_nat
+                 (Peano.pred
+                    (Z.abs_nat
+                       (Zpower_nat beta (Z.abs_nat prec - Z.abs_nat s)))))
+           (dExp (make_bound beta prec emin))).
+exact H2.
+generalize (make_bound_Emin beta (prec-s) _ emin_neg).
+generalize (make_bound_p beta (prec-s) emin).
+destruct (make_bound beta (prec-s) emin) as (l1,l2).
+simpl; intros H3 H4; f_equal.
+apply Pos2Z.inj.
+rewrite H3; try omega.
+replace (Z.abs_nat (prec - s)) with (Z.abs_nat prec - Z.abs_nat s)%nat.
+rewrite <- (p'GivesBound beta (make_bound beta prec emin) (Zabs_nat s) (Zabs_nat prec)) at 2.
+simpl; easy.
+apply radix_gt_1.
+apply Nat2Z.inj.
+rewrite inj_abs; try omega.
+rewrite inj_minus, Zmax_r; rewrite 2!inj_abs; omega.
+apply N2Z.inj.
+rewrite H4.
+rewrite Zabs2N.id_abs.
+now apply Z.abs_neq.
+apply Nat2Z.inj.
+rewrite inj_abs; try omega.
+rewrite inj_minus, Zmax_r; rewrite 2!inj_abs; omega.
+apply RND_EvenClosest_correct.
+apply radix_gt_1.
+apply Nat2Z.inj_lt.
+rewrite inj_abs; simpl; omega.
+apply make_bound_p; omega.
+rewrite pff_round_NE_is_round; try omega.
+f_equal; f_equal.
+rewrite make_bound_Emin; omega.
+apply make_bound_p; omega.
+Qed.
+
+
+Theorem Veltkamp_tail:
+ x = hx+tx /\  generic_format beta (FLT_exp emin s) tx.
+Proof with auto with typeclass_instances.
+
+TODO.
+Qed.
+
+
+End Veltkamp.
 
 Section ErrFMA.
 
