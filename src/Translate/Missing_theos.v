@@ -1,11 +1,123 @@
 Require Import Fcore.
 Require Import Fprop_plus_error.
 Require Import Fprop_mult_error.
-
+Require Import Fast2Sum.
 Require Import FmaErr.
 Require Import Ftranslate_flocq2Pff.
 
 Open Scope R_scope.
+
+Section FTS.
+Variable emin prec : Z.
+Hypothesis precisionNotZero : (1 < prec)%Z.
+Context { prec_gt_0_ : Prec_gt_0 prec }.
+Hypothesis emin_neg: (emin <= 0)%Z.
+
+Notation format := (generic_format radix2 (FLT_exp emin prec)).
+Notation round_flt :=(round radix2 (FLT_exp emin prec) ZnearestE).
+Notation bpow e := (bpow radix2 e).
+
+(** inputs *)
+Variable x y:R.
+Hypothesis Fx: format x.
+Hypothesis Fy: format y.
+
+(** algorithm *)
+Let a := round_flt (x+y).
+Let b := round_flt (round_flt (a-x)-y).
+
+(** Theorem *)
+Theorem FastTwoSum: Rabs y <= Rabs x -> a+b=x+y.
+Proof with auto with typeclass_instances.
+intros H.
+(* *)
+destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero x)
+  as (fx,(Hfx,Hfx')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega; assumption.
+destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero y)
+  as (fy,(Hfy,Hfy')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega; assumption.
+(* *)
+pose (Iplus := fun (f g:float) => (Float.Float 
+   (Ztrunc (scaled_mantissa radix2 (FLT_exp (emin) prec) (FtoR radix2 f+FtoR radix2 g)))
+   (canonic_exp radix2 (FLT_exp (emin) prec) (round_flt (FtoR radix2 f+FtoR radix2 g))))).
+pose (Iminus := fun (f g:float) => (Float.Float 
+   (Ztrunc (scaled_mantissa radix2 (FLT_exp (emin) prec) (FtoR radix2 f-FtoR radix2 g)))
+   (canonic_exp radix2 (FLT_exp (emin) prec) (round_flt (FtoR radix2 f-FtoR radix2 g))))).
+assert (H1: forall x y, FtoR 2 (Iplus x y) = round_flt (FtoR 2 x + FtoR 2 y)).
+clear; intros x y.
+assert (format (round_flt (FtoR 2 x + FtoR 2 y))).
+apply generic_format_round...
+
+BLOP.
+
+
+admit.
+
+rewrite H; unfold Iplus.
+change 2%Z with (radix_val radix2).
+apply FtoR_F2R; try easy.
+
+
+
+
+
+assert (K: FtoR 2 (Iminus fy (Iminus (Iplus fx fy) fx)) =
+       FtoR 2 fx + FtoR 2 fy - FtoR 2 (Iplus fx fy)).
+apply Dekker with (make_bound radix2 prec emin) (Zabs_nat prec); try assumption.
+apply Nat2Z.inj_lt.
+rewrite inj_abs; simpl; omega.
+apply make_bound_p; omega.
+
+admit.
+admit.
+admit.
+
+change 2%Z with (radix_val radix2).
+rewrite Hfx, Hfy; assumption.
+
+
+replace 2%nat with (Zabs_nat 2) by easy.
+apply Zabs_nat_le; omega.
+apply Nat2Z.inj_le.
+rewrite inj_abs; try omega.
+rewrite inj_minus, Zmax_r; rewrite inj_abs; simpl; omega.
+rewrite Hfx; rewrite inj_abs; try omega.
+rewrite bpow_powerRZ in Hfp'; rewrite Z2R_IZR i
+
+
+
+format_is_pff_format'
+
+
+
+destruct (round_NE_is_pff_round radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero 
+  (x+y))
+  as (fa,(Hfa, (Hfa',Hfa''))).
+rewrite make_bound_Emin in Hfa''; try assumption.
+replace (--emin)%Z with emin in Hfa'' by omega.
+(* *)
+apply Rplus_eq_reg_r with (-y).
+ring_simplify (x+y+-y).
+unfold a; rewrite <- Hfa'', <- Hfx, <- Hfy.
+
+
+
+(* *)
+
+
+apply Dekker.
+
+
+Qed.
+
+End FTS.
+
 
 Section Veltkamp.
 
@@ -160,13 +272,78 @@ apply make_bound_p; omega.
 Qed.
 
 
-Theorem Veltkamp_tail:
+Theorem Veltkamp_Tail:
  x = hx+tx /\  generic_format beta (FLT_exp emin s) tx.
 Proof with auto with typeclass_instances.
-
-TODO.
+destruct (format_is_pff_format beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero x)
+  as (fx,(Hfx,Hfx')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega; assumption.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (x*(bpow s+1)))
+  as (fp,(Hfp, (Hfp',Hfp''))).
+rewrite make_bound_Emin in Hfp''; try assumption.
+replace (--emin)%Z with emin in Hfp'' by omega.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (x-p))
+  as (fq,(Hfq, (Hfq',Hfq''))).
+rewrite make_bound_Emin in Hfq''; try assumption.
+replace (--emin)%Z with emin in Hfq'' by omega.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (q+p))
+  as (fhx,(Hfhx, (Hfhx',Hfhx''))).
+rewrite make_bound_Emin in Hfhx''; try assumption.
+replace (--emin)%Z with emin in Hfhx'' by omega.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (x-hx))
+  as (ftx,(Hftx, (Hftx',Hftx''))).
+rewrite make_bound_Emin in Hftx''; try assumption.
+replace (--emin)%Z with emin in Hftx'' by omega.
+(* *)
+destruct Veltkamp_tail with beta (make_bound beta prec emin) (Zabs_nat s) 
+   (Zabs_nat prec) fx fp fq fhx ftx as (tx', (H1,(H2,(H3,H4)))); try assumption.
+apply radix_gt_1.
+apply make_bound_p; omega.
+replace 2%nat with (Zabs_nat 2) by easy.
+apply Zabs_nat_le; omega.
+apply Nat2Z.inj_le.
+rewrite inj_abs; try omega.
+rewrite inj_minus, Zmax_r; rewrite inj_abs; simpl; omega.
+rewrite Hfx; rewrite inj_abs; try omega.
+rewrite bpow_powerRZ in Hfp'; rewrite Z2R_IZR in Hfp'; apply Hfp'.
+rewrite Hfx, Hfp''; apply Hfq'.
+rewrite Hfp'', Hfq''; apply Hfhx'.
+rewrite Hfhx'', Hfx; apply Hftx'.
+(* *)
+split.
+rewrite <- Hfx, <-H2, Hfhx'', H1, Hftx''; easy.
+unfold tx; rewrite <- Hftx'', <- H1.
+replace emin with (-dExp (Bound
+       (Pos.of_succ_nat
+                 (Peano.pred (Z.abs_nat (Zpower_nat beta (Z.abs_nat s)))))
+       (dExp (make_bound beta prec emin))))%Z.
+apply pff_format_is_format; try assumption; try omega.
+simpl.
+rewrite Zpos_P_of_succ_nat, inj_pred.
+rewrite <- Zsucc_pred.
+apply inj_abs.
+apply Zpower_NR0.
+apply Zlt_le_weak; apply radix_gt_0.
+apply notEqLt, lt_Zlt_inv.
+rewrite inj_abs.
+apply Zpower_nat_less.
+apply radix_gt_1.
+apply Zpower_NR0.
+apply Zlt_le_weak; apply radix_gt_0.
+simpl.
+rewrite Zabs2N.id_abs.
+rewrite Z.abs_neq; omega.
 Qed.
-
 
 End Veltkamp.
 

@@ -55,6 +55,15 @@ omega.
 Qed.
 
 
+Lemma FtoR_F2R: forall (f:Float.float) (g: float beta), Float.Fnum f = Fnum g -> Float.Fexp f = Fexp g -> 
+  FtoR beta f = F2R g.
+Proof.
+intros f g H1 H2; unfold FtoR, F2R.
+rewrite H1, H2, Z2R_IZR.
+now rewrite bpow_powerRZ, Z2R_IZR.
+Qed.
+
+
 End Bounds.
 Section b_Bounds.
 
@@ -101,25 +110,50 @@ exact H0.
 Qed.
 
 
+Lemma format_is_pff_format': forall r,
+   (generic_format beta (FLT_exp (-dExp b) p) r) ->
+    Fbounded b (Float.Float (Ztrunc (scaled_mantissa beta (FLT_exp (-dExp b) p) r))
+                            (canonic_exp beta (FLT_exp (-dExp b) p) r)).
+Proof.
+intros x; unfold generic_format.
+set (ex := canonic_exp beta (FLT_exp (-dExp b) p) x).
+set (mx := Ztrunc (scaled_mantissa beta (FLT_exp (-dExp b) p) x)).
+intros Hx; repeat split ; simpl.
+apply lt_Z2R.
+rewrite pGivesBound, Z2R_Zpower_nat. 
+apply Rmult_lt_reg_r with (bpow beta ex).
+apply bpow_gt_0.
+rewrite <- bpow_plus.
+rewrite inj_abs; try omega.
+change (F2R (Float beta (Zabs mx) ex) < bpow beta (p + ex))%R.
+rewrite F2R_Zabs.
+rewrite <- Hx.
+destruct (Req_dec x 0) as [Hx0|Hx0].
+rewrite Hx0, Rabs_R0.
+apply bpow_gt_0.
+unfold canonic_exp in ex.
+destruct (ln_beta beta x) as (ex', He).
+simpl in ex.
+specialize (He Hx0).
+apply Rlt_le_trans with (1 := proj2 He).
+apply bpow_le.
+cut (ex' - p <= ex)%Z. omega.
+unfold ex, FLT_exp.
+apply Zle_max_l.
+apply Zle_max_r.
+Qed.
+
+
 Lemma format_is_pff_format: forall r,
   (generic_format beta (FLT_exp (-dExp b) p) r)
   -> exists f, FtoR beta f = r /\ Fbounded b f.
 intros r Hr.
-apply FLT_format_generic in Hr; auto with zarith.
-destruct Hr as (f,(Hf1,(Hf2,Hf3))).
-exists (Float.Float (Fnum f) (Fexp f)); split.
-rewrite Hf1.
-unfold F2R, FtoR; simpl.
-rewrite Z2R_IZR.
-rewrite bpow_powerRZ.
-rewrite Z2R_IZR; reflexivity.
-split.
-apply Zlt_le_trans with (1:=Hf2).
-rewrite pGivesBound.
-rewrite Zpower_Zpower_nat; auto with zarith.
-exact Hf3.
-unfold Prec_gt_0;auto with zarith.
+eexists; split.
+2: apply (format_is_pff_format' _ Hr).
+rewrite Hr at 3; unfold FtoR, F2R; simpl.
+now rewrite Z2R_IZR, bpow_powerRZ, Z2R_IZR.
 Qed.
+
 
 
 Lemma equiv_RNDs_aux: forall z, Zeven z = true -> Even z.
