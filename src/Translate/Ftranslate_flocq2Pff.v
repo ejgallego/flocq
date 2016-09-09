@@ -367,6 +367,67 @@ rewrite inj_abs; simpl; omega.
 apply pff_round_NE_is_round.
 Qed.
 
+Lemma FloatFexp_gt:  forall e f, Fbounded b f ->
+  (bpow beta (e+p) <= Rabs (FtoR beta f))%R ->
+       (e < Float.Fexp f)%Z.
+Proof.
+intros e f Ff H1.
+apply lt_bpow with beta.
+apply Rmult_lt_reg_r with (bpow beta p).
+apply bpow_gt_0.
+rewrite <- bpow_plus.
+apply Rle_lt_trans with (1:=H1).
+rewrite <- Fabs_correct.
+2: apply radix_gt_0.
+unfold Fabs, FtoR; simpl; rewrite Rmult_comm.
+rewrite bpow_powerRZ, Z2R_IZR.
+apply Rmult_lt_compat_l.
+apply powerRZ_lt.
+replace 0%R with (IZR 0) by reflexivity.
+apply IZR_lt, radix_gt_0.
+destruct Ff as (T1,T2).
+rewrite bpow_powerRZ.
+rewrite Z2R_IZR.
+replace p with (Z.of_nat (Zabs_nat p)).
+rewrite <- Zpower_nat_Z_powerRZ.
+apply IZR_lt.
+now rewrite <- pGivesBound.
+rewrite inj_abs; omega.
+Qed.
+
+Lemma CanonicGeNormal:  forall f, Fcanonic beta b f ->
+  (bpow beta (-dExp b+p-1) <= Rabs (FtoR beta f))%R ->
+       (Fnormal beta b f)%Z.
+Proof.
+intros f Cf H1.
+case Cf; trivial.
+intros (H2,(H3,H4)).
+contradict H1; apply Rlt_not_le.
+rewrite <- Fabs_correct.
+2: apply radix_gt_0.
+unfold FtoR, Fabs; simpl.
+rewrite H3, <- (Z2R_IZR beta), <- bpow_powerRZ.
+apply Rlt_le_trans with (bpow beta (p-1)*bpow beta (-dExp b))%R.
+2: rewrite <- bpow_plus.
+2: right; f_equal; ring.
+apply Rmult_lt_compat_r.
+apply bpow_gt_0.
+apply Rmult_lt_reg_l with (Z2R beta).
+change 0%R with (Z2R 0); apply Z2R_lt, radix_gt_0.
+rewrite Z2R_IZR, <- mult_IZR.
+apply Rlt_le_trans with (IZR (Z.pos (vNum b))).
+apply IZR_lt.
+rewrite <- (Zabs_eq beta).
+now rewrite <- Zabs_Zmult.
+apply Zlt_le_weak, radix_gt_0.
+rewrite pGivesBound.
+rewrite <- Z2R_IZR, Z2R_Zpower_nat.
+rewrite <- Z2R_IZR, <- bpow_1.
+rewrite <- bpow_plus.
+apply bpow_le.
+rewrite inj_abs; omega.
+Qed.
+
 End Equiv.
 
 Section Equiv_instanc.
