@@ -110,6 +110,7 @@ dist: $(EXTRA_DIST)
 	for f in $(REMOVE_FROM_DIST) ; do rm -rf $PACK/$f; done
 	git log --pretty="format:%ad %s" --date=short > $PACK/ChangeLog
 	cat /dev/null > $PACK/ChangeLog
+	rm $PACK/.mailmap
 	rm `find $PACK -name .gitignore`
 	tar czf $PACK.tar.gz $PACK
 	rm -rf $PACK
