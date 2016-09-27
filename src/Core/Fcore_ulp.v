@@ -35,6 +35,7 @@ Variable fexp : Z -> Z.
 (** Definition and basic properties about the minimal exponent, when it exists *)
 
 Lemma Z_le_dec_aux: forall x y : Z, (x <= y)%Z \/ ~ (x <= y)%Z.
+Proof.
 intros.
 destruct (Z_le_dec x y).
 now left.
