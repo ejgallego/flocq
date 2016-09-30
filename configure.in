@@ -1,4 +1,4 @@
-AC_INIT([Flocq], [2.5.1],
+AC_INIT([Flocq], [2.5.2],
         [Sylvie Boldo <sylvie.boldo@inria.fr>, Guillaume Melquiond <guillaume.melquiond@inria.fr>],
         [flocq])
 
