@@ -2004,26 +2004,16 @@ apply error_le_half_ulp.
 rewrite round_DN_opp; apply Ropp_0_gt_lt_contravar; apply Rlt_gt; assumption.
 Qed.
 
-
-Theorem pred_le: forall x y,
-   F x -> F y -> (x <= y)%R -> (pred x <= pred y)%R.
+Theorem pred_le :
+  forall x y, F x -> F y -> (x <= y)%R ->
+  (pred x <= pred y)%R.
 Proof.
-intros x y Fx Fy Hxy.
-assert (V:( ((x = 0) /\ (y = 0)) \/ (x <>0 \/ x < y))%R).
-case (Req_dec x 0); intros Zx.
-case Hxy; intros Zy.
-now right; right.
-left; split; trivial; now rewrite <- Zy.
-now right; left.
-destruct V as [(V1,V2)|V].
-rewrite V1,V2; now right.
-apply le_pred_lt; try assumption.
-apply generic_format_pred; try assumption.
-case V; intros V1.
-apply Rlt_le_trans with (2:=Hxy).
-now apply pred_lt_id.
-apply Rle_lt_trans with (2:=V1).
-now apply pred_le_id.
+intros x y Fx Fy [Hxy| ->].
+2: apply Rle_refl.
+apply le_pred_lt with (2 := Fy).
+now apply generic_format_pred.
+apply Rle_lt_trans with (2 := Hxy).
+apply pred_le_id.
 Qed.
 
 Theorem succ_le: forall x y,
@@ -2049,6 +2039,28 @@ Proof.
 intros x y Fx Fy Hxy.
 rewrite <- (pred_succ x), <- (pred_succ y); try assumption.
 apply pred_le; trivial; now apply generic_format_succ.
+Qed.
+
+Theorem pred_lt :
+  forall x y, F x -> F y -> (x < y)%R ->
+  (pred x < pred y)%R.
+Proof.
+intros x y Fx Fy Hxy.
+apply Rnot_le_lt.
+intros H.
+apply Rgt_not_le with (1 := Hxy).
+now apply pred_le_inv.
+Qed.
+
+Theorem succ_lt :
+  forall x y, F x -> F y -> (x < y)%R ->
+  (succ x < succ y)%R.
+Proof.
+intros x y Fx Fy Hxy.
+apply Rnot_le_lt.
+intros H.
+apply Rgt_not_le with (1 := Hxy).
+now apply succ_le_inv.
 Qed.
 
 (* was lt_UP_le_DN *)
