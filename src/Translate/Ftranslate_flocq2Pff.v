@@ -18,8 +18,8 @@ COPYING file for more details.
 *)
 
 (** Translation from Flocq to Pff *)
-
-Require Import Veltkamp.
+Require Import Float.Veltkamp.
+Require Import Float.RND.
 Require Import Fcore.
 Require Import Fappli_IEEE.
 

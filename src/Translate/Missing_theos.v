@@ -1,9 +1,12 @@
+Require Import Float.Veltkamp.
+Require Import Float.RND.
+Require Export Float.Fast2Sum.
+Require Import Float.TwoSum.
+Require Import Float.FmaErr.
+
 Require Import Fcore.
 Require Import Fprop_plus_error.
 Require Import Fprop_mult_error.
-Require Import Fast2Sum.
-Require Import TwoSum.
-Require Import FmaErr.
 Require Import Ftranslate_flocq2Pff.
 
 Open Scope R_scope.
@@ -43,12 +46,12 @@ destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega; assumption.
 (* *)
-pose (Iplus := fun (f g:float) => 
+pose (Iplus := fun (f g:Float.float) => 
   Fnormalize radix2 (make_bound radix2 prec emin) (Zabs_nat prec)
    (Float.Float 
      (Ztrunc (scaled_mantissa radix2 (FLT_exp (emin) prec) (round_flt (FtoR radix2 f+FtoR radix2 g))))
      (canonic_exp radix2 (FLT_exp (emin) prec) (round_flt (FtoR radix2 f+FtoR radix2 g))))).
-pose (Iminus := fun (f g:float) => 
+pose (Iminus := fun (f g:Float.float) => 
   Fnormalize radix2 (make_bound radix2 prec emin) (Zabs_nat prec)
    (Float.Float 
       (Ztrunc (scaled_mantissa radix2 (FLT_exp (emin) prec) (round_flt (FtoR radix2 f-FtoR radix2 g))))
@@ -173,6 +176,7 @@ rewrite H1,H2.
 rewrite Fopp_correct.
 f_equal; ring.
 (* . *)
+unfold Fast2Sum.FtoRradix.
 change 2%Z with (radix_val radix2).
 rewrite Hfx, Hfy; assumption.
 (* *)
@@ -227,12 +231,12 @@ destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega; assumption.
 (* *)
-pose (Iplus := fun (f g:float) => 
+pose (Iplus := fun (f g:Float.float) => 
   Fnormalize radix2 (make_bound radix2 prec emin) (Zabs_nat prec)
    (Float.Float 
      (Ztrunc (scaled_mantissa radix2 (FLT_exp (emin) prec) (round_flt (FtoR radix2 f+FtoR radix2 g))))
      (canonic_exp radix2 (FLT_exp (emin) prec) (round_flt (FtoR radix2 f+FtoR radix2 g))))).
-pose (Iminus := fun (f g:float) => 
+pose (Iminus := fun (f g:Float.float) => 
   Fnormalize radix2 (make_bound radix2 prec emin) (Zabs_nat prec)
    (Float.Float 
       (Ztrunc (scaled_mantissa radix2 (FLT_exp (emin) prec) (round_flt (FtoR radix2 f-FtoR radix2 g))))
@@ -287,6 +291,7 @@ rewrite Zopp_involutive.
 apply generic_format_round...
 rewrite make_bound_Emin; omega.
 (* . *)
+unfold TwoSum.FtoRradix.
 intros p q r s Fp Fq Fr Fs M1 M2.
 now rewrite 2!H1, M1, M2.
 (* . *)
@@ -634,6 +639,13 @@ Qed.
 
 End Veltkamp.
 
+Section Dekker.
+
+
+(* todo *)
+
+End Dekker.
+
 Section ErrFMA.
 
 Variable emin prec : Z.
@@ -841,6 +853,6 @@ rewrite Hfbe1'', Hfr1''; apply Hff'.
 rewrite Hfbe2; apply Hfga'.
 rewrite Hfa, Hfx, Hfy; apply Hfr1'.
 rewrite Hfu1'', Hfal1''; apply Hfbe1'.
-Qed.
+Admitted.
 
 End ErrFMA.
