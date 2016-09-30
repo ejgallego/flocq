@@ -270,6 +270,7 @@ Qed.
 
 Lemma not_FTZ_generic_format_ulp:
    (forall x,  F (ulp x)) -> Exp_not_FTZ fexp.
+Proof.
 intros H e.
 specialize (H (bpow (e-1))).
 rewrite ulp_neq_0 in H.
@@ -1482,22 +1483,27 @@ now apply Ropp_lt_contravar.
 Qed.
 
 
-Theorem lt_succ_le:
+Theorem lt_succ_le :
   forall x y,
   F x -> F y -> (y <> 0)%R ->
   (x <= y)%R ->
   (x < succ y)%R.
 Proof.
 intros x y Fx Fy Zy Hxy.
-case (Rle_or_lt (succ y) x); trivial; intros H.
-absurd (succ y = y)%R.
-apply Rgt_not_eq.
+apply Rle_lt_trans with (1 := Hxy).
 now apply succ_gt_id.
-apply Rle_antisym.
-now apply Rle_trans with x.
-apply succ_ge_id.
 Qed.
 
+Theorem pred_lt_le:
+  forall x y,
+  F x -> F y -> (x <> 0)%R ->
+  (x <= y)%R ->
+  (pred x < y)%R.
+Proof.
+intros x y Fx Fy Zy Hxy.
+apply Rlt_le_trans with (2 := Hxy).
+now apply pred_lt_id.
+Qed.
 
 Theorem succ_pred_aux : forall x, F x -> (0 < x)%R -> succ (pred x)=x.
 Proof.
