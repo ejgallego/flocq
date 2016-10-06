@@ -155,6 +155,21 @@ now rewrite Z2R_IZR, bpow_powerRZ, Z2R_IZR.
 Qed.
 
 
+Lemma format_is_pff_format_can: forall r,
+  (generic_format beta (FLT_exp (-dExp b) p) r)
+  -> exists f, FtoR beta f = r /\ Fcanonic beta b f.
+Proof.
+intros r Hr.
+destruct (format_is_pff_format r Hr) as (f,(Hf1,Hf2)).
+exists (Fnormalize beta b (Zabs_nat p) f); split.
+rewrite <- Hf1; apply FnormalizeCorrect.
+apply radix_gt_1.
+apply FnormalizeCanonic; try assumption.
+apply radix_gt_1.
+assert (0 < Z.abs_nat p); try omega.
+apply absolu_lt_nz; omega.
+Qed.
+
 
 Lemma equiv_RNDs_aux: forall z, Zeven z = true -> Even z.
 intros z; unfold Zeven, Even.

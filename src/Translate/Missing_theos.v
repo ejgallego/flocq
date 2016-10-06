@@ -3,6 +3,7 @@ Require Import Float.RND.
 Require Export Float.Fast2Sum.
 Require Import Float.TwoSum.
 Require Import Float.FmaErr.
+Require Import Float.Dekker.
 
 Require Import Fcore.
 Require Import Fprop_plus_error.
@@ -75,7 +76,7 @@ apply FtoR_F2R; try easy.
 (* *)
 assert (K: FtoR 2 (Iminus fy (Iminus (Iplus fx fy) fx)) =
        FtoR 2 fx + FtoR 2 fy - FtoR 2 (Iplus fx fy)).
-apply Dekker with (make_bound radix2 prec emin) (Zabs_nat prec); try assumption.
+apply Fast2Sum.Dekker with (make_bound radix2 prec emin) (Zabs_nat prec); try assumption.
 apply Nat2Z.inj_lt.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
@@ -640,6 +641,271 @@ Qed.
 End Veltkamp.
 
 Section Dekker.
+
+Variable beta : radix.
+Variable emin prec: Z.
+Let s:= (prec- Z.div2 prec)%Z.
+
+Hypothesis precisionGe4 : (4 <= prec)%Z.
+Context { prec_gt_0_ : Prec_gt_0 prec }.
+Hypothesis emin_neg: (emin < 0)%Z.
+
+Notation format := (generic_format beta (FLT_exp emin prec)).
+Notation round_flt :=(round beta (FLT_exp emin prec) ZnearestE).
+Notation round_flt_s :=(round beta (FLT_exp emin (prec-s)) ZnearestE).
+Notation ulp_flt :=(ulp beta (FLT_exp emin prec)).
+Notation bpow e := (bpow beta e).
+
+(** inputs *)
+Variable x y:R.
+Hypothesis Fx: format x.
+Hypothesis Fy: format y.
+
+(*** algorithm *)
+(** first Veltkamp *)
+Let px := round_flt (x*(bpow s+1)).
+Let qx:= round_flt (x-px).
+Let hx:=round_flt (qx+px).
+Let tx:=round_flt (x-hx).
+
+(** second Veltkamp *)
+Let py := round_flt (y*(bpow s+1)).
+Let qy:= round_flt (y-py).
+Let hy:=round_flt (qy+py).
+Let ty:=round_flt (y-hy).
+
+(** all products *)
+Let x1y1:=round_flt (hx*hy).
+Let x1y2:=round_flt (hx*ty).
+Let x2y1:=round_flt (tx*hy).
+Let x2y2:=round_flt (tx*ty).
+
+(** final summation *)
+Let r :=round_flt(x*y).
+Let t1 :=round_flt (-r+x1y1).
+Let t2 :=round_flt (t1+x1y2).
+Let t3 :=round_flt (t2+x2y1).
+Let t4 :=round_flt (t3+x2y2).
+
+Theorem Dekker: (radix_val beta=2)%Z \/ (Z.Even prec) ->
+  (bpow (emin + 2 * prec - 1) <= Rabs (x * y) ->  (x*y=r+t4)%R) /\
+    (Rabs (x*y-(r+t4)) <= (7/2)*bpow emin)%R.
+Proof with auto with typeclass_instances.
+intros HH.
+(* Veltkamp x *)
+assert (precisionNotZero : (1 < prec)%Z) by omega.
+assert (emin_neg': (emin <= 0)%Z) by omega.
+destruct (format_is_pff_format_can beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero x)
+  as (fx,(Hfx,Hfx')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega; assumption.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (x*(bpow s+1)))
+  as (fpx,(Hfpx, (Hfpx',Hfpx''))).
+rewrite make_bound_Emin in Hfpx''; try assumption.
+replace (--emin)%Z with emin in Hfpx'' by omega.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (x-px))
+  as (fqx,(Hfqx, (Hfqx',Hfqx''))).
+rewrite make_bound_Emin in Hfqx''; try assumption.
+replace (--emin)%Z with emin in Hfqx'' by omega.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (qx+px))
+  as (fhx,(Hfhx, (Hfhx',Hfhx''))).
+rewrite make_bound_Emin in Hfhx''; try assumption.
+replace (--emin)%Z with emin in Hfhx'' by omega.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (x-hx))
+  as (ftx,(Hftx, (Hftx',Hftx''))).
+rewrite make_bound_Emin in Hftx''; try assumption.
+replace (--emin)%Z with emin in Hftx'' by omega.
+(* Veltkamp y*)
+destruct (format_is_pff_format_can beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero y)
+  as (fy,(Hfy,Hfy')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega; assumption.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (y*(bpow s+1)))
+  as (fpy,(Hfpy, (Hfpy',Hfpy''))).
+rewrite make_bound_Emin in Hfpy''; try assumption.
+replace (--emin)%Z with emin in Hfpy'' by omega.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (y-py))
+  as (fqy,(Hfqy, (Hfqy',Hfqy''))).
+rewrite make_bound_Emin in Hfqy''; try assumption.
+replace (--emin)%Z with emin in Hfqy'' by omega.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (qy+py))
+  as (fhy,(Hfhy, (Hfhy',Hfhy''))).
+rewrite make_bound_Emin in Hfhy''; try assumption.
+replace (--emin)%Z with emin in Hfhy'' by omega.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (y-hy))
+  as (fty,(Hfty, (Hfty',Hfty''))).
+rewrite make_bound_Emin in Hfty''; try assumption.
+replace (--emin)%Z with emin in Hfty'' by omega.
+(* products *)
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (hx*hy))
+  as (fx1y1,(Hfx1y1, (Hfx1y1',Hfx1y1''))).
+rewrite make_bound_Emin in Hfx1y1''; try assumption.
+replace (--emin)%Z with emin in Hfx1y1'' by omega.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (hx*ty))
+  as (fx1y2,(Hfx1y2, (Hfx1y2',Hfx1y2''))).
+rewrite make_bound_Emin in Hfx1y2''; try assumption.
+replace (--emin)%Z with emin in Hfx1y2'' by omega.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (tx*hy))
+  as (fx2y1,(Hfx2y1, (Hfx2y1',Hfx2y1''))).
+rewrite make_bound_Emin in Hfx2y1''; try assumption.
+replace (--emin)%Z with emin in Hfx2y1'' by omega.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (tx*ty))
+  as (fx2y2,(Hfx2y2, (Hfx2y2',Hfx2y2''))).
+rewrite make_bound_Emin in Hfx2y2''; try assumption.
+replace (--emin)%Z with emin in Hfx2y2'' by omega.
+(* t_is *)
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (x*y))
+  as (fr,(Hfr, (Hfr',Hfr''))).
+rewrite make_bound_Emin in Hfr''; try assumption.
+replace (--emin)%Z with emin in Hfr'' by omega.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (-r+x1y1))
+  as (ft1,(Hft1, (Hft1',Hft1''))).
+rewrite make_bound_Emin in Hft1''; try assumption.
+replace (--emin)%Z with emin in Hft1'' by omega.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (t1+x1y2))
+  as (ft2,(Hft2, (Hft2',Hft2''))).
+rewrite make_bound_Emin in Hft2''; try assumption.
+replace (--emin)%Z with emin in Hft2'' by omega.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (t2+x2y1))
+  as (ft3,(Hft3, (Hft3',Hft3''))).
+rewrite make_bound_Emin in Hft3''; try assumption.
+replace (--emin)%Z with emin in Hft3'' by omega.
+destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  (t3+x2y2))
+  as (ft4,(Hft4, (Hft4',Hft4''))).
+rewrite make_bound_Emin in Hft4''; try assumption.
+replace (--emin)%Z with emin in Hft4'' by omega.
+(* *)
+assert (Hs:(s =(Z.abs_nat prec - Nat.div2 (Z.abs_nat prec))%nat)).
+unfold s; rewrite inj_minus.
+
+admit.
+
+(* *)
+assert (D:(((- dExp (make_bound beta prec emin) <= Float.Fexp fx + Float.Fexp fy)%Z -> 
+        (FtoR beta fx * FtoR beta fy = FtoR beta fr + FtoR beta ft4)) /\
+   Rabs (FtoR beta fx * FtoR beta fy - (FtoR beta fr + FtoR beta ft4)) <=
+       7 / 2 * powerRZ beta (- dExp (make_bound beta prec emin)))).
+apply Dekker.Dekker with (Zabs_nat prec) fpx fqx fhx ftx fpy fqy fhy fty 
+   fx1y1 fx1y2 fx2y1 fx2y2 ft1 ft2 ft3; try assumption.
+apply radix_gt_1.
+apply make_bound_p; omega.
+replace 4%nat with (Zabs_nat 4) by easy.
+apply Zabs_nat_le; omega.
+(* . *)
+rewrite Hfx, <- Hs, <- Z2R_IZR, <- bpow_powerRZ; apply Hfpx'.
+rewrite Hfx, Hfpx''; apply Hfqx'.
+rewrite Hfpx'', Hfqx''; apply Hfhx'.
+rewrite Hfx, Hfhx''; apply Hftx'.
+rewrite Hfy, <- Hs, <- Z2R_IZR, <- bpow_powerRZ; apply Hfpy'.
+rewrite Hfy, Hfpy''; apply Hfqy'.
+rewrite Hfpy'', Hfqy''; apply Hfhy'.
+rewrite Hfy, Hfhy''; apply Hfty'.
+rewrite Hfhx'', Hfhy''; apply Hfx1y1'.
+rewrite Hfhx'', Hfty''; apply Hfx1y2'.
+rewrite Hftx'', Hfhy''; apply Hfx2y1'.
+rewrite Hftx'', Hfty''; apply Hfx2y2'.
+rewrite Hfx, Hfy; apply Hfr'.
+rewrite Hfr'', Hfx1y1''; apply Hft1'.
+rewrite Hft1'', Hfx1y2''; apply Hft2'.
+rewrite Hft2'', Hfx2y1''; apply Hft3'.
+rewrite Hft3'', Hfx2y2''; apply Hft4'.
+rewrite make_bound_Emin; omega.
+case HH; intros K;[now left|right].
+
+
+admit.
+
+
+destruct D as (D1,D2); split.
+intros L.
+
+
+
+apply even_equiv.
+SearchAbout Even.
+
+
+SearchAbout nat.even.
+
+Check Z.even_spec.
+
+rewrite inj_abs.
+
+SearchAbout Z.abs_nat.
+rewrite Z.abs_nat
+
+
+
+SearchAbout Z.Even.
+
+Z.even_spec
+
+ EvenClosest (make_bound beta prec emin) beta 
+          (Z.abs_nat prec) (x * (bpow s + 1)) fpx
+
+
+(* *)
+split.
+rewrite <- Hfx, <-H2, Hfhx'', H1, Hftx''; easy.
+unfold tx; rewrite <- Hftx'', <- H1.
+
+
+
+
+ with fpx.
+
+t, p, q, hx, tx, p',
+q', hy, ty, x1y1, x1y2, x2y1, x2y2, t1, t2, t3.
+
+generalize (Dekker x y).
+
+
+assert (V:(t4 = FtoR beta ft4)).
+now rewrite Hft4''.
+
+
+admit.
+
+rewrite V.
+rewrite <- Hfx, <- Hfy.
+apply Dekker.
+
 
 
 (* todo *)
