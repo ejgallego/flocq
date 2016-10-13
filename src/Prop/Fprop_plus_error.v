@@ -26,6 +26,7 @@ Require Import Fcore_generic_fmt.
 Require Import Fcore_FIX.
 Require Import Fcore_FLX.
 Require Import Fcore_FLT.
+Require Import Fcore_ulp.
 Require Import Fcalc_ops.
 
 
@@ -267,3 +268,150 @@ rewrite Z2R_plus; ring.
 Qed.
 
 End Fprop_plus_FLT.
+
+Section Fprop_plus_multi.
+
+Variable beta : radix.
+Notation bpow e := (bpow beta e).
+
+Variable fexp : Z -> Z.
+Context { valid_exp : Valid_exp fexp }.
+Context { monotone_exp : Monotone_exp fexp }.
+Variable rnd : R -> Z.
+Context { valid_rnd : Valid_rnd rnd }.
+
+
+Notation format := (generic_format beta fexp).
+Notation cexp := (canonic_exp beta fexp).
+
+Lemma toto: forall x e, format x -> (e <= cexp x)%Z ->
+  exists m, (x = Z2R m*bpow e)%R.
+Proof with auto with typeclass_instances.
+intros x e Fx He.
+exists (Ztrunc (scaled_mantissa beta fexp x)*Zpower beta (cexp x -e))%Z.
+rewrite Fx at 1; unfold F2R; simpl.
+rewrite Z2R_mult, Rmult_assoc.
+f_equal.
+rewrite Z2R_Zpower.
+2: omega.
+rewrite <- bpow_plus; f_equal; ring.
+Qed.
+
+(*Lemma Fprop_plus_mutiple_aux:
+   forall x y, format x -> format y ->
+    (0 < x)%R -> (y < 0)%R ->
+    exists m',
+     (round beta fexp rnd (x+y) = Z2R m' * ulp beta fexp (x/Z2R beta))%R.
+Proof with auto with typeclass_instances.
+
+ln_beta_minus_lb
+*)
+
+Lemma Fprop_plus_mutiple:
+   forall x y, format x -> format y -> (x <> 0)%R ->
+    exists m,
+     (round beta fexp rnd (x+y) = Z2R m * ulp beta fexp (x/Z2R beta))%R.
+Proof with auto with typeclass_instances.
+intros x y Fx Fy Zx.
+(* *)
+assert (H: forall z, (z<>0)%R -> (ln_beta beta z -1 = ln_beta beta (z / Z2R beta))%Z).
+intros z Hz; apply sym_eq, ln_beta_unique.
+destruct (ln_beta beta z) as (e,He); simpl.
+replace (z / Z2R beta)%R with (z*bpow (-1))%R.
+rewrite Rabs_mult, (Rabs_right (bpow _)); try split.
+apply Rmult_le_reg_r with (bpow 1).
+apply bpow_gt_0.
+rewrite Rmult_assoc, <- 2!bpow_plus.
+rewrite Rmult_1_r.
+apply Rle_trans with (2:=proj1 (He Hz)).
+apply bpow_le; omega.
+apply Rmult_lt_reg_r with (bpow 1).
+apply bpow_gt_0.
+rewrite Rmult_assoc, <- 2!bpow_plus.
+rewrite Rmult_1_r.
+apply Rlt_le_trans with (1:=proj2 (He Hz)).
+apply bpow_le; omega.
+apply Rle_ge, bpow_ge_0.
+simpl; unfold Rdiv; f_equal; f_equal; f_equal.
+unfold Z.pow_pos; simpl; ring.
+(* *)
+case (Zle_or_lt (ln_beta beta (x/Z2R beta)) (ln_beta beta y)); intros H1.
+pose (e:=cexp (x / Z2R beta)).
+destruct (toto x e) as (nx, Hnx); try exact Fx.
+apply monotone_exp.
+rewrite <- (H x Zx); omega.
+destruct (toto y e) as (ny, Hny); try assumption.
+apply monotone_exp...
+destruct (round_repr_same_exp beta fexp rnd (nx+ny) e) as (n,Hn).
+exists n.
+apply trans_eq with (F2R (Float beta n e)).
+rewrite <- Hn; f_equal.
+rewrite Hnx, Hny; unfold F2R; simpl; rewrite Z2R_plus; ring.
+unfold F2R; simpl.
+rewrite ulp_neq_0; try easy.
+apply Rmult_integral_contrapositive_currified; try assumption.
+apply Rinv_neq_0_compat.
+apply Rgt_not_eq.
+apply radix_pos.
+(* *)
+destruct (toto (round beta fexp rnd (x + y)) (cexp (x/Z2R beta))) as (n,Hn).
+apply generic_format_round...
+apply Zle_trans with (cexp (x+y)).
+apply monotone_exp.
+rewrite <- H; try assumption.
+rewrite <- (ln_beta_abs beta (x+y)).
+assert (U:(Rabs (x+y) = Rabs x + Rabs y)%R \/ (y <> 0 /\ Rabs (x+y)=Rabs x - Rabs y)%R).
+
+
+
+admit.
+
+
+destruct U as [U|U].
+rewrite U; apply Zle_trans with (ln_beta beta x);[omega|idtac].
+rewrite <- ln_beta_abs.
+apply ln_beta_le.
+now apply Rabs_pos_lt.
+apply Rplus_le_reg_l with (-Rabs x)%R; ring_simplify.
+apply Rabs_pos.
+destruct U as (U',U); rewrite U.
+rewrite <- ln_beta_abs.
+apply ln_beta_minus_lb.
+now apply Rabs_pos_lt.
+now apply Rabs_pos_lt.
+rewrite 2!ln_beta_abs.
+assert (ln_beta beta y < ln_beta beta x -1)%Z;[idtac|omega].
+now rewrite (H x Zx).
+apply canonic_exp_round_ge...
+intros K.
+absurd (x+y=0)%R.
+intros K'.
+contradict H1; apply Zle_not_lt.
+rewrite <- (H x Zx).
+replace y with (-x)%R.
+rewrite ln_beta_opp; omega.
+apply Rplus_eq_reg_l with x; rewrite K'; ring.
+apply round_plus_eq_zero with (6:=K)...
+exists n.
+rewrite ulp_neq_0.
+assumption.
+apply Rmult_integral_contrapositive_currified; try assumption.
+apply Rinv_neq_0_compat.
+apply Rgt_not_eq.
+apply radix_pos.
+Admitted.
+
+(*
+
+x oplus y est un multiple de ulp (x / beta)
+
+==>
+
+x oplus y = 0 ou >= /beta * ulp x
+ 
+==>
+
+|x| >= bpow e -> x oplus y = 0 ou >= bpow (e-p)
+
+*)
+End Fprop_plus_multi.

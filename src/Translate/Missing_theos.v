@@ -640,6 +640,53 @@ Qed.
 
 End Veltkamp.
 
+Section Underf_mult_aux.
+
+Variable beta : radix.
+Variable b: Fbound.
+Variable prec: Z.
+
+Hypothesis pGivesBound : Zpos (vNum b) = Zpower_nat beta (Zabs_nat prec).
+Hypothesis precisionGt1 : (1 < prec)%Z.
+
+Lemma underf_mult_aux:
+ forall x y, 
+  Fbounded b x ->
+  Fbounded b y ->
+   (bpow beta (-dExp b + 2 * prec - 1)%Z <= Rabs (FtoR beta x * FtoR beta y)) ->
+     (-dExp b <= Float.Fexp x + Float.Fexp y)%Z.
+Proof.
+intros x y Fx Fy H.
+assert (HH: forall z, Fbounded b z 
+   -> Rabs (FtoR beta z) < bpow beta (Float.Fexp z + prec)).
+clear -precisionGt1 pGivesBound; intros z Hz.
+unfold FtoR; rewrite <- 2!Z2R_IZR; rewrite <- bpow_powerRZ.
+rewrite Rabs_mult, Rmult_comm.
+rewrite Rabs_right.
+2: apply Rle_ge, bpow_ge_0.
+rewrite bpow_plus; apply Rmult_lt_compat_l.
+apply bpow_gt_0.
+destruct Hz as (T1,T2).
+rewrite pGivesBound in T1.
+rewrite <- Z2R_abs, <- Z2R_Zpower;[idtac|omega].
+apply Z2R_lt.
+apply Zlt_le_trans with (1:=T1).
+rewrite Zpower_Zpower_nat; omega.
+assert (-dExp b+2*prec-1 < (Float.Fexp x+prec) +(Float.Fexp y +prec))%Z; try omega.
+(* *)
+apply lt_bpow with beta.
+apply Rle_lt_trans with (1:=H).
+rewrite Rabs_mult, bpow_plus.
+apply Rmult_lt_compat.
+apply Rabs_pos.
+apply Rabs_pos.
+now apply HH.
+now apply HH.
+Qed.
+
+End Underf_mult_aux.
+
+
 Section Dekker.
 
 Variable beta : radix.
@@ -813,9 +860,16 @@ replace (--emin)%Z with emin in Hft4'' by omega.
 (* *)
 assert (Hs:(s =(Z.abs_nat prec - Nat.div2 (Z.abs_nat prec))%nat)).
 unfold s; rewrite inj_minus.
-
-admit.
-
+assert (TT: (Z.div2 prec = Nat.div2 (Z.abs_nat prec))%Z).
+rewrite Nat.div2_div, Z.div2_div, div_Zdiv; simpl.
+rewrite inj_abs; omega.
+omega.
+rewrite <- TT.
+rewrite inj_abs; try omega.
+rewrite Z.max_r; try omega.
+assert (Z.div2 prec <= prec)%Z; try omega.
+rewrite Z.div2_div; apply Zlt_le_weak.
+apply Z_div_lt; omega.
 (* *)
 assert (D:(((- dExp (make_bound beta prec emin) <= Float.Fexp fx + Float.Fexp fy)%Z -> 
         (FtoR beta fx * FtoR beta fy = FtoR beta fr + FtoR beta ft4)) /\
@@ -847,68 +901,34 @@ rewrite Hft2'', Hfx2y1''; apply Hft3'.
 rewrite Hft3'', Hfx2y2''; apply Hft4'.
 rewrite make_bound_Emin; omega.
 case HH; intros K;[now left|right].
-
-
-admit.
-
-
+destruct K as (l,Hl).
+apply even_equiv.
+exists (Zabs_nat l).
+apply Nat2Z.inj.
+rewrite inj_mult.
+rewrite 2!inj_abs; try omega.
+rewrite Hl; simpl; easy.
+(* *)
+rewrite <- Hfx, <- Hfy.
+unfold r; rewrite <- Hfr''.
+unfold t4; rewrite <- Hft4''.
 destruct D as (D1,D2); split.
 intros L.
+apply D1.
+apply underf_mult_aux with beta prec; try assumption.
+apply make_bound_p; assumption.
+now apply FcanonicBound with beta.
+now apply FcanonicBound with beta.
+apply Rle_trans with (2:=L).
+right; repeat f_equal.
+rewrite make_bound_Emin, Zopp_involutive; omega.
+apply Rle_trans with (1:=D2).
+rewrite make_bound_Emin, Zopp_involutive.
+2: omega.
+rewrite bpow_powerRZ, Z2R_IZR.
+now right.
+Qed.
 
-
-
-apply even_equiv.
-SearchAbout Even.
-
-
-SearchAbout nat.even.
-
-Check Z.even_spec.
-
-rewrite inj_abs.
-
-SearchAbout Z.abs_nat.
-rewrite Z.abs_nat
-
-
-
-SearchAbout Z.Even.
-
-Z.even_spec
-
- EvenClosest (make_bound beta prec emin) beta 
-          (Z.abs_nat prec) (x * (bpow s + 1)) fpx
-
-
-(* *)
-split.
-rewrite <- Hfx, <-H2, Hfhx'', H1, Hftx''; easy.
-unfold tx; rewrite <- Hftx'', <- H1.
-
-
-
-
- with fpx.
-
-t, p, q, hx, tx, p',
-q', hy, ty, x1y1, x1y2, x2y1, x2y2, t1, t2, t3.
-
-generalize (Dekker x y).
-
-
-assert (V:(t4 = FtoR beta ft4)).
-now rewrite Hft4''.
-
-
-admit.
-
-rewrite V.
-rewrite <- Hfx, <- Hfy.
-apply Dekker.
-
-
-
-(* todo *)
 
 End Dekker.
 
@@ -944,9 +964,33 @@ Let r3 := (gamma+alpha2) -r2.
 (** Non-underflow hypotheses *)
 Hypothesis Und1: a * x = 0 \/ bpow radix2 (emin + 2 * prec - 1) <= Rabs (a * x).
 Hypothesis Und2: alpha1 = 0 \/ bpow radix2 (emin + prec) <= Rabs alpha1.
-Hypothesis Und3: u1 = 0 \/ bpow radix2 (emin + prec) <= Rabs u1.
+
 Hypothesis Und4: beta1 = 0 \/ bpow radix2 (emin + prec+1) <= Rabs beta1.
 Hypothesis Und5: r1 = 0 \/ bpow radix2 (emin + prec-1) <= Rabs r1.
+
+
+(** Deduced from non-underflow hypotheses *)
+Lemma Und3': u1 = 0 \/ bpow radix2 (emin + 2*prec-1) <= Rabs u1.
+Proof with auto with typeclass_instances.
+case Und1; intros K.
+left; unfold u1.
+rewrite K; apply round_0...
+right; unfold u1.
+apply abs_round_ge_generic...
+apply FLT_format_bpow...
+omega.
+Qed.
+
+Lemma Und3: u1 = 0 \/ bpow radix2 (emin + prec) <= Rabs u1.
+Proof.
+case Und3';[now left|right].
+apply Rle_trans with (2:=H).
+apply bpow_le; omega.
+Qed.
+
+
+
+
 
 (**************** TODO ************************************)
 (* supprimer hypothèses inutiles 
@@ -976,6 +1020,23 @@ Qed.
 Lemma ErrFMA_correct:
    a*x+y = r1+r2+r3.
 Proof with auto with typeclass_instances.
+(* *)
+destruct Und1 as [HZ|Und1'].
+assert (HZ1: u1 = 0).
+unfold u1; rewrite HZ; apply round_0...
+rewrite HZ; unfold r3; ring_simplify.
+unfold gamma, alpha2, beta2, beta1, alpha1.
+rewrite HZ1; replace u2 with 0.
+rewrite Rplus_0_r, Rplus_0_l; rewrite 2!round_generic with (x:=y)...
+replace r1 with y.
+replace (y-y) with 0 by ring.
+rewrite Rplus_0_r, round_0...
+rewrite Rplus_0_r, round_0...
+ring.
+unfold r1; rewrite HZ.
+rewrite Rplus_0_l, round_generic...
+unfold u2; rewrite HZ, HZ1; ring.
+(* *)
 assert (precisionNotZero : (1 < prec)%Z) by omega.
 replace (r1+r2+r3) with (r1+gamma+alpha2).
 2: unfold r3; ring.
@@ -1106,9 +1167,13 @@ apply CanonicGeNormal with prec; try assumption.
 apply make_bound_p; omega.
 rewrite Hfr1''; fold r1.
 rewrite make_bound_Emin, Zopp_involutive; try assumption.
-
-admit. (* underflow Fexp a + Fexp x >= emin *)
-
+apply underf_mult_aux with radix2 prec; try assumption.
+apply make_bound_p; omega.
+rewrite Hfa, Hfx.
+apply Rle_trans with (2:=Und1').
+rewrite make_bound_Emin, Zopp_involutive.
+now right.
+omega.
 (* . end of underflow *)
 rewrite Hfa, Hfx; apply Hfu1'.
 now rewrite Hfu2, Hfa, Hfx, Hfu1''.
@@ -1119,6 +1184,6 @@ rewrite Hfbe1'', Hfr1''; apply Hff'.
 rewrite Hfbe2; apply Hfga'.
 rewrite Hfa, Hfx, Hfy; apply Hfr1'.
 rewrite Hfu1'', Hfal1''; apply Hfbe1'.
-Admitted.
+Qed.
 
 End ErrFMA.
