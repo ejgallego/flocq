@@ -18,7 +18,7 @@ COPYING file for more details.
 *)
 
 (** * Relative error of the roundings *)
-Require Import Fcore.
+Require Import Core.
 
 Section Fprop_relative.
 

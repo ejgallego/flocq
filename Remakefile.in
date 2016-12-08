@@ -1,41 +1,40 @@
 FILES = \
-	Flocq_version.v \
-	Core/Fcore_Raux.v \
-	Core/Fcore_Zaux.v \
-	Core/Fcore_defs.v \
-	Core/Fcore_digits.v \
-	Core/Fcore_float_prop.v \
-	Core/Fcore_FIX.v \
-	Core/Fcore_FLT.v \
-	Core/Fcore_FLX.v \
-	Core/Fcore_FTZ.v \
-	Core/Fcore_generic_fmt.v \
-	Core/Fcore_rnd.v \
-	Core/Fcore_rnd_ne.v \
-	Core/Fcore_ulp.v \
-	Core/Fcore.v \
-	Calc/Fcalc_bracket.v \
-	Calc/Fcalc_digits.v \
-	Calc/Fcalc_div.v \
-	Calc/Fcalc_ops.v \
-	Calc/Fcalc_round.v \
-	Calc/Fcalc_sqrt.v \
-	Prop/Fprop_div_sqrt_error.v \
-	Prop/Fprop_mult_error.v \
-	Prop/Fprop_plus_error.v \
-	Prop/Fprop_relative.v \
-	Prop/Fprop_Sterbenz.v \
-	Appli/Fappli_rnd_odd.v \
-	Appli/Fappli_IEEE.v \
-	Appli/Fappli_IEEE_bits.v \
-	Appli/Fappli_double_round.v
+	Version.v \
+	Core/Raux.v \
+	Core/Zaux.v \
+	Core/Definitions.v \
+	Core/Digits.v \
+	Core/Float_prop.v \
+	Core/FIX.v \
+	Core/FLT.v \
+	Core/FLX.v \
+	Core/FTZ.v \
+	Core/Generic_fmt.v \
+	Core/Round_pred.v \
+	Core/Round_NE.v \
+	Core/Ulp.v \
+	Core/Core.v \
+	Calc/Bracket.v \
+	Calc/Div.v \
+	Calc/Operations.v \
+	Calc/Round.v \
+	Calc/Sqrt.v \
+	Prop/Div_sqrt_error.v \
+	Prop/Mult_error.v \
+	Prop/Plus_error.v \
+	Prop/Relative.v \
+	Prop/Sterbenz.v \
+	Prop/Round_odd.v \
+	Prop/Double_rounding.v \
+	IEEE754/Binary.v \
+	IEEE754/Bits.v
 
 OBJS = $(addprefix src/,$(addsuffix o,$(FILES)))
 
 EXAMPLES = \
 	Average.v \
 	Compute.v \
-	Double_round_beta_odd.v \
+	Double_rounding_odd_radix.v \
 	Homogen.v
 
 MORE_EXAMPLES = \
@@ -71,7 +70,7 @@ configure config.status: configure.in
 
 clean:
 	rm -f $(OBJS) $(EOBJS) $(MOBJS) src/*.glob examples/*.glob
-	for d in src src/Core src/Calc src/Prop src/Appli examples; do \
+	for d in src src/Core src/Calc src/Prop src/IEEE754 examples; do \
 	  rm -f $d/.coq-native/*.o $d/.coq-native/*.cm*; done
 	find . -type d -name ".coq-native" -empty -prune -exec rmdir "{}" \;
 
@@ -88,7 +87,7 @@ install:
 	prefix=@prefix@
 	exec_prefix=@exec_prefix@
 	mkdir -p @libdir@
-	for d in Core Calc Prop Appli; do mkdir -p @libdir@/$d; done
+	for d in Core Calc Prop IEEE754; do mkdir -p @libdir@/$d; done
 	for f in $(OBJS); do cp $f @libdir@/${f#src/}; done
 	( cd src && find . -type d -name ".coq-native" -exec cp -RT "{}" "@libdir@/{}" \; )
 
@@ -96,7 +95,7 @@ EXTRA_DIST = \
 	configure
 
 REMOVE_FROM_DIST = \
-	src/Appli/Fappli_Axpy.v \
+	examples/Axpy.v \
 	src/Translate/
 
 dist: $(EXTRA_DIST)

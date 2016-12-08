@@ -18,15 +18,7 @@ COPYING file for more details.
 *)
 
 (** * IEEE-754 arithmetic *)
-Require Import Fcore.
-Require Import Fcore_digits.
-Require Import Fcalc_digits.
-Require Import Fcalc_round.
-Require Import Fcalc_bracket.
-Require Import Fcalc_ops.
-Require Import Fcalc_div.
-Require Import Fcalc_sqrt.
-Require Import Fprop_relative.
+Require Import Core Digits Round Bracket Operations Div Sqrt Relative.
 
 Section AnyRadix.
 

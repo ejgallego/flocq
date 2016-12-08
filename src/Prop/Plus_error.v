@@ -19,15 +19,8 @@ COPYING file for more details.
 
 (** * Error of the rounded-to-nearest addition is representable. *)
 
-Require Import Fcore_Raux.
-Require Import Fcore_defs.
-Require Import Fcore_float_prop.
-Require Import Fcore_generic_fmt.
-Require Import Fcore_FIX.
-Require Import Fcore_FLX.
-Require Import Fcore_FLT.
-Require Import Fcore_ulp.
-Require Import Fcalc_ops.
+Require Import Raux Definitions Float_prop Generic_fmt.
+Require Import FIX FLX FLT Ulp Operations.
 
 
 Section Fprop_plus_error.

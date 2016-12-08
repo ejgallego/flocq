@@ -1,5 +1,4 @@
-Require Import Fcore.
-Require Import Fcalc_bracket Fcalc_round Fcalc_ops Fcalc_div Fcalc_sqrt.
+From Flocq Require Import Core Bracket Round Operations Div Sqrt.
 
 Section Compute.
 

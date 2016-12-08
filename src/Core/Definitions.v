@@ -18,7 +18,7 @@ COPYING file for more details.
 *)
 
 (** * Basic definitions: float and rounding property *)
-Require Import Fcore_Raux.
+Require Import Raux.
 
 Section Def.
 

@@ -1,6 +1,5 @@
-Require Import Fcore.
-Require Import Fprop_plus_error.
 Require Import Fourier.
+From Flocq Require Import Core Plus_error.
 
 Open Scope R_scope.
 

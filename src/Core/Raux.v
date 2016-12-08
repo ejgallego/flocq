@@ -18,9 +18,8 @@ COPYING file for more details.
 *)
 
 (** * Missing definitions/lemmas *)
-Require Export Reals.
-Require Export ZArith.
-Require Export Fcore_Zaux.
+Require Export Reals ZArith.
+Require Export Zaux.
 
 Section Rmissing.
 

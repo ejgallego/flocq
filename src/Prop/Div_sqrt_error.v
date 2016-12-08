@@ -18,9 +18,7 @@ COPYING file for more details.
 *)
 
 (** * Remainder of the division and square root are in the FLX format *)
-Require Import Fcore.
-Require Import Fcalc_ops.
-Require Import Fprop_relative.
+Require Import Core Operations Relative.
 
 Section Fprop_divsqrt_error.
 

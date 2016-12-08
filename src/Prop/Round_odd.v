@@ -21,8 +21,7 @@ COPYING file for more details.
       between rnd_NE and double rounding with rnd_odd and then rnd_NE *)
 
 
-Require Import Fcore.
-Require Import Fcalc_ops.
+Require Import Core Operations.
 
 Definition Zrnd_odd x :=  match Req_EM_T x (Z2R (Zfloor x))  with
   | left _   => Zfloor x
@@ -268,7 +267,7 @@ set (f:=round beta fexp Zceil x).
 set (ef := canonic_exp beta fexp f).
 set (mf := Ztrunc (scaled_mantissa beta fexp f)).
 exists (Float beta mf ef).
-unfold Fcore_generic_fmt.canonic.
+unfold Generic_fmt.canonic.
 rewrite <- H0.
 repeat split; try assumption.
 apply trans_eq with (negb (Zeven (Zfloor (scaled_mantissa beta fexp x)))).
@@ -294,10 +293,10 @@ assumption.
 apply Rmult_le_pos.
 now left.
 apply bpow_ge_0.
-unfold Fcore_generic_fmt.canonic.
+unfold Generic_fmt.canonic.
 simpl.
 apply sym_eq, canonic_exp_DN...
-unfold Fcore_generic_fmt.canonic.
+unfold Generic_fmt.canonic.
 rewrite <- H0; reflexivity.
 reflexivity.
 apply trans_eq with (round beta fexp Ztrunc (round beta fexp Zceil x)).
@@ -320,7 +319,7 @@ apply Rmult_le_pos.
 now left.
 apply bpow_ge_0.
 apply canonic_0.
-unfold Fcore_generic_fmt.canonic.
+unfold Generic_fmt.canonic.
 rewrite <- H0; reflexivity.
 rewrite <- Y; unfold F2R; simpl; ring.
 apply trans_eq with (round beta fexp Ztrunc (round beta fexp Zceil x)).
@@ -341,7 +340,7 @@ intros Hrx.
 set (ef := canonic_exp beta fexp x).
 set (mf := Zfloor (scaled_mantissa beta fexp x)).
 exists (Float beta mf ef).
-unfold Fcore_generic_fmt.canonic.
+unfold Generic_fmt.canonic.
 repeat split; try assumption.
 simpl.
 apply trans_eq with (cexp (round beta fexp Zfloor x )).

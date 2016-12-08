@@ -68,5 +68,5 @@ MINGW*)
 	;;
 esac
 
-AC_CONFIG_FILES([Remakefile src/Flocq_version.v])
+AC_CONFIG_FILES([Remakefile src/Version.v])
 AC_OUTPUT

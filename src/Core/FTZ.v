@@ -18,13 +18,8 @@ COPYING file for more details.
 *)
 
 (** * Floating-point format with abrupt underflow *)
-Require Import Fcore_Raux.
-Require Import Fcore_defs.
-Require Import Fcore_rnd.
-Require Import Fcore_generic_fmt.
-Require Import Fcore_float_prop.
-Require Import Fcore_ulp.
-Require Import Fcore_FLX.
+Require Import Raux Definitions Round_pred Generic_fmt.
+Require Import Float_prop Ulp FLX.
 
 Section RND_FTZ.
 

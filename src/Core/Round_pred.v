@@ -18,8 +18,7 @@ COPYING file for more details.
 *)
 
 (** * Roundings: properties and/or functions *)
-Require Import Fcore_Raux.
-Require Import Fcore_defs.
+Require Import Raux Definitions.
 
 Section RND_prop.
 

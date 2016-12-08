@@ -18,13 +18,11 @@ COPYING file for more details.
 *)
 
 (** * Basic properties of floating-point formats: lemmas about mantissa, exponent... *)
-Require Import Fcore_Raux.
-Require Import Fcore_defs.
+Require Import Raux Definitions Digits.
 
 Section Float_prop.
 
 Variable beta : radix.
-
 Notation bpow e := (bpow beta e).
 
 Theorem Rcompare_F2R :
@@ -451,6 +449,37 @@ intros m e H.
 unfold F2R ; simpl.
 apply ln_beta_mult_bpow.
 exact (Z2R_neq m 0 H).
+Qed.
+
+Theorem Zdigits_ln_beta :
+  forall n,
+  n <> Z0 ->
+  Zdigits beta n = ln_beta beta (Z2R n).
+Proof.
+intros n Hn.
+destruct (ln_beta beta (Z2R n)) as (e, He) ; simpl.
+specialize (He (Z2R_neq _ _ Hn)).
+rewrite <- Z2R_abs in He.
+assert (Hd := Zdigits_correct beta n).
+assert (Hd' := Zdigits_gt_0 beta n).
+apply Zle_antisym ; apply (bpow_lt_bpow beta).
+apply Rle_lt_trans with (2 := proj2 He).
+rewrite <- Z2R_Zpower by omega.
+now apply Z2R_le.
+apply Rle_lt_trans with (1 := proj1 He).
+rewrite <- Z2R_Zpower by omega.
+now apply Z2R_lt.
+Qed.
+
+Theorem ln_beta_F2R_Zdigits :
+  forall m e, m <> Z0 ->
+  (ln_beta beta (F2R (Float beta m e)) = Zdigits beta m + e :> Z)%Z.
+Proof.
+intros m e Hm.
+rewrite ln_beta_F2R with (1 := Hm).
+apply (f_equal (fun v => Zplus v e)).
+apply sym_eq.
+now apply Zdigits_ln_beta.
 Qed.
 
 Theorem float_distribution_pos :

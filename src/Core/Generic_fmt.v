@@ -18,10 +18,7 @@ COPYING file for more details.
 *)
 
 (** * What is a real number belonging to a format, and many properties. *)
-Require Import Fcore_Raux.
-Require Import Fcore_defs.
-Require Import Fcore_rnd.
-Require Import Fcore_float_prop.
+Require Import Raux Definitions Round_pred Float_prop.
 
 Section Generic.
 
@@ -1968,7 +1965,7 @@ Qed.
 Lemma round_N_really_small_pos :
   forall x,
   forall ex,
-  (Fcore_Raux.bpow beta (ex - 1) <= x < Fcore_Raux.bpow beta ex)%R ->
+  (Raux.bpow beta (ex - 1) <= x < Raux.bpow beta ex)%R ->
   (ex < fexp ex)%Z ->
   (round Znearest x = 0)%R.
 Proof.
@@ -2000,7 +1997,7 @@ apply Rle_trans with (bpow (fexp (ln_beta beta x) - 1)).
 - unfold Zminus; rewrite bpow_plus.
   rewrite Rmult_comm.
   apply Rmult_le_compat_r; [now apply bpow_ge_0|].
-  unfold Fcore_Raux.bpow, Z.pow_pos; simpl.
+  unfold Raux.bpow, Z.pow_pos; simpl.
   rewrite Zmult_1_r.
   apply Rinv_le; [exact Rlt_0_2|].
   change 2%R with (Z2R 2); apply Z2R_le.

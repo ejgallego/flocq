@@ -1,14 +1,8 @@
 (** * Conditions for innocuous double rounding. *)
 
-Require Import Fcore_Raux.
-Require Import Fcore_defs.
-Require Import Fcore_generic_fmt.
-Require Import Fcalc_ops.
-Require Import Fcore_ulp.
-
-Require Import Fappli_double_round.
-
 Require Import Psatz.
+From Flocq Require Import Raux Definitions Generic_fmt Operations Ulp.
+From Flocq Require Import FLX FLT FTZ Double_rounding.
 
 Open Scope R_scope.
 
@@ -23,22 +17,22 @@ Ltac bpow_simplify :=
   (* bpow ex * bpow ey ~~> bpow (ex + ey) *)
   repeat
     match goal with
-      | |- context [(Fcore_Raux.bpow _ _ * Fcore_Raux.bpow _ _)] =>
+      | |- context [(Raux.bpow _ _ * Raux.bpow _ _)] =>
         rewrite <- bpow_plus
-      | |- context [(?X1 * Fcore_Raux.bpow _ _ * Fcore_Raux.bpow _ _)] =>
+      | |- context [(?X1 * Raux.bpow _ _ * Raux.bpow _ _)] =>
         rewrite (Rmult_assoc X1); rewrite <- bpow_plus
-      | |- context [(?X1 * (?X2 * Fcore_Raux.bpow _ _) * Fcore_Raux.bpow _ _)] =>
+      | |- context [(?X1 * (?X2 * Raux.bpow _ _) * Raux.bpow _ _)] =>
         rewrite <- (Rmult_assoc X1 X2); rewrite (Rmult_assoc (X1 * X2));
         rewrite <- bpow_plus
     end;
   (* ring_simplify arguments of bpow *)
   repeat
     match goal with
-      | |- context [(Fcore_Raux.bpow _ ?X)] =>
+      | |- context [(Raux.bpow _ ?X)] =>
         progress ring_simplify X
     end;
   (* bpow 0 ~~> 1 *)
-  change (Fcore_Raux.bpow _ 0) with 1;
+  change (Raux.bpow _ 0) with 1;
   repeat
     match goal with
       | |- context [(_ * 1)] =>
@@ -836,8 +830,6 @@ Qed.
 
 Section Double_round_mult_beta_odd_FLX.
 
-Require Import Fcore_FLX.
-
 Variable prec : Z.
 Variable prec' : Z.
 
@@ -863,9 +855,6 @@ Qed.
 End Double_round_mult_beta_odd_FLX.
 
 Section Double_round_mult_beta_odd_FLT.
-
-Require Import Fcore_FLX.
-Require Import Fcore_FLT.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -896,8 +885,6 @@ Qed.
 End Double_round_mult_beta_odd_FLT.
 
 Section Double_round_mult_beta_odd_FTZ.
-
-Require Import Fcore_FTZ.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -1169,8 +1156,6 @@ Qed.
 
 Section Double_round_plus_beta_odd_FLX.
 
-Require Import Fcore_FLX.
-
 Variable prec : Z.
 Variable prec' : Z.
 
@@ -1212,9 +1197,6 @@ Qed.
 End Double_round_plus_beta_odd_FLX.
 
 Section Double_round_plus_beta_odd_FLT.
-
-Require Import Fcore_FLX.
-Require Import Fcore_FLT.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -1265,8 +1247,6 @@ Qed.
 End Double_round_plus_beta_odd_FLT.
 
 Section Double_round_plus_beta_odd_FTZ.
-
-Require Import Fcore_FTZ.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -1547,8 +1527,6 @@ Qed.
 
 Section Double_round_sqrt_beta_odd_FLX.
 
-Require Import Fcore_FLX.
-
 Variable prec : Z.
 Variable prec' : Z.
 
@@ -1573,9 +1551,6 @@ Qed.
 End Double_round_sqrt_beta_odd_FLX.
 
 Section Double_round_sqrt_beta_odd_FLT.
-
-Require Import Fcore_FLX.
-Require Import Fcore_FLT.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -1605,8 +1580,6 @@ Qed.
 End Double_round_sqrt_beta_odd_FLT.
 
 Section Double_round_sqrt_beta_odd_FTZ.
-
-Require Import Fcore_FTZ.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -2273,8 +2246,6 @@ Qed.
 
 Section Double_round_div_beta_odd_rna_FLX.
 
-Require Import Fcore_FLX.
-
 Variable prec : Z.
 Variable prec' : Z.
 
@@ -2303,9 +2274,6 @@ Qed.
 End Double_round_div_beta_odd_rna_FLX.
 
 Section Double_round_div_beta_odd_rna_FLT.
-
-Require Import Fcore_FLX.
-Require Import Fcore_FLT.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -2339,9 +2307,6 @@ Qed.
 End Double_round_div_beta_odd_rna_FLT.
 
 Section Double_round_div_beta_odd_rna_FTZ.
-
-Require Import Fcore_FLX.
-Require Import Fcore_FTZ.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.

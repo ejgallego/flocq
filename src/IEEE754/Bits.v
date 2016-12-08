@@ -18,10 +18,7 @@ COPYING file for more details.
 *)
 
 (** * IEEE-754 encoding of binary floating-point data *)
-Require Import Fcore.
-Require Import Fcore_digits.
-Require Import Fcalc_digits.
-Require Import Fappli_IEEE.
+Require Import Core Digits Binary.
 
 Section Binary_Bits.
 

@@ -1,12 +1,7 @@
 (** * Conditions for innocuous double rounding. *)
 
-Require Import Fcore_Raux.
-Require Import Fcore_defs.
-Require Import Fcore_generic_fmt.
-Require Import Fcalc_ops.
-Require Import Fcore_ulp.
-
 Require Import Psatz.
+Require Import Raux Definitions Generic_fmt Operations Ulp FLX FLT FTZ.
 
 Open Scope R_scope.
 
@@ -25,22 +20,22 @@ Ltac bpow_simplify :=
   (* bpow ex * bpow ey ~~> bpow (ex + ey) *)
   repeat
     match goal with
-      | |- context [(Fcore_Raux.bpow _ _ * Fcore_Raux.bpow _ _)] =>
+      | |- context [(Raux.bpow _ _ * Raux.bpow _ _)] =>
         rewrite <- bpow_plus
-      | |- context [(?X1 * Fcore_Raux.bpow _ _ * Fcore_Raux.bpow _ _)] =>
+      | |- context [(?X1 * Raux.bpow _ _ * Raux.bpow _ _)] =>
         rewrite (Rmult_assoc X1); rewrite <- bpow_plus
-      | |- context [(?X1 * (?X2 * Fcore_Raux.bpow _ _) * Fcore_Raux.bpow _ _)] =>
+      | |- context [(?X1 * (?X2 * Raux.bpow _ _) * Raux.bpow _ _)] =>
         rewrite <- (Rmult_assoc X1 X2); rewrite (Rmult_assoc (X1 * X2));
         rewrite <- bpow_plus
     end;
   (* ring_simplify arguments of bpow *)
   repeat
     match goal with
-      | |- context [(Fcore_Raux.bpow _ ?X)] =>
+      | |- context [(Raux.bpow _ ?X)] =>
         progress ring_simplify X
     end;
   (* bpow 0 ~~> 1 *)
-  change (Fcore_Raux.bpow _ 0) with 1;
+  change (Raux.bpow _ 0) with 1;
   repeat
     match goal with
       | |- context [(_ * 1)] =>
@@ -455,7 +450,7 @@ assert (Hx''pow : x'' = bpow (ln_beta x)).
   bpow_simplify.
   apply (Rlt_le_trans _ _ _ H'x'').
   apply Rplus_le_compat_l.
-  rewrite <- (Rmult_1_l (Fcore_Raux.bpow _ _)).
+  rewrite <- (Rmult_1_l (Raux.bpow _ _)).
   rewrite ulp_neq_0;[idtac|now apply Rgt_not_eq].
   apply Rmult_le_compat_r; [now apply bpow_ge_0|].
   lra. }
@@ -659,8 +654,6 @@ Qed.
 
 Section Double_round_mult_FLX.
 
-Require Import Fcore_FLX.
-
 Variable prec : Z.
 Variable prec' : Z.
 
@@ -684,9 +677,6 @@ Qed.
 End Double_round_mult_FLX.
 
 Section Double_round_mult_FLT.
-
-Require Import Fcore_FLX.
-Require Import Fcore_FLT.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -717,8 +707,6 @@ Qed.
 End Double_round_mult_FLT.
 
 Section Double_round_mult_FTZ.
-
-Require Import Fcore_FTZ.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -982,7 +970,7 @@ assert (UB : y * bpow (- fexp (ln_beta x)) < / Z2R (beta ^ k)).
       rewrite bpow_opp.
       destruct k.
       * omega.
-      * simpl; unfold Fcore_Raux.bpow, Z.pow_pos.
+      * simpl; unfold Raux.bpow, Z.pow_pos.
         now apply Rle_refl.
       * casetype False; apply (Zlt_irrefl 0).
         apply (Zlt_trans _ _ _ Hk).
@@ -1037,7 +1025,7 @@ destruct Hexp as (_,(_,(_,Hexp4))).
 assert (Hf2 : (fexp2 (ln_beta x) <= fexp1 (ln_beta x))%Z);
   [now apply Hexp4; omega|].
 assert (Bpow2 : bpow (- 2) <= / 2 * / 2).
-{ unfold Fcore_Raux.bpow, Z.pow_pos; simpl.
+{ unfold Raux.bpow, Z.pow_pos; simpl.
   rewrite <- Rinv_mult_distr; [|lra|lra].
   apply Rinv_le; [lra|].
   change 4 with (Z2R (2 * 2)); apply Z2R_le; rewrite Zmult_1_r.
@@ -1086,7 +1074,7 @@ apply double_round_lt_mid.
   apply Ropp_le_contravar.
   { apply Rle_trans with (bpow (- 1)).
     - apply bpow_le; omega.
-    - unfold Fcore_Raux.bpow, Z.pow_pos; simpl.
+    - unfold Raux.bpow, Z.pow_pos; simpl.
       apply Rinv_le; [lra|].
       change 2 with (Z2R 2); apply Z2R_le; omega. }
 Qed.
@@ -1384,7 +1372,7 @@ assert (Hf2 : (fexp2 (ln_beta x) <= fexp1 (ln_beta x))%Z);
 assert (Hfx : (fexp1 (ln_beta x) < ln_beta x)%Z);
   [now apply ln_beta_generic_gt; [|apply Rgt_not_eq|]|].
 assert (Bpow2 : bpow (- 2) <= / 2 * / 2).
-{ unfold Fcore_Raux.bpow, Z.pow_pos; simpl.
+{ unfold Raux.bpow, Z.pow_pos; simpl.
   rewrite <- Rinv_mult_distr; [|lra|lra].
   apply Rinv_le; [lra|].
   change 4 with (Z2R (2 * 2)); apply Z2R_le; rewrite Zmult_1_r.
@@ -1420,7 +1408,7 @@ apply double_round_gt_mid.
     apply Rmult_le_compat.
     * now apply bpow_ge_0.
     * now apply bpow_ge_0.
-    * unfold Fcore_Raux.bpow, Z.pow_pos; simpl.
+    * unfold Raux.bpow, Z.pow_pos; simpl.
       rewrite Zmult_1_r; apply Rinv_le.
       lra.
       now change 2 with (Z2R 2); apply Z2R_le.
@@ -1442,7 +1430,7 @@ apply double_round_gt_mid.
   rewrite Rmult_comm; apply Rmult_le_compat.
   + apply bpow_ge_0.
   + apply bpow_ge_0.
-  + unfold Fcore_Raux.bpow, Z.pow_pos; simpl.
+  + unfold Raux.bpow, Z.pow_pos; simpl.
     rewrite Zmult_1_r; apply Rinv_le; [lra|].
     now change 2 with (Z2R 2); apply Z2R_le.
   + rewrite 2!ulp_neq_0; try now apply Rgt_not_eq, Rgt_minus.
@@ -1456,7 +1444,7 @@ apply double_round_gt_mid.
       rewrite Rmult_comm; rewrite Rmult_assoc.
       rewrite <- Rmult_1_r.
       apply Rmult_le_compat_l; [now apply bpow_ge_0|].
-      unfold Fcore_Raux.bpow, Z.pow_pos; simpl.
+      unfold Raux.bpow, Z.pow_pos; simpl.
       rewrite Zmult_1_r.
       rewrite <- (Rinv_r 2) at 3; [|lra].
       rewrite Rmult_comm; apply Rmult_le_compat_l; [lra|].
@@ -1609,8 +1597,6 @@ Qed.
 
 Section Double_round_plus_FLX.
 
-Require Import Fcore_FLX.
-
 Variable prec : Z.
 Variable prec' : Z.
 
@@ -1664,9 +1650,6 @@ Qed.
 End Double_round_plus_FLX.
 
 Section Double_round_plus_FLT.
-
-Require Import Fcore_FLX.
-Require Import Fcore_FLT.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -1736,9 +1719,6 @@ Qed.
 End Double_round_plus_FLT.
 
 Section Double_round_plus_FTZ.
-
-Require Import Fcore_FLX.
-Require Import Fcore_FTZ.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -1872,7 +1852,7 @@ destruct Hexp as (_,(_,(_,Hexp4))).
 assert (Hf2 : (fexp2 (ln_beta x) <= fexp1 (ln_beta x))%Z);
   [now apply Hexp4; omega|].
 assert (Bpow3 : bpow (- 1) <= / 3).
-{ unfold Fcore_Raux.bpow, Z.pow_pos; simpl.
+{ unfold Raux.bpow, Z.pow_pos; simpl.
   rewrite Zmult_1_r.
   apply Rinv_le; [lra|].
   now change 3 with (Z2R 3); apply Z2R_le. }
@@ -2105,7 +2085,7 @@ assert (Hf2 : (fexp2 (ln_beta x) <= fexp1 (ln_beta x))%Z);
 assert (Hfx : (fexp1 (ln_beta x) < ln_beta x)%Z);
   [now apply ln_beta_generic_gt; [|apply Rgt_not_eq|]|].
 assert (Bpow3 : bpow (- 1) <= / 3).
-{ unfold Fcore_Raux.bpow, Z.pow_pos; simpl.
+{ unfold Raux.bpow, Z.pow_pos; simpl.
   rewrite Zmult_1_r.
   apply Rinv_le; [lra|].
   now change 3 with (Z2R 3); apply Z2R_le. }
@@ -2137,7 +2117,7 @@ apply double_round_gt_mid.
     unfold Zminus at 1; rewrite bpow_plus.
     rewrite Rmult_comm.
     apply Rmult_le_compat_r; [now apply bpow_ge_0|].
-    unfold Fcore_Raux.bpow, Z.pow_pos; simpl.
+    unfold Raux.bpow, Z.pow_pos; simpl.
     rewrite Zmult_1_r; apply Rinv_le; [lra|].
     now change 2 with (Z2R 2); apply Z2R_le; omega.
 - intro Hf2'.
@@ -2159,7 +2139,7 @@ apply double_round_gt_mid.
   rewrite Rmult_minus_distr_r.
   bpow_simplify.
   apply Rle_trans with (/ 3).
-  + unfold Fcore_Raux.bpow, Z.pow_pos; simpl.
+  + unfold Raux.bpow, Z.pow_pos; simpl.
     rewrite Zmult_1_r; apply Rinv_le; [lra|].
     now change 3 with (Z2R 3); apply Z2R_le.
   + replace (/ 3) with (/ 2 * (2 / 3)) by field.
@@ -2169,7 +2149,7 @@ apply double_round_gt_mid.
     apply Ropp_le_contravar.
     apply Rle_trans with (bpow (- 1)).
     * apply bpow_le; omega.
-    * unfold Fcore_Raux.bpow, Z.pow_pos; simpl.
+    * unfold Raux.bpow, Z.pow_pos; simpl.
       rewrite Zmult_1_r; apply Rinv_le; [lra|].
       now change 3 with (Z2R 3); apply Z2R_le.
 Qed.
@@ -2323,8 +2303,6 @@ Qed.
 
 Section Double_round_plus_beta_ge_3_FLX.
 
-Require Import Fcore_FLX.
-
 Variable prec : Z.
 Variable prec' : Z.
 
@@ -2382,9 +2360,6 @@ Qed.
 End Double_round_plus_beta_ge_3_FLX.
 
 Section Double_round_plus_beta_ge_3_FLT.
-
-Require Import Fcore_FLX.
-Require Import Fcore_FLT.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -2458,9 +2433,6 @@ Qed.
 End Double_round_plus_beta_ge_3_FLT.
 
 Section Double_round_plus_beta_ge_3_FTZ.
-
-Require Import Fcore_FLX.
-Require Import Fcore_FTZ.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -2742,7 +2714,7 @@ destruct (Req_dec a 0) as [Za|Nza].
       + apply Rmult_le_compat.
         * apply bpow_ge_0.
         * apply pow2_ge_0.
-        * unfold Fcore_Raux.bpow, Z.pow_pos; simpl; rewrite Zmult_1_r.
+        * unfold Raux.bpow, Z.pow_pos; simpl; rewrite Zmult_1_r.
           apply Rinv_le; [lra|].
           change 4 with (Z2R (2 * 2)%Z); apply Z2R_le, Zmult_le_compat; omega.
         * rewrite <- (Rplus_0_l (u1 ^ 2)) at 1; apply Rplus_le_compat_r.
@@ -2795,7 +2767,7 @@ destruct (Req_dec a 0) as [Za|Nza].
           rewrite Zplus_comm.
           now apply Hexp.
         * apply Rmult_le_compat_r; [now apply pow2_ge_0|].
-          unfold Fcore_Raux.bpow; simpl; unfold Z.pow_pos; simpl.
+          unfold Raux.bpow; simpl; unfold Z.pow_pos; simpl.
           rewrite Zmult_1_r.
           apply Rinv_le; [lra|].
           change 2 with (Z2R 2); apply Z2R_le.
@@ -2852,7 +2824,7 @@ destruct (Rle_or_lt x 0) as [Npx|Px].
       apply (valid_exp_large fexp1 1); [exact Hf0|].
       apply ln_beta_ge_bpow.
       rewrite Zeq_minus; [|reflexivity].
-      unfold Fcore_Raux.bpow; simpl.
+      unfold Raux.bpow; simpl.
       apply Rabs_ge; right.
       rewrite <- sqrt_1.
       apply sqrt_le_1_alt.
@@ -2877,8 +2849,6 @@ destruct (Rle_or_lt x 0) as [Npx|Px].
 Qed.
 
 Section Double_round_sqrt_FLX.
-
-Require Import Fcore_FLX.
 
 Variable prec : Z.
 Variable prec' : Z.
@@ -2914,9 +2884,6 @@ Qed.
 End Double_round_sqrt_FLX.
 
 Section Double_round_sqrt_FLT.
-
-Require Import Fcore_FLX.
-Require Import Fcore_FLT.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -2969,9 +2936,6 @@ Qed.
 End Double_round_sqrt_FLT.
 
 Section Double_round_sqrt_FTZ.
-
-Require Import Fcore_FLX.
-Require Import Fcore_FTZ.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -3169,7 +3133,7 @@ destruct (Req_dec a 0) as [Za|Nza].
       + apply Rmult_le_compat.
         * apply bpow_ge_0.
         * apply pow2_ge_0.
-        * unfold Fcore_Raux.bpow, Z.pow_pos; simpl; rewrite Zmult_1_r.
+        * unfold Raux.bpow, Z.pow_pos; simpl; rewrite Zmult_1_r.
           apply Rinv_le; [lra|].
           now change 4 with (Z2R 4); apply Z2R_le.
         * rewrite <- (Rplus_0_l (u1 ^ 2)) at 1; apply Rplus_le_compat_r.
@@ -3222,7 +3186,7 @@ destruct (Req_dec a 0) as [Za|Nza].
           rewrite Zplus_comm.
           now apply Hexp.
         * apply Rmult_le_compat_r; [now apply pow2_ge_0|].
-          unfold Fcore_Raux.bpow; simpl; unfold Z.pow_pos; simpl.
+          unfold Raux.bpow; simpl; unfold Z.pow_pos; simpl.
           rewrite Zmult_1_r.
           apply Rinv_le; [lra|].
           change 2 with (Z2R 2); apply Z2R_le; omega.
@@ -3289,7 +3253,7 @@ destruct (Rle_or_lt x 0) as [Npx|Px].
       apply (valid_exp_large fexp1 1); [exact Hf0|].
       apply ln_beta_ge_bpow.
       rewrite Zeq_minus; [|reflexivity].
-      unfold Fcore_Raux.bpow; simpl.
+      unfold Raux.bpow; simpl.
       apply Rabs_ge; right.
       rewrite <- sqrt_1.
       apply sqrt_le_1_alt.
@@ -3315,8 +3279,6 @@ destruct (Rle_or_lt x 0) as [Npx|Px].
 Qed.
 
 Section Double_round_sqrt_beta_ge_4_FLX.
-
-Require Import Fcore_FLX.
 
 Variable prec : Z.
 Variable prec' : Z.
@@ -3354,9 +3316,6 @@ Qed.
 End Double_round_sqrt_beta_ge_4_FLX.
 
 Section Double_round_sqrt_beta_ge_4_FLT.
-
-Require Import Fcore_FLX.
-Require Import Fcore_FLT.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -3411,9 +3370,6 @@ Qed.
 End Double_round_sqrt_beta_ge_4_FLT.
 
 Section Double_round_sqrt_beta_ge_4_FTZ.
-
-Require Import Fcore_FLX.
-Require Import Fcore_FTZ.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -3621,7 +3577,7 @@ destruct (Zle_or_lt (fexp2 (ln_beta x)) (ln_beta x)).
     simpl; unfold Rminus; rewrite Ropp_0; rewrite Rplus_0_r.
     rewrite Rabs_right; [|now apply Rle_ge; apply bpow_ge_0].
     apply Rle_lt_trans with (bpow (- 2)); [now apply bpow_le; omega|].
-    unfold Fcore_Raux.bpow, Z.pow_pos; simpl; rewrite Zmult_1_r.
+    unfold Raux.bpow, Z.pow_pos; simpl; rewrite Zmult_1_r.
     assert (Hbeta : (2 <= beta)%Z).
     { destruct beta as (beta_val,beta_prop); simpl.
       now apply Zle_bool_imp_le. }
@@ -3996,7 +3952,7 @@ destruct (Zle_or_lt Z0 (fexp1 (ln_beta x) - fexp1 (ln_beta (x / y))
       [now apply bpow_gt_0|bpow_simplify].
     rewrite Rmult_assoc.
     rewrite <- Fx.
-    rewrite (Rmult_plus_distr_r _ _ (Fcore_Raux.bpow _ _)).
+    rewrite (Rmult_plus_distr_r _ _ (Raux.bpow _ _)).
     rewrite Rmult_assoc.
     rewrite bpow_plus.
     rewrite <- (Rmult_assoc (Z2R (Zfloor _))).
@@ -4063,7 +4019,7 @@ destruct (Zle_or_lt Z0 (fexp1 (ln_beta x) - fexp1 (ln_beta (x / y))
       [now apply bpow_gt_0|].
     rewrite Rmult_assoc.
     rewrite <- Fx.
-    rewrite (Rmult_plus_distr_r _ _ (Fcore_Raux.bpow _ _)).
+    rewrite (Rmult_plus_distr_r _ _ (Raux.bpow _ _)).
     bpow_simplify.
     rewrite Rmult_assoc.
     rewrite bpow_plus.
@@ -4399,8 +4355,6 @@ Qed.
 
 Section Double_round_div_FLX.
 
-Require Import Fcore_FLX.
-
 Variable prec : Z.
 Variable prec' : Z.
 
@@ -4442,9 +4396,6 @@ Qed.
 End Double_round_div_FLX.
 
 Section Double_round_div_FLT.
-
-Require Import Fcore_FLX.
-Require Import Fcore_FLT.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -4512,9 +4463,6 @@ Qed.
 End Double_round_div_FLT.
 
 Section Double_round_div_FTZ.
-
-Require Import Fcore_FLX.
-Require Import Fcore_FTZ.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.

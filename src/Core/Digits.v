@@ -17,9 +17,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
-Require Import ZArith.
-Require Import Zquot.
-Require Import Fcore_Zaux.
+Require Import ZArith Zquot.
+Require Import Zaux.
 
 (** Number of bits (radix 2) of a positive integer.
 

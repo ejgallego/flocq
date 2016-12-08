@@ -18,11 +18,7 @@ COPYING file for more details.
 *)
 
 (** * Unit in the Last Place: our definition using fexp and its properties, successor and predecessor *)
-Require Import Fcore_Raux.
-Require Import Fcore_defs.
-Require Import Fcore_rnd.
-Require Import Fcore_generic_fmt.
-Require Import Fcore_float_prop.
+Require Import Raux Definitions Round_pred Generic_fmt Float_prop.
 
 Section Fcore_ulp.
 

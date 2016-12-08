@@ -1,9 +1,5 @@
-Require Import Reals.
-Require Import Fcore.
-Require Import Fcalc_ops.
-Require Import Psatz.
-Require Import Fprop_relative.
-Require Import Fprop_plus_error.
+Require Import Reals Psatz.
+From Flocq Require Import Core Operations Relative Plus_error.
 
 Section Theory.
 

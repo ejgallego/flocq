@@ -18,12 +18,7 @@ COPYING file for more details.
 *)
 
 (** * Rounding to nearest, ties to even: existence, unicity... *)
-Require Import Fcore_Raux.
-Require Import Fcore_defs.
-Require Import Fcore_rnd.
-Require Import Fcore_generic_fmt.
-Require Import Fcore_float_prop.
-Require Import Fcore_ulp.
+Require Import Raux Definitions Round_pred Generic_fmt Float_prop Ulp.
 
 Notation ZnearestE := (Znearest (fun x => negb (Zeven x))).
 
@@ -276,7 +271,7 @@ intros Hd1.
 case_eq (Zeven md) ; [ intros He | intros Ho ].
 right.
 exists (Float beta md ed).
-unfold Fcore_generic_fmt.canonic.
+unfold Generic_fmt.canonic.
 rewrite <- Hd1.
 now repeat split.
 left.
@@ -287,15 +282,15 @@ set (mu := Ztrunc (scaled_mantissa beta fexp u)).
 intros Hu1.
 rewrite Hu1.
 eexists ; repeat split.
-unfold Fcore_generic_fmt.canonic.
+unfold Generic_fmt.canonic.
 now rewrite <- Hu1.
 rewrite (DN_UP_parity_generic x (Float beta md ed) (Float beta mu eu)).
 simpl.
 now rewrite Ho.
 exact Hf.
-unfold Fcore_generic_fmt.canonic.
+unfold Generic_fmt.canonic.
 now rewrite <- Hd1.
-unfold Fcore_generic_fmt.canonic.
+unfold Generic_fmt.canonic.
 now rewrite <- Hu1.
 rewrite <- Hd1.
 apply Rnd_DN_pt_unicity with (1 := Hd).
@@ -355,7 +350,7 @@ exists (Float beta (Ztrunc (scaled_mantissa beta fexp xr)) (canonic_exp beta fex
 split.
 apply round_N_pt...
 split.
-unfold Fcore_generic_fmt.canonic. simpl.
+unfold Generic_fmt.canonic. simpl.
 apply f_equal.
 apply round_N_pt...
 simpl.
