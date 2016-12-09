@@ -11,7 +11,7 @@ Remakefile
 remake
 remake.exe
 html/
-src/Flocq_version.v
+src/Version.v
 *.vo
 *.glob
 .*.aux
