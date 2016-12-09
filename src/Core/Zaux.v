@@ -752,6 +752,14 @@ Section cond_Zopp.
 
 Definition cond_Zopp (b : bool) m := if b then Zopp m else m.
 
+Theorem cond_Zopp_negb :
+  forall x y, cond_Zopp (negb x) y = Zopp (cond_Zopp x y).
+Proof.
+intros [|] y.
+apply sym_eq, Zopp_involutive.
+easy.
+Qed.
+
 Theorem abs_cond_Zopp :
   forall b m,
   Zabs (cond_Zopp b m) = Zabs m.

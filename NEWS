@@ -2,6 +2,7 @@ Version 3.0.0:
  - stripped prefix from all the file names, renamed some files
  - renamed canonic_exp into cexp, canonic into canonical
  - changed FLX, FIX, FLT, FLXN, FTZ_format into inductive types
+ - changed nan_pl into a boolean predicate
 
 Version 2.5.2:
  - ensured compatibility from Coq 8.4 to 8.6

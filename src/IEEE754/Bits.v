@@ -210,7 +210,7 @@ Definition bits_of_binary_float (x : binary_float) :=
   match x with
   | B754_zero sx => join_bits sx 0 0
   | B754_infinity sx => join_bits sx 0 (Zpower 2 ew - 1)
-  | B754_nan sx (exist plx _) => join_bits sx (Zpos plx) (Zpower 2 ew - 1)
+  | B754_nan sx plx _ => join_bits sx (Zpos plx) (Zpower 2 ew - 1)
   | B754_finite sx mx ex _ =>
     let m := (Zpos mx - Zpower 2 mw)%Z in
     if Zle_bool 0 m then
@@ -223,7 +223,7 @@ Definition split_bits_of_binary_float (x : binary_float) :=
   match x with
   | B754_zero sx => (sx, 0, 0)%Z
   | B754_infinity sx => (sx, 0, Zpower 2 ew - 1)%Z
-  | B754_nan sx (exist plx _) => (sx, Zpos plx, Zpower 2 ew - 1)%Z
+  | B754_nan sx plx _ => (sx, Zpos plx, Zpower 2 ew - 1)%Z
   | B754_finite sx mx ex _ =>
     let m := (Zpos mx - Zpower 2 mw)%Z in
     if Zle_bool 0 m then
@@ -236,10 +236,11 @@ Theorem split_bits_of_binary_float_correct :
   forall x,
   split_bits (bits_of_binary_float x) = split_bits_of_binary_float x.
 Proof.
-intros [sx|sx|sx [plx Hplx]|sx mx ex Hx] ;
+intros [sx|sx|sx plx Hplx|sx mx ex Hx] ;
   try ( simpl ; apply split_join_bits ; split ; try apply Zle_refl ; try apply Zlt_pred ; trivial ; omega ).
 simpl. apply split_join_bits; split; try (zify; omega).
 destruct (digits2_Pnat_correct plx).
+unfold nan_pl in Hplx.
 rewrite Zpos_digits2_pos, <- Z_of_nat_S_digits2_Pnat in Hplx.
 rewrite Zpower_nat_Z in H0.
 eapply Zlt_le_trans. apply H0.
@@ -293,7 +294,7 @@ Theorem bits_of_binary_float_range:
   forall x, (0 <= bits_of_binary_float x < 2^(mw+ew+1))%Z.
 Proof.
 unfold bits_of_binary_float.
-intros [sx|sx|sx [pl pl_range]|sx mx ex H].
+intros [sx|sx|sx pl pl_range|sx mx ex H].
 - apply join_bits_range ; now split.
 - apply join_bits_range.
   now split.
@@ -489,7 +490,7 @@ unfold binary_float_of_bits.
 rewrite B2FF_FF2B.
 unfold binary_float_of_bits_aux.
 rewrite split_bits_of_binary_float_correct.
-destruct x as [sx|sx|sx [plx Hplx]|sx mx ex Bx].
+destruct x as [sx|sx|sx plx Hplx|sx mx ex Bx].
 apply refl_equal.
 (* *)
 simpl.
@@ -613,23 +614,23 @@ Let Hprec_emax : (24 < 128)%Z.
 apply refl_equal.
 Qed.
 
-Definition default_nan_pl32 : bool * nan_pl 24 :=
+Definition default_nan_pl32 : bool * { pl | nan_pl 24 pl = true } :=
   (false, exist _ (iter_nat xO 22 xH) (refl_equal true)).
 
-Definition unop_nan_pl32 (f : binary32) : bool * nan_pl 24 :=
+Definition unop_nan_pl32 (f : binary32) :=
   match f with
-  | B754_nan s pl => (s, pl)
+  | B754_nan s pl Hpl => (s, exist _ pl Hpl)
   | _ => default_nan_pl32
   end.
 
-Definition binop_nan_pl32 (f1 f2 : binary32) : bool * nan_pl 24 :=
+Definition binop_nan_pl32 (f1 f2 : binary32) :=
   match f1, f2 with
-  | B754_nan s1 pl1, _ => (s1, pl1)
-  | _, B754_nan s2 pl2 => (s2, pl2)
+  | B754_nan s1 pl1 Hpl1, _ => (s1, exist _ pl1 Hpl1)
+  | _, B754_nan s2 pl2 Hpl2 => (s2, exist _ pl2 Hpl2)
   | _, _ => default_nan_pl32
   end.
 
-Definition b32_opp := Bopp 24 128 pair.
+Definition b32_opp := Bopp 24 128 unop_nan_pl32.
 Definition b32_plus := Bplus _ _ Hprec Hprec_emax binop_nan_pl32.
 Definition b32_minus := Bminus _ _ Hprec Hprec_emax binop_nan_pl32.
 Definition b32_mult := Bmult _ _ Hprec Hprec_emax binop_nan_pl32.
@@ -656,23 +657,23 @@ Let Hprec_emax : (53 < 1024)%Z.
 apply refl_equal.
 Qed.
 
-Definition default_nan_pl64 : bool * nan_pl 53 :=
+Definition default_nan_pl64 : bool * { pl | nan_pl 53 pl = true } :=
   (false, exist _ (iter_nat xO 51 xH) (refl_equal true)).
 
-Definition unop_nan_pl64 (f : binary64) : bool * nan_pl 53 :=
+Definition unop_nan_pl64 (f : binary64) :=
   match f with
-  | B754_nan s pl => (s, pl)
+  | B754_nan s pl Hpl => (s, exist _ pl Hpl)
   | _ => default_nan_pl64
   end.
 
-Definition binop_nan_pl64 (pl1 pl2 : binary64) : bool * nan_pl 53 :=
+Definition binop_nan_pl64 (pl1 pl2 : binary64) :=
   match pl1, pl2 with
-  | B754_nan s1 pl1, _ => (s1, pl1)
-  | _, B754_nan s2 pl2 => (s2, pl2)
+  | B754_nan s1 pl1 Hpl1, _ => (s1, exist _ pl1 Hpl1)
+  | _, B754_nan s2 pl2 Hpl2 => (s2, exist _ pl2 Hpl2)
   | _, _ => default_nan_pl64
   end.
 
-Definition b64_opp := Bopp 53 1024 pair.
+Definition b64_opp := Bopp 53 1024 unop_nan_pl64.
 Definition b64_plus := Bplus _ _ Hprec Hprec_emax binop_nan_pl64.
 Definition b64_minus := Bminus _ _ Hprec Hprec_emax binop_nan_pl64.
 Definition b64_mult := Bmult _ _ Hprec Hprec_emax binop_nan_pl64.
