@@ -34,10 +34,9 @@ Class Prec_gt_0 :=
 
 Context { prec_gt_0_ : Prec_gt_0 }.
 
-(* unbounded floating-point format *)
-Definition FLX_format (x : R) :=
-  exists f : float beta,
-  x = F2R f /\ (Zabs (Fnum f) < Zpower beta prec)%Z.
+Inductive FLX_format (x : R) : Prop :=
+  FLX_spec : forall f : float beta,
+    x = F2R f -> (Zabs (Fnum f) < Zpower beta prec)%Z -> FLX_format x.
 
 Definition FLX_exp (e : Z) := (e - prec)%Z.
 
@@ -58,7 +57,7 @@ Theorem FIX_format_FLX :
   FIX_format beta (e - prec) x.
 Proof.
 clear prec_gt_0_.
-intros x e Hx ((xm, xe), (H1, H2)).
+intros x e Hx [[xm xe] H1 H2].
 rewrite H1, (F2R_prec_normalize beta xm xe e prec).
 now eexists.
 exact H2.
@@ -70,7 +69,6 @@ Theorem FLX_format_generic :
 Proof.
 intros x H.
 rewrite H.
-unfold FLX_format.
 eexists ; repeat split.
 simpl.
 apply lt_Z2R.
@@ -96,7 +94,7 @@ Theorem generic_format_FLX :
   forall x, FLX_format x -> generic_format beta FLX_exp x.
 Proof.
 clear prec_gt_0_.
-intros x ((mx,ex),(H1,H2)).
+intros x [[mx ex] H1 H2].
 simpl in H2.
 rewrite H1.
 apply generic_format_F2R.
@@ -133,15 +131,16 @@ apply Zle_refl.
 Qed.
 
 (** unbounded floating-point format with normal mantissas *)
-Definition FLXN_format (x : R) :=
-  exists f : float beta,
-  x = F2R f /\ (x <> R0 ->
-  Zpower beta (prec - 1) <= Zabs (Fnum f) < Zpower beta prec)%Z.
+Inductive FLXN_format (x : R) : Prop :=
+  FLXN_spec : forall f : float beta,
+    x = F2R f ->
+    (x <> R0 -> Zpower beta (prec - 1) <= Zabs (Fnum f) < Zpower beta prec)%Z ->
+    FLXN_format x.
 
 Theorem generic_format_FLXN :
   forall x, FLXN_format x -> generic_format beta FLX_exp x.
 Proof.
-intros x ((xm,ex),(H1,H2)).
+intros x [[xm ex] H1 H2].
 destruct (Req_dec x 0) as [Zx|Zx].
 rewrite Zx.
 apply generic_format_0.
@@ -158,10 +157,10 @@ Proof.
 intros x Hx.
 rewrite Hx.
 simpl.
-eexists ; split. split.
-simpl.
+eexists. easy.
 rewrite <- Hx.
 intros Zx.
+simpl.
 split.
 (* *)
 apply le_Z2R.

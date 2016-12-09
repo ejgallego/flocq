@@ -31,10 +31,10 @@ Variable emin prec : Z.
 
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 
-(* floating-point format with gradual underflow *)
-Definition FLT_format (x : R) :=
-  exists f : float beta,
-  x = F2R f /\ (Zabs (Fnum f) < Zpower beta prec)%Z /\ (emin <= Fexp f)%Z.
+Inductive FLT_format (x : R) : Prop :=
+  FLT_spec : forall f : float beta,
+    x = F2R f -> (Zabs (Fnum f) < Zpower beta prec)%Z ->
+    (emin <= Fexp f)%Z -> FLT_format x.
 
 Definition FLT_exp e := Zmax (e - prec) emin.
 
@@ -52,7 +52,7 @@ Theorem generic_format_FLT :
   forall x, FLT_format x -> generic_format beta FLT_exp x.
 Proof.
 clear prec_gt_0_.
-intros x ((mx, ex), (H1, (H2, H3))).
+intros x [[mx ex] H1 H2 H3].
 simpl in H2, H3.
 rewrite H1.
 apply generic_format_F2R.

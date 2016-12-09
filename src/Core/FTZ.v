@@ -31,11 +31,12 @@ Variable emin prec : Z.
 
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 
-(* floating-point format with abrupt underflow *)
-Definition FTZ_format (x : R) :=
-  exists f : float beta,
-  x = F2R f /\ (x <> R0 -> Zpower beta (prec - 1) <= Zabs (Fnum f) < Zpower beta prec)%Z /\
-  (emin <= Fexp f)%Z.
+Inductive FTZ_format (x : R) : Prop :=
+  FTZ_spec : forall f : float beta,
+    x = F2R f ->
+    (x <> R0 -> Zpower beta (prec - 1) <= Zabs (Fnum f) < Zpower beta prec)%Z ->
+    (emin <= Fexp f)%Z ->
+    FTZ_format x.
 
 Definition FTZ_exp e := if Zlt_bool (e - prec) emin then (emin + prec - 1)%Z else (e - prec)%Z.
 
@@ -68,9 +69,10 @@ Qed.
 Theorem FLXN_format_FTZ :
   forall x, FTZ_format x -> FLXN_format beta prec x.
 Proof.
-intros x ((xm, xe), (Hx1, (Hx2, Hx3))).
+intros x [[xm xe] Hx1 Hx2 Hx3].
 eexists.
-apply (conj Hx1 Hx2).
+exact Hx1.
+exact Hx2.
 Qed.
 
 Theorem generic_format_FTZ :
@@ -80,7 +82,7 @@ intros x Hx.
 cut (generic_format beta (FLX_exp prec) x).
 apply generic_inclusion_ln_beta.
 intros Zx.
-destruct Hx as ((xm, xe), (Hx1, (Hx2, Hx3))).
+destruct Hx as [[xm xe] Hx1 Hx2 Hx3].
 simpl in Hx2, Hx3.
 specialize (Hx2 Zx).
 assert (Zxm: xm <> Z0).
@@ -103,12 +105,9 @@ Theorem FTZ_format_generic :
   forall x, generic_format beta FTZ_exp x -> FTZ_format x.
 Proof.
 intros x Hx.
-destruct (Req_dec x 0) as [Hx3|Hx3].
+destruct (Req_dec x 0) as [->|Hx3].
 exists (Float beta 0 emin).
-split.
-unfold F2R. simpl.
-now rewrite Rmult_0_l.
-split.
+apply sym_eq, F2R_0.
 intros H.
 now elim H.
 apply Zle_refl.

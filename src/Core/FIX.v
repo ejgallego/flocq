@@ -28,10 +28,9 @@ Notation bpow := (bpow beta).
 
 Variable emin : Z.
 
-(* fixed-point format with exponent emin *)
-Definition FIX_format (x : R) :=
-  exists f : float beta,
-  x = F2R f /\ (Fexp f = emin)%Z.
+Inductive FIX_format (x : R) : Prop :=
+  FIX_spec : forall f : float beta,
+    x = F2R f -> (Fexp f = emin)%Z -> FIX_format x.
 
 Definition FIX_exp (e : Z) := emin.
 
@@ -51,7 +50,7 @@ Qed.
 Theorem generic_format_FIX :
   forall x, FIX_format x -> generic_format beta FIX_exp x.
 Proof.
-intros x ((xm, xe), (Hx1, Hx2)).
+intros x [[xm xe] Hx1 Hx2].
 rewrite Hx1.
 now apply generic_format_canonical.
 Qed.
@@ -80,7 +79,8 @@ intros ex ey H.
 apply Zle_refl.
 Qed.
 
-Theorem ulp_FIX: forall x, ulp beta FIX_exp x = bpow emin.
+Theorem ulp_FIX :
+  forall x, ulp beta FIX_exp x = bpow emin.
 Proof.
 intros x; unfold ulp.
 case Req_bool_spec; intros Zx.
@@ -90,6 +90,5 @@ unfold FIX_exp; omega.
 intros n _; reflexivity.
 reflexivity.
 Qed.
-
 
 End RND_FIX.

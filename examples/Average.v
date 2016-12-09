@@ -51,34 +51,32 @@ Proof with auto with typeclass_instances.
 intros u Fu.
 apply generic_format_FLT.
 apply FLT_format_generic in Fu...
-destruct Fu as (uf, (H1,(H2,H3))).
+destruct Fu as [uf H1 H2 H3].
 exists (Float radix2 (Fnum uf) (Fexp uf+1)).
-split.
 rewrite H1; unfold F2R; simpl.
 rewrite bpow_plus, bpow_1.
 simpl;ring.
-split.
-now simpl.
-simpl; apply Zle_trans with (1:=H3).
-omega.
+easy.
+apply Zle_trans with (1:=H3).
+apply Zle_succ.
 Qed.
-
 
 Lemma FLT_format_half: forall u, 
    format u -> bpow (prec+emin) <= Rabs u -> format (u/2).
 Proof with auto with typeclass_instances.
 intros u Fu H.
 apply FLT_format_generic in Fu...
-destruct Fu as ((n,e),(H1,(H2,H3))).
+destruct Fu as [[n e] H1 H2 H3].
 simpl in H1, H2, H3.
 apply generic_format_FLT.
 exists (Float radix2 n (e-1)).
-split; simpl.
 rewrite H1; unfold F2R; simpl.
 unfold Zminus; rewrite bpow_plus.
 simpl; unfold Rdiv; ring.
-split;[assumption|idtac].
-assert (prec + emin < prec +e)%Z;[idtac|omega].
+easy.
+simpl.
+cut (prec + emin < prec +e)%Z.
+  simpl ; omega.
 apply lt_bpow with radix2.
 apply Rle_lt_trans with (1:=H).
 rewrite H1; unfold F2R; simpl.
@@ -90,9 +88,8 @@ apply bpow_gt_0.
 rewrite <- Z2R_abs.
 rewrite <- Z2R_Zpower.
 now apply Z2R_lt.
-unfold Prec_gt_0 in prec_gt_0_; omega.
+now apply Zlt_le_weak.
 Qed.
-
 
 Lemma FLT_round_half: forall z, bpow (prec+emin) <= Rabs z -> 
    round_flt (z/2)= round_flt z /2.
@@ -147,9 +144,7 @@ rewrite bpow_plus.
 simpl; field.
 unfold Zminus; rewrite bpow_plus.
 simpl; field.
-Qed. 
-
-
+Qed.
 
 Lemma FLT_ulp_le_id: forall u, bpow emin <= u -> ulp_flt u <= u.
 Proof with auto with typeclass_instances.
@@ -1141,7 +1136,7 @@ Lemma average3_no_underflow_aux1: forall f, format f -> 0 < f ->
 Proof with auto with typeclass_instances.
 intros f Ff Hf1 Hf2.
 apply FLT_format_generic in Ff...
-destruct Ff as (g, (H1,(H2,H3))).
+destruct Ff as [g H1 H2 H3].
 case (Zle_lt_or_eq emin (Fexp g)); try exact H3; intros H4.
 contradict Hf2.
 apply Rlt_not_le.
@@ -1153,12 +1148,10 @@ apply Rmult_lt_0_compat; try assumption.
 auto with real.
 apply generic_format_FLT.
 exists (Float radix2 (Fnum g) (Fexp g-1)).
-split.
 rewrite H1; unfold F2R; simpl.
 unfold Zminus; rewrite bpow_plus.
-simpl; field.
-split.
-now simpl.
+apply Rmult_assoc.
+easy.
 simpl; omega.
 contradict Hf2; apply Rlt_not_le.
 unfold round, scaled_mantissa.
@@ -1305,8 +1298,8 @@ pose (b:=(u+v)/2); fold b.
 intros (H1,H2).
 apply generic_format_FIX_FLT,FIX_format_generic in Fu.
 apply generic_format_FIX_FLT,FIX_format_generic in Fv.
-destruct Fu as ((nu,eu),(J1,J2)).
-destruct Fv as ((nv,ev),(J3,J4)); simpl in J2, J4.
+destruct Fu as [[nu eu] J1 J2].
+destruct Fv as [[nv ev] J3 J4]; simpl in J2, J4.
 (* b is bpow emin /2 *)
 assert (b = Z2R (nu+nv) * bpow (emin-1)).
 unfold b; rewrite J1, J3; unfold F2R; rewrite J2,J4; simpl.
@@ -1579,15 +1572,15 @@ replace (2*b) with (u+v).
 2: unfold b; field.
 apply generic_format_FIX_FLT,FIX_format_generic in Fu.
 apply generic_format_FIX_FLT,FIX_format_generic in Fv.
-destruct Fu as (fu,(J1,J2)).
-destruct Fv as (fv,(J3,J4)).
+destruct Fu as [fu J1 J2].
+destruct Fv as [fv J3 J4].
 apply generic_format_FIX.
 exists (Float radix2 (Fnum fu+Fnum fv) emin).
-split;[idtac|reflexivity].
 rewrite J1,J3; unfold F2R; simpl.
 rewrite J2,J4, Z2R_plus; ring.
+easy.
 apply FIX_format_generic in H.
-destruct H as ((n,e),(J1,J2)).
+destruct H as [[n e] J1 J2].
 rewrite J1; unfold F2R; rewrite J2.
 simpl; rewrite Rabs_mult.
 pattern (bpow emin) at 1; rewrite <- (Rmult_1_l (bpow emin)).
@@ -1603,7 +1596,8 @@ apply Z.abs_pos.
 intros M; apply K1.
 apply Rmult_eq_reg_l with 2.
 2: apply Rgt_not_eq, Rlt_gt; now auto with real.
-rewrite Rmult_0_r, J1,M; unfold F2R; simpl; ring.
+rewrite Rmult_0_r, J1, M.
+apply F2R_0.
 rewrite Rabs_mult.
 rewrite Rabs_right.
 2: apply Rle_ge; auto with real.

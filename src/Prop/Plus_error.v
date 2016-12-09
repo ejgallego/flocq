@@ -250,14 +250,14 @@ apply generic_format_FLT_FIX...
 rewrite Zplus_comm; assumption.
 apply generic_format_FIX_FLT, FIX_format_generic in Fx.
 apply generic_format_FIX_FLT, FIX_format_generic in Fy.
-destruct Fx as (nx,(H1x,H2x)).
-destruct Fy as (ny,(H1y,H2y)).
+destruct Fx as [nx H1x H2x].
+destruct Fy as [ny H1y H2y].
 apply generic_format_FIX.
 exists (Float beta (Fnum nx+Fnum ny)%Z emin).
-split;[idtac|reflexivity].
 rewrite H1x,H1y; unfold F2R; simpl.
 rewrite H2x, H2y.
 rewrite Z2R_plus; ring.
+easy.
 Qed.
 
 End Fprop_plus_FLT.
