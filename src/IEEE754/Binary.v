@@ -52,11 +52,11 @@ Let fexp := FLT_exp emin prec.
 Instance fexp_correct : Valid_exp fexp := FLT_exp_valid emin prec.
 Instance fexp_monotone : Monotone_exp fexp := FLT_exp_monotone emin prec.
 
-Definition canonic_mantissa m e :=
+Definition canonical_mantissa m e :=
   Zeq_bool (fexp (Zpos (digits2_pos m) + e)) e.
 
 Definition bounded m e :=
-  andb (canonic_mantissa m e) (Zle_bool e (emax - prec)).
+  andb (canonical_mantissa m e) (Zle_bool e (emax - prec)).
 
 Definition valid_binary x :=
   match x with
@@ -162,10 +162,10 @@ Proof.
 now intros T fz fi fn ff [sx|sx|sx plx|sx mx ex] Hx.
 Qed.
 
-Theorem canonic_canonic_mantissa :
+Theorem canonical_canonical_mantissa :
   forall (sx : bool) mx ex,
-  canonic_mantissa mx ex = true ->
-  canonic radix2 fexp (Float radix2 (cond_Zopp sx (Zpos mx)) ex).
+  canonical_mantissa mx ex = true ->
+  canonical radix2 fexp (Float radix2 (cond_Zopp sx (Zpos mx)) ex).
 Proof.
 intros sx mx ex H.
 assert (Hx := Zeq_bool_eq _ _ H). clear H.
@@ -186,8 +186,8 @@ Theorem generic_format_B2R :
 Proof.
 intros [sx|sx|sx plx|sx mx ex Hx] ; try apply generic_format_0.
 simpl.
-apply generic_format_canonic.
-apply canonic_canonic_mantissa.
+apply generic_format_canonical.
+apply canonical_canonical_mantissa.
 now destruct (andb_prop _ _ Hx) as (H, _).
 Qed.
 
@@ -261,12 +261,12 @@ now apply F2R_gt_0_compat.
 now apply F2R_lt_0_compat.
 assert (mx = my /\ ex = ey).
 (* *)
-refine (_ (canonic_unicity _ fexp _ _ _ _ Heq)).
+refine (_ (canonical_unicity _ fexp _ _ _ _ Heq)).
 rewrite Hs.
 now case sy ; intro H ; injection H ; split.
-apply canonic_canonic_mantissa.
+apply canonical_canonical_mantissa.
 exact (proj1 (andb_prop _ _ Hx)).
-apply canonic_canonic_mantissa.
+apply canonical_canonical_mantissa.
 exact (proj1 (andb_prop _ _ Hy)).
 (* *)
 revert Hx.
@@ -524,13 +524,13 @@ Proof.
   now apply F2R_gt_0_compat.
   simpl.
   clear H H0.
-  apply andb_prop in e0; destruct e0; apply (canonic_canonic_mantissa false) in H.
-  apply andb_prop in e2; destruct e2; apply (canonic_canonic_mantissa false) in H1.
-  pose proof (Zcompare_spec e e1); unfold canonic, Fexp in H1, H.
+  apply andb_prop in e0; destruct e0; apply (canonical_canonical_mantissa false) in H.
+  apply andb_prop in e2; destruct e2; apply (canonical_canonical_mantissa false) in H1.
+  pose proof (Zcompare_spec e e1); unfold canonical, Fexp in H1, H.
   assert (forall m1 m2 e1 e2,
     let x := (Z2R (Zpos m1) * bpow radix2 e1)%R in
     let y := (Z2R (Zpos m2) * bpow radix2 e2)%R in
-    (canonic_exp radix2 fexp x < canonic_exp radix2 fexp y)%Z -> (x < y)%R).
+    (cexp radix2 fexp x < cexp radix2 fexp y)%Z -> (x < y)%R).
   {
   intros; apply Rnot_le_lt; intro; apply (ln_beta_le radix2) in H5.
   apply Zlt_not_le with (1 := H4).
@@ -603,26 +603,26 @@ rewrite <- F2R_Zabs, abs_cond_Zopp.
 now apply bounded_lt_emax.
 Qed.
 
-Theorem bounded_canonic_lt_emax :
+Theorem bounded_canonical_lt_emax :
   forall mx ex,
-  canonic radix2 fexp (Float radix2 (Zpos mx) ex) ->
+  canonical radix2 fexp (Float radix2 (Zpos mx) ex) ->
   (F2R (Float radix2 (Zpos mx) ex) < bpow radix2 emax)%R ->
   bounded mx ex = true.
 Proof.
 intros mx ex Cx Bx.
 apply andb_true_intro.
 split.
-unfold canonic_mantissa.
-unfold canonic, Fexp in Cx.
+unfold canonical_mantissa.
+unfold canonical, Fexp in Cx.
 rewrite Cx at 2.
 rewrite Zpos_digits2_pos.
-unfold canonic_exp.
+unfold cexp.
 rewrite ln_beta_F2R_Zdigits. 2: discriminate.
 now apply -> Zeq_is_eq_bool.
 apply Zle_bool_true.
-unfold canonic, Fexp in Cx.
+unfold canonical, Fexp in Cx.
 rewrite Cx.
-unfold canonic_exp, fexp, FLT_exp.
+unfold cexp, fexp, FLT_exp.
 destruct (ln_beta radix2 (F2R (Float radix2 (Zpos mx) ex))) as (e',Ex). simpl.
 apply Zmax_lub.
 cut (e' - 1 < emax)%Z. clear ; omega.
@@ -933,9 +933,9 @@ assert (He: (e1 <= fexp (Zdigits radix2 (Zpos m1') + e1))%Z).
 rewrite <- ln_beta_F2R_Zdigits, <- Hr, ln_beta_abs.
 2: discriminate.
 rewrite H1b.
-rewrite canonic_exp_abs.
-fold (canonic_exp radix2 fexp (round radix2 fexp (round_mode m) x)).
-apply canonic_exp_round_ge...
+rewrite cexp_abs.
+fold (cexp radix2 fexp (round radix2 fexp (round_mode m) x)).
+apply cexp_round_ge...
 rewrite H1c.
 case (Rlt_bool x 0).
 apply Rlt_not_eq.
@@ -960,7 +960,7 @@ case_eq (Zle_bool e2 (emax - prec)) ; intros He2.
 assert (bounded m2 e2 = true).
 apply andb_true_intro.
 split.
-unfold canonic_mantissa.
+unfold canonical_mantissa.
 apply Zeq_bool_true.
 rewrite Zpos_digits2_pos.
 rewrite <- ln_beta_F2R_Zdigits.
@@ -1015,9 +1015,9 @@ generalize (refl_equal (bounded m2 e2)).
 unfold bounded at 2.
 rewrite He2.
 rewrite Bool.andb_false_r.
-rewrite bounded_canonic_lt_emax with (2 := Hx).
+rewrite bounded_canonical_lt_emax with (2 := Hx).
 discriminate.
-unfold canonic.
+unfold canonical.
 now rewrite <- H3.
 elim Rgt_not_eq with (2 := H3).
 apply Rlt_trans with R0.
@@ -1470,7 +1470,7 @@ now apply F2R_ge_0_compat.
 elim Rle_not_lt with (1 := Bz).
 generalize (bounded_lt_emax _ _ Hx) (bounded_lt_emax _ _ Hy) (andb_prop _ _ Hx) (andb_prop _ _ Hy).
 intros Bx By (Hx',_) (Hy',_).
-generalize (canonic_canonic_mantissa sx _ _ Hx') (canonic_canonic_mantissa sy _ _ Hy').
+generalize (canonical_canonical_mantissa sx _ _ Hx') (canonical_canonical_mantissa sy _ _ Hy').
 clear -Bx By Hs prec_gt_0_.
 intros Cx Cy.
 destruct sx.
@@ -1484,13 +1484,13 @@ apply Rlt_le_trans with (F2R (Float radix2 (cond_Zopp true (Zpos mx)) ex)).
 rewrite F2R_Zopp.
 now apply Ropp_lt_contravar.
 apply round_ge_generic...
-now apply generic_format_canonic.
+now apply generic_format_canonical.
 pattern (F2R (Float radix2 (cond_Zopp true (Zpos mx)) ex)) at 1 ; rewrite <- Rplus_0_r.
 apply Rplus_le_compat_l.
 now apply F2R_ge_0_compat.
 apply Rle_lt_trans with (2 := By).
 apply round_le_generic...
-now apply generic_format_canonic.
+now apply generic_format_canonical.
 rewrite <- (Rplus_0_l (F2R (Float radix2 (Zpos my) ey))).
 apply Rplus_le_compat_r.
 now apply F2R_le_0_compat.
@@ -1504,13 +1504,13 @@ apply Rlt_le_trans with (F2R (Float radix2 (cond_Zopp true (Zpos my)) ey)).
 rewrite F2R_Zopp.
 now apply Ropp_lt_contravar.
 apply round_ge_generic...
-now apply generic_format_canonic.
+now apply generic_format_canonical.
 pattern (F2R (Float radix2 (cond_Zopp true (Zpos my)) ey)) at 1 ; rewrite <- Rplus_0_l.
 apply Rplus_le_compat_r.
 now apply F2R_ge_0_compat.
 apply Rle_lt_trans with (2 := Bx).
 apply round_le_generic...
-now apply generic_format_canonic.
+now apply generic_format_canonical.
 rewrite <- (Rplus_0_r (F2R (Float radix2 (Zpos mx) ex))).
 apply Rplus_le_compat_l.
 now apply F2R_le_0_compat.
@@ -1522,13 +1522,13 @@ destruct (Rcompare_spec (F2R (beta:=radix2) {| Fnum := mz; Fexp := ez |}) 0); tr
 rewrite H1 in Hp.
 apply Rplus_opp_r_uniq in Hp.
 rewrite <- F2R_Zopp in Hp.
-eapply canonic_unicity in Hp.
+eapply canonical_unicity in Hp.
 inversion Hp. destruct sy, sx, m; try discriminate H3; easy.
-apply canonic_canonic_mantissa.
+apply canonical_canonical_mantissa.
 apply Bool.andb_true_iff in Hy. easy.
 replace (-cond_Zopp sx (Z.pos mx))%Z with  (cond_Zopp (negb sx) (Z.pos mx))
   by (destruct sx; auto).
-apply canonic_canonic_mantissa.
+apply canonical_canonical_mantissa.
 apply Bool.andb_true_iff in Hx. easy.
 intros Hz' Vz.
 specialize (Sz Hz').
@@ -1840,8 +1840,8 @@ apply generic_format_ge_bpow with fexp.
 intros.
 apply Zle_max_r.
 now apply F2R_gt_0_compat.
-apply generic_format_canonic.
-apply (canonic_canonic_mantissa false).
+apply generic_format_canonical.
+apply (canonical_canonical_mantissa false).
 apply (andb_prop _ _ Hx).
 (* .. *)
 apply round_ge_generic...

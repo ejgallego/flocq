@@ -57,7 +57,7 @@ simpl in H2, H3.
 rewrite H1.
 apply generic_format_F2R.
 intros Zmx.
-unfold canonic_exp, FLT_exp.
+unfold cexp, FLT_exp.
 rewrite ln_beta_F2R with (1 := Zmx).
 apply Zmax_lub with (2 := H3).
 apply Zplus_le_reg_r with (prec - ex)%Z.
@@ -70,7 +70,7 @@ Theorem FLT_format_generic :
 Proof.
 intros x.
 unfold generic_format.
-set (ex := canonic_exp beta FLT_exp x).
+set (ex := cexp beta FLT_exp x).
 set (mx := Ztrunc (scaled_mantissa beta FLT_exp x)).
 intros Hx.
 rewrite Hx.
@@ -86,7 +86,7 @@ rewrite <- Hx.
 destruct (Req_dec x 0) as [Hx0|Hx0].
 rewrite Hx0, Rabs_R0.
 apply bpow_gt_0.
-unfold canonic_exp in ex.
+unfold cexp in ex.
 destruct (ln_beta beta x) as (ex', He).
 simpl in ex.
 specialize (He Hx0).
@@ -121,16 +121,16 @@ apply FLT_format_generic.
 apply generic_format_FLT.
 Qed.
 
-Theorem canonic_exp_FLT_FLX :
+Theorem cexp_FLT_FLX :
   forall x,
   (bpow (emin + prec - 1) <= Rabs x)%R ->
-  canonic_exp beta FLT_exp x = canonic_exp beta (FLX_exp prec) x.
+  cexp beta FLT_exp x = cexp beta (FLX_exp prec) x.
 Proof.
 intros x Hx.
 assert (Hx0: x <> 0%R).
 intros H1; rewrite H1, Rabs_R0 in Hx.
 contradict Hx; apply Rlt_not_le, bpow_gt_0.
-unfold canonic_exp.
+unfold cexp.
 apply Zmax_left.
 destruct (ln_beta beta x) as (ex, He).
 unfold FLX_exp. simpl.
@@ -153,7 +153,7 @@ destruct (Req_dec x 0) as [Hx0|Hx0].
 rewrite Hx0.
 apply generic_format_0.
 unfold generic_format, scaled_mantissa.
-now rewrite canonic_exp_FLT_FLX.
+now rewrite cexp_FLT_FLX.
 Qed.
 
 Theorem generic_format_FLX_FLT :
@@ -166,26 +166,27 @@ unfold generic_format in Hx; rewrite Hx.
 apply generic_format_F2R.
 intros _.
 rewrite <- Hx.
-unfold canonic_exp, FLX_exp, FLT_exp.
+unfold cexp, FLX_exp, FLT_exp.
 apply Zle_max_l.
 Qed.
 
 Theorem round_FLT_FLX : forall rnd x,
   (bpow (emin + prec - 1) <= Rabs x)%R ->
   round beta FLT_exp rnd x = round beta (FLX_exp prec) rnd x.
+Proof.
 intros rnd x Hx.
 unfold round, scaled_mantissa.
-rewrite canonic_exp_FLT_FLX ; trivial.
+rewrite cexp_FLT_FLX ; trivial.
 Qed.
 
 (** Links between FLT and FIX (underflow) *)
-Theorem canonic_exp_FLT_FIX :
+Theorem cexp_FLT_FIX :
   forall x, x <> R0 ->
   (Rabs x < bpow (emin + prec))%R ->
-  canonic_exp beta FLT_exp x = canonic_exp beta (FIX_exp emin) x.
+  cexp beta FLT_exp x = cexp beta (FIX_exp emin) x.
 Proof.
 intros x Hx0 Hx.
-unfold canonic_exp.
+unfold cexp.
 apply Zmax_right.
 unfold FIX_exp.
 destruct (ln_beta beta x) as (ex, Hex).
@@ -241,7 +242,7 @@ intros n H2; rewrite <-V.
 apply f_equal, fexp_negligible_exp_eq...
 omega.
 (* x <> 0 *)
-apply f_equal; unfold canonic_exp, FLT_exp.
+apply f_equal; unfold cexp, FLT_exp.
 apply Z.max_r.
 assert (ln_beta beta x-1 < emin+prec)%Z;[idtac|omega].
 destruct (ln_beta beta x) as (e,He); simpl.
@@ -259,7 +260,7 @@ assert (Zx : (x <> 0)%R).
   intros Z; contradict Hx; apply Rgt_not_le, Rlt_gt.
   rewrite Z, Rabs_R0; apply bpow_gt_0.
 rewrite ulp_neq_0 with (1 := Zx).
-unfold canonic_exp, FLT_exp.
+unfold cexp, FLT_exp.
 destruct (ln_beta beta x) as (e,He).
 apply Rle_trans with (bpow (e-1)*bpow (1-prec))%R.
 rewrite <- bpow_plus.
@@ -282,7 +283,7 @@ intros x; case (Req_dec x 0); intros Hx.
 rewrite Hx, ulp_FLT_small, Rabs_R0, Rmult_0_l; try apply bpow_gt_0.
 rewrite Rabs_R0; apply bpow_gt_0.
 rewrite ulp_neq_0; try exact Hx.
-unfold canonic_exp, FLT_exp.
+unfold cexp, FLT_exp.
 apply Rlt_le_trans with (bpow (ln_beta beta x)*bpow (-prec))%R.
 apply Rmult_lt_compat_r.
 apply bpow_gt_0.

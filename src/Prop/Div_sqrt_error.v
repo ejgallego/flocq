@@ -27,11 +27,12 @@ Notation bpow e := (bpow beta e).
 
 Variable prec : Z.
 
-Theorem generic_format_plus_prec:
-  forall fexp, (forall e, (fexp e  <= e - prec)%Z) ->
+Theorem generic_format_plus_prec :
+  forall fexp, (forall e, (fexp e <= e - prec)%Z) ->
   forall x y (fx fy: float beta),
   (x = F2R fx)%R -> (y = F2R fy)%R -> (Rabs (x+y) < bpow (prec+Fexp fx))%R -> (Rabs (x+y) < bpow (prec+Fexp fy))%R
   -> generic_format beta fexp (x+y)%R.
+Proof.
 intros fexp Hfexp x y fx fy Hx Hy H1 H2.
 case (Req_dec (x+y) 0); intros H.
 rewrite H; apply generic_format_0.
@@ -43,7 +44,7 @@ intros mz ez Hz.
 rewrite <- Hz.
 apply Zle_trans with (Zmin (Fexp fx) (Fexp fy)).
 rewrite F2R_plus, <- Hx, <- Hy.
-unfold canonic_exp.
+unfold cexp.
 apply Zle_trans with (1:=Hfexp _).
 apply Zplus_le_reg_l with prec; ring_simplify.
 apply ln_beta_le_bpow with (1 := H).
@@ -52,18 +53,10 @@ rewrite <- Fexp_Fplus, Hz.
 apply Zle_refl.
 Qed.
 
-Theorem ex_Fexp_canonic: forall fexp, forall x, generic_format beta fexp x
-  -> exists fx:float beta, (x=F2R fx)%R /\ Fexp fx = canonic_exp beta fexp x.
-intros fexp x; unfold generic_format.
-exists (Float beta (Ztrunc (scaled_mantissa beta fexp x)) (canonic_exp beta fexp x)).
-split; auto.
-Qed.
-
-
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 
 Notation format := (generic_format beta (FLX_exp prec)).
-Notation cexp := (canonic_exp beta (FLX_exp prec)).
+Notation cexp := (cexp beta (FLX_exp prec)).
 
 Variable choice : Z -> bool.
 
@@ -84,9 +77,9 @@ contradict Hr.
 rewrite Hr.
 unfold Rdiv.
 now rewrite Rmult_0_l, round_0.
-destruct (ex_Fexp_canonic _ x Hx) as (fx,(Hx1,Hx2)).
-destruct (ex_Fexp_canonic _ y Hy) as (fy,(Hy1,Hy2)).
-destruct (ex_Fexp_canonic (FLX_exp prec) (round beta (FLX_exp prec) rnd (x / y))) as (fr,(Hr1,Hr2)).
+destruct (canonical_generic_format _ _ x Hx) as (fx,(Hx1,Hx2)).
+destruct (canonical_generic_format _ _ y Hy) as (fy,(Hy1,Hy2)).
+destruct (canonical_generic_format beta (FLX_exp prec) (round beta (FLX_exp prec) rnd (x / y))) as (fr,(Hr1,Hr2)).
 apply generic_format_round...
 unfold Rminus; apply generic_format_plus_prec with fx (Fopp beta (Fmult beta fr fy)); trivial.
 intros e; apply Zle_refl.
@@ -106,8 +99,8 @@ apply bpow_le.
 generalize (prec_gt_0 prec).
 clear ; omega.
 rewrite Rmult_1_r.
-rewrite Hx2.
-unfold canonic_exp.
+rewrite Hx2, <- Hx1.
+unfold cexp.
 destruct (ln_beta beta x) as (ex, Hex).
 simpl.
 specialize (Hex Zx).
@@ -140,7 +133,7 @@ replace (prec+(Fexp fr+Fexp fy))%Z with ((prec+Fexp fy)+Fexp fr)%Z by ring.
 rewrite bpow_plus.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-rewrite Hy2; unfold canonic_exp, FLX_exp.
+rewrite Hy2, <- Hy1 ; unfold cexp, FLX_exp.
 ring_simplify (prec + (ln_beta beta y - prec))%Z.
 destruct (ln_beta beta y); simpl.
 left; now apply a.
@@ -168,8 +161,8 @@ rewrite Rmult_0_l, Rminus_0_r.
 apply generic_format_0.
 case (Req_dec (round beta (FLX_exp prec) (Znearest choice) (sqrt x)) 0); intros Hr.
 rewrite Hr; unfold Rsqr; ring_simplify (x-0*0)%R; assumption.
-destruct (ex_Fexp_canonic _ x Hx) as (fx,(Hx1,Hx2)).
-destruct (ex_Fexp_canonic (FLX_exp prec) (round beta (FLX_exp prec) (Znearest choice) (sqrt x))) as (fr,(Hr1,Hr2)).
+destruct (canonical_generic_format _ _ x Hx) as (fx,(Hx1,Hx2)).
+destruct (canonical_generic_format beta (FLX_exp prec) (round beta (FLX_exp prec) (Znearest choice) (sqrt x))) as (fr,(Hr1,Hr2)).
 apply generic_format_round...
 unfold Rminus; apply generic_format_plus_prec with fx (Fopp beta (Fmult beta fr fr)); trivial.
 intros e; apply Zle_refl.
@@ -224,7 +217,7 @@ rewrite Rmult_assoc, Rinv_l, Rmult_1_r.
 now apply (Z2R_le 25 32).
 apply Rgt_not_eq.
 now apply (Z2R_lt 0 16).
-rewrite Hx2; unfold canonic_exp, FLX_exp.
+rewrite Hx2, <- Hx1; unfold cexp, FLX_exp.
 ring_simplify (prec + (ln_beta beta x - prec))%Z.
 destruct (ln_beta beta x); simpl.
 rewrite <- (Rabs_right x).
@@ -261,8 +254,8 @@ right; field.
 apply Rle_lt_trans with (1:=Rabs_triang _ _).
 (* . *)
 assert (Rabs (F2R fr) < bpow (prec + Fexp fr))%R.
-rewrite Hr2; unfold canonic_exp; rewrite Hr1.
-unfold FLX_exp.
+rewrite Hr2.
+unfold cexp, FLX_exp.
 ring_simplify (prec + (ln_beta beta (F2R fr) - prec))%Z.
 destruct (ln_beta beta (F2R fr)); simpl.
 apply a.

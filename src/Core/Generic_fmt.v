@@ -70,17 +70,17 @@ assert (H1 := proj2 Hl k H').
 omega.
 Qed.
 
-Definition canonic_exp x :=
+Definition cexp x :=
   fexp (ln_beta beta x).
 
-Definition canonic (f : float beta) :=
-  Fexp f = canonic_exp (F2R f).
+Definition canonical (f : float beta) :=
+  Fexp f = cexp (F2R f).
 
 Definition scaled_mantissa x :=
-  (x * bpow (- canonic_exp x))%R.
+  (x * bpow (- cexp x))%R.
 
 Definition generic_format (x : R) :=
-  x = F2R (Float beta (Ztrunc (scaled_mantissa x)) (canonic_exp x)).
+  x = F2R (Float beta (Ztrunc (scaled_mantissa x)) (cexp x)).
 
 (** Basic facts *)
 Theorem generic_format_0 :
@@ -92,22 +92,36 @@ change (Ztrunc 0) with (Ztrunc (Z2R 0)).
 now rewrite Ztrunc_Z2R, F2R_0.
 Qed.
 
-Theorem canonic_exp_opp :
+Theorem cexp_opp :
   forall x,
-  canonic_exp (-x) = canonic_exp x.
+  cexp (-x) = cexp x.
 Proof.
 intros x.
-unfold canonic_exp.
+unfold cexp.
 now rewrite ln_beta_opp.
 Qed.
 
-Theorem canonic_exp_abs :
+Theorem cexp_abs :
   forall x,
-  canonic_exp (Rabs x) = canonic_exp x.
+  cexp (Rabs x) = cexp x.
 Proof.
 intros x.
-unfold canonic_exp.
+unfold cexp.
 now rewrite ln_beta_abs.
+Qed.
+
+Theorem canonical_generic_format :
+  forall x,
+  generic_format x ->
+  exists f : float beta,
+  x = F2R f /\ canonical f.
+Proof.
+intros x Hx.
+rewrite Hx.
+eexists.
+apply (conj eq_refl).
+unfold canonical.
+now rewrite <- Hx.
 Qed.
 
 Theorem generic_format_bpow :
@@ -115,7 +129,7 @@ Theorem generic_format_bpow :
   generic_format (bpow e).
 Proof.
 intros e H.
-unfold generic_format, scaled_mantissa, canonic_exp.
+unfold generic_format, scaled_mantissa, cexp.
 rewrite ln_beta_bpow.
 rewrite <- bpow_plus.
 rewrite <- (Z2R_Zpower beta (e + - fexp (e + 1))).
@@ -142,7 +156,7 @@ Qed.
 
 Theorem generic_format_F2R :
   forall m e,
-  ( m <> 0 -> canonic_exp (F2R (Float beta m e)) <= e )%Z ->
+  ( m <> 0 -> cexp (F2R (Float beta m e)) <= e )%Z ->
   generic_format (F2R (Float beta m e)).
 Proof.
 intros m e.
@@ -151,7 +165,7 @@ intros _.
 rewrite Zm, F2R_0.
 apply generic_format_0.
 unfold generic_format, scaled_mantissa.
-set (e' := canonic_exp (F2R (Float beta m e))).
+set (e' := cexp (F2R (Float beta m e))).
 intros He.
 specialize (He Zm).
 unfold F2R at 3. simpl.
@@ -162,14 +176,15 @@ now rewrite Ztrunc_Z2R.
 now apply Zle_left.
 Qed.
 
-Lemma generic_format_F2R': forall (x:R) (f:float beta),
-       F2R f = x -> ((x <> 0)%R ->
-       (canonic_exp x <= Fexp f)%Z) ->
-       generic_format x.
+Lemma generic_format_F2R' :
+  forall (x : R) (f : float beta),
+  F2R f = x ->
+  (x <> R0 -> (cexp x <= Fexp f)%Z) ->
+  generic_format x.
 Proof.
 intros x f H1 H2.
 rewrite <- H1; destruct f as (m,e).
-apply  generic_format_F2R.
+apply generic_format_F2R.
 simpl in *; intros H3.
 rewrite H1; apply H2.
 intros Y; apply H3.
@@ -177,46 +192,42 @@ apply F2R_eq_0_reg with beta e.
 now rewrite H1.
 Qed.
 
-
-Theorem canonic_opp :
+Theorem canonical_opp :
   forall m e,
-  canonic (Float beta m e) ->
-  canonic (Float beta (-m) e).
+  canonical (Float beta m e) ->
+  canonical (Float beta (-m) e).
 Proof.
 intros m e H.
-unfold canonic.
-now rewrite F2R_Zopp, canonic_exp_opp.
+unfold canonical.
+now rewrite F2R_Zopp, cexp_opp.
 Qed.
 
-Theorem canonic_abs :
+Theorem canonical_abs :
   forall m e,
-  canonic (Float beta m e) ->
-  canonic (Float beta (Zabs m) e).
+  canonical (Float beta m e) ->
+  canonical (Float beta (Zabs m) e).
 Proof.
 intros m e H.
-unfold canonic.
-now rewrite F2R_Zabs, canonic_exp_abs.
+unfold canonical.
+now rewrite F2R_Zabs, cexp_abs.
 Qed.
 
-Theorem canonic_0: canonic (Float beta 0 (fexp (ln_beta beta 0%R))).
+Theorem canonical_0 :
+  canonical (Float beta 0 (fexp (ln_beta beta 0%R))).
 Proof.
-unfold canonic; simpl; unfold canonic_exp.
-replace (F2R {| Fnum := 0; Fexp := fexp (ln_beta beta 0) |}) with 0%R.
-reflexivity.
-unfold F2R; simpl; ring.
+unfold canonical; simpl ; unfold cexp.
+now rewrite F2R_0.
 Qed.
 
-
-
-Theorem canonic_unicity :
+Theorem canonical_unicity :
   forall f1 f2,
-  canonic f1 ->
-  canonic f2 ->
+  canonical f1 ->
+  canonical f2 ->
   F2R f1 = F2R f2 ->
   f1 = f2.
 Proof.
 intros (m1, e1) (m2, e2).
-unfold canonic. simpl.
+unfold canonical. simpl.
 intros H1 H2 H.
 rewrite H in H1.
 rewrite <- H2 in H1. clear H2.
@@ -240,7 +251,7 @@ Qed.
 
 Theorem scaled_mantissa_mult_bpow :
   forall x,
-  (scaled_mantissa x * bpow (canonic_exp x))%R = x.
+  (scaled_mantissa x * bpow (cexp x))%R = x.
 Proof.
 intros x.
 unfold scaled_mantissa.
@@ -260,7 +271,7 @@ Theorem scaled_mantissa_opp :
 Proof.
 intros x.
 unfold scaled_mantissa.
-rewrite canonic_exp_opp.
+rewrite cexp_opp.
 now rewrite Ropp_mult_distr_l_reverse.
 Qed.
 
@@ -270,7 +281,7 @@ Theorem scaled_mantissa_abs :
 Proof.
 intros x.
 unfold scaled_mantissa.
-rewrite canonic_exp_abs, Rabs_mult.
+rewrite cexp_abs, Rabs_mult.
 apply f_equal.
 apply sym_eq.
 apply Rabs_pos_eq.
@@ -282,7 +293,7 @@ Theorem generic_format_opp :
 Proof.
 intros x Hx.
 unfold generic_format.
-rewrite scaled_mantissa_opp, canonic_exp_opp.
+rewrite scaled_mantissa_opp, cexp_opp.
 rewrite Ztrunc_opp.
 rewrite F2R_Zopp.
 now apply f_equal.
@@ -293,7 +304,7 @@ Theorem generic_format_abs :
 Proof.
 intros x Hx.
 unfold generic_format.
-rewrite scaled_mantissa_abs, canonic_exp_abs.
+rewrite scaled_mantissa_abs, cexp_abs.
 rewrite Ztrunc_abs.
 rewrite F2R_Zabs.
 now apply f_equal.
@@ -305,7 +316,7 @@ Proof.
 intros x.
 unfold generic_format, Rabs.
 case Rcase_abs ; intros _.
-rewrite scaled_mantissa_opp, canonic_exp_opp, Ztrunc_opp.
+rewrite scaled_mantissa_opp, cexp_opp, Ztrunc_opp.
 intros H.
 rewrite <- (Ropp_involutive x) at 1.
 rewrite H, F2R_Zopp.
@@ -313,23 +324,23 @@ apply Ropp_involutive.
 easy.
 Qed.
 
-Theorem canonic_exp_fexp :
+Theorem cexp_fexp :
   forall x ex,
   (bpow (ex - 1) <= Rabs x < bpow ex)%R ->
-  canonic_exp x = fexp ex.
+  cexp x = fexp ex.
 Proof.
 intros x ex Hx.
-unfold canonic_exp.
+unfold cexp.
 now rewrite ln_beta_unique with (1 := Hx).
 Qed.
 
-Theorem canonic_exp_fexp_pos :
+Theorem cexp_fexp_pos :
   forall x ex,
   (bpow (ex - 1) <= x < bpow ex)%R ->
-  canonic_exp x = fexp ex.
+  cexp x = fexp ex.
 Proof.
 intros x ex Hx.
-apply canonic_exp_fexp.
+apply cexp_fexp.
 rewrite Rabs_pos_eq.
 exact Hx.
 apply Rle_trans with (2 := proj1 Hx).
@@ -369,8 +380,8 @@ rewrite Zx, scaled_mantissa_0, Rabs_R0.
 now apply (Z2R_lt 0 1).
 rewrite <- scaled_mantissa_abs.
 unfold scaled_mantissa.
-rewrite canonic_exp_abs.
-unfold canonic_exp.
+rewrite cexp_abs.
+unfold cexp.
 destruct (ln_beta beta x) as (ex', Ex').
 simpl.
 specialize (Ex' Zx).
@@ -384,7 +395,7 @@ Qed.
 
 Theorem abs_scaled_mantissa_lt_bpow :
   forall x,
-  (Rabs (scaled_mantissa x) < bpow (ln_beta beta x - canonic_exp x))%R.
+  (Rabs (scaled_mantissa x) < bpow (ln_beta beta x - cexp x))%R.
 Proof.
 intros x.
 destruct (Req_dec x 0) as [Zx|Zx].
@@ -400,11 +411,11 @@ Qed.
 Theorem ln_beta_generic_gt :
   forall x, (x <> 0)%R ->
   generic_format x ->
-  (canonic_exp x < ln_beta beta x)%Z.
+  (cexp x < ln_beta beta x)%Z.
 Proof.
 intros x Zx Gx.
 apply Znot_ge_lt.
-unfold canonic_exp.
+unfold cexp.
 destruct (ln_beta beta x) as (ex,Ex) ; simpl.
 specialize (Ex Zx).
 intros H.
@@ -448,7 +459,7 @@ Qed.
 (** Generic facts about any format *)
 Theorem generic_format_discrete :
   forall x m,
-  let e := canonic_exp x in
+  let e := cexp x in
   (F2R (Float beta m e) < x < F2R (Float beta (m + 1) e))%R ->
   ~ generic_format x.
 Proof.
@@ -465,12 +476,12 @@ apply bpow_gt_0.
 now rewrite scaled_mantissa_mult_bpow.
 Qed.
 
-Theorem generic_format_canonic :
-  forall f, canonic f ->
+Theorem generic_format_canonical :
+  forall f, canonical f ->
   generic_format (F2R f).
 Proof.
 intros (m, e) Hf.
-unfold canonic in Hf. simpl in Hf.
+unfold canonical in Hf. simpl in Hf.
 unfold generic_format, scaled_mantissa.
 rewrite <- Hf.
 apply F2R_eq_compat.
@@ -492,7 +503,7 @@ rewrite Fx.
 apply Rle_trans with (bpow (fexp (ln_beta beta x))).
 now apply bpow_le.
 apply bpow_le_F2R.
-apply F2R_gt_0_reg with beta (canonic_exp x).
+apply F2R_gt_0_reg with beta (cexp x).
 now rewrite <- Fx.
 Qed.
 
@@ -501,12 +512,12 @@ Theorem abs_lt_bpow_prec:
   (forall e, (e - prec <= fexp e)%Z) ->
   (* OK with FLX, FLT and FTZ *)
   forall x,
-  (Rabs x < bpow (prec + canonic_exp x))%R.
+  (Rabs x < bpow (prec + cexp x))%R.
 intros prec Hp x.
 case (Req_dec x 0); intros Hxz.
 rewrite Hxz, Rabs_R0.
 apply bpow_gt_0.
-unfold canonic_exp.
+unfold cexp.
 destruct (ln_beta beta x) as (ex,Ex) ; simpl.
 specialize (Ex Hxz).
 apply Rlt_le_trans with (1 := proj2 Ex).
@@ -523,7 +534,7 @@ Proof.
 intros e He.
 apply Znot_gt_le.
 contradict He.
-unfold generic_format, scaled_mantissa, canonic_exp, F2R. simpl.
+unfold generic_format, scaled_mantissa, cexp, F2R. simpl.
 rewrite ln_beta_bpow, <- bpow_plus.
 apply Rgt_not_eq.
 rewrite Ztrunc_floor.
@@ -599,7 +610,7 @@ Qed.
 
 (** the most useful one: R -> F *)
 Definition round x :=
-  F2R (Float beta (rnd (scaled_mantissa x)) (canonic_exp x)).
+  F2R (Float beta (rnd (scaled_mantissa x)) (cexp x)).
 
 Theorem round_bounded_large_pos :
   forall x ex,
@@ -609,7 +620,7 @@ Theorem round_bounded_large_pos :
 Proof.
 intros x ex He Hx.
 unfold round, scaled_mantissa.
-rewrite (canonic_exp_fexp_pos _ _ Hx).
+rewrite (cexp_fexp_pos _ _ Hx).
 unfold F2R. simpl.
 destruct (Zrnd_DN_or_UP (x * bpow (- fexp ex))) as [Hr|Hr] ; rewrite Hr.
 (* DN *)
@@ -668,7 +679,7 @@ Theorem round_bounded_small_pos :
 Proof.
 intros x ex He Hx.
 unfold round, scaled_mantissa.
-rewrite (canonic_exp_fexp_pos _ _ Hx).
+rewrite (cexp_fexp_pos _ _ Hx).
 unfold F2R. simpl.
 destruct (Zrnd_DN_or_UP (x * bpow (-fexp ex))) as [Hr|Hr] ; rewrite Hr.
 (* DN *)
@@ -706,7 +717,7 @@ assert (He: (ex <= ey)%Z).
   now apply Rle_lt_trans with y.
 assert (Heq: fexp ex = fexp ey -> (round x <= round y)%R).
   intros H.
-  unfold round, scaled_mantissa, canonic_exp.
+  unfold round, scaled_mantissa, cexp.
   rewrite ln_beta_unique_pos with (1 := Hex).
   rewrite ln_beta_unique_pos with (1 := Hey).
   rewrite H.
@@ -795,8 +806,8 @@ apply generic_format_bpow.
 now apply valid_exp.
 apply generic_format_F2R.
 intros _.
-rewrite (canonic_exp_fexp_pos (F2R _) _ (conj Hr1 Hr)).
-rewrite (canonic_exp_fexp_pos _ _ Hex).
+rewrite (cexp_fexp_pos (F2R _) _ (conj Hr1 Hr)).
+rewrite (cexp_fexp_pos _ _ Hex).
 now apply Zeq_le.
 Qed.
 
@@ -843,7 +854,7 @@ Theorem round_opp :
 Proof.
 intros x.
 unfold round.
-rewrite <- F2R_Zopp, canonic_exp_opp, scaled_mantissa_opp.
+rewrite <- F2R_Zopp, cexp_opp, scaled_mantissa_opp.
 apply F2R_eq_compat.
 apply sym_eq.
 exact (Zopp_involutive _).
@@ -920,7 +931,7 @@ destruct (Rlt_or_le y 0) as [Hy|Hy].
 (* . y < 0 *)
 rewrite <- (Ropp_involutive x), <- (Ropp_involutive y).
 rewrite (scaled_mantissa_opp (-x)), (scaled_mantissa_opp (-y)).
-rewrite (canonic_exp_opp (-x)), (canonic_exp_opp (-y)).
+rewrite (cexp_opp (-x)), (cexp_opp (-y)).
 apply Ropp_le_cancel.
 rewrite <- 2!F2R_Zopp.
 apply (round_le_pos (Zrnd_opp rnd) (-y) (-x)).
@@ -1069,7 +1080,7 @@ rewrite scaled_mantissa_opp.
 rewrite <- F2R_Zopp.
 unfold Zceil.
 rewrite Zopp_involutive.
-now rewrite canonic_exp_opp.
+now rewrite cexp_opp.
 Qed.
 
 Theorem round_UP_opp :
@@ -1082,7 +1093,7 @@ rewrite scaled_mantissa_opp.
 rewrite <- F2R_Zopp.
 unfold Zceil.
 rewrite Ropp_involutive.
-now rewrite canonic_exp_opp.
+now rewrite cexp_opp.
 Qed.
 
 Theorem round_ZR_opp :
@@ -1091,7 +1102,7 @@ Theorem round_ZR_opp :
 Proof.
 intros x.
 unfold round.
-rewrite scaled_mantissa_opp, canonic_exp_opp, Ztrunc_opp.
+rewrite scaled_mantissa_opp, cexp_opp, Ztrunc_opp.
 apply F2R_Zopp.
 Qed.
 
@@ -1120,7 +1131,7 @@ Theorem round_AW_opp :
 Proof.
 intros x.
 unfold round.
-rewrite scaled_mantissa_opp, canonic_exp_opp, Zaway_opp.
+rewrite scaled_mantissa_opp, cexp_opp, Zaway_opp.
 apply F2R_Zopp.
 Qed.
 
@@ -1153,7 +1164,7 @@ unfold round, Ztrunc.
 case Rlt_bool_spec.
 intros H.
 elim Rlt_not_le with (1 := H).
-rewrite <- (Rmult_0_l (bpow (- canonic_exp x))).
+rewrite <- (Rmult_0_l (bpow (- cexp x))).
 apply Rmult_le_compat_r with (2 := Hx).
 apply bpow_ge_0.
 easy.
@@ -1170,7 +1181,7 @@ case Rlt_bool_spec.
 easy.
 intros [H|H].
 elim Rlt_not_le with (1 := H).
-rewrite <- (Rmult_0_l (bpow (- canonic_exp x))).
+rewrite <- (Rmult_0_l (bpow (- cexp x))).
 apply Rmult_le_compat_r with (2 := Hx).
 apply bpow_ge_0.
 rewrite <- H.
@@ -1188,7 +1199,7 @@ unfold round, Zaway.
 case Rlt_bool_spec.
 intros H.
 elim Rlt_not_le with (1 := H).
-rewrite <- (Rmult_0_l (bpow (- canonic_exp x))).
+rewrite <- (Rmult_0_l (bpow (- cexp x))).
 apply Rmult_le_compat_r with (2 := Hx).
 apply bpow_ge_0.
 easy.
@@ -1205,7 +1216,7 @@ case Rlt_bool_spec.
 easy.
 intros [H|H].
 elim Rlt_not_le with (1 := H).
-rewrite <- (Rmult_0_l (bpow (- canonic_exp x))).
+rewrite <- (Rmult_0_l (bpow (- cexp x))).
 apply Rmult_le_compat_r with (2 := Hx).
 apply bpow_ge_0.
 rewrite <- H.
@@ -1296,9 +1307,9 @@ Theorem round_DN_small_pos :
   round Zfloor x = R0.
 Proof.
 intros x ex Hx He.
-rewrite <- (F2R_0 beta (canonic_exp x)).
+rewrite <- (F2R_0 beta (cexp x)).
 rewrite <- mantissa_DN_small_pos with (1 := Hx) (2 := He).
-now rewrite <- canonic_exp_fexp_pos with (1 := Hx).
+now rewrite <- cexp_fexp_pos with (1 := Hx).
 Qed.
 
 
@@ -1335,7 +1346,7 @@ Proof.
 intros x ex Hx He.
 rewrite <- F2R_bpow.
 rewrite <- mantissa_UP_small_pos with (1 := Hx) (2 := He).
-now rewrite <- canonic_exp_fexp_pos with (1 := Hx).
+now rewrite <- cexp_fexp_pos with (1 := Hx).
 Qed.
 
 Theorem generic_format_EM :
@@ -1459,10 +1470,10 @@ now apply Rgt_not_eq.
 now apply Rlt_le.
 Qed.
 
-Theorem canonic_exp_DN :
+Theorem cexp_DN :
   forall x,
   (0 < round Zfloor x)%R ->
-  canonic_exp (round Zfloor x) = canonic_exp x.
+  cexp (round Zfloor x) = cexp x.
 Proof.
 intros x Hd.
 apply (f_equal fexp).
@@ -1476,7 +1487,7 @@ Theorem scaled_mantissa_DN :
 Proof.
 intros x Hd.
 unfold scaled_mantissa.
-rewrite canonic_exp_DN with (1 := Hd).
+rewrite cexp_DN with (1 := Hd).
 unfold round, F2R. simpl.
 now rewrite Rmult_assoc, <- bpow_plus, Zplus_opp_r, Rmult_1_r.
 Qed.
@@ -1513,9 +1524,9 @@ intros e x He Hx.
 pattern x at 2 ; rewrite Hx.
 unfold F2R at 2. simpl.
 rewrite Rmult_assoc, <- bpow_plus.
-assert (H: Z2R (Zpower beta (canonic_exp x + - fexp e)) = bpow (canonic_exp x + - fexp e)).
+assert (H: Z2R (Zpower beta (cexp x + - fexp e)) = bpow (cexp x + - fexp e)).
 apply Z2R_Zpower.
-unfold canonic_exp.
+unfold cexp.
 set (ex := ln_beta beta x).
 generalize (exp_not_FTZ ex).
 generalize (proj2 (proj2 (valid_exp _) He) (fexp ex + 1)%Z).
@@ -1526,7 +1537,7 @@ unfold F2R. simpl.
 rewrite Z2R_mult.
 rewrite H.
 rewrite Rmult_assoc, <- bpow_plus.
-now ring_simplify (canonic_exp x + - fexp e + fexp e)%Z.
+now ring_simplify (cexp x + - fexp e + fexp e)%Z.
 Qed.
 
 End not_FTZ.
@@ -1547,21 +1558,21 @@ now apply Zlt_le_succ.
 now apply valid_exp.
 Qed.
 
-Lemma canonic_exp_le_bpow :
+Lemma cexp_le_bpow :
   forall (x : R) (e : Z),
   x <> R0 ->
   (Rabs x < bpow e)%R ->
-  (canonic_exp x <= fexp e)%Z.
+  (cexp x <= fexp e)%Z.
 Proof.
 intros x e Zx Hx.
 apply monotone_exp.
 now apply ln_beta_le_bpow.
 Qed.
 
-Lemma canonic_exp_ge_bpow :
+Lemma cexp_ge_bpow :
   forall (x : R) (e : Z),
   (bpow (e - 1) <= Rabs x)%R ->
-  (fexp e <= canonic_exp x)%Z.
+  (fexp e <= cexp x)%Z.
 Proof.
 intros x e Hx.
 apply monotone_exp.
@@ -1592,13 +1603,13 @@ apply round_UP_pt.
 apply Rabs_pos.
 Qed.
 
-Theorem canonic_exp_round_ge :
+Theorem cexp_round_ge :
   forall x,
   round rnd x <> R0 ->
-  (canonic_exp x <= canonic_exp (round rnd x))%Z.
+  (cexp x <= cexp (round rnd x))%Z.
 Proof with auto with typeclass_instances.
 intros x Zr.
-unfold canonic_exp.
+unfold cexp.
 apply monotone_exp.
 now apply ln_beta_round_ge.
 Qed.
@@ -1877,7 +1888,7 @@ intros x.
 set (d := round Zfloor x).
 set (u := round Zceil x).
 set (mx := scaled_mantissa x).
-set (bx := bpow (canonic_exp x)).
+set (bx := bpow (cexp x)).
 (* . *)
 assert (H: (Rabs (round Znearest x - x) <= Rmin (x - d) (u - x))%R).
 pattern x at -1 ; rewrite <- scaled_mantissa_mult_bpow.
@@ -1956,7 +1967,7 @@ intros H.
 rewrite Rcompare_floor_ceil_mid with (1 := Fx).
 rewrite Rcompare_Eq.
 now case choice.
-apply Rmult_eq_reg_r with (bpow (canonic_exp x)).
+apply Rmult_eq_reg_r with (bpow (cexp x)).
 now rewrite 2!Rmult_minus_distr_r.
 apply Rgt_not_eq.
 apply bpow_gt_0.
@@ -1970,7 +1981,7 @@ Lemma round_N_really_small_pos :
   (round Znearest x = 0)%R.
 Proof.
 intros x ex Hex Hf.
-unfold round, F2R, scaled_mantissa, canonic_exp; simpl.
+unfold round, F2R, scaled_mantissa, cexp; simpl.
 apply (Rmult_eq_reg_r (bpow (- fexp (ln_beta beta x))));
   [|now apply Rgt_not_eq; apply bpow_gt_0].
 rewrite Rmult_0_l, Rmult_assoc, <- bpow_plus.
@@ -2049,7 +2060,7 @@ apply lt_Z2R.
 apply Rle_lt_trans with (scaled_mantissa x).
 apply Zfloor_lb.
 simpl.
-rewrite <- (Rmult_0_l (bpow (- canonic_exp x))).
+rewrite <- (Rmult_0_l (bpow (- cexp x))).
 apply Rmult_lt_compat_r with (2 := Hx).
 apply bpow_gt_0.
 apply Rnd_N_pt_neg with (3 := Rxf).
@@ -2103,7 +2114,7 @@ Theorem round_N_opp :
 Proof.
 intros choice x.
 unfold round, F2R. simpl.
-rewrite canonic_exp_opp.
+rewrite cexp_opp.
 rewrite scaled_mantissa_opp.
 rewrite Znearest_opp.
 rewrite Z2R_opp.
@@ -2261,7 +2272,7 @@ refine (round_abs_abs _ (fun x y => generic_format fexp1 x -> generic_format fex
 intros rnd valid_rnd x [Hx|Hx] Gx.
 (* x > 0 *)
 generalize (ln_beta_generic_gt _ x (Rgt_not_eq _ _ Hx) Gx).
-unfold canonic_exp.
+unfold cexp.
 destruct (ln_beta beta x) as (ex,Ex) ; simpl.
 specialize (Ex (Rgt_not_eq _ _ Hx)).
 intros He'.
@@ -2276,14 +2287,14 @@ apply generic_format_bpow'...
 apply Zlt_le_weak.
 apply valid_exp_large with ex...
 (* - x large for fexp2 *)
-destruct (Zle_or_lt (canonic_exp fexp2 x) (canonic_exp fexp1 x)) as [He''|He''].
+destruct (Zle_or_lt (cexp fexp2 x) (cexp fexp1 x)) as [He''|He''].
 (* - - round fexp2 x is representable for fexp1 *)
 rewrite round_generic...
 rewrite Gx.
 apply generic_format_F2R.
 fold (round fexp1 Ztrunc x).
 intros Zx.
-unfold canonic_exp at 1.
+unfold cexp at 1.
 rewrite ln_beta_round_ZR...
 contradict Zx.
 apply F2R_eq_0_reg with (1 := Zx).
@@ -2292,7 +2303,7 @@ destruct (round_bounded_large_pos fexp2 rnd x ex He Ex) as (Hr1,[Hr2|Hr2]).
 apply generic_format_F2R.
 intros Zx.
 fold (round fexp2 rnd x).
-unfold canonic_exp at 1.
+unfold cexp at 1.
 rewrite ln_beta_unique_pos with (1 := conj Hr1 Hr2).
 rewrite <- ln_beta_unique_pos with (1 := Ex).
 now apply Zlt_le_weak.

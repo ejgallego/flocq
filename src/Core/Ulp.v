@@ -92,10 +92,12 @@ Definition ulp x := match Req_bool x 0 with
             | Some n => bpow (fexp n)
             | None => 0%R
             end
-  | false  => bpow (canonic_exp beta fexp x)
+  | false  => bpow (cexp beta fexp x)
  end.
 
-Lemma ulp_neq_0 : forall x:R, (x <> 0)%R -> ulp x = bpow (canonic_exp beta fexp x).
+Lemma ulp_neq_0 :
+  forall x, x <> R0 ->
+  ulp x = bpow (cexp beta fexp x).
 Proof.
 intros  x Hx.
 unfold ulp; case (Req_bool_spec x); trivial.
@@ -113,7 +115,7 @@ case Req_bool_spec; intros H1.
 rewrite Req_bool_true; trivial.
 rewrite <- (Ropp_involutive x), H1; ring.
 rewrite Req_bool_false.
-now rewrite canonic_exp_opp.
+now rewrite cexp_opp.
 intros H2; apply H1; rewrite H2; ring.
 Qed.
 
@@ -125,7 +127,7 @@ unfold ulp; case (Req_bool_spec x 0); intros H1.
 rewrite Req_bool_true; trivial.
 now rewrite H1, Rabs_R0.
 rewrite Req_bool_false.
-now rewrite canonic_exp_abs.
+now rewrite cexp_abs.
 now apply Rabs_no_R0.
 Qed.
 
@@ -156,7 +158,7 @@ apply Rmult_le_compat_r.
 apply bpow_ge_0.
 apply (Z2R_le (Zsucc 0)).
 apply Zlt_le_succ.
-apply F2R_gt_0_reg with beta (canonic_exp beta fexp x).
+apply F2R_gt_0_reg with beta (cexp beta fexp x).
 now rewrite <- Fx.
 Qed.
 
@@ -205,7 +207,7 @@ Proof.
 intros e.
 rewrite ulp_neq_0.
 apply f_equal.
-apply canonic_exp_fexp.
+apply cexp_fexp.
 rewrite Rabs_pos_eq.
 split.
 ring_simplify (e + 1 - 1)%Z.
@@ -217,7 +219,7 @@ apply Rgt_not_eq, Rlt_gt, bpow_gt_0.
 Qed.
 
 
-Lemma generic_format_ulp_0:
+Lemma generic_format_ulp_0 :
   F (ulp 0).
 Proof.
 unfold ulp.
@@ -229,8 +231,9 @@ apply generic_format_bpow.
 now apply valid_exp.
 Qed.
 
-Lemma generic_format_bpow_ge_ulp_0:  forall e,
-    (ulp 0 <= bpow e)%R -> F (bpow e).
+Lemma generic_format_bpow_ge_ulp_0 :
+  forall e, (ulp 0 <= bpow e)%R ->
+  F (bpow e).
 Proof.
 intros e; unfold ulp.
 rewrite Req_bool_true; trivial.
@@ -253,33 +256,36 @@ Qed.
 (** The three following properties are equivalent:
       [Exp_not_FTZ] ;  forall x, F (ulp x) ; forall x, ulp 0 <= ulp x *)
 
-Lemma generic_format_ulp: Exp_not_FTZ fexp ->
-  forall x,  F (ulp x).
+Lemma generic_format_ulp :
+  Exp_not_FTZ fexp ->
+  forall x, F (ulp x).
 Proof.
 unfold Exp_not_FTZ; intros H x.
 case (Req_dec x 0); intros Hx.
 rewrite Hx; apply generic_format_ulp_0.
 rewrite (ulp_neq_0 _ Hx).
-apply generic_format_bpow; unfold canonic_exp.
+apply generic_format_bpow.
 apply H.
 Qed.
 
-Lemma not_FTZ_generic_format_ulp:
-   (forall x,  F (ulp x)) -> Exp_not_FTZ fexp.
+Lemma not_FTZ_generic_format_ulp :
+  (forall x,  F (ulp x)) ->
+  Exp_not_FTZ fexp.
 Proof.
 intros H e.
 specialize (H (bpow (e-1))).
 rewrite ulp_neq_0 in H.
 2: apply Rgt_not_eq, bpow_gt_0.
-unfold canonic_exp in H.
+unfold cexp in H.
 rewrite ln_beta_bpow in H.
-apply generic_format_bpow_inv' in H...
+apply generic_format_bpow_inv' in H.
 now replace (e-1+1)%Z with e in H by ring.
 Qed.
 
 
-Lemma ulp_ge_ulp_0: Exp_not_FTZ fexp ->
-  forall x,  (ulp 0 <= ulp x)%R.
+Lemma ulp_ge_ulp_0 :
+  Exp_not_FTZ fexp ->
+  forall x, (ulp 0 <= ulp x)%R.
 Proof.
 unfold Exp_not_FTZ; intros H x.
 case (Req_dec x 0); intros Hx.
@@ -290,7 +296,7 @@ case negligible_exp_spec'.
 intros (H1,H2); rewrite H1; apply ulp_ge_0.
 intros (n,(H1,H2)); rewrite H1.
 rewrite ulp_neq_0; trivial.
-apply bpow_le; unfold canonic_exp.
+apply bpow_le; unfold cexp.
 generalize (ln_beta beta x); intros l.
 case (Zle_or_lt l (fexp l)); intros Hl.
 rewrite (fexp_negligible_exp_eq n l); trivial; apply Zle_refl.
@@ -303,7 +309,8 @@ omega.
 Qed.
 
 Lemma not_FTZ_ulp_ge_ulp_0:
-   (forall x,  (ulp 0 <= ulp x)%R) -> Exp_not_FTZ fexp.
+  (forall x, (ulp 0 <= ulp x)%R) ->
+  Exp_not_FTZ fexp.
 Proof.
 intros H e.
 apply generic_format_bpow_inv' with beta.
@@ -312,8 +319,6 @@ replace e with ((e-1)+1)%Z by ring.
 rewrite <- ulp_bpow.
 apply H.
 Qed.
-
-
 
 Theorem ulp_le_pos :
   forall { Hm : Monotone_exp fexp },
@@ -336,7 +341,6 @@ apply ulp_ge_ulp_0.
 apply monotone_exp_not_FTZ...
 Qed.
 
-
 Theorem ulp_le :
   forall { Hm : Monotone_exp fexp },
   forall x y: R,
@@ -350,8 +354,6 @@ apply ulp_le_pos; trivial.
 apply Rabs_pos.
 Qed.
 
-
-
 (** Definition and properties of pred and succ *)
 
 Definition pred_pos x :=
@@ -361,15 +363,16 @@ Definition pred_pos x :=
     (x - ulp x)%R.
 
 Definition succ x :=
-   if (Rle_bool 0 x) then
-          (x+ulp x)%R
-   else
-     (- pred_pos (-x))%R.
+  if (Rle_bool 0 x) then
+    (x+ulp x)%R
+  else
+    (- pred_pos (-x))%R.
 
 Definition pred x := (- succ (-x))%R.
 
-Theorem pred_eq_pos:
-  forall x, (0 <= x)%R -> (pred x = pred_pos x)%R.
+Theorem pred_eq_pos :
+  forall x, (0 <= x)%R ->
+  pred x = pred_pos x.
 Proof.
 intros x Hx; unfold pred, succ.
 case Rle_bool_spec; intros Hx'.
@@ -384,38 +387,40 @@ rewrite Ropp_0; ring.
 now rewrite 2!Ropp_involutive.
 Qed.
 
-Theorem succ_eq_pos:
-  forall x, (0 <= x)%R -> (succ x = x + ulp x)%R.
+Theorem succ_eq_pos :
+  forall x, (0 <= x)%R ->
+  succ x = (x + ulp x)%R.
 Proof.
 intros x Hx; unfold succ.
 now rewrite Rle_bool_true.
 Qed.
 
-Lemma pred_eq_opp_succ_opp: forall x, pred x = (- succ (-x))%R.
+Lemma pred_eq_opp_succ_opp :
+  forall x, pred x = (- succ (-x))%R.
 Proof.
 reflexivity.
 Qed.
 
-Lemma succ_eq_opp_pred_opp: forall x, succ x = (- pred (-x))%R.
+Lemma succ_eq_opp_pred_opp :
+  forall x, succ x = (- pred (-x))%R.
 Proof.
 intros x; unfold pred.
 now rewrite 2!Ropp_involutive.
 Qed.
 
-Lemma succ_opp: forall x, (succ (-x) = - pred x)%R.
+Lemma succ_opp :
+  forall x, succ (-x) = (- pred x)%R.
 Proof.
 intros x; rewrite succ_eq_opp_pred_opp.
 now rewrite Ropp_involutive.
 Qed.
 
-Lemma pred_opp: forall x, (pred (-x) = - succ x)%R.
+Lemma pred_opp :
+  forall x, pred (-x) = (- succ x)%R.
 Proof.
 intros x; rewrite pred_eq_opp_succ_opp.
 now rewrite Ropp_involutive.
 Qed.
-
-
-
 
 (** pred and succ are in the format *)
 
@@ -431,7 +436,7 @@ intros x e Fx Hx' Hx.
 (* *)
 assert (1 <= Ztrunc (scaled_mantissa beta fexp x))%Z.
 assert (0 <  Ztrunc (scaled_mantissa beta fexp x))%Z.
-apply F2R_gt_0_reg with beta (canonic_exp beta fexp x).
+apply F2R_gt_0_reg with beta (cexp beta fexp x).
 rewrite <- Fx.
 apply Rle_lt_trans with (2:=Hx).
 apply bpow_ge_0.
@@ -441,12 +446,12 @@ case (Zle_lt_or_eq _ _ H); intros Hm.
 pattern x at 1 ; rewrite Fx.
 rewrite ulp_neq_0.
 unfold F2R. simpl.
-pattern (bpow (canonic_exp beta fexp x)) at 2 ; rewrite <- Rmult_1_l.
+pattern (bpow (cexp beta fexp x)) at 2 ; rewrite <- Rmult_1_l.
 rewrite <- Rmult_minus_distr_r.
 change 1%R with (Z2R 1).
 rewrite <- Z2R_minus.
-change (bpow e <= F2R (Float beta (Ztrunc (scaled_mantissa beta fexp x) - 1) (canonic_exp beta fexp x)))%R.
-apply bpow_le_F2R_m1; trivial.
+apply bpow_le_F2R_m1.
+easy.
 now rewrite <- Fx.
 apply Rgt_not_eq, Rlt_gt.
 apply Rlt_trans with (2:=Hx), bpow_gt_0.
@@ -471,19 +476,16 @@ intros x e Zx Fx Hx.
 pattern x at 1 ; rewrite Fx.
 rewrite ulp_neq_0.
 unfold F2R. simpl.
-pattern (bpow (canonic_exp beta fexp x)) at 2 ; rewrite <- Rmult_1_l.
+pattern (bpow (cexp beta fexp x)) at 2 ; rewrite <- Rmult_1_l.
 rewrite <- Rmult_plus_distr_r.
 change 1%R with (Z2R 1).
 rewrite <- Z2R_plus.
-change (F2R (Float beta (Ztrunc (scaled_mantissa beta fexp x) + 1) (canonic_exp beta fexp x)) <= bpow e)%R.
 apply F2R_p1_le_bpow.
-apply F2R_gt_0_reg with beta (canonic_exp beta fexp x).
+apply F2R_gt_0_reg with beta (cexp beta fexp x).
 now rewrite <- Fx.
 now rewrite <- Fx.
 now apply Rgt_not_eq.
 Qed.
-
-
 
 Lemma generic_format_pred_aux1:
   forall x, (0 < x)%R -> F x ->
@@ -499,12 +501,12 @@ rewrite Rabs_pos_eq in Ex.
 destruct Ex as (H,H'); destruct H; split; trivial.
 contradict Hx; easy.
 now apply Rlt_le.
-unfold generic_format, scaled_mantissa, canonic_exp.
+unfold generic_format, scaled_mantissa, cexp.
 rewrite ln_beta_unique with beta (x - ulp x)%R ex.
 pattern x at 1 3 ; rewrite Fx.
 rewrite ulp_neq_0.
 unfold scaled_mantissa.
-rewrite canonic_exp_fexp with (1 := Ex).
+rewrite cexp_fexp with (1 := Ex).
 unfold F2R. simpl.
 rewrite Rmult_minus_distr_r.
 rewrite Rmult_assoc.
@@ -521,7 +523,7 @@ split.
 apply id_m_ulp_ge_bpow; trivial.
 rewrite ulp_neq_0.
 intro H.
-assert (ex-1 < canonic_exp beta fexp x  < ex)%Z.
+assert (ex-1 < cexp beta fexp x  < ex)%Z.
 split ; apply (lt_bpow beta) ; rewrite <- H ; easy.
 clear -H0. omega.
 now apply Rgt_not_eq.
@@ -536,13 +538,13 @@ apply Rle_0_minus.
 pattern x at 2; rewrite Fx.
 rewrite ulp_neq_0.
 unfold F2R; simpl.
-pattern (bpow (canonic_exp beta fexp x)) at 1; rewrite <- Rmult_1_l.
+pattern (bpow (cexp beta fexp x)) at 1; rewrite <- Rmult_1_l.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 replace 1%R with (Z2R 1) by reflexivity.
 apply Z2R_le.
 assert (0 <  Ztrunc (scaled_mantissa beta fexp x))%Z.
-apply F2R_gt_0_reg with beta (canonic_exp beta fexp x).
+apply F2R_gt_0_reg with beta (cexp beta fexp x).
 rewrite <- Fx.
 apply Rle_lt_trans with (2:=proj1 Ex').
 apply bpow_ge_0.
@@ -553,7 +555,7 @@ Qed.
 Lemma generic_format_pred_aux2 :
   forall x, (0 < x)%R -> F x ->
   let e := ln_beta_val beta x (ln_beta beta x) in
-  x =  bpow (e - 1) ->
+  x = bpow (e - 1) ->
   F (x - bpow (fexp (e - 1))).
 Proof.
 intros x Zx Fx e Hx.
@@ -575,7 +577,7 @@ rewrite H.
 apply generic_format_F2R.
 intros _.
 apply Zeq_le.
-apply canonic_exp_fexp.
+apply cexp_fexp.
 rewrite <- H.
 unfold f; rewrite Hx.
 rewrite Rabs_right.
@@ -614,7 +616,6 @@ rewrite Hx, He.
 ring.
 Qed.
 
-
 Theorem generic_format_succ_aux1 :
   forall x, (0 < x)%R -> F x ->
   F (x + ulp x).
@@ -625,12 +626,12 @@ specialize (Ex (Rgt_not_eq _ _ Zx)).
 assert (Ex' := Ex).
 rewrite Rabs_pos_eq in Ex'.
 destruct (id_p_ulp_le_bpow x ex) ; try easy.
-unfold generic_format, scaled_mantissa, canonic_exp.
+unfold generic_format, scaled_mantissa, cexp.
 rewrite ln_beta_unique with beta (x + ulp x)%R ex.
 pattern x at 1 3 ; rewrite Fx.
 rewrite ulp_neq_0.
 unfold scaled_mantissa.
-rewrite canonic_exp_fexp with (1 := Ex).
+rewrite cexp_fexp with (1 := Ex).
 unfold F2R. simpl.
 rewrite Rmult_plus_distr_r.
 rewrite Rmult_assoc.
@@ -662,7 +663,7 @@ replace (Ztrunc (scaled_mantissa beta fexp x)) with Z0.
 rewrite F2R_0.
 apply Rle_refl.
 unfold scaled_mantissa.
-rewrite canonic_exp_fexp with (1 := Ex).
+rewrite cexp_fexp with (1 := Ex).
 destruct (mantissa_small_pos beta fexp x ex) ; trivial.
 rewrite Ztrunc_floor.
 apply sym_eq.
@@ -683,7 +684,6 @@ unfold pred_pos; case Req_bool_spec; intros H.
 now apply generic_format_pred_aux2.
 now apply generic_format_pred_aux1.
 Qed.
-
 
 Theorem generic_format_succ :
   forall x, F x ->
@@ -825,9 +825,9 @@ Proof.
 intros x Zx Fx Hx.
 replace (ulp (x - ulp x)) with (ulp x).
 ring.
-assert (H:(x <> 0)%R) by auto with real.
-assert (H':(x <> bpow (canonic_exp beta fexp x))%R).
-unfold canonic_exp; intros M.
+assert (H : x <> R0) by now apply Rgt_not_eq.
+assert (H' : x <> bpow (cexp beta fexp x)).
+unfold cexp ; intros M.
 case_eq (ln_beta beta x); intros ex Hex T.
 assert (Lex:(ln_beta_val beta x (ln_beta beta x) = ex)%Z).
 rewrite T; reflexivity.
@@ -842,7 +842,7 @@ contradict Hx; auto with real.
 omega.
 rewrite 2!ulp_neq_0; try auto with real.
 apply f_equal.
-unfold canonic_exp; apply f_equal.
+unfold cexp ; apply f_equal.
 case_eq (ln_beta beta x); intros ex Hex T.
 assert (Lex:(ln_beta_val beta x (ln_beta beta x) = ex)%Z).
 rewrite T; reflexivity.
@@ -858,7 +858,7 @@ apply Rle_trans with (x-ulp x)%R.
 apply id_m_ulp_ge_bpow; trivial.
 rewrite ulp_neq_0; trivial.
 rewrite ulp_neq_0; trivial.
-right; unfold canonic_exp; now rewrite Lex.
+right; unfold cexp; now rewrite Lex.
 contradict Hx; auto with real.
 apply Rle_lt_trans with (2:=proj2 Hex).
 rewrite <- Rplus_0_r.
@@ -869,7 +869,7 @@ apply bpow_ge_0.
 apply Rle_ge.
 apply Rle_0_minus.
 rewrite Fx.
-unfold F2R, canonic_exp; simpl.
+unfold F2R, cexp; simpl.
 rewrite Lex.
 pattern (bpow (fexp ex)) at 1; rewrite <- Rmult_1_l.
 apply Rmult_le_compat_r.
@@ -877,7 +877,7 @@ apply bpow_ge_0.
 replace 1%R with (Z2R (Zsucc 0)) by reflexivity.
 apply Z2R_le.
 apply Zlt_le_succ.
-apply F2R_gt_0_reg with beta (canonic_exp beta fexp x).
+apply F2R_gt_0_reg with beta (cexp beta fexp x).
 now rewrite <- Fx.
 Qed.
 
@@ -899,7 +899,7 @@ case (Zle_lt_or_eq _ _ He); clear He; intros He.
 (* *)
 rewrite ulp_neq_0; trivial.
 apply f_equal.
-unfold canonic_exp; apply f_equal.
+unfold cexp ; apply f_equal.
 apply sym_eq.
 apply ln_beta_unique.
 rewrite Rabs_right.
@@ -986,7 +986,7 @@ Qed.
 
 (** Rounding x + small epsilon *)
 
-Theorem ln_beta_plus_eps:
+Theorem ln_beta_plus_eps :
   forall x, (0 < x)%R -> F x ->
   forall eps, (0 <= eps < ulp x)%R ->
   ln_beta beta (x + eps) = ln_beta beta x :> Z.
@@ -1007,13 +1007,12 @@ now apply Rplus_lt_compat_l.
 pattern x at 1 ; rewrite Fx.
 rewrite ulp_neq_0.
 unfold F2R. simpl.
-pattern (bpow (canonic_exp beta fexp x)) at 2 ; rewrite <- Rmult_1_l.
+pattern (bpow (cexp beta fexp x)) at 2 ; rewrite <- Rmult_1_l.
 rewrite <- Rmult_plus_distr_r.
 change 1%R with (Z2R 1).
 rewrite <- Z2R_plus.
-change (F2R (Float beta (Ztrunc (scaled_mantissa beta fexp x) + 1) (canonic_exp beta fexp x)) <= bpow ex)%R.
 apply F2R_p1_le_bpow.
-apply F2R_gt_0_reg with beta (canonic_exp beta fexp x).
+apply F2R_gt_0_reg with beta (cexp beta fexp x).
 now rewrite <- Fx.
 now rewrite <- Fx.
 now apply Rgt_not_eq.
@@ -1023,7 +1022,7 @@ now apply Rlt_le.
 apply Heps.
 Qed.
 
-Theorem round_DN_plus_eps_pos:
+Theorem round_DN_plus_eps_pos :
   forall x, (0 <= x)%R -> F x ->
   forall eps, (0 <= eps < ulp x)%R ->
   round beta fexp Zfloor (x + eps) = x.
@@ -1034,7 +1033,7 @@ destruct Zx as [Zx|Zx].
 pattern x at 2 ; rewrite Fx.
 unfold round.
 unfold scaled_mantissa. simpl.
-unfold canonic_exp at 1 2.
+unfold cexp at 1 2.
 rewrite ln_beta_plus_eps ; trivial.
 apply (f_equal (fun m => F2R (Float beta m _))).
 rewrite Ztrunc_floor.
@@ -1045,7 +1044,7 @@ apply Rmult_le_compat_r.
 apply bpow_ge_0.
 pattern x at 1 ; rewrite <- Rplus_0_r.
 now apply Rplus_le_compat_l.
-apply Rlt_le_trans with ((x + ulp x) * bpow (- canonic_exp beta fexp x))%R.
+apply Rlt_le_trans with ((x + ulp x) * bpow (- cexp beta fexp x))%R.
 apply Rmult_lt_compat_r.
 apply bpow_gt_0.
 now apply Rplus_lt_compat_l.
@@ -1071,7 +1070,7 @@ apply bpow_ge_0.
 (* . x=0 *)
 rewrite <- Zx, Rplus_0_l; rewrite <- Zx in Heps.
 case (proj1 Heps); intros P.
-unfold round, scaled_mantissa, canonic_exp.
+unfold round, scaled_mantissa, cexp.
 revert Heps; unfold ulp.
 rewrite Req_bool_true; trivial.
 case negligible_exp_spec.
@@ -1123,7 +1122,7 @@ assert (Hd := round_DN_plus_eps_pos x Zx Fx eps Heps).
 rewrite round_UP_DN_ulp.
 rewrite Hd.
 rewrite 2!ulp_neq_0.
-unfold canonic_exp.
+unfold cexp.
 now rewrite ln_beta_plus_eps.
 now apply Rgt_not_eq.
 now apply Rgt_not_eq, Rplus_lt_0_compat.
@@ -1139,7 +1138,7 @@ now apply generic_format_succ_aux1.
 rewrite <- Zx1, 2!Rplus_0_l.
 intros Heps.
 case (proj2 Heps).
-unfold round, scaled_mantissa, canonic_exp.
+unfold round, scaled_mantissa, cexp.
 unfold ulp.
 rewrite Req_bool_true; trivial.
 case negligible_exp_spec.
@@ -1342,15 +1341,15 @@ omega.
 absurd (0 < Ztrunc (scaled_mantissa beta fexp x) < 1)%Z.
 omega.
 split.
-apply F2R_gt_0_reg with beta (canonic_exp beta fexp x).
+apply F2R_gt_0_reg with beta (cexp beta fexp x).
 now rewrite <- Fx.
 apply lt_Z2R.
-apply Rmult_lt_reg_r with (bpow (canonic_exp beta fexp x)).
+apply Rmult_lt_reg_r with (bpow (cexp beta fexp x)).
 apply bpow_gt_0.
 replace (Z2R (Ztrunc (scaled_mantissa beta fexp x)) *
- bpow (canonic_exp beta fexp x))%R with x.
+  bpow (cexp beta fexp x))%R with x.
 rewrite Rmult_1_l.
-unfold canonic_exp.
+unfold cexp.
 rewrite ln_beta_unique with beta x ex.
 rewrite H3,<-H1, <- Hy2.
 apply H.
@@ -1368,7 +1367,7 @@ assert (y = bpow (fexp ey))%R.
 apply Rminus_diag_uniq.
 rewrite Hy3.
 rewrite ulp_neq_0;[idtac|now apply Rgt_not_eq].
-unfold canonic_exp.
+unfold cexp.
 rewrite (ln_beta_unique beta y ey); trivial.
 apply Hey.
 now apply Rgt_not_eq.
@@ -1792,7 +1791,7 @@ Theorem ulp_DN :
 Proof with auto with typeclass_instances.
 intros x Hd.
 rewrite 2!ulp_neq_0.
-now rewrite canonic_exp_DN with (2 := Hd).
+now rewrite cexp_DN with (2 := Hd).
 intros T; contradict Hd; rewrite T, round_0...
 apply Rlt_irrefl.
 now apply Rgt_not_eq.
@@ -1874,7 +1873,7 @@ apply F2R_gt_0_compat; simpl.
 apply Zlt_le_trans with 1%Z.
 apply Pos2Z.is_pos.
 apply Zfloor_lub.
-simpl; unfold scaled_mantissa, canonic_exp.
+simpl; unfold scaled_mantissa, cexp.
 destruct (ln_beta beta x) as (e,He); simpl.
 apply Rle_trans with (bpow (e-1) * bpow (- fexp e))%R.
 rewrite <- bpow_plus.
@@ -1934,7 +1933,7 @@ apply Rle_trans with (1:=N).
 right; apply f_equal.
 rewrite ulp_neq_0; trivial.
 apply f_equal.
-unfold canonic_exp.
+unfold cexp.
 apply valid_exp; trivial.
 assert (ln_beta beta x -1 < fexp n)%Z;[idtac|omega].
 apply lt_bpow with beta.

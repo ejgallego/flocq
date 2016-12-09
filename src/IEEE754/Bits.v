@@ -250,7 +250,7 @@ unfold prec in *. zify; omega.
 unfold bits_of_binary_float, split_bits_of_binary_float.
 assert (Hf: (emin <= ex /\ Zdigits radix2 (Zpos mx) <= prec)%Z).
 destruct (andb_prop _ _ Hx) as (Hx', _).
-unfold canonic_mantissa in Hx'.
+unfold canonical_mantissa in Hx'.
 rewrite Zpos_digits2_pos in Hx'.
 generalize (Zeq_bool_eq _ _ Hx').
 unfold FLT_exp.
@@ -309,7 +309,7 @@ intros [sx|sx|sx [pl pl_range]|sx mx ex H].
 - unfold bounded in H.
   apply Bool.andb_true_iff in H ; destruct H as [A B].
   apply Z.leb_le in B.
-  unfold canonic_mantissa, FLT_exp in A. apply Zeq_bool_eq in A.
+  unfold canonical_mantissa, FLT_exp in A. apply Zeq_bool_eq in A.
   case Zle_bool_spec ; intros H.
   + apply join_bits_range.
     * split.
@@ -369,8 +369,8 @@ simpl.
 rewrite <- Hm.
 eapply Z_mod_lt.
 now apply Zlt_gt.
-apply bounded_canonic_lt_emax ; try assumption.
-unfold canonic, canonic_exp.
+apply bounded_canonical_lt_emax ; try assumption.
+unfold canonical, cexp.
 fold emin.
 rewrite ln_beta_F2R_Zdigits. 2: discriminate.
 unfold Fexp, FLT_exp.
@@ -430,8 +430,8 @@ apply Zplus_lt_compat_r.
 eapply Z_mod_lt.
 now apply Zlt_gt.
 (* . *)
-apply bounded_canonic_lt_emax ; try assumption.
-unfold canonic, canonic_exp.
+apply bounded_canonical_lt_emax ; try assumption.
+unfold canonical, cexp.
 rewrite ln_beta_F2R_Zdigits. 2: discriminate.
 unfold Fexp, FLT_exp.
 rewrite <- H.

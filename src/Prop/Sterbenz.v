@@ -54,12 +54,12 @@ intros Hxy.
 set (fx := Float beta (Ztrunc (scaled_mantissa beta fexp x)) (fexp ex)).
 assert (Hx: x = F2R fx).
 rewrite Fx at 1.
-unfold canonic_exp.
+unfold cexp.
 now rewrite ln_beta_unique with (1 := Ex).
 set (fy := Float beta (Ztrunc (scaled_mantissa beta fexp y)) (fexp ey)).
 assert (Hy: y = F2R fy).
 rewrite Fy at 1.
-unfold canonic_exp.
+unfold cexp.
 now rewrite ln_beta_unique with (1 := Ey).
 rewrite Hx, Hy.
 rewrite <- F2R_plus.
@@ -68,7 +68,7 @@ intros _.
 case_eq (Fplus beta fx fy).
 intros mxy exy Pxy.
 rewrite <- Pxy, F2R_plus, <- Hx, <- Hy.
-unfold canonic_exp.
+unfold cexp.
 replace exy with (fexp (Zmin ex ey)).
 apply monotone_exp.
 now apply ln_beta_le_bpow.

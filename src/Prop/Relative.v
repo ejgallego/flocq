@@ -108,7 +108,7 @@ apply Rlt_not_le, bpow_gt_0.
 apply Rlt_le_trans with (ulp beta fexp x)%R.
 now apply error_lt_ulp...
 rewrite ulp_neq_0; trivial.
-unfold canonic_exp.
+unfold cexp.
 destruct (ln_beta beta x) as (ex, He).
 simpl.
 specialize (He Hx').
@@ -179,7 +179,7 @@ apply Rlt_not_le, bpow_gt_0.
 apply Rlt_le_trans with (ulp beta fexp x)%R.
 now apply error_lt_ulp.
 rewrite ulp_neq_0; trivial.
-unfold canonic_exp.
+unfold cexp.
 destruct (ln_beta beta x) as (ex, He).
 simpl.
 specialize (He Hx').
@@ -244,7 +244,7 @@ apply Rlt_not_le with (2 := Hx).
 rewrite H, Rabs_R0.
 apply bpow_gt_0.
 rewrite ulp_neq_0; trivial.
-unfold canonic_exp.
+unfold cexp.
 destruct (ln_beta beta x) as (ex, He).
 simpl.
 specialize (He Hx').
@@ -336,7 +336,7 @@ apply Rlt_not_le with (2 := Hx).
 rewrite H, Rabs_R0.
 apply bpow_gt_0.
 rewrite ulp_neq_0; trivial.
-unfold canonic_exp.
+unfold cexp.
 destruct (ln_beta beta x) as (ex, He).
 simpl.
 specialize (He Hx').
@@ -606,7 +606,7 @@ apply Rmult_le_compat_l; auto with real.
 rewrite ulp_neq_0.
 2: now apply Rgt_not_eq.
 apply bpow_le.
-unfold FLT_exp, canonic_exp.
+unfold FLT_exp, cexp.
 rewrite Zmax_right.
 omega.
 destruct (ln_beta beta x) as (e,He); simpl.

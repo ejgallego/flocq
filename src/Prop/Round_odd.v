@@ -112,14 +112,14 @@ Context { valid_exp : Valid_exp fexp }.
 Context { exists_NE_ : Exists_NE beta fexp }.
 
 Notation format := (generic_format beta fexp).
-Notation canonic := (canonic beta fexp).
-Notation cexp := (canonic_exp beta fexp).
+Notation canonical := (canonical beta fexp).
+Notation cexp := (cexp beta fexp).
 
 
 Definition Rnd_odd_pt (x f : R) :=
   format f /\ ((f = x)%R \/
     ((Rnd_DN_pt format x f \/ Rnd_UP_pt format x f) /\
-    exists g : float beta, f = F2R g /\ canonic g /\ Zeven (Fnum g) = false)).
+    exists g : float beta, f = F2R g /\ canonical g /\ Zeven (Fnum g) = false)).
 
 Definition Rnd_odd (rnd : R -> R) :=
   forall x : R, Rnd_odd_pt x (rnd x).
@@ -156,7 +156,7 @@ rewrite F2R_Zopp.
 replace f with (-(-f))%R by ring.
 rewrite Hg1; reflexivity.
 split.
-now apply canonic_opp.
+now apply canonical_opp.
 simpl.
 now rewrite Zeven_opp.
 Qed.
@@ -202,7 +202,7 @@ simpl; reflexivity.
 now apply sym_not_eq.
 rewrite <- (Zeven_opp (Zfloor (- r))).
 reflexivity.
-apply canonic_exp_opp.
+apply cexp_opp.
 Qed.
 
 
@@ -264,10 +264,10 @@ case_eq (Zeven (Zfloor (scaled_mantissa beta fexp x))).
 generalize (generic_format_round beta fexp Zceil x).
 unfold generic_format.
 set (f:=round beta fexp Zceil x).
-set (ef := canonic_exp beta fexp f).
+set (ef := cexp f).
 set (mf := Ztrunc (scaled_mantissa beta fexp f)).
 exists (Float beta mf ef).
-unfold Generic_fmt.canonic.
+unfold canonical.
 rewrite <- H0.
 repeat split; try assumption.
 apply trans_eq with (negb (Zeven (Zfloor (scaled_mantissa beta fexp x)))).
@@ -293,10 +293,10 @@ assumption.
 apply Rmult_le_pos.
 now left.
 apply bpow_ge_0.
-unfold Generic_fmt.canonic.
+unfold canonical.
 simpl.
-apply sym_eq, canonic_exp_DN...
-unfold Generic_fmt.canonic.
+apply sym_eq, cexp_DN...
+unfold canonical.
 rewrite <- H0; reflexivity.
 reflexivity.
 apply trans_eq with (round beta fexp Ztrunc (round beta fexp Zceil x)).
@@ -318,8 +318,8 @@ assumption.
 apply Rmult_le_pos.
 now left.
 apply bpow_ge_0.
-apply canonic_0.
-unfold Generic_fmt.canonic.
+apply canonical_0.
+unfold canonical.
 rewrite <- H0; reflexivity.
 rewrite <- Y; unfold F2R; simpl; ring.
 apply trans_eq with (round beta fexp Ztrunc (round beta fexp Zceil x)).
@@ -337,14 +337,14 @@ rewrite <- round_0 with beta fexp Zfloor...
 apply round_le...
 now left.
 intros Hrx.
-set (ef := canonic_exp beta fexp x).
+set (ef := cexp x).
 set (mf := Zfloor (scaled_mantissa beta fexp x)).
 exists (Float beta mf ef).
-unfold Generic_fmt.canonic.
+unfold canonical.
 repeat split; try assumption.
 simpl.
 apply trans_eq with (cexp (round beta fexp Zfloor x )).
-apply sym_eq, canonic_exp_DN...
+apply sym_eq, cexp_DN...
 reflexivity.
 intros Hrx; contradict Y.
 replace (Zfloor (scaled_mantissa beta fexp x)) with 0%Z.
@@ -354,8 +354,6 @@ unfold round, F2R in Hrx; simpl in Hrx; rewrite <- Hrx.
 simpl; ring.
 apply Rgt_not_eq, bpow_gt_0.
 Qed.
-
-
 
 Theorem Rnd_odd_pt_unicity :
   forall x f1 f2 : R,
@@ -411,8 +409,6 @@ now apply round_UP_pt...
 apply Rnd_UP_pt_unicity with format x; assumption.
 Qed.
 
-
-
 Theorem Rnd_odd_pt_monotone :
   round_pred_monotone (Rnd_odd_pt).
 Proof with auto with typeclass_instances.
@@ -425,9 +421,6 @@ apply round_le...
 right; apply Rnd_odd_pt_unicity with y; try assumption.
 apply round_odd_pt.
 Qed.
-
-
-
 
 End Fcore_rnd_odd.
 
@@ -462,7 +455,7 @@ Qed.
 
 Lemma exists_even_fexp_lt: forall (c:Z->Z), forall (x:R),
       (exists f:float beta, F2R f = x /\ (c (ln_beta beta x) < Fexp f)%Z) ->
-      exists f:float beta, F2R f =x /\ canonic beta c f /\ Zeven (Fnum f) = true.
+      exists f:float beta, F2R f =x /\ canonical beta c f /\ Zeven (Fnum f) = true.
 Proof with auto with typeclass_instances.
 intros c x (g,(Hg1,Hg2)).
 exists (Float beta
@@ -480,7 +473,7 @@ ring.
 omega.
 split; trivial.
 split.
-unfold canonic, canonic_exp.
+unfold canonical, cexp.
 now rewrite H.
 simpl.
 rewrite Zeven_mult.
@@ -498,9 +491,9 @@ Variable x:R.
 
 Variable d u: float beta.
 Hypothesis Hd: Rnd_DN_pt (generic_format beta fexp) x (F2R d).
-Hypothesis Cd: canonic beta fexp d.
+Hypothesis Cd: canonical beta fexp d.
 Hypothesis Hu: Rnd_UP_pt (generic_format beta fexp) x (F2R u).
-Hypothesis Cu: canonic beta fexp u.
+Hypothesis Cu: canonical beta fexp u.
 
 Hypothesis xPos: (0 < x)%R.
 
@@ -571,7 +564,7 @@ intros Y; apply generic_format_bpow.
 apply valid_exp.
 apply ln_beta_generic_gt...
 now apply Rgt_not_eq.
-now apply generic_format_canonic.
+now apply generic_format_canonical.
 Qed.
 
 
@@ -621,7 +614,7 @@ apply generic_format_bpow.
 apply valid_exp.
 apply ln_beta_generic_gt...
 now apply Rgt_not_eq.
-now apply generic_format_canonic.
+now apply generic_format_canonical.
 case (Rle_or_lt x (bpow (ln_beta beta (F2R d)))); trivial; intros Z.
 absurd ((bpow (ln_beta beta (F2R d)) <= (F2R d)))%R.
 apply Rlt_not_le.
@@ -637,7 +630,7 @@ apply generic_format_bpow.
 apply valid_exp.
 apply ln_beta_generic_gt...
 now apply Rgt_not_eq.
-now apply generic_format_canonic.
+now apply generic_format_canonical.
 now left.
 replace m with (F2R d).
 destruct  (ln_beta beta (F2R d)) as (e,He).
@@ -703,8 +696,6 @@ rewrite u_eq; unfold round.
 eexists; repeat split.
 simpl; now rewrite Fexp_d.
 Qed.
-
-
 
 
 Lemma m_eq: (0 < F2R d)%R ->  exists f:float beta,
@@ -786,23 +777,24 @@ apply sym_eq, valid_exp; omega.
 Qed.
 
 Lemma Fm:  generic_format beta fexpe m.
+Proof.
 case (d_ge_0); intros Y.
 (* *)
 destruct m_eq as (g,(Hg1,Hg2)); trivial.
 apply generic_format_F2R' with g.
 now apply sym_eq.
-intros H; unfold canonic_exp; rewrite Hg2.
+intros H; unfold cexp; rewrite Hg2.
 rewrite ln_beta_m; trivial.
 rewrite <- Fexp_d; trivial.
 rewrite Cd.
-unfold canonic_exp.
+unfold cexp.
 generalize (fexpe_fexp (ln_beta beta (F2R d))).
 omega.
 (* *)
 destruct m_eq_0 as (g,(Hg1,Hg2)); trivial.
 apply generic_format_F2R' with g.
 assumption.
-intros H; unfold canonic_exp; rewrite Hg2.
+intros H; unfold cexp; rewrite Hg2.
 rewrite ln_beta_m_0; try assumption.
 apply Zle_trans with (1:=fexpe_fexp _).
 assert (fexp (ln_beta beta (F2R u)-1) < fexp (ln_beta beta (F2R u))+1)%Z;[idtac|omega].
@@ -812,7 +804,7 @@ Qed.
 
 
 Lemma Zm:
-   exists g : float beta, F2R g = m /\ canonic beta fexpe g /\ Zeven (Fnum g) = true.
+   exists g : float beta, F2R g = m /\ canonical beta fexpe g /\ Zeven (Fnum g) = true.
 Proof with auto with typeclass_instances.
 case (d_ge_0); intros Y.
 (* *)
@@ -823,7 +815,7 @@ rewrite Hg2.
 rewrite ln_beta_m; trivial.
 rewrite <- Fexp_d; trivial.
 rewrite Cd.
-unfold canonic_exp.
+unfold cexp.
 generalize (fexpe_fexp  (ln_beta beta (F2R d))).
 omega.
 (* *)
@@ -905,7 +897,7 @@ absurd (true=false).
 discriminate.
 rewrite <- Hk3, <- Hk'3.
 apply f_equal, f_equal.
-apply canonic_unicity with fexpe...
+apply canonical_unicity with fexpe...
 now rewrite Hk'1, <- Y2.
 assert (generic_format beta fexp o -> (forall P:Prop, P)).
 intros Y.
@@ -918,14 +910,14 @@ destruct H as (_,(k,(Hk1,(Hk2,Hk3)))).
 destruct (exists_even_fexp_lt fexpe o) as (k',(Hk'1,(Hk'2,Hk'3))).
 eexists; split.
 apply sym_eq, Y.
-simpl; unfold canonic_exp.
+simpl; unfold cexp.
 apply Zle_lt_trans with (1:=fexpe_fexp _).
 omega.
 absurd (true=false).
 discriminate.
 rewrite <- Hk3, <- Hk'3.
 apply f_equal, f_equal.
-apply canonic_unicity with fexpe...
+apply canonical_unicity with fexpe...
 now rewrite Hk'1, <- Hk1.
 case K1; clear K1; intros K1.
 2: apply H; rewrite <- K1; apply Hd.
@@ -986,24 +978,6 @@ Context { exists_NE_e : Exists_NE beta fexpe }. (* for defining rounding to odd 
 
 Hypothesis fexpe_fexp: forall e, (fexpe e <= fexp e -2)%Z.
 
-
-Theorem canonizer: forall f, generic_format beta fexp f
-   -> exists g : float beta, f = F2R g /\ canonic beta fexp g.
-Proof with auto with typeclass_instances.
-intros f Hf.
-exists (Float beta (Ztrunc (scaled_mantissa beta fexp f)) (canonic_exp beta fexp f)).
-assert (L:(f = F2R (Float beta (Ztrunc (scaled_mantissa beta fexp f)) (canonic_exp beta fexp f)))).
-apply trans_eq with (round beta fexp Ztrunc f).
-apply sym_eq, round_generic...
-reflexivity.
-split; trivial.
-unfold canonic; rewrite <- L.
-reflexivity.
-Qed.
-
-
-
-
 Theorem round_odd_prop: forall x,
   round beta fexp (Znearest choice) (round beta fexpe Zrnd_odd x) =
                round beta fexp (Znearest choice) x.
@@ -1014,9 +988,9 @@ rewrite <- (Ropp_involutive x).
 rewrite round_odd_opp.
 rewrite 2!round_N_opp.
 apply f_equal.
-destruct (canonizer (round beta fexp Zfloor (-x))) as (d,(Hd1,Hd2)).
+destruct (canonical_generic_format beta fexp (round beta fexp Zfloor (-x))) as (d,(Hd1,Hd2)).
 apply generic_format_round...
-destruct (canonizer (round beta fexp Zceil (-x))) as (u,(Hu1,Hu2)).
+destruct (canonical_generic_format beta fexp (round beta fexp Zceil (-x))) as (u,(Hu1,Hu2)).
 apply generic_format_round...
 apply round_odd_prop_pos with d u...
 rewrite <- Hd1; apply round_DN_pt...
@@ -1025,14 +999,13 @@ auto with real.
 (* . *)
 rewrite H; repeat rewrite round_0...
 (* . *)
-destruct (canonizer (round beta fexp Zfloor x)) as (d,(Hd1,Hd2)).
+destruct (canonical_generic_format beta fexp (round beta fexp Zfloor x)) as (d,(Hd1,Hd2)).
 apply generic_format_round...
-destruct (canonizer (round beta fexp Zceil x)) as (u,(Hu1,Hu2)).
+destruct (canonical_generic_format beta fexp (round beta fexp Zceil x)) as (u,(Hu1,Hu2)).
 apply generic_format_round...
 apply round_odd_prop_pos with d u...
 rewrite <- Hd1; apply round_DN_pt...
 rewrite <- Hu1; apply round_UP_pt...
 Qed.
-
 
 End Odd_prop.

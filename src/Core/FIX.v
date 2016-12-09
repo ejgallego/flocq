@@ -53,7 +53,7 @@ Theorem generic_format_FIX :
 Proof.
 intros x ((xm, xe), (Hx1, Hx2)).
 rewrite Hx1.
-now apply generic_format_canonic.
+now apply generic_format_canonical.
 Qed.
 
 Theorem FIX_format_generic :

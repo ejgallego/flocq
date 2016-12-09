@@ -77,12 +77,12 @@ apply lt_Z2R.
 rewrite Z2R_abs.
 rewrite <- scaled_mantissa_generic with (1 := H).
 rewrite <- scaled_mantissa_abs.
-apply Rmult_lt_reg_r with (bpow (canonic_exp beta FLX_exp (Rabs x))).
+apply Rmult_lt_reg_r with (bpow (cexp beta FLX_exp (Rabs x))).
 apply bpow_gt_0.
 rewrite scaled_mantissa_mult_bpow.
 rewrite Z2R_Zpower, <- bpow_plus.
 2: now apply Zlt_le_weak.
-unfold canonic_exp, FLX_exp.
+unfold cexp, FLX_exp.
 ring_simplify (prec + (ln_beta beta (Rabs x) - prec))%Z.
 rewrite ln_beta_abs.
 destruct (Req_dec x 0) as [Hx|Hx].
@@ -101,7 +101,7 @@ simpl in H2.
 rewrite H1.
 apply generic_format_F2R.
 intros Zmx.
-unfold canonic_exp, FLX_exp.
+unfold cexp, FLX_exp.
 rewrite ln_beta_F2R with (1 := Zmx).
 apply Zplus_le_reg_r with (prec - ex)%Z.
 ring_simplify.
@@ -168,13 +168,13 @@ apply le_Z2R.
 rewrite Z2R_Zpower.
 2: now apply Zlt_0_le_0_pred.
 rewrite Z2R_abs, <- scaled_mantissa_generic with (1 := Hx).
-apply Rmult_le_reg_r with (bpow (canonic_exp beta FLX_exp x)).
+apply Rmult_le_reg_r with (bpow (cexp beta FLX_exp x)).
 apply bpow_gt_0.
 rewrite <- bpow_plus.
 rewrite <- scaled_mantissa_abs.
-rewrite <- canonic_exp_abs.
+rewrite <- cexp_abs.
 rewrite scaled_mantissa_mult_bpow.
-unfold canonic_exp, FLX_exp.
+unfold cexp, FLX_exp.
 rewrite ln_beta_abs.
 ring_simplify (prec - 1 + (ln_beta beta x - prec))%Z.
 destruct (ln_beta beta x) as (ex,Ex).
@@ -184,13 +184,13 @@ apply lt_Z2R.
 rewrite Z2R_Zpower.
 2: now apply Zlt_le_weak.
 rewrite Z2R_abs, <- scaled_mantissa_generic with (1 := Hx).
-apply Rmult_lt_reg_r with (bpow (canonic_exp beta FLX_exp x)).
+apply Rmult_lt_reg_r with (bpow (cexp beta FLX_exp x)).
 apply bpow_gt_0.
 rewrite <- bpow_plus.
 rewrite <- scaled_mantissa_abs.
-rewrite <- canonic_exp_abs.
+rewrite <- cexp_abs.
 rewrite scaled_mantissa_mult_bpow.
-unfold canonic_exp, FLX_exp.
+unfold cexp, FLX_exp.
 rewrite ln_beta_abs.
 ring_simplify (prec + (ln_beta beta x - prec))%Z.
 destruct (ln_beta beta x) as (ex,Ex).
@@ -215,13 +215,14 @@ intros n H2; contradict H2.
 unfold FLX_exp; unfold Prec_gt_0 in prec_gt_0_; omega.
 Qed.
 
-Theorem ulp_FLX_le: forall x, (ulp beta FLX_exp x <= Rabs x * bpow (1-prec))%R.
+Theorem ulp_FLX_le :
+  forall x, (ulp beta FLX_exp x <= Rabs x * bpow (1-prec))%R.
 Proof.
 intros x; case (Req_dec x 0); intros Hx.
 rewrite Hx, ulp_FLX_0, Rabs_R0.
 right; ring.
 rewrite ulp_neq_0; try exact Hx.
-unfold canonic_exp, FLX_exp.
+unfold cexp, FLX_exp.
 replace (ln_beta beta x - prec)%Z with ((ln_beta beta x - 1) + (1-prec))%Z by ring.
 rewrite bpow_plus.
 apply Rmult_le_compat_r.
@@ -229,14 +230,14 @@ apply bpow_ge_0.
 now apply bpow_ln_beta_le.
 Qed.
 
-
-Theorem ulp_FLX_ge: forall x, (Rabs x * bpow (-prec) <= ulp beta FLX_exp x)%R.
+Theorem ulp_FLX_ge :
+  forall x, (Rabs x * bpow (-prec) <= ulp beta FLX_exp x)%R.
 Proof.
 intros x; case (Req_dec x 0); intros Hx.
 rewrite Hx, ulp_FLX_0, Rabs_R0.
 right; ring.
 rewrite ulp_neq_0; try exact Hx.
-unfold canonic_exp, FLX_exp.
+unfold cexp, FLX_exp.
 unfold Zminus; rewrite bpow_plus.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.

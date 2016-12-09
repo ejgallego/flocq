@@ -43,7 +43,7 @@ Context { prec_gt_0_ : Prec_gt_0 prec }.
 Notation format := (generic_format radix2 (FLT_exp emin prec)).
 Notation round_flt :=(round radix2 (FLT_exp emin prec) ZnearestE). 
 Notation ulp_flt :=(ulp radix2 (FLT_exp emin prec)).
-Notation cexp := (canonic_exp radix2 (FLT_exp emin prec)).
+Notation cexp := (cexp radix2 (FLT_exp emin prec)).
 Notation pred_flt := (pred radix2 (FLT_exp emin prec)).
 
 Lemma FLT_format_double: forall u, format u -> format (2*u).
@@ -112,7 +112,7 @@ apply lt_bpow with radix2.
 destruct ln_beta as (e,He); simpl.
 apply Rle_lt_trans with (1:=Hz).
 now apply He.
-unfold canonic_exp, FLT_exp.
+unfold cexp, FLT_exp.
 replace ((ln_beta radix2 (z/2))-prec)%Z with ((ln_beta radix2 z -1) -prec)%Z.
 rewrite Z.max_l; try omega.
 rewrite Z.max_l; try omega.
@@ -157,8 +157,8 @@ intros u H.
 rewrite ulp_neq_0.
 2: apply Rgt_not_eq, Rlt_le_trans with (2:=H), bpow_gt_0.
 case (Rle_or_lt (bpow (emin+prec-1)) u); intros Hu.
-unfold ulp; rewrite canonic_exp_FLT_FLX.
-unfold canonic_exp, FLX_exp.
+unfold ulp; rewrite cexp_FLT_FLX.
+unfold cexp, FLX_exp.
 destruct (ln_beta radix2 u) as (e,He); simpl.
 apply Rle_trans with (bpow (e-1)).
 apply bpow_le.
@@ -172,7 +172,7 @@ apply Rle_ge, Rle_trans with (2:=Hu), bpow_ge_0.
 rewrite Rabs_right.
 assumption.
 apply Rle_ge, Rle_trans with (2:=Hu), bpow_ge_0.
-unfold ulp; rewrite canonic_exp_FLT_FIX.
+unfold ulp; rewrite cexp_FLT_FIX.
 apply H.
 apply Rgt_not_eq, Rlt_gt.
 apply Rlt_le_trans with (2:=H).
@@ -202,9 +202,9 @@ rewrite <- bpow_plus.
 apply bpow_le.
 case (Rle_or_lt (bpow (emin+prec-1)) (Rabs u)); intros Hu.
 (* *)
-rewrite canonic_exp_FLT_FLX.
-rewrite canonic_exp_FLT_FLX; trivial.
-unfold canonic_exp, FLX_exp.
+rewrite cexp_FLT_FLX.
+rewrite cexp_FLT_FLX; trivial.
+unfold cexp, FLX_exp.
 replace 2 with (bpow 1) by reflexivity.
 rewrite Rmult_comm, ln_beta_mult_bpow.
 omega.
@@ -223,9 +223,9 @@ apply Rle_ge; now auto with real.
 case (Req_dec u 0); intros K.
 rewrite K, Rmult_0_r.
 omega.
-rewrite canonic_exp_FLT_FIX.
-rewrite canonic_exp_FLT_FIX; trivial.
-unfold FIX_exp, canonic_exp; omega.
+rewrite cexp_FLT_FIX.
+rewrite cexp_FLT_FIX; trivial.
+unfold FIX_exp, cexp; omega.
 apply Rlt_le_trans with (1:=Hu).
 apply bpow_le; omega.
 apply Rmult_integral_contrapositive_currified; trivial.
@@ -310,7 +310,7 @@ right; split; try assumption.
 rewrite ulp_neq_0;[idtac|now apply Rgt_not_eq].
 apply trans_eq with (bpow (ln_beta radix2 f- prec -1)).
 apply f_equal.
-unfold canonic_exp.
+unfold cexp.
 apply trans_eq with (FLT_exp emin prec (ln_beta radix2 f -1)%Z).
 apply f_equal.
 unfold FLT_exp.
@@ -346,7 +346,7 @@ replace (/2) with (bpow (-1)) by reflexivity.
 rewrite ulp_neq_0; try now apply Rgt_not_eq.
 rewrite <- bpow_plus.
 apply f_equal.
-unfold canonic_exp, FLT_exp.
+unfold cexp, FLT_exp.
 rewrite Z.max_l;[ring|omega].
 (**)
 left.
@@ -371,7 +371,7 @@ rewrite Z.max_l in H4.
 replace (ln_beta radix2 f - 1 + 1 - prec)%Z with  (ln_beta radix2 f - prec)%Z in H4 by ring.
 rewrite ulp_neq_0; try now apply Rgt_not_eq.
 rewrite ulp_neq_0 at 2; try now apply Rgt_not_eq.
-unfold canonic_exp.
+unfold cexp.
 apply f_equal; apply f_equal.
 replace (ulp_flt f) with (bpow (ln_beta radix2 f -prec)).
 apply ln_beta_unique.
@@ -393,7 +393,7 @@ left; apply Rle_lt_trans with (2:=H0).
 apply bpow_le.
 unfold Prec_gt_0 in prec_gt_0_;omega.
 rewrite ulp_neq_0; try now apply Rgt_not_eq.
-unfold canonic_exp, FLT_exp.
+unfold cexp, FLT_exp.
 rewrite Z.max_l.
 reflexivity.
 omega.
@@ -803,7 +803,7 @@ rewrite ulp_neq_0; trivial.
 replace (/4) with (bpow (-2)) by reflexivity.
 rewrite <- bpow_plus.
 apply bpow_le.
-unfold canonic_exp, FLT_exp.
+unfold cexp, FLT_exp.
 assert (emin+prec+prec+1 -1 < ln_beta radix2 (x/2))%Z.
 destruct (ln_beta radix2 (x/2)) as (e,He).
 simpl.
@@ -847,7 +847,7 @@ Context { prec_gt_0_ : Prec_gt_0 prec }.
 Notation format := (generic_format radix2 (FLT_exp emin prec)).
 Notation round_flt :=(round radix2 (FLT_exp emin prec) ZnearestE). 
 Notation ulp_flt :=(ulp radix2 (FLT_exp emin prec)).
-Notation cexp := (canonic_exp radix2 (FLT_exp emin prec)).
+Notation cexp := (cexp radix2 (FLT_exp emin prec)).
 
 Definition average3 (x y : R) :=round_flt(x+round_flt(round_flt(y-x)/2)).
 
@@ -1023,7 +1023,7 @@ apply FLT_format_bpow...
 omega.
 now left.
 replace (bpow emin /2) with (bpow (emin-1)).
-unfold round, scaled_mantissa, canonic_exp, FLT_exp.
+unfold round, scaled_mantissa, cexp, FLT_exp.
 rewrite ln_beta_bpow.
 replace (emin - 1 + 1 - prec)%Z with (emin-prec)%Z by ring.
 rewrite Z.max_r.
@@ -1181,7 +1181,7 @@ rewrite <- bpow_plus.
 ring_simplify (-emin+emin)%Z.
 simpl; ring.
 ring.
-apply sym_eq, canonic_exp_FLT_FIX.
+apply sym_eq, cexp_FLT_FIX.
 apply Rgt_not_eq, Rlt_gt.
 unfold Rdiv; apply Rmult_lt_0_compat; try assumption.
 auto with real.
@@ -1356,8 +1356,8 @@ omega.
 assert (G1:(round_flt (bpow emin/2) = 0)).
 replace (bpow emin /2) with (bpow (emin-1)).
 unfold round, scaled_mantissa.
-rewrite canonic_exp_FLT_FIX.
-unfold canonic_exp, FIX_exp; simpl.
+rewrite cexp_FLT_FIX.
+unfold cexp, FIX_exp; simpl.
 rewrite <- bpow_plus.
 replace (bpow (emin - 1 + - emin)) with (/2).
 replace (ZnearestE (/ 2)) with 0%Z.
@@ -1417,7 +1417,7 @@ rewrite ulp_neq_0.
 2: apply Rgt_not_eq, bpow_gt_0.
 2: apply Rinv_neq_0_compat, Rgt_not_eq; fourier.
 apply bpow_le.
-unfold canonic_exp, FLT_exp.
+unfold cexp, FLT_exp.
 apply Z.le_max_r.
 unfold b, average3.
 rewrite J1,J3,J2,J4,T1,T2; unfold F2R; simpl.
@@ -1455,14 +1455,12 @@ rewrite ulp_neq_0.
 2: apply Rgt_not_eq, bpow_gt_0.
 2: apply Rinv_neq_0_compat, Rgt_not_eq; fourier.
 apply bpow_le.
-unfold canonic_exp, FLT_exp.
+unfold cexp, FLT_exp.
 apply Z.le_max_r.
 apply Rle_ge, Rmult_le_pos.
 apply bpow_ge_0.
 now auto with real.
 Qed.
-
-
 
 Lemma average3_correct_aux2: forall u v, format u -> format v -> u <= v ->
      (0 <= u /\ 0 <= v) \/ (u <= 0 /\ v <= 0) ->
@@ -1524,7 +1522,7 @@ rewrite 2!ulp_neq_0; trivial.
 replace 2 with (bpow 1) by reflexivity.
 rewrite <- bpow_plus.
 apply bpow_le.
-unfold canonic_exp, FLT_exp.
+unfold cexp, FLT_exp.
 rewrite Rmult_comm, ln_beta_mult_bpow; trivial.
 rewrite <- Z.add_max_distr_l.
 replace (ln_beta radix2 b + 1 - prec)%Z with (1 + (ln_beta radix2 b - prec))%Z by ring.
@@ -1751,7 +1749,7 @@ Context { prec_gt_0_ : Prec_gt_0 prec }.
 Notation format := (generic_format radix2 (FLT_exp emin prec)).
 Notation round_flt :=(round radix2 (FLT_exp emin prec) ZnearestE). 
 Notation ulp_flt :=(ulp radix2 (FLT_exp emin prec)).
-Notation cexp := (canonic_exp radix2 (FLT_exp emin prec)).
+Notation cexp := (cexp radix2 (FLT_exp emin prec)).
 
 Definition average (x y : R) := 
    let samesign :=  match (Rle_bool 0 x), (Rle_bool 0 y) with

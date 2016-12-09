@@ -112,7 +112,7 @@ split.
 intros H.
 now elim H.
 apply Zle_refl.
-unfold generic_format, scaled_mantissa, canonic_exp, FTZ_exp in Hx.
+unfold generic_format, scaled_mantissa, cexp, FTZ_exp in Hx.
 destruct (ln_beta beta x) as (ex, Hx4).
 simpl in Hx.
 specialize (Hx4 Hx3).
@@ -263,7 +263,7 @@ Theorem round_FTZ_FLX :
   round beta FTZ_exp Zrnd_FTZ x = round beta (FLX_exp prec) rnd x.
 Proof.
 intros x Hx.
-unfold round, scaled_mantissa, canonic_exp.
+unfold round, scaled_mantissa, cexp.
 destruct (ln_beta beta x) as (ex, He). simpl.
 assert (Hx0: x <> R0).
 intros Hx0.
@@ -307,7 +307,7 @@ intros x Hx.
 destruct (Req_dec x 0) as [Hx0|Hx0].
 rewrite Hx0.
 apply round_0...
-unfold round, scaled_mantissa, canonic_exp.
+unfold round, scaled_mantissa, cexp.
 destruct (ln_beta beta x) as (ex, He). simpl.
 specialize (He Hx0).
 unfold Zrnd_FTZ.
