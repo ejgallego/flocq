@@ -32,7 +32,7 @@ Variable emin prec : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 
 Inductive FLT_format (x : R) : Prop :=
-  FLT_spec : forall f : float beta,
+  FLT_spec (f : float beta) :
     x = F2R f -> (Zabs (Fnum f) < Zpower beta prec)%Z ->
     (emin <= Fexp f)%Z -> FLT_format x.
 

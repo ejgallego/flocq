@@ -29,7 +29,7 @@ Notation bpow := (bpow beta).
 Variable emin : Z.
 
 Inductive FIX_format (x : R) : Prop :=
-  FIX_spec : forall f : float beta,
+  FIX_spec (f : float beta) :
     x = F2R f -> (Fexp f = emin)%Z -> FIX_format x.
 
 Definition FIX_exp (e : Z) := emin.

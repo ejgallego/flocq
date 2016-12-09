@@ -35,7 +35,7 @@ Class Prec_gt_0 :=
 Context { prec_gt_0_ : Prec_gt_0 }.
 
 Inductive FLX_format (x : R) : Prop :=
-  FLX_spec : forall f : float beta,
+  FLX_spec (f : float beta) :
     x = F2R f -> (Zabs (Fnum f) < Zpower beta prec)%Z -> FLX_format x.
 
 Definition FLX_exp (e : Z) := (e - prec)%Z.
@@ -132,7 +132,7 @@ Qed.
 
 (** unbounded floating-point format with normal mantissas *)
 Inductive FLXN_format (x : R) : Prop :=
-  FLXN_spec : forall f : float beta,
+  FLXN_spec (f : float beta) :
     x = F2R f ->
     (x <> R0 -> Zpower beta (prec - 1) <= Zabs (Fnum f) < Zpower beta prec)%Z ->
     FLXN_format x.
