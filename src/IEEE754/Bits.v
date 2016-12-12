@@ -614,19 +614,19 @@ Let Hprec_emax : (24 < 128)%Z.
 apply refl_equal.
 Qed.
 
-Definition default_nan_pl32 : bool * { pl | nan_pl 24 pl = true } :=
-  (false, exist _ (iter_nat xO 22 xH) (refl_equal true)).
+Definition default_nan_pl32 : { nan | is_nan 24 128 nan = true } :=
+  exist _ (@B754_nan 24 128 false (iter_nat xO 22 xH) (refl_equal true)) (refl_equal true).
 
 Definition unop_nan_pl32 (f : binary32) :=
-  match f with
-  | B754_nan s pl Hpl => (s, exist _ pl Hpl)
+  match f as f with
+  | B754_nan s pl Hpl => exist _ (B754_nan s pl Hpl) (refl_equal true)
   | _ => default_nan_pl32
   end.
 
 Definition binop_nan_pl32 (f1 f2 : binary32) :=
   match f1, f2 with
-  | B754_nan s1 pl1 Hpl1, _ => (s1, exist _ pl1 Hpl1)
-  | _, B754_nan s2 pl2 Hpl2 => (s2, exist _ pl2 Hpl2)
+  | B754_nan s1 pl1 Hpl1, _ => exist _ (B754_nan s1 pl1 Hpl1) (refl_equal true)
+  | _, B754_nan s2 pl2 Hpl2 => exist _ (B754_nan s2 pl2 Hpl2) (refl_equal true)
   | _, _ => default_nan_pl32
   end.
 
@@ -657,19 +657,19 @@ Let Hprec_emax : (53 < 1024)%Z.
 apply refl_equal.
 Qed.
 
-Definition default_nan_pl64 : bool * { pl | nan_pl 53 pl = true } :=
-  (false, exist _ (iter_nat xO 51 xH) (refl_equal true)).
+Definition default_nan_pl64 : { nan | is_nan 53 1024 nan = true } :=
+  exist _ (@B754_nan 53 1024 false (iter_nat xO 51 xH) (refl_equal true)) (refl_equal true).
 
 Definition unop_nan_pl64 (f : binary64) :=
-  match f with
-  | B754_nan s pl Hpl => (s, exist _ pl Hpl)
+  match f as f with
+  | B754_nan s pl Hpl => exist _ (B754_nan s pl Hpl) (refl_equal true)
   | _ => default_nan_pl64
   end.
 
-Definition binop_nan_pl64 (pl1 pl2 : binary64) :=
-  match pl1, pl2 with
-  | B754_nan s1 pl1 Hpl1, _ => (s1, exist _ pl1 Hpl1)
-  | _, B754_nan s2 pl2 Hpl2 => (s2, exist _ pl2 Hpl2)
+Definition binop_nan_pl64 (f1 f2 : binary64) :=
+  match f1, f2 with
+  | B754_nan s1 pl1 Hpl1, _ => exist _ (B754_nan s1 pl1 Hpl1) (refl_equal true)
+  | _, B754_nan s2 pl2 Hpl2 => exist _ (B754_nan s2 pl2 Hpl2) (refl_equal true)
   | _, _ => default_nan_pl64
   end.
 

@@ -374,8 +374,26 @@ Proof.
 now intros [| |? []|].
 Qed.
 
-Definition build_nan (nan : bool * { pl | nan_pl pl = true }) :=
-  let '(s, exist pl Hpl) := nan in B754_nan s pl Hpl.
+Definition build_nan (x : { x | is_nan x = true }) :=
+  proj1_sig x.
+
+Theorem B2R_build_nan :
+  forall x, B2R (build_nan x) = R0.
+Proof.
+now intros [[| | |] H].
+Qed.
+
+Theorem is_finite_build_nan :
+  forall x, is_finite (build_nan x) = false.
+Proof.
+now intros [[| | |] H].
+Qed.
+
+Theorem is_nan_build_nan :
+  forall x, is_nan (build_nan x) = true.
+Proof.
+now intros [[| | |] H].
+Qed.
 
 (** Opposite *)
 
@@ -400,7 +418,7 @@ Theorem B2R_Bopp :
   B2R (Bopp opp_nan x) = (- B2R x)%R.
 Proof.
 intros opp_nan [sx|sx|sx plx Hplx|sx mx ex Hx]; apply sym_eq ; try apply Ropp_0.
-simpl. destruct opp_nan as [s [pl Hpl]]. apply Ropp_0.
+simpl. rewrite B2R_build_nan. exact Ropp_0.
 simpl.
 rewrite <- F2R_opp.
 now case sx.
@@ -412,7 +430,7 @@ Theorem is_finite_Bopp :
 Proof.
 intros opp_nan [| | |] ; try easy.
 simpl.
-now destruct opp_nan as [s' [pl' Hpl']].
+apply is_finite_build_nan.
 Qed.
 
 (** Absolute value *)
@@ -430,7 +448,7 @@ Theorem B2R_Babs :
   B2R (Babs abs_nan x) = Rabs (B2R x).
 Proof.
   intros abs_nan [sx|sx|sx plx|sx mx ex Hx]; apply sym_eq ; try apply Rabs_R0.
-  simpl. destruct abs_nan as [s [pl Hpl]]. apply Rabs_R0.
+  simpl. rewrite B2R_build_nan. exact Rabs_R0.
   simpl. rewrite <- F2R_abs. now destruct sx.
 Qed.
 
@@ -440,7 +458,7 @@ Theorem is_finite_Babs :
 Proof.
   intros abs_nan [| | |] ; try easy.
   simpl.
-  now destruct abs_nan as [s' [pl' Hpl']].
+  apply is_finite_build_nan.
 Qed.
 
 Theorem Bsign_Babs :
@@ -1126,7 +1144,7 @@ Theorem Bmult_correct :
     B2FF (Bmult mult_nan m x y) = binary_overflow m (xorb (Bsign x) (Bsign y)).
 Proof.
 intros mult_nan m [sx|sx|sx plx Hplx|sx mx ex Hx] [sy|sy|sy ply Hply|sy my ey Hy] ;
-  try ( rewrite ?Rmult_0_r, ?Rmult_0_l, round_0, Rabs_R0, Rlt_bool_true ; [ simpl ; try easy ; now destruct mult_nan as [s [pl Hpl]] | apply bpow_gt_0 | now auto with typeclass_instances ] ).
+  try ( rewrite ?Rmult_0_r, ?Rmult_0_l, round_0, Rabs_R0, Rlt_bool_true ; [ simpl ; try easy ; now rewrite B2R_build_nan, is_finite_build_nan, is_nan_build_nan | apply bpow_gt_0 | now auto with typeclass_instances ] ).
 simpl.
 case Bmult_correct_aux.
 intros H1.
@@ -1139,37 +1157,6 @@ now rewrite is_finite_FF2B.
 rewrite Bsign_FF2B. auto.
 intros H2.
 now rewrite B2FF_FF2B.
-Qed.
-
-Definition Bmult_FF mult_nan m x y :=
-  let f pl := F754_nan (fst pl) (snd pl) in
-  match x, y with
-  | F754_nan _ _, _ | _, F754_nan _ _ => f (mult_nan x y)
-  | F754_infinity sx, F754_infinity sy => F754_infinity (xorb sx sy)
-  | F754_infinity sx, F754_finite sy _ _ => F754_infinity (xorb sx sy)
-  | F754_finite sx _ _, F754_infinity sy => F754_infinity (xorb sx sy)
-  | F754_infinity _, F754_zero _ => f (mult_nan x y)
-  | F754_zero _, F754_infinity _ => f (mult_nan x y)
-  | F754_finite sx _ _, F754_zero sy => F754_zero (xorb sx sy)
-  | F754_zero sx, F754_finite sy _ _ => F754_zero (xorb sx sy)
-  | F754_zero sx, F754_zero sy => F754_zero (xorb sx sy)
-  | F754_finite sx mx ex, F754_finite sy my ey =>
-    binary_round_aux m (xorb sx sy) (mx * my) (ex + ey) loc_Exact
-  end.
-
-Theorem B2FF_Bmult :
-  forall mult_nan mult_nan_ff,
-  forall m x y,
-  mult_nan_ff (B2FF x) (B2FF y) = (let '(sr, exist plr _) := mult_nan x y in (sr, plr)) ->
-  B2FF (Bmult mult_nan m x y) = Bmult_FF mult_nan_ff m (B2FF x) (B2FF y).
-Proof.
-intros mult_nan mult_nan_ff m x y Hmult_nan.
-unfold Bmult_FF. rewrite Hmult_nan.
-destruct x as [sx|sx|sx plx Hplx|sx mx ex Hx], y as [sy|sy|sy ply Hply|sy my ey Hy] ;
-  simpl; try match goal with |- context [mult_nan ?x ?y] =>
-               destruct (mult_nan x y) as [? []] end;
-  try easy.
-apply B2FF_FF2B.
 Qed.
 
 (** Normalization and rounding *)
@@ -1737,7 +1724,7 @@ intros div_nan m x [sy|sy|sy ply|sy my ey Hy] Zy ; try now elim Zy.
 revert x.
 unfold Rdiv.
 intros [sx|sx|sx plx|sx mx ex Hx] ;
-  try ( rewrite Rmult_0_l, round_0, Rabs_R0, Rlt_bool_true ; [ simpl ; try easy ; now destruct div_nan as [s [pl Hpl]] | apply bpow_gt_0 | auto with typeclass_instances ] ).
+  try ( rewrite Rmult_0_l, round_0, Rabs_R0, Rlt_bool_true ; [ simpl ; try easy ; now rewrite B2R_build_nan, is_finite_build_nan, is_nan_build_nan | apply bpow_gt_0 | auto with typeclass_instances ] ).
 simpl.
 case Bdiv_correct_aux.
 intros H1.
@@ -1905,12 +1892,12 @@ Theorem Bsqrt_correct :
   (is_nan (Bsqrt sqrt_nan m x) = false -> Bsign (Bsqrt sqrt_nan m x) = Bsign x).
 Proof.
 intros sqrt_nan m [sx|[|]|sx plx Hplx|sx mx ex Hx] ;
-  try ( simpl ; rewrite sqrt_0, round_0 ; intuition auto with typeclass_instances ; now destruct sqrt_nan as [s [pl Hpl]]).
+  try ( simpl ; rewrite sqrt_0, round_0, ?B2R_build_nan, ?is_finite_build_nan, ?is_nan_build_nan ; intuition auto with typeclass_instances ; easy).
 simpl.
 case Bsqrt_correct_aux.
 intros H1 (H2, (H3, H4)).
 case sx.
-destruct sqrt_nan as [s [pl Hpl]].
+rewrite B2R_build_nan, is_finite_build_nan, is_nan_build_nan.
 refine (conj _ (conj (refl_equal false) _)).
 apply sym_eq.
 unfold sqrt.
