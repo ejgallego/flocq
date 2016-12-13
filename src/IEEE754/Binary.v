@@ -185,7 +185,7 @@ Theorem generic_format_B2R :
   forall x,
   generic_format radix2 fexp (B2R x).
 Proof.
-intros [sx|sx|sx plx|sx mx ex Hx] ; try apply generic_format_0.
+intros [sx|sx|sx plx Hx |sx mx ex Hx] ; try apply generic_format_0.
 simpl.
 apply generic_format_canonical.
 apply canonical_canonical_mantissa.
@@ -429,7 +429,7 @@ Theorem is_finite_Bopp :
   is_finite (Bopp opp_nan x) = is_finite x.
 Proof.
 intros opp_nan [| | |] ; try easy.
-simpl.
+simpl; intros.
 apply is_finite_build_nan.
 Qed.
 
@@ -447,7 +447,7 @@ Theorem B2R_Babs :
   forall abs_nan x,
   B2R (Babs abs_nan x) = Rabs (B2R x).
 Proof.
-  intros abs_nan [sx|sx|sx plx|sx mx ex Hx]; apply sym_eq ; try apply Rabs_R0.
+  intros abs_nan [sx|sx|sx plx Hx|sx mx ex Hx]; apply sym_eq ; try apply Rabs_R0.
   simpl. rewrite B2R_build_nan. exact Rabs_R0.
   simpl. rewrite <- F2R_abs. now destruct sx.
 Qed.
@@ -457,7 +457,7 @@ Theorem is_finite_Babs :
   is_finite (Babs abs_nan x) = is_finite x.
 Proof.
   intros abs_nan [| | |] ; try easy.
-  simpl.
+  simpl; intros.
   apply is_finite_build_nan.
 Qed.
 
@@ -618,7 +618,7 @@ Theorem abs_B2R_lt_emax :
   forall x,
   (Rabs (B2R x) < bpow radix2 emax)%R.
 Proof.
-intros [sx|sx|sx plx|sx mx ex Hx] ; simpl ; try ( rewrite Rabs_R0 ; apply bpow_gt_0 ).
+intros [sx|sx|sx plx Hx|sx mx ex Hx] ; simpl ; try ( rewrite Rabs_R0 ; apply bpow_gt_0 ).
 rewrite <- F2R_Zabs, abs_cond_Zopp.
 now apply bounded_lt_emax.
 Qed.
@@ -1723,7 +1723,7 @@ Proof.
 intros div_nan m x [sy|sy|sy ply|sy my ey Hy] Zy ; try now elim Zy.
 revert x.
 unfold Rdiv.
-intros [sx|sx|sx plx|sx mx ex Hx] ;
+intros [sx|sx|sx plx Hx|sx mx ex Hx] ;
   try ( rewrite Rmult_0_l, round_0, Rabs_R0, Rlt_bool_true ; [ simpl ; try easy ; now rewrite B2R_build_nan, is_finite_build_nan, is_nan_build_nan | apply bpow_gt_0 | auto with typeclass_instances ] ).
 simpl.
 case Bdiv_correct_aux.
