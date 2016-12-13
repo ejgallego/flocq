@@ -1,8 +1,8 @@
 Require Import Reals.
-Require Import Fcore.
-Require Import Fprop_relative.
-Require Import Fprop_Sterbenz.
-Require Import Fcalc_ops.
+Require Import Flocq.Core.Fcore.
+Require Import Flocq.Prop.Fprop_relative.
+Require Import Flocq.Prop.Fprop_Sterbenz.
+Require Import Flocq.Calc.Fcalc_ops.
 Require Import Interval.Interval_tactic.
 
 Section Delta_FLX.

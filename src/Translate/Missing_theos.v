@@ -963,9 +963,9 @@ Let r3 := (gamma+alpha2) -r2.
 
 (** Non-underflow hypotheses *)
 Hypothesis Und1: a * x = 0 \/ bpow radix2 (emin + 2 * prec - 1) <= Rabs (a * x).
-Hypothesis Und2: alpha1 = 0 \/ bpow radix2 (emin + prec) <= Rabs alpha1.
+(*Hypothesis Und2: alpha1 = 0 \/ bpow radix2 (emin + prec) <= Rabs alpha1.*)
 
-Hypothesis Und4: beta1 = 0 \/ bpow radix2 (emin + prec+1) <= Rabs beta1.
+(*Hypothesis Und4: beta1 = 0 \/ bpow radix2 (emin + prec+1) <= Rabs beta1.*)
 Hypothesis Und5: r1 = 0 \/ bpow radix2 (emin + prec-1) <= Rabs r1.
 
 
@@ -988,7 +988,33 @@ apply Rle_trans with (2:=H).
 apply bpow_le; omega.
 Qed.
 
+Lemma Und4: beta1 = 0 \/ bpow radix2 (emin + prec+1) <= Rabs beta1.
+Proof with auto with typeclass_instances.
+unfold beta1.
+replace (emin+prec+1)%Z with ((emin+2*prec+1)-prec)%Z by ring.
+apply rnd_0_or_ge_FLT...
+apply generic_format_round...
+apply generic_format_round...
+apply Und3'.
+TOTO.
 
+replace (u2) with (-(u1-(a*x))) by (unfold u2; ring).
+apply generic_format_opp.
+apply mult_error_FLT...
+
+
+Lemma Und2: alpha1 = 0 \/ bpow radix2 (emin + prec) <= Rabs alpha1.
+Proof with auto with typeclass_instances.
+unfold alpha1.
+replace (emin+prec)%Z with ((emin+2*prec)-prec)%Z by ring.
+rewrite Rplus_comm.
+apply rnd_0_or_ge_FLT...
+replace (u2) with (-(u1-(a*x))) by (unfold u2; ring).
+apply generic_format_opp.
+apply mult_error_FLT...
+
+
+Hypothesis Und2: alpha1 = 0 \/ bpow radix2 (emin + prec) <= Rabs alpha1.
 
 
 
