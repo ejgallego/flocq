@@ -360,6 +360,10 @@ Lemma binary_float_of_bits_aux_correct :
 Proof.
 intros x.
 unfold binary_float_of_bits_aux, split_bits.
+assert (Hnan: nan_pl prec 1 = true).
+  apply Z.ltb_lt.
+  simpl. unfold prec.
+  clear -Hmw ; omega.
 case Zeq_bool_spec ; intros He1.
 case_eq (x mod 2^mw)%Z ; try easy.
 (* subnormal *)
@@ -390,7 +394,6 @@ cut (0 < emax)%Z. clear -H Hew ; omega.
 apply (Zpower_gt_0 radix2).
 clear -Hew ; omega.
 apply bpow_gt_0.
-simpl. intros. rewrite Z.ltb_lt. unfold prec. zify; omega.
 case Zeq_bool_spec ; intros He2.
 case_eq (x mod 2 ^ mw)%Z; try easy.
 (* nan *)
@@ -401,9 +404,7 @@ apply Zdigits_le_Zpower. simpl.
 rewrite <- Eqplx. edestruct Z_mod_lt; eauto.
 change 2%Z with (radix_val radix2).
 apply Z.lt_gt, Zpower_gt_0. omega.
-simpl. intros. rewrite Z.ltb_lt. unfold prec. zify; omega.
 case_eq (x mod 2^mw + 2^mw)%Z ; try easy.
-simpl. intros. rewrite Z.ltb_lt. unfold prec. zify; omega.
 (* normal *)
 intros px Hm.
 assert (prec = Zdigits radix2 (Zpos px)).
@@ -474,7 +475,6 @@ apply Zlt_gt.
 apply (Zpower_gt_0 radix2).
 now apply Zlt_le_weak.
 apply bpow_gt_0.
-simpl. intros. rewrite Z.ltb_lt. unfold prec. zify; omega.
 Qed.
 
 Definition binary_float_of_bits x :=

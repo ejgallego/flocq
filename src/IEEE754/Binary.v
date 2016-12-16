@@ -58,17 +58,18 @@ Definition canonical_mantissa m e :=
 Definition bounded m e :=
   andb (canonical_mantissa m e) (Zle_bool e (emax - prec)).
 
+Definition nan_pl pl :=
+  Zlt_bool (Zpos (digits2_pos pl)) prec.
+
 Definition valid_binary x :=
   match x with
   | F754_finite _ m e => bounded m e
-  | F754_nan _ pl => (Zpos (digits2_pos pl) <? prec)%Z
+  | F754_nan _ pl => nan_pl pl
   | _ => true
   end.
 
 (** Basic type used for representing binary FP numbers.
     Note that there is exactly one such object per FP datum. *)
-
-Definition nan_pl pl := (Zpos (digits2_pos pl) <? prec)%Z.
 
 Inductive binary_float :=
   | B754_zero (s : bool)
