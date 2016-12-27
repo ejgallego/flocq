@@ -175,7 +175,7 @@ apply sym_eq.
 simpl.
 pattern ex at 2 ; rewrite <- Hx.
 apply (f_equal fexp).
-rewrite ln_beta_F2R_Zdigits.
+rewrite mag_F2R_Zdigits.
 rewrite <- Zdigits_abs.
 rewrite Zpos_digits2_pos.
 now case sx.
@@ -553,7 +553,7 @@ Proof.
     let y := (Z2R (Zpos m2) * bpow radix2 e2)%R in
     (cexp radix2 fexp x < cexp radix2 fexp y)%Z -> (x < y)%R).
   {
-  intros; apply Rnot_le_lt; intro; apply (ln_beta_le radix2) in H5.
+  intros; apply Rnot_le_lt; intro; apply (mag_le radix2) in H5.
   apply Zlt_not_le with (1 := H4).
   now apply fexp_monotone.
   now apply (F2R_gt_0_compat _ (Float radix2 (Zpos m2) e2)).
@@ -594,9 +594,9 @@ intros mx ex Hx.
 destruct (andb_prop _ _ Hx) as (H1,H2).
 generalize (Zeq_bool_eq _ _ H1). clear H1. intro H1.
 generalize (Zle_bool_imp_le _ _ H2). clear H2. intro H2.
-generalize (ln_beta_F2R_Zdigits radix2 (Zpos mx) ex).
-destruct (ln_beta radix2 (F2R (Float radix2 (Zpos mx) ex))) as (e',Ex).
-unfold ln_beta_val.
+generalize (mag_F2R_Zdigits radix2 (Zpos mx) ex).
+destruct (mag radix2 (F2R (Float radix2 (Zpos mx) ex))) as (e',Ex).
+unfold mag_val.
 intros H.
 apply Rlt_le_trans with (bpow radix2 e').
 change (Zpos mx) with (Zabs (Zpos mx)).
@@ -638,13 +638,13 @@ unfold canonical, Fexp in Cx.
 rewrite Cx at 2.
 rewrite Zpos_digits2_pos.
 unfold cexp.
-rewrite ln_beta_F2R_Zdigits. 2: discriminate.
+rewrite mag_F2R_Zdigits. 2: discriminate.
 now apply -> Zeq_is_eq_bool.
 apply Zle_bool_true.
 unfold canonical, Fexp in Cx.
 rewrite Cx.
 unfold cexp, fexp, FLT_exp.
-destruct (ln_beta radix2 (F2R (Float radix2 (Zpos mx) ex))) as (e',Ex). simpl.
+destruct (mag radix2 (F2R (Float radix2 (Zpos mx) ex))) as (e',Ex). simpl.
 apply Zmax_lub.
 cut (e' - 1 < emax)%Z. clear ; omega.
 apply lt_bpow with radix2.
@@ -951,7 +951,7 @@ rewrite <- F2R_Zabs, abs_cond_Zopp, F2R_0.
 apply bpow_gt_0.
 (* . 0 < m1' *)
 assert (He: (e1 <= fexp (Zdigits radix2 (Zpos m1') + e1))%Z).
-rewrite <- ln_beta_F2R_Zdigits, <- Hr, ln_beta_abs.
+rewrite <- mag_F2R_Zdigits, <- Hr, mag_abs.
 2: discriminate.
 rewrite H1b.
 rewrite cexp_abs.
@@ -984,7 +984,7 @@ split.
 unfold canonical_mantissa.
 apply Zeq_bool_true.
 rewrite Zpos_digits2_pos.
-rewrite <- ln_beta_F2R_Zdigits.
+rewrite <- mag_F2R_Zdigits.
 apply sym_eq.
 now rewrite H3 in H4.
 discriminate.
@@ -1237,9 +1237,9 @@ case shl_align.
 intros mx' ex' (H1, H2).
 split.
 exact H1.
-rewrite <- ln_beta_F2R_Zdigits. 2: easy.
+rewrite <- mag_F2R_Zdigits. 2: easy.
 rewrite <- H1.
-now rewrite ln_beta_F2R_Zdigits.
+now rewrite mag_F2R_Zdigits.
 Qed.
 
 Definition binary_round m sx mx ex :=

@@ -109,7 +109,7 @@ apply Rlt_le_trans with (ulp beta fexp x)%R.
 now apply error_lt_ulp...
 rewrite ulp_neq_0; trivial.
 unfold cexp.
-destruct (ln_beta beta x) as (ex, He).
+destruct (mag beta x) as (ex, He).
 simpl.
 specialize (He Hx').
 apply Rle_trans with (bpow (-p + 1) * bpow (ex - 1))%R.
@@ -180,7 +180,7 @@ apply Rlt_le_trans with (ulp beta fexp x)%R.
 now apply error_lt_ulp.
 rewrite ulp_neq_0; trivial.
 unfold cexp.
-destruct (ln_beta beta x) as (ex, He).
+destruct (mag beta x) as (ex, He).
 simpl.
 specialize (He Hx').
 assert (He': (emin < ex)%Z).
@@ -245,7 +245,7 @@ rewrite H, Rabs_R0.
 apply bpow_gt_0.
 rewrite ulp_neq_0; trivial.
 unfold cexp.
-destruct (ln_beta beta x) as (ex, He).
+destruct (mag beta x) as (ex, He).
 simpl.
 specialize (He Hx').
 apply Rle_trans with (bpow (-p + 1) * bpow (ex - 1))%R.
@@ -337,7 +337,7 @@ rewrite H, Rabs_R0.
 apply bpow_gt_0.
 rewrite ulp_neq_0; trivial.
 unfold cexp.
-destruct (ln_beta beta x) as (ex, He).
+destruct (mag beta x) as (ex, He).
 simpl.
 specialize (He Hx').
 assert (He': (emin < ex)%Z).
@@ -609,7 +609,7 @@ apply bpow_le.
 unfold FLT_exp, cexp.
 rewrite Zmax_right.
 omega.
-destruct (ln_beta beta x) as (e,He); simpl.
+destruct (mag beta x) as (e,He); simpl.
 assert (e-1 < emin+prec)%Z.
 apply (lt_bpow beta).
 apply Rle_lt_trans with (2:=Hx).
@@ -680,7 +680,7 @@ Theorem relative_error_FLX :
   (Rabs (round beta (FLX_exp prec) rnd x - x) < bpow (-prec + 1) * Rabs x)%R.
 Proof with auto with typeclass_instances.
 intros x Hx.
-destruct (ln_beta beta x) as (ex, He).
+destruct (mag beta x) as (ex, He).
 specialize (He Hx).
 apply relative_error with (ex - 1)%Z...
 intros k _.
@@ -706,7 +706,7 @@ Theorem relative_error_FLX_round :
   (Rabs (round beta (FLX_exp prec) rnd x - x) < bpow (-prec + 1) * Rabs (round beta (FLX_exp prec) rnd x))%R.
 Proof with auto with typeclass_instances.
 intros x Hx.
-destruct (ln_beta beta x) as (ex, He).
+destruct (mag beta x) as (ex, He).
 specialize (He Hx).
 apply relative_error_round with (ex - 1)%Z...
 intros k _.
@@ -729,7 +729,7 @@ rewrite Rplus_0_l, Rabs_Ropp, Rabs_R0.
 rewrite Rmult_0_r.
 apply Rle_refl.
 (* . *)
-destruct (ln_beta beta x) as (ex, He).
+destruct (mag beta x) as (ex, He).
 specialize (He Hx).
 apply relative_error_N with (ex - 1)%Z...
 intros k _.
@@ -766,7 +766,7 @@ rewrite Rplus_0_l, Rabs_Ropp, Rabs_R0.
 rewrite Rmult_0_r.
 apply Rle_refl.
 (* . *)
-destruct (ln_beta beta x) as (ex, He).
+destruct (mag beta x) as (ex, He).
 specialize (He Hx).
 apply relative_error_N_round with (ex - 1)%Z.
 now apply FLX_exp_valid.

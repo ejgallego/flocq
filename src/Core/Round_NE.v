@@ -106,7 +106,7 @@ Theorem DN_UP_parity_generic_pos :
   DN_UP_parity_pos_prop.
 Proof with auto with typeclass_instances.
 intros x xd xu H0x Hfx Hd Hu Hxd Hxu.
-destruct (ln_beta beta x) as (ex, Hexa).
+destruct (mag beta x) as (ex, Hexa).
 specialize (Hexa (Rgt_not_eq _ _ H0x)).
 generalize Hexa. intros Hex.
 rewrite (Rabs_pos_eq _ (Rlt_le _ _ H0x)) in Hex.
@@ -121,7 +121,7 @@ assert (Hu3 : xu = Float beta (1 * Zpower beta (fexp ex - fexp (fexp ex + 1))) (
 apply canonical_unicity with (1 := Hu).
 apply (f_equal fexp).
 rewrite <- F2R_change_exp.
-now rewrite F2R_bpow, ln_beta_bpow.
+now rewrite F2R_bpow, mag_bpow.
 now apply valid_exp.
 rewrite <- F2R_change_exp.
 rewrite F2R_bpow.
@@ -170,7 +170,7 @@ assert (Hu3: xu = Float beta (1 * Zpower beta (ex - fexp (ex + 1))) (fexp (ex + 
 apply canonical_unicity with (1 := Hu).
 apply (f_equal fexp).
 rewrite <- F2R_change_exp.
-now rewrite F2R_bpow, ln_beta_bpow.
+now rewrite F2R_bpow, mag_bpow.
 now apply valid_exp.
 rewrite <- Hu2.
 apply sym_eq.
@@ -188,7 +188,7 @@ ring_simplify (ex - fexp ex + fexp ex)%Z.
 rewrite Hu2, Hud.
 rewrite ulp_neq_0;[idtac|now apply Rgt_not_eq].
 unfold cexp.
-rewrite ln_beta_unique with beta x ex.
+rewrite mag_unique with beta x ex.
 unfold F2R.
 simpl. ring.
 rewrite Rabs_pos_eq.
@@ -200,7 +200,7 @@ apply canonical_unicity with (1 := Hd) (3 := H).
 apply (f_equal fexp).
 rewrite <- H.
 apply sym_eq.
-now apply ln_beta_unique.
+now apply mag_unique.
 rewrite Hd3, Hu3.
 unfold Fnum.
 rewrite Zeven_mult. simpl.
@@ -223,9 +223,9 @@ rewrite ulp_neq_0;[idtac|now apply Rgt_not_eq].
 unfold F2R.
 rewrite Hd, Hu.
 unfold cexp.
-rewrite ln_beta_unique with beta (F2R xu) ex.
-rewrite ln_beta_unique with (1 := Hd4).
-rewrite ln_beta_unique with (1 := Hexa).
+rewrite mag_unique with beta (F2R xu) ex.
+rewrite mag_unique with (1 := Hd4).
+rewrite mag_unique with (1 := Hexa).
 intros H.
 replace (Fnum xu) with (Fnum xd + 1)%Z.
 rewrite Zeven_plus.
@@ -374,7 +374,7 @@ rewrite scaled_mantissa_DN...
 now rewrite Ztrunc_Z2R.
 (* . odd floor *)
 change (Zeven (Ztrunc (scaled_mantissa beta fexp (round beta fexp Zceil x))) = true).
-destruct (ln_beta beta x) as (ex, Hex).
+destruct (mag beta x) as (ex, Hex).
 specialize (Hex (Rgt_not_eq _ _ Hx)).
 rewrite (Rabs_pos_eq _ (Rlt_le _ _ Hx)) in Hex.
 destruct (Z_lt_le_dec (fexp ex) ex) as [He|He].
@@ -404,7 +404,7 @@ now rewrite Zeven_plus, Hmx.
 (* ... u = bpow *)
 rewrite Hu'.
 unfold scaled_mantissa, cexp.
-rewrite ln_beta_bpow.
+rewrite mag_bpow.
 rewrite <- bpow_plus, <- Z2R_Zpower.
 rewrite Ztrunc_Z2R.
 case_eq (Zeven beta) ; intros Hr.

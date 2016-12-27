@@ -304,7 +304,7 @@ reflexivity.
 apply round_generic...
 intros Y.
 replace  (Fnum {| Fnum := Zfloor (scaled_mantissa beta fexp x); Fexp := cexp x |})
-   with (Fnum (Float beta 0 (fexp (ln_beta beta 0)))).
+   with (Fnum (Float beta 0 (fexp (mag beta 0)))).
 generalize (DN_UP_parity_generic beta fexp)...
 unfold DN_UP_parity_prop.
 intros T; apply T with x; clear T.
@@ -446,24 +446,24 @@ Lemma generic_format_fexpe_fexp: forall x,
  generic_format beta fexp x ->  generic_format beta fexpe x.
 Proof.
 intros x Hx.
-apply generic_inclusion_ln_beta with fexp; trivial; intros Hx2.
-generalize (fexpe_fexp (ln_beta beta x)).
+apply generic_inclusion_mag with fexp; trivial; intros Hx2.
+generalize (fexpe_fexp (mag beta x)).
 omega.
 Qed.
 
 
 
 Lemma exists_even_fexp_lt: forall (c:Z->Z), forall (x:R),
-      (exists f:float beta, F2R f = x /\ (c (ln_beta beta x) < Fexp f)%Z) ->
+      (exists f:float beta, F2R f = x /\ (c (mag beta x) < Fexp f)%Z) ->
       exists f:float beta, F2R f =x /\ canonical beta c f /\ Zeven (Fnum f) = true.
 Proof with auto with typeclass_instances.
 intros c x (g,(Hg1,Hg2)).
 exists (Float beta
-     (Fnum g*Z.pow (radix_val beta) (Fexp g - c (ln_beta beta x)))
-     (c (ln_beta beta x))).
+     (Fnum g*Z.pow (radix_val beta) (Fexp g - c (mag beta x)))
+     (c (mag beta x))).
 assert (F2R (Float beta
-     (Fnum g*Z.pow (radix_val beta) (Fexp g - c (ln_beta beta x)))
-     (c (ln_beta beta x))) = x).
+     (Fnum g*Z.pow (radix_val beta) (Fexp g - c (mag beta x)))
+     (c (mag beta x))) = x).
 unfold F2R; simpl.
 rewrite Z2R_mult, Z2R_Zpower.
 rewrite Rmult_assoc, <- bpow_plus.
@@ -524,45 +524,45 @@ Qed.
 
 
 
-Lemma ln_beta_d:  (0< F2R d)%R ->
-    (ln_beta beta (F2R d) = ln_beta beta x :>Z).
+Lemma mag_d:  (0< F2R d)%R ->
+    (mag beta (F2R d) = mag beta x :>Z).
 Proof with auto with typeclass_instances.
 intros Y.
-rewrite d_eq; apply ln_beta_DN...
+rewrite d_eq; apply mag_DN...
 now rewrite <- d_eq.
 Qed.
 
 
-Lemma Fexp_d: (0 < F2R d)%R -> Fexp d =fexp (ln_beta beta x).
+Lemma Fexp_d: (0 < F2R d)%R -> Fexp d =fexp (mag beta x).
 Proof with auto with typeclass_instances.
 intros Y.
-now rewrite Cd, <- ln_beta_d.
+now rewrite Cd, <- mag_d.
 Qed.
 
 
 
 Lemma format_bpow_x: (0 < F2R d)%R
-    -> generic_format beta fexp  (bpow (ln_beta beta x)).
+    -> generic_format beta fexp  (bpow (mag beta x)).
 Proof with auto with typeclass_instances.
 intros Y.
 apply generic_format_bpow.
 apply valid_exp.
 rewrite <- Fexp_d; trivial.
-apply Zlt_le_trans with  (ln_beta beta (F2R d))%Z.
-rewrite Cd; apply ln_beta_generic_gt...
+apply Zlt_le_trans with  (mag beta (F2R d))%Z.
+rewrite Cd; apply mag_generic_gt...
 now apply Rgt_not_eq.
 apply Hd.
-apply ln_beta_le; trivial.
+apply mag_le; trivial.
 apply Hd.
 Qed.
 
 
 Lemma format_bpow_d: (0 < F2R d)%R ->
-  generic_format beta fexp (bpow (ln_beta beta (F2R d))).
+  generic_format beta fexp (bpow (mag beta (F2R d))).
 Proof with auto with typeclass_instances.
 intros Y; apply generic_format_bpow.
 apply valid_exp.
-apply ln_beta_generic_gt...
+apply mag_generic_gt...
 now apply Rgt_not_eq.
 now apply generic_format_canonical.
 Qed.
@@ -594,12 +594,12 @@ apply Hu.
 right; ring.
 Qed.
 
-Lemma ln_beta_m: (0 < F2R d)%R -> (ln_beta beta m =ln_beta beta (F2R d) :>Z).
+Lemma mag_m: (0 < F2R d)%R -> (mag beta m =mag beta (F2R d) :>Z).
 Proof with auto with typeclass_instances.
-intros dPos; apply ln_beta_unique_pos.
+intros dPos; apply mag_unique_pos.
 split.
 apply Rle_trans with (F2R d).
-destruct (ln_beta beta (F2R d)) as (e,He).
+destruct (mag beta (F2R d)) as (e,He).
 simpl.
 rewrite Rabs_right in He.
 apply He.
@@ -612,13 +612,13 @@ rewrite u_eq.
 apply round_le_generic...
 apply generic_format_bpow.
 apply valid_exp.
-apply ln_beta_generic_gt...
+apply mag_generic_gt...
 now apply Rgt_not_eq.
 now apply generic_format_canonical.
-case (Rle_or_lt x (bpow (ln_beta beta (F2R d)))); trivial; intros Z.
-absurd ((bpow (ln_beta beta (F2R d)) <= (F2R d)))%R.
+case (Rle_or_lt x (bpow (mag beta (F2R d)))); trivial; intros Z.
+absurd ((bpow (mag beta (F2R d)) <= (F2R d)))%R.
 apply Rlt_not_le.
-destruct  (ln_beta beta (F2R d)) as (e,He).
+destruct  (mag beta (F2R d)) as (e,He).
 simpl in *; rewrite Rabs_right in He.
 apply He.
 now apply Rgt_not_eq.
@@ -628,12 +628,12 @@ apply Rle_trans with (round beta fexp Zfloor x).
 apply round_ge_generic...
 apply generic_format_bpow.
 apply valid_exp.
-apply ln_beta_generic_gt...
+apply mag_generic_gt...
 now apply Rgt_not_eq.
 now apply generic_format_canonical.
 now left.
 replace m with (F2R d).
-destruct  (ln_beta beta (F2R d)) as (e,He).
+destruct  (mag beta (F2R d)) as (e,He).
 simpl in *; rewrite Rabs_right in He.
 apply He.
 now apply Rgt_not_eq.
@@ -650,17 +650,17 @@ unfold m; rewrite <- H0; field.
 Qed.
 
 
-Lemma ln_beta_m_0: (0 = F2R d)%R
-    -> (ln_beta beta m =ln_beta beta (F2R u)-1:>Z)%Z.
+Lemma mag_m_0: (0 = F2R d)%R
+    -> (mag beta m =mag beta (F2R u)-1:>Z)%Z.
 Proof with auto with typeclass_instances.
 intros Y.
-apply ln_beta_unique_pos.
+apply mag_unique_pos.
 unfold m; rewrite <- Y, Rplus_0_l.
 rewrite u_eq.
-destruct (ln_beta beta x) as (e,He).
+destruct (mag beta x) as (e,He).
 rewrite Rabs_right in He.
 rewrite round_UP_small_pos with (ex:=e).
-rewrite ln_beta_bpow.
+rewrite mag_bpow.
 ring_simplify (fexp e + 1 - 1)%Z.
 split.
 unfold Zminus; rewrite bpow_plus.
@@ -699,7 +699,7 @@ Qed.
 
 
 Lemma m_eq: (0 < F2R d)%R ->  exists f:float beta,
-   F2R f = m /\ (Fexp f = fexp (ln_beta beta x) -1)%Z.
+   F2R f = m /\ (Fexp f = fexp (mag beta x) -1)%Z.
 Proof with auto with typeclass_instances.
 intros Y.
 specialize (Zeven_ex (radix_val beta)); rewrite Even_beta.
@@ -729,7 +729,7 @@ rewrite Hu'2; omega.
 Qed.
 
 Lemma m_eq_0: (0 = F2R d)%R ->  exists f:float beta,
-   F2R f = m /\ (Fexp f = fexp (ln_beta beta (F2R u)) -1)%Z.
+   F2R f = m /\ (Fexp f = fexp (mag beta (F2R u)) -1)%Z.
 Proof with auto with typeclass_instances.
 intros Y.
 specialize (Zeven_ex (radix_val beta)); rewrite Even_beta.
@@ -753,12 +753,12 @@ rewrite Zplus_comm, Cu; unfold Zminus; now apply f_equal2.
 Qed.
 
 Lemma fexp_m_eq_0:  (0 = F2R d)%R ->
-  (fexp (ln_beta beta (F2R u)-1) < fexp (ln_beta beta (F2R u))+1)%Z.
+  (fexp (mag beta (F2R u)-1) < fexp (mag beta (F2R u))+1)%Z.
 Proof with auto with typeclass_instances.
 intros Y.
-assert ((fexp (ln_beta beta (F2R u) - 1) <= fexp (ln_beta beta (F2R u))))%Z.
+assert ((fexp (mag beta (F2R u) - 1) <= fexp (mag beta (F2R u))))%Z.
 2: omega.
-destruct (ln_beta beta x) as (e,He).
+destruct (mag beta x) as (e,He).
 rewrite Rabs_right in He.
 2: now left.
 assert (e <= fexp e)%Z.
@@ -767,7 +767,7 @@ now apply He, Rgt_not_eq.
 now rewrite <- d_eq, Y.
 rewrite u_eq, round_UP_small_pos with (ex:=e); trivial.
 2: now apply He, Rgt_not_eq.
-rewrite ln_beta_bpow.
+rewrite mag_bpow.
 ring_simplify (fexp e + 1 - 1)%Z.
 replace (fexp (fexp e)) with (fexp e).
 case exists_NE_; intros V.
@@ -784,20 +784,20 @@ destruct m_eq as (g,(Hg1,Hg2)); trivial.
 apply generic_format_F2R' with g.
 now apply sym_eq.
 intros H; unfold cexp; rewrite Hg2.
-rewrite ln_beta_m; trivial.
+rewrite mag_m; trivial.
 rewrite <- Fexp_d; trivial.
 rewrite Cd.
 unfold cexp.
-generalize (fexpe_fexp (ln_beta beta (F2R d))).
+generalize (fexpe_fexp (mag beta (F2R d))).
 omega.
 (* *)
 destruct m_eq_0 as (g,(Hg1,Hg2)); trivial.
 apply generic_format_F2R' with g.
 assumption.
 intros H; unfold cexp; rewrite Hg2.
-rewrite ln_beta_m_0; try assumption.
+rewrite mag_m_0; try assumption.
 apply Zle_trans with (1:=fexpe_fexp _).
-assert (fexp (ln_beta beta (F2R u)-1) < fexp (ln_beta beta (F2R u))+1)%Z;[idtac|omega].
+assert (fexp (mag beta (F2R u)-1) < fexp (mag beta (F2R u))+1)%Z;[idtac|omega].
 now apply fexp_m_eq_0.
 Qed.
 
@@ -812,20 +812,20 @@ destruct m_eq as (g,(Hg1,Hg2)); trivial.
 apply exists_even_fexp_lt.
 exists g; split; trivial.
 rewrite Hg2.
-rewrite ln_beta_m; trivial.
+rewrite mag_m; trivial.
 rewrite <- Fexp_d; trivial.
 rewrite Cd.
 unfold cexp.
-generalize (fexpe_fexp  (ln_beta beta (F2R d))).
+generalize (fexpe_fexp  (mag beta (F2R d))).
 omega.
 (* *)
 destruct m_eq_0 as (g,(Hg1,Hg2)); trivial.
 apply exists_even_fexp_lt.
 exists g; split; trivial.
 rewrite Hg2.
-rewrite ln_beta_m_0; trivial.
+rewrite mag_m_0; trivial.
 apply Zle_lt_trans with (1:=fexpe_fexp _).
-assert (fexp (ln_beta beta (F2R u)-1) < fexp (ln_beta beta (F2R u))+1)%Z;[idtac|omega].
+assert (fexp (mag beta (F2R u)-1) < fexp (mag beta (F2R u))+1)%Z;[idtac|omega].
 now apply fexp_m_eq_0.
 Qed.
 

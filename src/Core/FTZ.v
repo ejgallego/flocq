@@ -80,7 +80,7 @@ Theorem generic_format_FTZ :
 Proof.
 intros x Hx.
 cut (generic_format beta (FLX_exp prec) x).
-apply generic_inclusion_ln_beta.
+apply generic_inclusion_mag.
 intros Zx.
 destruct Hx as [[xm xe] Hx1 Hx2 Hx3].
 simpl in Hx2, Hx3.
@@ -92,10 +92,10 @@ apply F2R_0.
 unfold FTZ_exp, FLX_exp.
 rewrite Zlt_bool_false.
 apply Zle_refl.
-rewrite Hx1, ln_beta_F2R with (1 := Zxm).
-cut (prec - 1 < ln_beta beta (Z2R xm))%Z.
+rewrite Hx1, mag_F2R with (1 := Zxm).
+cut (prec - 1 < mag beta (Z2R xm))%Z.
 clear -Hx3 ; omega.
-apply ln_beta_gt_Zpower with (1 := Zxm).
+apply mag_gt_Zpower with (1 := Zxm).
 apply Hx2.
 apply generic_format_FLXN.
 now apply FLXN_format_FTZ.
@@ -112,7 +112,7 @@ intros H.
 now elim H.
 apply Zle_refl.
 unfold generic_format, scaled_mantissa, cexp, FTZ_exp in Hx.
-destruct (ln_beta beta x) as (ex, Hx4).
+destruct (mag beta x) as (ex, Hx4).
 simpl in Hx.
 specialize (Hx4 Hx3).
 generalize (Zlt_cases (ex - prec) emin) Hx. clear Hx.
@@ -263,7 +263,7 @@ Theorem round_FTZ_FLX :
 Proof.
 intros x Hx.
 unfold round, scaled_mantissa, cexp.
-destruct (ln_beta beta x) as (ex, He). simpl.
+destruct (mag beta x) as (ex, He). simpl.
 assert (Hx0: x <> R0).
 intros Hx0.
 apply Rle_not_lt with (1 := Hx).
@@ -307,7 +307,7 @@ destruct (Req_dec x 0) as [Hx0|Hx0].
 rewrite Hx0.
 apply round_0...
 unfold round, scaled_mantissa, cexp.
-destruct (ln_beta beta x) as (ex, He). simpl.
+destruct (mag beta x) as (ex, He). simpl.
 specialize (He Hx0).
 unfold Zrnd_FTZ.
 rewrite Rle_bool_false.

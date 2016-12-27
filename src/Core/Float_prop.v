@@ -416,16 +416,16 @@ now apply Z2R_lt.
 exact Hp.
 Qed.
 
-(** Floats and ln_beta *)
-Theorem ln_beta_F2R_bounds :
+(** Floats and mag *)
+Theorem mag_F2R_bounds :
   forall x m e, (0 < m)%Z ->
   (F2R (Float beta m e) <= x < F2R (Float beta (m + 1) e))%R ->
-  ln_beta beta x = ln_beta beta (F2R (Float beta m e)) :> Z.
+  mag beta x = mag beta (F2R (Float beta m e)) :> Z.
 Proof.
 intros x m e Hp (Hx,Hx2).
-destruct (ln_beta beta (F2R (Float beta m e))) as (ex, He).
+destruct (mag beta (F2R (Float beta m e))) as (ex, He).
 simpl.
-apply ln_beta_unique.
+apply mag_unique.
 assert (Hp1: (0 < F2R (Float beta m e))%R).
 now apply F2R_gt_0_compat.
 specialize (He (Rgt_not_eq _ _ Hp1)).
@@ -440,24 +440,24 @@ apply Rlt_le_trans with (1 := Hx2).
 now apply F2R_p1_le_bpow.
 Qed.
 
-Theorem ln_beta_F2R :
+Theorem mag_F2R :
   forall m e : Z,
   m <> Z0 ->
-  (ln_beta beta (F2R (Float beta m e)) = ln_beta beta (Z2R m) + e :> Z)%Z.
+  (mag beta (F2R (Float beta m e)) = mag beta (Z2R m) + e :> Z)%Z.
 Proof.
 intros m e H.
 unfold F2R ; simpl.
-apply ln_beta_mult_bpow.
+apply mag_mult_bpow.
 exact (Z2R_neq m 0 H).
 Qed.
 
-Theorem Zdigits_ln_beta :
+Theorem Zdigits_mag :
   forall n,
   n <> Z0 ->
-  Zdigits beta n = ln_beta beta (Z2R n).
+  Zdigits beta n = mag beta (Z2R n).
 Proof.
 intros n Hn.
-destruct (ln_beta beta (Z2R n)) as (e, He) ; simpl.
+destruct (mag beta (Z2R n)) as (e, He) ; simpl.
 specialize (He (Z2R_neq _ _ Hn)).
 rewrite <- Z2R_abs in He.
 assert (Hd := Zdigits_correct beta n).
@@ -471,22 +471,22 @@ rewrite <- Z2R_Zpower by omega.
 now apply Z2R_lt.
 Qed.
 
-Theorem ln_beta_F2R_Zdigits :
+Theorem mag_F2R_Zdigits :
   forall m e, m <> Z0 ->
-  (ln_beta beta (F2R (Float beta m e)) = Zdigits beta m + e :> Z)%Z.
+  (mag beta (F2R (Float beta m e)) = Zdigits beta m + e :> Z)%Z.
 Proof.
 intros m e Hm.
-rewrite ln_beta_F2R with (1 := Hm).
+rewrite mag_F2R with (1 := Hm).
 apply (f_equal (fun v => Zplus v e)).
 apply sym_eq.
-now apply Zdigits_ln_beta.
+now apply Zdigits_mag.
 Qed.
 
 Theorem float_distribution_pos :
   forall m1 e1 m2 e2 : Z,
   (0 < m1)%Z ->
   (F2R (Float beta m1 e1) < F2R (Float beta m2 e2) < F2R (Float beta (m1 + 1) e1))%R ->
-  (e2 < e1)%Z /\ (e1 + ln_beta beta (Z2R m1) = e2 + ln_beta beta (Z2R m2))%Z.
+  (e2 < e1)%Z /\ (e1 + mag beta (Z2R m1) = e2 + mag beta (Z2R m2))%Z.
 Proof.
 intros m1 e1 m2 e2 Hp1 (H12, H21).
 assert (He: (e2 < e1)%Z).
@@ -509,11 +509,11 @@ assert (Hp2: (0 < m2)%Z).
 apply (F2R_gt_0_reg m2 e2).
 apply Rlt_trans with (2 := H12).
 now apply F2R_gt_0_compat.
-rewrite <- 2!ln_beta_F2R.
-destruct (ln_beta beta (F2R (Float beta m1 e1))) as (e1', H1).
+rewrite <- 2!mag_F2R.
+destruct (mag beta (F2R (Float beta m1 e1))) as (e1', H1).
 simpl.
 apply sym_eq.
-apply ln_beta_unique.
+apply mag_unique.
 assert (H2 : (bpow (e1' - 1) <= F2R (Float beta m1 e1) < bpow e1')%R).
 rewrite <- (Zabs_eq m1), F2R_Zabs.
 apply H1.

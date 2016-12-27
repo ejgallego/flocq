@@ -104,18 +104,18 @@ intros K; contradict Hz.
 rewrite K, Rabs_R0; apply Rlt_not_le.
 apply bpow_gt_0.
 assert (cexp (z/2) = cexp z -1)%Z.
-assert (prec+emin < ln_beta radix2 z)%Z.
+assert (prec+emin < mag radix2 z)%Z.
 apply lt_bpow with radix2.
-destruct ln_beta as (e,He); simpl.
+destruct mag as (e,He); simpl.
 apply Rle_lt_trans with (1:=Hz).
 now apply He.
 unfold cexp, FLT_exp.
-replace ((ln_beta radix2 (z/2))-prec)%Z with ((ln_beta radix2 z -1) -prec)%Z.
+replace ((mag radix2 (z/2))-prec)%Z with ((mag radix2 z -1) -prec)%Z.
 rewrite Z.max_l; try omega.
 rewrite Z.max_l; try omega.
 apply Zplus_eq_compat; try reflexivity.
-apply sym_eq, ln_beta_unique.
-destruct (ln_beta radix2 z) as (e,He); simpl.
+apply sym_eq, mag_unique.
+destruct (mag radix2 z) as (e,He); simpl.
 unfold Rdiv; rewrite Rabs_mult.
 rewrite (Rabs_right (/2)).
 split.
@@ -154,7 +154,7 @@ rewrite ulp_neq_0.
 case (Rle_or_lt (bpow (emin+prec-1)) u); intros Hu.
 unfold ulp; rewrite cexp_FLT_FLX.
 unfold cexp, FLX_exp.
-destruct (ln_beta radix2 u) as (e,He); simpl.
+destruct (mag radix2 u) as (e,He); simpl.
 apply Rle_trans with (bpow (e-1)).
 apply bpow_le.
 unfold Prec_gt_0 in prec_gt_0_; omega.
@@ -201,7 +201,7 @@ rewrite cexp_FLT_FLX.
 rewrite cexp_FLT_FLX; trivial.
 unfold cexp, FLX_exp.
 replace 2 with (bpow 1) by reflexivity.
-rewrite Rmult_comm, ln_beta_mult_bpow.
+rewrite Rmult_comm, mag_mult_bpow.
 omega.
 intros H; contradict Hu.
 apply Rlt_not_le; rewrite H, Rabs_R0.
@@ -290,48 +290,48 @@ omega.
 apply Rlt_le_trans with (2:=H1).
 apply bpow_lt.
 unfold Prec_gt_0 in prec_gt_0_; omega.
-assert (M:(prec + emin +1 <= ln_beta radix2 f)%Z).
-apply ln_beta_ge_bpow.
+assert (M:(prec + emin +1 <= mag radix2 f)%Z).
+apply mag_ge_bpow.
 replace (prec+emin+1-1)%Z with (prec+emin)%Z by ring.
 rewrite Rabs_right; try assumption.
 apply Rle_ge; now left.
 assert (T1:(ulp_flt (pred_flt f) = ulp_flt f) 
      \/ ( ulp_flt (pred_flt f) = /2* ulp_flt f 
-               /\ f = bpow (ln_beta radix2 f -1))).
+               /\ f = bpow (mag radix2 f -1))).
 generalize H; rewrite pred_eq_pos; [idtac|now left].
 unfold pred_pos; case Req_bool_spec; intros K HH.
 (**)
 right; split; try assumption.
 rewrite ulp_neq_0;[idtac|now apply Rgt_not_eq].
-apply trans_eq with (bpow (ln_beta radix2 f- prec -1)).
+apply trans_eq with (bpow (mag radix2 f- prec -1)).
 apply f_equal.
 unfold cexp.
-apply trans_eq with (FLT_exp emin prec (ln_beta radix2 f -1)%Z).
+apply trans_eq with (FLT_exp emin prec (mag radix2 f -1)%Z).
 apply f_equal.
 unfold FLT_exp.
 rewrite Z.max_l.
 2: omega.
-apply ln_beta_unique.
+apply mag_unique.
 rewrite Rabs_right.
 split.
-apply Rplus_le_reg_l with (bpow (ln_beta radix2 f -1-prec)).
+apply Rplus_le_reg_l with (bpow (mag radix2 f -1-prec)).
 ring_simplify.
-apply Rle_trans with (bpow (ln_beta radix2 f - 1 - 1) + bpow (ln_beta radix2 f - 1 - 1)).
+apply Rle_trans with (bpow (mag radix2 f - 1 - 1) + bpow (mag radix2 f - 1 - 1)).
 apply Rplus_le_compat_r.
 apply bpow_le.
 unfold Prec_gt_0 in prec_gt_0_; omega.
-apply Rle_trans with (bpow 1*bpow (ln_beta radix2 f - 1 - 1)).
+apply Rle_trans with (bpow 1*bpow (mag radix2 f - 1 - 1)).
 simpl; right; ring.
 rewrite <- bpow_plus.
-apply Rle_trans with (bpow (ln_beta radix2 f -1)).
+apply Rle_trans with (bpow (mag radix2 f -1)).
 apply bpow_le; omega.
 rewrite <- K; now right.
 rewrite <- K.
-apply Rplus_lt_reg_l with (-f+bpow (ln_beta radix2 f-1-prec)); ring_simplify.
+apply Rplus_lt_reg_l with (-f+bpow (mag radix2 f-1-prec)); ring_simplify.
 apply bpow_gt_0.
 apply Rle_ge.
 rewrite K at 1.
-apply Rplus_le_reg_l with (bpow (ln_beta radix2 f - 1 - prec)).
+apply Rplus_le_reg_l with (bpow (mag radix2 f - 1 - prec)).
 ring_simplify.
 apply bpow_le.
 unfold Prec_gt_0 in prec_gt_0_; omega.
@@ -345,8 +345,8 @@ unfold cexp, FLT_exp.
 rewrite Z.max_l;[ring|omega].
 (**)
 left.
-assert (bpow (ln_beta radix2 f -1) < f).
-destruct (ln_beta radix2 f); simpl in *.
+assert (bpow (mag radix2 f -1) < f).
+destruct (mag radix2 f); simpl in *.
 destruct a.
 now apply Rgt_not_eq.
 rewrite Rabs_right in H0.
@@ -354,7 +354,7 @@ destruct H0; try assumption.
 contradict H0.
 now apply sym_not_eq.
 apply Rle_ge; now left.
-assert (bpow (ln_beta radix2 f -1) + ulp_flt (bpow (ln_beta radix2 f-1)) <= f).
+assert (bpow (mag radix2 f -1) + ulp_flt (bpow (mag radix2 f-1)) <= f).
 rewrite <- succ_eq_pos;[idtac|apply bpow_ge_0].
 apply succ_le_lt...
 apply FLT_format_bpow...
@@ -363,26 +363,26 @@ rewrite ulp_bpow in H4.
 unfold FLT_exp in H4.
 rewrite Z.max_l in H4.
 2: omega.
-replace (ln_beta radix2 f - 1 + 1 - prec)%Z with  (ln_beta radix2 f - prec)%Z in H4 by ring.
+replace (mag radix2 f - 1 + 1 - prec)%Z with  (mag radix2 f - prec)%Z in H4 by ring.
 rewrite ulp_neq_0; try now apply Rgt_not_eq.
 rewrite ulp_neq_0 at 2; try now apply Rgt_not_eq.
 unfold cexp.
 apply f_equal; apply f_equal.
-replace (ulp_flt f) with (bpow (ln_beta radix2 f -prec)).
-apply ln_beta_unique.
+replace (ulp_flt f) with (bpow (mag radix2 f -prec)).
+apply mag_unique.
 rewrite Rabs_right.
 split.
-apply Rplus_le_reg_l with (bpow (ln_beta radix2 f -prec)).
+apply Rplus_le_reg_l with (bpow (mag radix2 f -prec)).
 ring_simplify.
 apply Rle_trans with (2:=H4); right; ring.
 apply Rlt_trans with f.
-apply Rplus_lt_reg_l with (-f+bpow (ln_beta radix2 f - prec)).
+apply Rplus_lt_reg_l with (-f+bpow (mag radix2 f - prec)).
 ring_simplify.
 apply bpow_gt_0.
 apply Rle_lt_trans with (1:=RRle_abs _).
-apply bpow_ln_beta_gt.
+apply bpow_mag_gt.
 apply Rle_ge.
-apply Rplus_le_reg_l with (bpow (ln_beta radix2 f - prec)).
+apply Rplus_le_reg_l with (bpow (mag radix2 f - prec)).
 ring_simplify.
 left; apply Rle_lt_trans with (2:=H0).
 apply bpow_le.
@@ -395,7 +395,7 @@ omega.
 assert (T: (ulp_flt (pred_flt f) = ulp_flt f \/ 
               (ulp_flt (pred_flt f) = / 2 * ulp_flt f /\ - h < / 4 * ulp_flt f))
          \/ (ulp_flt (pred_flt f) = / 2 * ulp_flt f /\
-              f = bpow (ln_beta radix2 f - 1) /\
+              f = bpow (mag radix2 f - 1) /\
               - h = / 4 * ulp_flt f) ).
 destruct T1.
 left; now left.
@@ -470,7 +470,7 @@ rewrite Y1.
 right; field.
 (* complex case: even choosing *)
 elim H0; intros  T1 (T2,T3); clear H0.
-assert (pred_flt f = bpow (ln_beta radix2 f - 1) - bpow (ln_beta radix2 f - 1 -prec)).
+assert (pred_flt f = bpow (mag radix2 f - 1) - bpow (mag radix2 f - 1 -prec)).
 rewrite pred_eq_pos; try now left.
 unfold pred_pos; case Req_bool_spec.
 intros _; rewrite <- T2.
@@ -503,7 +503,7 @@ apply ulp_ge_0.
 fourier.
 rewrite T1, H0, <- T2.
 replace h with (--h) by ring; rewrite T3.
-replace (bpow (ln_beta radix2 f - 1 - prec)) with (/2*ulp_flt f).
+replace (bpow (mag radix2 f - 1 - prec)) with (/2*ulp_flt f).
 field.
 replace (/2) with (bpow (-1)) by reflexivity.
 rewrite T2 at 1.
@@ -799,8 +799,8 @@ replace (/4) with (bpow (-2)) by reflexivity.
 rewrite <- bpow_plus.
 apply bpow_le.
 unfold cexp, FLT_exp.
-assert (emin+prec+prec+1 -1 < ln_beta radix2 (x/2))%Z.
-destruct (ln_beta radix2 (x/2)) as (e,He).
+assert (emin+prec+prec+1 -1 < mag radix2 (x/2))%Z.
+destruct (mag radix2 (x/2)) as (e,He).
 simpl.
 apply lt_bpow with radix2.
 apply Rle_lt_trans with (Rabs (x/2)).
@@ -1019,7 +1019,7 @@ omega.
 now left.
 replace (bpow emin /2) with (bpow (emin-1)).
 unfold round, scaled_mantissa, cexp, FLT_exp.
-rewrite ln_beta_bpow.
+rewrite mag_bpow.
 replace (emin - 1 + 1 - prec)%Z with (emin-prec)%Z by ring.
 rewrite Z.max_r.
 2: unfold Prec_gt_0 in prec_gt_0_; omega.
@@ -1516,9 +1516,9 @@ replace 2 with (bpow 1) by reflexivity.
 rewrite <- bpow_plus.
 apply bpow_le.
 unfold cexp, FLT_exp.
-rewrite Rmult_comm, ln_beta_mult_bpow; trivial.
+rewrite Rmult_comm, mag_mult_bpow; trivial.
 rewrite <- Z.add_max_distr_l.
-replace (ln_beta radix2 b + 1 - prec)%Z with (1 + (ln_beta radix2 b - prec))%Z by ring.
+replace (mag radix2 b + 1 - prec)%Z with (1 + (mag radix2 b - prec))%Z by ring.
 apply Z.max_le_compat_l.
 omega.
 (* . splitting case of av=0 *)

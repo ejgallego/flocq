@@ -58,11 +58,11 @@ rewrite H1.
 apply generic_format_F2R.
 intros Zmx.
 unfold cexp, FLT_exp.
-rewrite ln_beta_F2R with (1 := Zmx).
+rewrite mag_F2R with (1 := Zmx).
 apply Zmax_lub with (2 := H3).
 apply Zplus_le_reg_r with (prec - ex)%Z.
 ring_simplify.
-now apply ln_beta_le_Zpower.
+now apply mag_le_Zpower.
 Qed.
 
 Theorem FLT_format_generic :
@@ -87,7 +87,7 @@ destruct (Req_dec x 0) as [Hx0|Hx0].
 rewrite Hx0, Rabs_R0.
 apply bpow_gt_0.
 unfold cexp in ex.
-destruct (ln_beta beta x) as (ex', He).
+destruct (mag beta x) as (ex', He).
 simpl in ex.
 specialize (He Hx0).
 apply Rlt_le_trans with (1 := proj2 He).
@@ -132,7 +132,7 @@ intros H1; rewrite H1, Rabs_R0 in Hx.
 contradict Hx; apply Rlt_not_le, bpow_gt_0.
 unfold cexp.
 apply Zmax_left.
-destruct (ln_beta beta x) as (ex, He).
+destruct (mag beta x) as (ex, He).
 unfold FLX_exp. simpl.
 specialize (He Hx0).
 cut (emin + prec - 1 < ex)%Z. omega.
@@ -189,7 +189,7 @@ intros x Hx0 Hx.
 unfold cexp.
 apply Zmax_right.
 unfold FIX_exp.
-destruct (ln_beta beta x) as (ex, Hex).
+destruct (mag beta x) as (ex, Hex).
 simpl.
 cut (ex - 1 < emin + prec)%Z. omega.
 apply (lt_bpow beta).
@@ -244,8 +244,8 @@ omega.
 (* x <> 0 *)
 apply f_equal; unfold cexp, FLT_exp.
 apply Z.max_r.
-assert (ln_beta beta x-1 < emin+prec)%Z;[idtac|omega].
-destruct (ln_beta beta x) as (e,He); simpl.
+assert (mag beta x-1 < emin+prec)%Z;[idtac|omega].
+destruct (mag beta x) as (e,He); simpl.
 apply lt_bpow with beta.
 apply Rle_lt_trans with (2:=Hx).
 now apply He.
@@ -261,7 +261,7 @@ assert (Zx : (x <> 0)%R).
   rewrite Z, Rabs_R0; apply bpow_gt_0.
 rewrite ulp_neq_0 with (1 := Zx).
 unfold cexp, FLT_exp.
-destruct (ln_beta beta x) as (e,He).
+destruct (mag beta x) as (e,He).
 apply Rle_trans with (bpow (e-1)*bpow (1-prec))%R.
 rewrite <- bpow_plus.
 right; apply f_equal.
@@ -284,10 +284,10 @@ rewrite Hx, ulp_FLT_small, Rabs_R0, Rmult_0_l; try apply bpow_gt_0.
 rewrite Rabs_R0; apply bpow_gt_0.
 rewrite ulp_neq_0; try exact Hx.
 unfold cexp, FLT_exp.
-apply Rlt_le_trans with (bpow (ln_beta beta x)*bpow (-prec))%R.
+apply Rlt_le_trans with (bpow (mag beta x)*bpow (-prec))%R.
 apply Rmult_lt_compat_r.
 apply bpow_gt_0.
-now apply bpow_ln_beta_gt.
+now apply bpow_mag_gt.
 rewrite <- bpow_plus.
 apply bpow_le.
 apply Z.le_max_l.

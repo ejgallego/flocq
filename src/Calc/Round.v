@@ -595,7 +595,7 @@ unfold truncate_aux.
 apply generic_format_F2R.
 intros Hd.
 unfold cexp.
-rewrite ln_beta_F2R_Zdigits with (1 := Hd).
+rewrite mag_F2R_Zdigits with (1 := Hd).
 rewrite Zdigits_div_Zpower with (1 := Hm).
 replace (Zdigits beta m - k + (e + k))%Z with (Zdigits beta m + e)%Z by ring.
 unfold k.
@@ -615,7 +615,7 @@ now apply Zgt_lt.
 destruct (Zle_lt_or_eq _ _ Hm) as [Hm'|Hm'].
 apply generic_format_F2R.
 unfold cexp.
-rewrite ln_beta_F2R_Zdigits.
+rewrite mag_F2R_Zdigits.
 2: now apply Zgt_not_eq.
 unfold k in Hk. clear -Hk.
 omega.
@@ -635,7 +635,7 @@ Proof.
 intros m e Hm x Fx He.
 assert (Hc: cexp beta fexp x = fexp (Zdigits beta m + e)).
 unfold cexp, x.
-now rewrite ln_beta_F2R_Zdigits.
+now rewrite mag_F2R_Zdigits.
 unfold truncate.
 rewrite <- Hc.
 set (k := (cexp beta fexp x - e)%Z).
@@ -698,17 +698,17 @@ assert (He: (e + k = cexp beta fexp x)%Z).
 unfold cexp.
 destruct (Zle_lt_or_eq _ _ Hm) as [Hm'|Hm'].
 (* .. 0 < m *)
-rewrite ln_beta_F2R_bounds with (1 := Hm') (2 := Hx').
+rewrite mag_F2R_bounds with (1 := Hm') (2 := Hx').
 assert (H: m <> Z0).
 apply sym_not_eq.
 now apply Zlt_not_eq.
-rewrite ln_beta_F2R with (1 := H).
-rewrite <- Zdigits_ln_beta with (1 := H).
+rewrite mag_F2R with (1 := H).
+rewrite <- Zdigits_mag with (1 := H).
 unfold k.
 ring.
 (* .. m = 0 *)
 rewrite <- Hm' in H2.
-destruct (ln_beta beta x) as (ex, Hex).
+destruct (mag beta x) as (ex, Hex).
 simpl.
 specialize (Hex (Rgt_not_eq _ _ Hx)).
 unfold k.
@@ -781,7 +781,7 @@ rewrite H.
 apply generic_format_F2R.
 intros Zm.
 unfold cexp.
-rewrite ln_beta_F2R_Zdigits with (1 := Zm).
+rewrite mag_F2R_Zdigits with (1 := Zm).
 now apply Zlt_le_weak.
 (* x = 0 *)
 assert (Hm: m = Z0).

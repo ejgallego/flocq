@@ -377,7 +377,7 @@ now apply Zlt_gt.
 apply bounded_canonical_lt_emax ; try assumption.
 unfold canonical, cexp.
 fold emin.
-rewrite ln_beta_F2R_Zdigits. 2: discriminate.
+rewrite mag_F2R_Zdigits. 2: discriminate.
 unfold Fexp, FLT_exp.
 apply sym_eq.
 apply Zmax_right.
@@ -385,9 +385,9 @@ clear -H Hprec.
 unfold prec ; omega.
 apply Rnot_le_lt.
 intros H0.
-refine (_ (ln_beta_le radix2 _ _ _ H0)).
-rewrite ln_beta_bpow.
-rewrite ln_beta_F2R_Zdigits. 2: discriminate.
+refine (_ (mag_le radix2 _ _ _ H0)).
+rewrite mag_bpow.
+rewrite mag_F2R_Zdigits. 2: discriminate.
 unfold emin, prec.
 apply Zlt_not_le.
 cut (0 < emax)%Z. clear -H Hew ; omega.
@@ -409,9 +409,9 @@ case_eq (x mod 2^mw + 2^mw)%Z ; try easy.
 intros px Hm.
 assert (prec = Zdigits radix2 (Zpos px)).
 (* . *)
-rewrite Zdigits_ln_beta. 2: discriminate.
+rewrite Zdigits_mag. 2: discriminate.
 apply sym_eq.
-apply ln_beta_unique.
+apply mag_unique.
 rewrite <- Z2R_abs.
 unfold Zabs.
 replace (prec - 1)%Z with mw by ( unfold prec ; ring ).
@@ -434,7 +434,7 @@ now apply Zlt_gt.
 (* . *)
 apply bounded_canonical_lt_emax ; try assumption.
 unfold canonical, cexp.
-rewrite ln_beta_F2R_Zdigits. 2: discriminate.
+rewrite mag_F2R_Zdigits. 2: discriminate.
 unfold Fexp, FLT_exp.
 rewrite <- H.
 set (ex := ((x / 2^mw) mod 2^ew)%Z).
@@ -452,9 +452,9 @@ apply (Zpower_gt_0 radix2).
 now apply Zlt_le_weak.
 apply Rnot_le_lt.
 intros H0.
-refine (_ (ln_beta_le radix2 _ _ _ H0)).
-rewrite ln_beta_bpow.
-rewrite ln_beta_F2R_Zdigits. 2: discriminate.
+refine (_ (mag_le radix2 _ _ _ H0)).
+rewrite mag_bpow.
+rewrite mag_F2R_Zdigits. 2: discriminate.
 rewrite <- H.
 apply Zlt_not_le.
 unfold emin.

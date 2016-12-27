@@ -47,7 +47,7 @@ rewrite F2R_plus, <- Hx, <- Hy.
 unfold cexp.
 apply Zle_trans with (1:=Hfexp _).
 apply Zplus_le_reg_l with prec; ring_simplify.
-apply ln_beta_le_bpow with (1 := H).
+apply mag_le_bpow with (1 := H).
 now apply Zmin_case.
 rewrite <- Fexp_Fplus, Hz.
 apply Zle_refl.
@@ -101,7 +101,7 @@ clear ; omega.
 rewrite Rmult_1_r.
 rewrite Hx2, <- Hx1.
 unfold cexp.
-destruct (ln_beta beta x) as (ex, Hex).
+destruct (mag beta x) as (ex, Hex).
 simpl.
 specialize (Hex Zx).
 apply Rlt_le.
@@ -134,8 +134,8 @@ rewrite bpow_plus.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 rewrite Hy2, <- Hy1 ; unfold cexp, FLX_exp.
-ring_simplify (prec + (ln_beta beta y - prec))%Z.
-destruct (ln_beta beta y); simpl.
+ring_simplify (prec + (mag beta y - prec))%Z.
+destruct (mag beta y); simpl.
 left; now apply a.
 Qed.
 
@@ -218,8 +218,8 @@ now apply (Z2R_le 25 32).
 apply Rgt_not_eq.
 now apply (Z2R_lt 0 16).
 rewrite Hx2, <- Hx1; unfold cexp, FLX_exp.
-ring_simplify (prec + (ln_beta beta x - prec))%Z.
-destruct (ln_beta beta x); simpl.
+ring_simplify (prec + (mag beta x - prec))%Z.
+destruct (mag beta x); simpl.
 rewrite <- (Rabs_right x).
 apply a.
 now apply Rgt_not_eq.
@@ -256,8 +256,8 @@ apply Rle_lt_trans with (1:=Rabs_triang _ _).
 assert (Rabs (F2R fr) < bpow (prec + Fexp fr))%R.
 rewrite Hr2.
 unfold cexp, FLX_exp.
-ring_simplify (prec + (ln_beta beta (F2R fr) - prec))%Z.
-destruct (ln_beta beta (F2R fr)); simpl.
+ring_simplify (prec + (mag beta (F2R fr) - prec))%Z.
+destruct (mag beta (F2R fr)); simpl.
 apply a.
 rewrite <- Hr1; auto.
 (* . *)
@@ -269,7 +269,7 @@ apply Rplus_le_compat_l.
 assert (sqrt x <> 0)%R.
 apply Rgt_not_eq.
 now apply sqrt_lt_R0.
-destruct (ln_beta beta (sqrt x)) as (es,Es).
+destruct (mag beta (sqrt x)) as (es,Es).
 specialize (Es H0).
 apply Rle_trans with (bpow es).
 now apply Rlt_le.

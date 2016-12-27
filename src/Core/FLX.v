@@ -81,12 +81,12 @@ rewrite scaled_mantissa_mult_bpow.
 rewrite Z2R_Zpower, <- bpow_plus.
 2: now apply Zlt_le_weak.
 unfold cexp, FLX_exp.
-ring_simplify (prec + (ln_beta beta (Rabs x) - prec))%Z.
-rewrite ln_beta_abs.
+ring_simplify (prec + (mag beta (Rabs x) - prec))%Z.
+rewrite mag_abs.
 destruct (Req_dec x 0) as [Hx|Hx].
 rewrite Hx, Rabs_R0.
 apply bpow_gt_0.
-destruct (ln_beta beta x) as (ex, Ex).
+destruct (mag beta x) as (ex, Ex).
 now apply Ex.
 Qed.
 
@@ -100,10 +100,10 @@ rewrite H1.
 apply generic_format_F2R.
 intros Zmx.
 unfold cexp, FLX_exp.
-rewrite ln_beta_F2R with (1 := Zmx).
+rewrite mag_F2R with (1 := Zmx).
 apply Zplus_le_reg_r with (prec - ex)%Z.
 ring_simplify.
-now apply ln_beta_le_Zpower.
+now apply mag_le_Zpower.
 Qed.
 
 Theorem FLX_format_satisfies_any :
@@ -174,9 +174,9 @@ rewrite <- scaled_mantissa_abs.
 rewrite <- cexp_abs.
 rewrite scaled_mantissa_mult_bpow.
 unfold cexp, FLX_exp.
-rewrite ln_beta_abs.
-ring_simplify (prec - 1 + (ln_beta beta x - prec))%Z.
-destruct (ln_beta beta x) as (ex,Ex).
+rewrite mag_abs.
+ring_simplify (prec - 1 + (mag beta x - prec))%Z.
+destruct (mag beta x) as (ex,Ex).
 now apply Ex.
 (* *)
 apply lt_Z2R.
@@ -190,9 +190,9 @@ rewrite <- scaled_mantissa_abs.
 rewrite <- cexp_abs.
 rewrite scaled_mantissa_mult_bpow.
 unfold cexp, FLX_exp.
-rewrite ln_beta_abs.
-ring_simplify (prec + (ln_beta beta x - prec))%Z.
-destruct (ln_beta beta x) as (ex,Ex).
+rewrite mag_abs.
+ring_simplify (prec + (mag beta x - prec))%Z.
+destruct (mag beta x) as (ex,Ex).
 now apply Ex.
 Qed.
 
@@ -222,11 +222,11 @@ rewrite Hx, ulp_FLX_0, Rabs_R0.
 right; ring.
 rewrite ulp_neq_0; try exact Hx.
 unfold cexp, FLX_exp.
-replace (ln_beta beta x - prec)%Z with ((ln_beta beta x - 1) + (1-prec))%Z by ring.
+replace (mag beta x - prec)%Z with ((mag beta x - 1) + (1-prec))%Z by ring.
 rewrite bpow_plus.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-now apply bpow_ln_beta_le.
+now apply bpow_mag_le.
 Qed.
 
 Theorem ulp_FLX_ge :
@@ -240,7 +240,7 @@ unfold cexp, FLX_exp.
 unfold Zminus; rewrite bpow_plus.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-left; now apply bpow_ln_beta_gt.
+left; now apply bpow_mag_gt.
 Qed.
 
 (** FLX is a nice format: it has a monotone exponent... *)

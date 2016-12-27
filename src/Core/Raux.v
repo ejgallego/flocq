@@ -1669,14 +1669,14 @@ rewrite <- Ropp_mult_distr_l_reverse.
 now rewrite <- Z2R_opp.
 Qed.
 
-(** Another well-used function for having the logarithm of a real number x to the base #&beta;# *)
-Record ln_beta_prop x := {
-  ln_beta_val :> Z ;
-  _ : (x <> 0)%R -> (bpow (ln_beta_val - 1)%Z <= Rabs x < bpow ln_beta_val)%R
+(** Another well-used function for having the magnitude of a real number x to the base #&beta;# *)
+Record mag_prop x := {
+  mag_val :> Z ;
+  _ : (x <> 0)%R -> (bpow (mag_val - 1)%Z <= Rabs x < bpow mag_val)%R
 }.
 
-Definition ln_beta :
-  forall x : R, ln_beta_prop x.
+Definition mag :
+  forall x : R, mag_prop x.
 Proof.
 intros x.
 set (fact := ln (Z2R r)).
@@ -1744,55 +1744,55 @@ apply Zle_antisym ;
   assumption.
 Qed.
 
-Theorem ln_beta_unique :
+Theorem mag_unique :
   forall (x : R) (e : Z),
   (bpow (e - 1) <= Rabs x < bpow e)%R ->
-  ln_beta x = e :> Z.
+  mag x = e :> Z.
 Proof.
 intros x e1 He.
 destruct (Req_dec x 0) as [Hx|Hx].
 elim Rle_not_lt with (1 := proj1 He).
 rewrite Hx, Rabs_R0.
 apply bpow_gt_0.
-destruct (ln_beta x) as (e2, Hx2).
+destruct (mag x) as (e2, Hx2).
 simpl.
 apply bpow_unique with (2 := He).
 now apply Hx2.
 Qed.
 
-Theorem ln_beta_opp :
+Theorem mag_opp :
   forall x,
-  ln_beta (-x) = ln_beta x :> Z.
+  mag (-x) = mag x :> Z.
 Proof.
 intros x.
 destruct (Req_dec x 0) as [Hx|Hx].
 now rewrite Hx, Ropp_0.
-destruct (ln_beta x) as (e, He).
+destruct (mag x) as (e, He).
 simpl.
 specialize (He Hx).
-apply ln_beta_unique.
+apply mag_unique.
 now rewrite Rabs_Ropp.
 Qed.
 
-Theorem ln_beta_abs :
+Theorem mag_abs :
   forall x,
-  ln_beta (Rabs x) = ln_beta x :> Z.
+  mag (Rabs x) = mag x :> Z.
 Proof.
 intros x.
 unfold Rabs.
 case Rcase_abs ; intros _.
-apply ln_beta_opp.
+apply mag_opp.
 apply refl_equal.
 Qed.
 
-Theorem ln_beta_unique_pos :
+Theorem mag_unique_pos :
   forall (x : R) (e : Z),
   (bpow (e - 1) <= x < bpow e)%R ->
-  ln_beta x = e :> Z.
+  mag x = e :> Z.
 Proof.
 intros x e1 He1.
-rewrite <- ln_beta_abs.
-apply ln_beta_unique.
+rewrite <- mag_abs.
+apply mag_unique.
 rewrite 2!Rabs_pos_eq.
 exact He1.
 apply Rle_trans with (2 := proj1 He1).
@@ -1800,14 +1800,14 @@ apply bpow_ge_0.
 apply Rabs_pos.
 Qed.
 
-Theorem ln_beta_le_abs :
+Theorem mag_le_abs :
   forall x y,
   (x <> 0)%R -> (Rabs x <= Rabs y)%R ->
-  (ln_beta x <= ln_beta y)%Z.
+  (mag x <= mag y)%Z.
 Proof.
 intros x y H0x Hxy.
-destruct (ln_beta x) as (ex, Hx).
-destruct (ln_beta y) as (ey, Hy).
+destruct (mag x) as (ex, Hx).
+destruct (mag y) as (ey, Hy).
 simpl.
 apply bpow_lt_bpow.
 specialize (Hx H0x).
@@ -1821,13 +1821,13 @@ rewrite Hy', Rabs_R0.
 apply Rle_refl.
 Qed.
 
-Theorem ln_beta_le :
+Theorem mag_le :
   forall x y,
   (0 < x)%R -> (x <= y)%R ->
-  (ln_beta x <= ln_beta y)%Z.
+  (mag x <= mag y)%Z.
 Proof.
 intros x y H0x Hxy.
-apply ln_beta_le_abs.
+apply mag_le_abs.
 now apply Rgt_not_eq.
 rewrite 2!Rabs_pos_eq.
 exact Hxy.
@@ -1836,17 +1836,17 @@ now apply Rlt_le.
 now apply Rlt_le.
 Qed.
 
-Lemma ln_beta_lt_pos :
+Lemma mag_lt_pos :
   forall x y,
   (0 < y)%R ->
-  (ln_beta x < ln_beta y)%Z -> (x < y)%R.
+  (mag x < mag y)%Z -> (x < y)%R.
 Proof.
 intros x y Py.
 case (Rle_or_lt x 0); intros Px.
 intros H.
 now apply Rle_lt_trans with 0%R.
-destruct (ln_beta x) as (ex, Hex).
-destruct (ln_beta y) as (ey, Hey).
+destruct (mag x) as (ex, Hex).
+destruct (mag y) as (ey, Hey).
 simpl.
 intro H.
 destruct Hex as (_,Hex); [now apply Rgt_not_eq|].
@@ -1858,11 +1858,11 @@ apply Rle_trans with (bpow (ey - 1)); [|exact Hey].
 now apply bpow_le; omega.
 Qed.
 
-Theorem ln_beta_bpow :
-  forall e, (ln_beta (bpow e) = e + 1 :> Z)%Z.
+Theorem mag_bpow :
+  forall e, (mag (bpow e) = e + 1 :> Z)%Z.
 Proof.
 intros e.
-apply ln_beta_unique.
+apply mag_unique.
 rewrite Rabs_right.
 replace (e + 1 - 1)%Z with e by ring.
 split.
@@ -1873,14 +1873,14 @@ apply Rle_ge.
 apply bpow_ge_0.
 Qed.
 
-Theorem ln_beta_mult_bpow :
+Theorem mag_mult_bpow :
   forall x e, x <> R0 ->
-  (ln_beta (x * bpow e) = ln_beta x + e :>Z)%Z.
+  (mag (x * bpow e) = mag x + e :>Z)%Z.
 Proof.
 intros x e Zx.
-destruct (ln_beta x) as (ex, Ex) ; simpl.
+destruct (mag x) as (ex, Ex) ; simpl.
 specialize (Ex Zx).
-apply ln_beta_unique.
+apply mag_unique.
 rewrite Rabs_mult.
 rewrite (Rabs_pos_eq (bpow e)) by apply bpow_ge_0.
 split.
@@ -1895,26 +1895,26 @@ apply bpow_gt_0.
 apply Ex.
 Qed.
 
-Theorem ln_beta_le_bpow :
+Theorem mag_le_bpow :
   forall x e,
   x <> R0 ->
   (Rabs x < bpow e)%R ->
-  (ln_beta x <= e)%Z.
+  (mag x <= e)%Z.
 Proof.
 intros x e Zx Hx.
-destruct (ln_beta x) as (ex, Ex) ; simpl.
+destruct (mag x) as (ex, Ex) ; simpl.
 specialize (Ex Zx).
 apply bpow_lt_bpow.
 now apply Rle_lt_trans with (Rabs x).
 Qed.
 
-Theorem ln_beta_gt_bpow :
+Theorem mag_gt_bpow :
   forall x e,
   (bpow e <= Rabs x)%R ->
-  (e < ln_beta x)%Z.
+  (e < mag x)%Z.
 Proof.
 intros x e Hx.
-destruct (ln_beta x) as (ex, Ex) ; simpl.
+destruct (mag x) as (ex, Ex) ; simpl.
 apply lt_bpow.
 apply Rle_lt_trans with (1 := Hx).
 apply Ex.
@@ -1924,53 +1924,53 @@ rewrite Zx, Rabs_R0.
 apply bpow_gt_0.
 Qed.
 
-Theorem ln_beta_ge_bpow :
+Theorem mag_ge_bpow :
   forall x e,
   (bpow (e - 1) <= Rabs x)%R ->
-  (e <= ln_beta x)%Z.
+  (e <= mag x)%Z.
 Proof.
 intros x e H.
 destruct (Rlt_or_le (Rabs x) (bpow e)) as [Hxe|Hxe].
 - (* Rabs x w bpow e *)
-  assert (ln_beta x = e :> Z) as Hln.
-  now apply ln_beta_unique; split.
+  assert (mag x = e :> Z) as Hln.
+  now apply mag_unique; split.
   rewrite Hln.
   now apply Z.le_refl.
 - (* bpow e <= Rabs x *)
   apply Zlt_le_weak.
-  now apply ln_beta_gt_bpow.
+  now apply mag_gt_bpow.
 Qed.
 
-Theorem bpow_ln_beta_gt :
+Theorem bpow_mag_gt :
   forall x,
-  (Rabs x < bpow (ln_beta x))%R.
+  (Rabs x < bpow (mag x))%R.
 Proof.
 intros x.
 destruct (Req_dec x 0) as [Zx|Zx].
 rewrite Zx, Rabs_R0.
 apply bpow_gt_0.
-destruct (ln_beta x) as (ex, Ex) ; simpl.
+destruct (mag x) as (ex, Ex) ; simpl.
 now apply Ex.
 Qed.
 
-Theorem bpow_ln_beta_le :
+Theorem bpow_mag_le :
   forall x, (x <> 0)%R ->
-    (bpow (ln_beta x-1) <= Rabs x)%R.
+    (bpow (mag x-1) <= Rabs x)%R.
 Proof.
 intros x Hx.
-destruct (ln_beta x) as (ex, Ex) ; simpl.
+destruct (mag x) as (ex, Ex) ; simpl.
 now apply Ex.
 Qed.
 
 
-Theorem ln_beta_le_Zpower :
+Theorem mag_le_Zpower :
   forall m e,
   m <> Z0 ->
   (Zabs m < Zpower r e)%Z->
-  (ln_beta (Z2R m) <= e)%Z.
+  (mag (Z2R m) <= e)%Z.
 Proof.
 intros m e Zm Hm.
-apply ln_beta_le_bpow.
+apply mag_le_bpow.
 exact (Z2R_neq m 0 Zm).
 destruct (Zle_or_lt 0 e).
 rewrite <- Z2R_abs, <- Z2R_Zpower with (1 := H).
@@ -1982,14 +1982,14 @@ clear -Hm H.
 now destruct e.
 Qed.
 
-Theorem ln_beta_gt_Zpower :
+Theorem mag_gt_Zpower :
   forall m e,
   m <> Z0 ->
   (Zpower r e <= Zabs m)%Z ->
-  (e < ln_beta (Z2R m))%Z.
+  (e < mag (Z2R m))%Z.
 Proof.
 intros m e Zm Hm.
-apply ln_beta_gt_bpow.
+apply mag_gt_bpow.
 rewrite <- Z2R_abs.
 destruct (Zle_or_lt 0 e).
 rewrite <- Z2R_Zpower with (1 := H).
@@ -2002,14 +2002,14 @@ clear -Zm.
 zify ; omega.
 Qed.
 
-Lemma ln_beta_mult :
+Lemma mag_mult :
   forall x y,
   (x <> 0)%R -> (y <> 0)%R ->
-  (ln_beta x + ln_beta y - 1 <= ln_beta (x * y) <= ln_beta x + ln_beta y)%Z.
+  (mag x + mag y - 1 <= mag (x * y) <= mag x + mag y)%Z.
 Proof.
 intros x y Hx Hy.
-destruct (ln_beta x) as (ex, Hx2).
-destruct (ln_beta y) as (ey, Hy2).
+destruct (mag x) as (ex, Hx2).
+destruct (mag y) as (ey, Hy2).
 simpl.
 destruct (Hx2 Hx) as (Hx21,Hx22); clear Hx2.
 destruct (Hy2 Hy) as (Hy21,Hy22); clear Hy2.
@@ -2025,23 +2025,23 @@ assert (Hxy2 : (Rabs (x * y) < bpow (ex + ey))%R).
   now apply Rle_trans with (bpow (ex - 1)); try apply bpow_ge_0.
   now apply Rle_trans with (bpow (ey - 1)); try apply bpow_ge_0. }
 split.
-- now apply ln_beta_ge_bpow.
-- apply ln_beta_le_bpow.
+- now apply mag_ge_bpow.
+- apply mag_le_bpow.
   + now apply Rmult_integral_contrapositive_currified.
   + assumption.
 Qed.
 
-Lemma ln_beta_plus :
+Lemma mag_plus :
   forall x y,
   (0 < y)%R -> (y <= x)%R ->
-  (ln_beta x <= ln_beta (x + y) <= ln_beta x + 1)%Z.
+  (mag x <= mag (x + y) <= mag x + 1)%Z.
 Proof.
 assert (Hr : (2 <= r)%Z).
 { destruct r as (beta_val,beta_prop).
   now apply Zle_bool_imp_le. }
 intros x y Hy Hxy.
 assert (Hx : (0 < x)%R) by apply (Rlt_le_trans _ _ _ Hy Hxy).
-destruct (ln_beta x) as (ex,Hex); simpl.
+destruct (mag x) as (ex,Hex); simpl.
 destruct Hex as (Hex0,Hex1); [now apply Rgt_not_eq|].
 assert (Haxy : (Rabs (x + y) < bpow (ex + 1))%R).
 { rewrite bpow_plus1.
@@ -2068,20 +2068,20 @@ assert (Haxy2 : (bpow (ex - 1) <= Rabs (x + y))%R).
   apply Rplus_le_compat_l.
   now apply Rlt_le. }
 split.
-- now apply ln_beta_ge_bpow.
-- apply ln_beta_le_bpow.
+- now apply mag_ge_bpow.
+- apply mag_le_bpow.
   + now apply tech_Rplus; [apply Rlt_le|].
   + exact Haxy.
 Qed.
 
-Lemma ln_beta_minus :
+Lemma mag_minus :
   forall x y,
   (0 < y)%R -> (y < x)%R ->
-  (ln_beta (x - y) <= ln_beta x)%Z.
+  (mag (x - y) <= mag x)%Z.
 Proof.
 intros x y Py Hxy.
 assert (Px : (0 < x)%R) by apply (Rlt_trans _ _ _ Py Hxy).
-apply ln_beta_le.
+apply mag_le.
 - now apply Rlt_Rminus.
 - rewrite <- (Rplus_0_r x) at 2.
   apply Rplus_le_compat_l.
@@ -2089,19 +2089,19 @@ apply ln_beta_le.
   now apply Ropp_le_contravar; apply Rlt_le.
 Qed.
 
-Lemma ln_beta_minus_lb :
+Lemma mag_minus_lb :
   forall x y,
   (0 < x)%R -> (0 < y)%R ->
-  (ln_beta y <= ln_beta x - 2)%Z ->
-  (ln_beta x - 1 <= ln_beta (x - y))%Z.
+  (mag y <= mag x - 2)%Z ->
+  (mag x - 1 <= mag (x - y))%Z.
 Proof.
 assert (Hbeta : (2 <= r)%Z).
 { destruct r as (beta_val,beta_prop).
   now apply Zle_bool_imp_le. }
 intros x y Px Py Hln.
-assert (Oxy : (y < x)%R); [apply ln_beta_lt_pos;[assumption|omega]|].
-destruct (ln_beta x) as (ex,Hex).
-destruct (ln_beta y) as (ey,Hey).
+assert (Oxy : (y < x)%R); [apply mag_lt_pos;[assumption|omega]|].
+destruct (mag x) as (ex,Hex).
+destruct (mag y) as (ey,Hey).
 simpl in Hln |- *.
 destruct Hex as (Hex,_); [now apply Rgt_not_eq|].
 destruct Hey as (_,Hey); [now apply Rgt_not_eq|].
@@ -2123,19 +2123,19 @@ assert (Hbxy : (bpow (ex - 2) <= x - y)%R).
   replace (bpow (ex - 2))%R with (bpow (ex - 2) + bpow (ex - 2)
                                                   - bpow (ex - 2))%R by ring.
   now apply Rplus_le_compat. }
-apply ln_beta_ge_bpow.
+apply mag_ge_bpow.
 replace (ex - 1 - 1)%Z with (ex - 2)%Z by ring.
 now apply Rabs_ge; right.
 Qed.
 
-Lemma ln_beta_div :
+Lemma mag_div :
   forall x y : R,
   (0 < x)%R -> (0 < y)%R ->
-  (ln_beta x - ln_beta y <= ln_beta (x / y) <= ln_beta x - ln_beta y + 1)%Z.
+  (mag x - mag y <= mag (x / y) <= mag x - mag y + 1)%Z.
 Proof.
 intros x y Px Py.
-destruct (ln_beta x) as (ex,Hex).
-destruct (ln_beta y) as (ey,Hey).
+destruct (mag x) as (ex,Hex).
+destruct (mag y) as (ey,Hey).
 simpl.
 unfold Rdiv.
 rewrite Rabs_right in Hex; [|now apply Rle_ge; apply Rlt_le].
@@ -2154,7 +2154,7 @@ assert (Heiy : (bpow (- ey) < / y <= bpow (- ey + 1))%R).
     apply Hey.
     now apply Rgt_not_eq. }
 split.
-- apply ln_beta_ge_bpow.
+- apply mag_ge_bpow.
   apply Rabs_ge; right.
   replace (_ - _)%Z with (ex - 1 - ey)%Z by ring.
   unfold Zminus at 1; rewrite bpow_plus.
@@ -2167,7 +2167,7 @@ split.
 - assert (Pxy : (0 < x * / y)%R).
   { apply Rmult_lt_0_compat; [exact Px|].
     now apply Rinv_0_lt_compat. }
-  apply ln_beta_le_bpow.
+  apply mag_le_bpow.
   + now apply Rgt_not_eq.
   + rewrite Rabs_right; [|now apply Rle_ge; apply Rlt_le].
     replace (_ + 1)%Z with (ex + (- ey + 1))%Z by ring.
@@ -2180,23 +2180,23 @@ split.
       apply Heiy.
 Qed.
 
-Lemma ln_beta_sqrt :
+Lemma mag_sqrt :
   forall x,
   (0 < x)%R ->
-  (2 * ln_beta (sqrt x) - 1 <= ln_beta x <= 2 * ln_beta (sqrt x))%Z.
+  (2 * mag (sqrt x) - 1 <= mag x <= 2 * mag (sqrt x))%Z.
 Proof.
 intros x Px.
-assert (H : (bpow (2 * ln_beta (sqrt x) - 1 - 1) <= Rabs x
-            < bpow (2 * ln_beta (sqrt x)))%R).
+assert (H : (bpow (2 * mag (sqrt x) - 1 - 1) <= Rabs x
+            < bpow (2 * mag (sqrt x)))%R).
 { split.
   - apply Rge_le; rewrite <- (sqrt_def x) at 1;
     [|now apply Rlt_le]; apply Rle_ge.
     rewrite Rabs_mult.
-    replace (_ - _)%Z with (ln_beta (sqrt x) - 1
-                            + (ln_beta (sqrt x) - 1))%Z by ring.
+    replace (_ - _)%Z with (mag (sqrt x) - 1
+                            + (mag (sqrt x) - 1))%Z by ring.
     rewrite bpow_plus.
-    assert (H : (bpow (ln_beta (sqrt x) - 1) <= Rabs (sqrt x))%R).
-    { destruct (ln_beta (sqrt x)) as (esx,Hesx); simpl.
+    assert (H : (bpow (mag (sqrt x) - 1) <= Rabs (sqrt x))%R).
+    { destruct (mag (sqrt x)) as (esx,Hesx); simpl.
       apply Hesx.
       apply Rgt_not_eq; apply Rlt_gt.
       now apply sqrt_lt_R0. }
@@ -2206,15 +2206,15 @@ assert (H : (bpow (2 * ln_beta (sqrt x) - 1 - 1) <= Rabs x
     change 2%Z with (1 + 1)%Z; rewrite Zmult_plus_distr_l;
     rewrite Zmult_1_l.
     rewrite bpow_plus.
-    assert (H : (Rabs (sqrt x) < bpow (ln_beta (sqrt x)))%R).
-    { destruct (ln_beta (sqrt x)) as (esx,Hesx); simpl.
+    assert (H : (Rabs (sqrt x) < bpow (mag (sqrt x)))%R).
+    { destruct (mag (sqrt x)) as (esx,Hesx); simpl.
       apply Hesx.
       apply Rgt_not_eq; apply Rlt_gt.
       now apply sqrt_lt_R0. }
     now apply Rmult_lt_compat; [now apply Rabs_pos|now apply Rabs_pos| |]. }
 split.
-- now apply ln_beta_ge_bpow.
-- now apply ln_beta_le_bpow; [now apply Rgt_not_eq|].
+- now apply mag_ge_bpow.
+- now apply mag_le_bpow; [now apply Rgt_not_eq|].
 Qed.
 
 End pow.

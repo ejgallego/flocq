@@ -132,7 +132,7 @@ destruct (Req_dec x 0) as [Hx0|Hx0].
 rewrite Hx0, Rabs_R0.
 apply bpow_gt_0.
 unfold canonic_exp in ex.
-destruct (ln_beta beta x) as (ex', He).
+destruct (mag beta x) as (ex', He).
 simpl in ex.
 specialize (He Hx0).
 apply Rlt_le_trans with (1 := proj2 He).
@@ -196,7 +196,7 @@ unfold FtoR, F2R; simpl.
 rewrite bpow_powerRZ; rewrite <- 2!Z2R_IZR; reflexivity.
 unfold canonic_exp, FLT_exp.
 rewrite K.
-destruct (ln_beta beta (FtoR beta f)) as (e, He).
+destruct (mag beta (FtoR beta f)) as (e, He).
 simpl; destruct Hf1.
 (* . *)
 destruct H as (H1,H2).
@@ -205,10 +205,10 @@ intros V; rewrite V.
 apply sym_eq; apply Zmax_left.
 rewrite <- V; destruct H1; auto with zarith.
 assert (e = Float.Fexp f + p)%Z;[idtac|omega].
-apply trans_eq with (ln_beta beta (FtoR beta f)).
-apply sym_eq; apply ln_beta_unique.
+apply trans_eq with (mag beta (FtoR beta f)).
+apply sym_eq; apply mag_unique.
 apply He; assumption.
-apply ln_beta_unique.
+apply mag_unique.
 rewrite <- K; unfold F2R; simpl.
 rewrite Rabs_mult.
 rewrite (Rabs_right (bpow beta (Float.Fexp f))).

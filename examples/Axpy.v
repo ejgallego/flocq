@@ -38,7 +38,7 @@ Theorem pred_gt_0: forall f,
   format f -> (0 < f)%R -> (0 < pred beta (FLX_exp prec) f)%R.
 intros f Hf Zf.
 unfold pred, Fcore_ulp.ulp, canonic_exp, FLX_exp.
-destruct (ln_beta beta f) as (ef,Hef).
+destruct (mag beta f) as (ef,Hef).
 simpl.
 assert (Zf2: (f <>0)%R) by now apply Rgt_not_eq.
 specialize (Hef Zf2).
@@ -140,7 +140,7 @@ Qed.
 
 Theorem implies_MinOrMax_bpow:
   forall x f, format f ->
-  f = bpow (ln_beta beta f) ->
+  f = bpow (mag beta f) ->
   (Rabs (f-x) < /2* ulp f)%R ->
   MinOrMax x f.
 intros x f Hf1 Hf2 Hxf.

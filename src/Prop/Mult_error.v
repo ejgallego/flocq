@@ -51,16 +51,16 @@ contradict Hz.
 rewrite Hxy0.
 rewrite round_0...
 ring.
-destruct (ln_beta beta (x * y)) as (exy, Hexy).
+destruct (mag beta (x * y)) as (exy, Hexy).
 specialize (Hexy Hxy0).
-destruct (ln_beta beta (f - x * y)) as (er, Her).
+destruct (mag beta (f - x * y)) as (er, Her).
 specialize (Her Hz).
-destruct (ln_beta beta x) as (ex, Hex).
+destruct (mag beta x) as (ex, Hex).
 assert (Hx0: (x <> 0)%R).
 contradict Hxy0.
 now rewrite Hxy0, Rmult_0_l.
 specialize (Hex Hx0).
-destruct (ln_beta beta y) as (ey, Hey).
+destruct (mag beta y) as (ey, Hey).
 assert (Hy0: (y <> 0)%R).
 contradict Hxy0.
 now rewrite Hxy0, Rmult_0_r.
@@ -68,9 +68,9 @@ specialize (Hey Hy0).
 (* *)
 assert (Hc1: (cexp (x * y)%R - prec <= cexp x + cexp y)%Z).
 unfold cexp, FLX_exp.
-rewrite ln_beta_unique with (1 := Hex).
-rewrite ln_beta_unique with (1 := Hey).
-rewrite ln_beta_unique with (1 := Hexy).
+rewrite mag_unique with (1 := Hex).
+rewrite mag_unique with (1 := Hey).
+rewrite mag_unique with (1 := Hexy).
 cut (exy - 1 < ex + ey)%Z. omega.
 apply (lt_bpow beta).
 apply Rle_lt_trans with (1 := proj1 Hexy).
@@ -84,9 +84,9 @@ apply Hey.
 (* *)
 assert (Hc2: (cexp x + cexp y <= cexp (x * y)%R)%Z).
 unfold cexp, FLX_exp.
-rewrite ln_beta_unique with (1 := Hex).
-rewrite ln_beta_unique with (1 := Hey).
-rewrite ln_beta_unique with (1 := Hexy).
+rewrite mag_unique with (1 := Hex).
+rewrite mag_unique with (1 := Hey).
+rewrite mag_unique with (1 := Hexy).
 cut ((ex - 1) + (ey - 1) < exy)%Z.
 generalize (prec_gt_0 prec).
 clear ; omega.
@@ -122,13 +122,13 @@ clear Hr.
 apply Zle_trans with (cexp (x * y)%R - prec)%Z.
 unfold cexp, FLX_exp.
 apply Zplus_le_compat_r.
-rewrite ln_beta_unique with (1 := Hexy).
-apply ln_beta_le_bpow with (1 := Hz).
+rewrite mag_unique with (1 := Hexy).
+apply mag_le_bpow with (1 := Hz).
 replace (bpow (exy - prec)) with (ulp beta (FLX_exp prec) (x * y)).
 apply error_lt_ulp...
 rewrite ulp_neq_0; trivial.
 unfold cexp.
-now rewrite ln_beta_unique with (1 := Hexy).
+now rewrite mag_unique with (1 := Hexy).
 apply Hc1.
 reflexivity.
 Qed.
@@ -201,7 +201,7 @@ apply generic_format_F2R.
 intros _.
 simpl in H2, H3.
 unfold cexp, FLT_exp.
-case (Zmax_spec (ln_beta beta (F2R (Float beta m e)) - prec) emin);
+case (Zmax_spec (mag beta (F2R (Float beta m e)) - prec) emin);
   intros (M1,M2); rewrite M2.
 apply Zle_trans with (2:=H2).
 unfold cexp, FLX_exp.
@@ -220,9 +220,9 @@ now rewrite Hxy0, Rmult_0_l.
 assert (Hy0: (y <> 0)%R).
 contradict Hxy0.
 now rewrite Hxy0, Rmult_0_r.
-destruct (ln_beta beta x) as (ex,Ex) ; simpl.
+destruct (mag beta x) as (ex,Ex) ; simpl.
 specialize (Ex Hx0).
-destruct (ln_beta beta y) as (ey,Ey) ; simpl.
+destruct (mag beta y) as (ey,Ey) ; simpl.
 specialize (Ey Hy0).
 assert (emin + 2 * prec -1 < ex + ey)%Z.
 2: omega.

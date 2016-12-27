@@ -108,7 +108,7 @@ apply generic_format_F2R.
 intros _.
 apply monotone_exp.
 rewrite <- H, <- Hxy', <- Hxy.
-apply ln_beta_le_abs.
+apply mag_le_abs.
 exact H0.
 pattern x at 3 ; replace x with (-(y - (x + y)))%R by ring.
 rewrite Rabs_Ropp.
@@ -157,7 +157,7 @@ Proof with auto with typeclass_instances.
 intros x y He Hx Hy Hp Hxy.
 destruct (Req_dec (x + y) 0) as [H0|H0].
 exact H0.
-destruct (ln_beta beta (x + y)) as (exy, Hexy).
+destruct (mag beta (x + y)) as (exy, Hexy).
 simpl.
 specialize (Hexy H0).
 destruct (Zle_or_lt exy (fexp exy)) as [He'|He'].
@@ -174,7 +174,7 @@ apply generic_format_F2R.
 intros _.
 rewrite <- H.
 unfold cexp.
-rewrite ln_beta_unique with (1 := Hexy).
+rewrite mag_unique with (1 := Hexy).
 apply Zle_refl.
 (* . *)
 elim Rle_not_lt with (1 := round_le beta _ rnd _ _ (proj1 Hexy)).
@@ -291,11 +291,11 @@ rewrite Z2R_Zpower.
 rewrite <- bpow_plus; f_equal; ring.
 Qed.
 
-Lemma ln_beta_minus1: 
-   forall z, (z<>0)%R -> (ln_beta beta z -1 = ln_beta beta (z / Z2R beta))%Z.
+Lemma mag_minus1: 
+   forall z, (z<>0)%R -> (mag beta z -1 = mag beta (z / Z2R beta))%Z.
 Proof with auto with typeclass_instances.
-intros z Hz; apply sym_eq, ln_beta_unique.
-destruct (ln_beta beta z) as (e,He); simpl.
+intros z Hz; apply sym_eq, mag_unique.
+destruct (mag beta z) as (e,He); simpl.
 replace (z / Z2R beta)%R with (z*bpow (-1))%R.
 rewrite Rabs_mult, (Rabs_right (bpow _)); try split.
 apply Rmult_le_reg_r with (bpow 1).
@@ -321,11 +321,11 @@ Lemma rnd_plus_mutiple:
      (round beta fexp rnd (x+y) = Z2R m * ulp beta fexp (x/Z2R beta))%R.
 Proof with auto with typeclass_instances.
 intros x y Fx Fy Zx.
-case (Zle_or_lt (ln_beta beta (x/Z2R beta)) (ln_beta beta y)); intros H1.
+case (Zle_or_lt (mag beta (x/Z2R beta)) (mag beta y)); intros H1.
 pose (e:=cexp (x / Z2R beta)).
 destruct (ex_shift x e) as (nx, Hnx); try exact Fx.
 apply monotone_exp.
-rewrite <- (ln_beta_minus1 x Zx); omega.
+rewrite <- (mag_minus1 x Zx); omega.
 destruct (ex_shift y e) as (ny, Hny); try assumption.
 apply monotone_exp...
 destruct (round_repr_same_exp beta fexp rnd (nx+ny) e) as (n,Hn).
@@ -344,8 +344,8 @@ destruct (ex_shift (round beta fexp rnd (x + y)) (cexp (x/Z2R beta))) as (n,Hn).
 apply generic_format_round...
 apply Zle_trans with (cexp (x+y)).
 apply monotone_exp.
-rewrite <- ln_beta_minus1; try assumption.
-rewrite <- (ln_beta_abs beta (x+y)).
+rewrite <- mag_minus1; try assumption.
+rewrite <- (mag_abs beta (x+y)).
 (* . *)
 assert (U:(Rabs (x+y) = Rabs x + Rabs y)%R \/ (y <> 0 /\ Rabs (x+y)=Rabs x - Rabs y)%R).
 assert (V: forall x y, (Rabs y <= Rabs x)%R -> 
@@ -386,34 +386,34 @@ apply Rplus_le_le_0_compat.
 rewrite <- Ropp_0; apply Ropp_le_contravar; now left.
 rewrite <- Ropp_0; apply Ropp_le_contravar; now left.
 apply V; left.
-apply ln_beta_lt_pos with beta.
+apply mag_lt_pos with beta.
 now apply Rabs_pos_lt.
-rewrite <- ln_beta_minus1 in H1; try assumption.
-rewrite 2!ln_beta_abs; omega.
+rewrite <- mag_minus1 in H1; try assumption.
+rewrite 2!mag_abs; omega.
 (* . *)
 destruct U as [U|U].
-rewrite U; apply Zle_trans with (ln_beta beta x);[omega|idtac].
-rewrite <- ln_beta_abs.
-apply ln_beta_le.
+rewrite U; apply Zle_trans with (mag beta x);[omega|idtac].
+rewrite <- mag_abs.
+apply mag_le.
 now apply Rabs_pos_lt.
 apply Rplus_le_reg_l with (-Rabs x)%R; ring_simplify.
 apply Rabs_pos.
 destruct U as (U',U); rewrite U.
-rewrite <- ln_beta_abs.
-apply ln_beta_minus_lb.
+rewrite <- mag_abs.
+apply mag_minus_lb.
 now apply Rabs_pos_lt.
 now apply Rabs_pos_lt.
-rewrite 2!ln_beta_abs.
-assert (ln_beta beta y < ln_beta beta x -1)%Z;[idtac|omega].
-now rewrite (ln_beta_minus1 x Zx).
+rewrite 2!mag_abs.
+assert (mag beta y < mag beta x -1)%Z;[idtac|omega].
+now rewrite (mag_minus1 x Zx).
 apply cexp_round_ge...
 intros K.
 absurd (x+y=0)%R.
 intros K'.
 contradict H1; apply Zle_not_lt.
-rewrite <- (ln_beta_minus1 x Zx).
+rewrite <- (mag_minus1 x Zx).
 replace y with (-x)%R.
-rewrite ln_beta_opp; omega.
+rewrite mag_opp; omega.
 apply Rplus_eq_reg_l with x; rewrite K'; ring.
 apply round_plus_eq_zero with (6:=K)...
 exists n.
@@ -504,10 +504,10 @@ intros H; right.
 apply Rle_trans with (2:=H).
 rewrite ulp_neq_0.
 unfold cexp.
-rewrite <- ln_beta_minus1; try assumption.
+rewrite <- mag_minus1; try assumption.
 unfold FLT_exp; apply bpow_le.
 apply Zle_trans with (2:=Z.le_max_l _ _).
-destruct (ln_beta beta x) as (n,Hn); simpl.
+destruct (mag beta x) as (n,Hn); simpl.
 assert (e < n)%Z; try omega.
 apply lt_bpow with beta.
 apply Rle_lt_trans with (1:=He).
@@ -535,9 +535,9 @@ intros H; right.
 apply Rle_trans with (2:=H).
 rewrite ulp_neq_0.
 unfold cexp.
-rewrite <- ln_beta_minus1; try assumption.
+rewrite <- mag_minus1; try assumption.
 unfold FLX_exp; apply bpow_le.
-destruct (ln_beta beta x) as (n,Hn); simpl.
+destruct (mag beta x) as (n,Hn); simpl.
 assert (e < n)%Z; try omega.
 apply lt_bpow with beta.
 apply Rle_lt_trans with (1:=He).
