@@ -157,7 +157,6 @@ Notation bpow e := (bpow beta e).
 
 Variable emin prec : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
-Variable Hpemin: (emin <= prec)%Z.
 
 Notation format := (generic_format beta (FLT_exp emin prec)).
 Notation cexp := (cexp beta (FLT_exp emin prec)).
@@ -172,7 +171,6 @@ Theorem mult_error_FLT :
   (x*y = 0)%R \/ (bpow (emin + 2*prec - 1) <= Rabs (x * y))%R ->
   format (round beta (FLT_exp emin prec) rnd (x * y) - (x * y))%R.
 Proof with auto with typeclass_instances.
-clear Hpemin.
 intros x y Hx Hy Hxy.
 set (f := (round beta (FLT_exp emin prec) rnd (x * y))).
 destruct (Req_dec (f - x * y) 0) as [Hr0|Hr0].
