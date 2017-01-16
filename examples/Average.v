@@ -592,21 +592,21 @@ Qed.
 
 
 
-Definition average1 (x y : R) :=round_flt(round_flt(x+y)/2).
+Definition avg_naive (x y : R) :=round_flt(round_flt(x+y)/2).
 
 Variables x y:R.
 Hypothesis Fx: format x.
 Hypothesis Fy: format y.
 
 Let a:=(x+y)/2.
-Let av:=average1 x y.
+Let av:=avg_naive x y.
 
-Lemma average1_correct: av = round_flt a.
+Lemma avg_naive_correct: av = round_flt a.
 Proof with auto with typeclass_instances.
 case (Rle_or_lt (bpow (prec + emin)) (Rabs (x+y))).
 (* normal case: division by 2 is exact *)
 intros H.
-unfold av,a,average1.
+unfold av,a,avg_naive.
 rewrite round_generic...
 now apply sym_eq, FLT_round_half.
 apply FLT_format_half.
@@ -616,7 +616,7 @@ apply FLT_format_bpow...
 unfold Prec_gt_0 in prec_gt_0_; omega.
 (* subnormal case: addition is exact, but division by 2 is not *)
 intros H.
-unfold av, average1.
+unfold av, avg_naive.
 replace (round_flt (x + y)) with (x+y).
 reflexivity.
 apply sym_eq, round_generic...
@@ -626,40 +626,40 @@ Qed.
 
 
 
-Lemma average1_symmetry: forall u v, average1 u v = average1 v u.
+Lemma avg_naive_symmetry: forall u v, avg_naive u v = avg_naive v u.
 Proof.
-intros u v; unfold average1.
+intros u v; unfold avg_naive.
 rewrite Rplus_comm; reflexivity.
 Qed.
 
-Lemma average1_symmetry_Ropp: forall u v, average1 (-u) (-v) = - average1 u v.
+Lemma avg_naive_symmetry_Ropp: forall u v, avg_naive (-u) (-v) = - avg_naive u v.
 Proof.
-intros u v; unfold average1.
+intros u v; unfold avg_naive.
 replace (-u+-v) with (-(u+v)) by ring.
 rewrite round_NE_opp.
 replace (- round_flt (u + v) / 2) with (- (round_flt (u + v) / 2)) by (unfold Rdiv; ring).
 now rewrite round_NE_opp.
 Qed.
 
-Lemma average1_same_sign_1: 0 <= a -> 0 <= av.
+Lemma avg_naive_same_sign_1: 0 <= a -> 0 <= av.
 Proof with auto with typeclass_instances.
 intros H.
-rewrite average1_correct.
+rewrite avg_naive_correct.
 apply round_ge_generic...
 apply generic_format_0.
 Qed.
 
-Lemma average1_same_sign_2: a <= 0-> av <= 0.
+Lemma avg_naive_same_sign_2: a <= 0-> av <= 0.
 Proof with auto with typeclass_instances.
 intros H.
-rewrite average1_correct.
+rewrite avg_naive_correct.
 apply round_le_generic...
 apply generic_format_0.
 Qed.
 
-Lemma average1_between: Rmin x y <= av <= Rmax x y.
+Lemma avg_naive_between: Rmin x y <= av <= Rmax x y.
 Proof with auto with typeclass_instances.
-rewrite average1_correct.
+rewrite avg_naive_correct.
 split.
 apply round_ge_generic...
 now apply P_Rmin.
@@ -683,15 +683,15 @@ apply Rmax_r.
 Qed.
 
 
-Lemma average1_zero: a = 0 -> av = 0.
+Lemma avg_naive_zero: a = 0 -> av = 0.
 Proof with auto with typeclass_instances.
-intros H1; rewrite average1_correct, H1.
+intros H1; rewrite avg_naive_correct, H1.
 rewrite round_0...
 Qed.
 
 
 
-Lemma average1_no_underflow: (bpow emin) <= Rabs a -> av <> 0.
+Lemma avg_naive_no_underflow: (bpow emin) <= Rabs a -> av <> 0.
 Proof with auto with typeclass_instances.
 intros H.
 (* *)
@@ -702,22 +702,22 @@ contradict H1.
 apply Rlt_not_le.
 apply bpow_gt_0.
 (* *)
-rewrite average1_correct.
+rewrite avg_naive_correct.
 apply abs_round_ge_generic...
 apply FLT_format_bpow...
 omega.
 Qed.
 
 
-Lemma average1_correct_weak1: Rabs (av -a) <= /2*ulp_flt a.
+Lemma avg_naive_correct_weak1: Rabs (av -a) <= /2*ulp_flt a.
 Proof with auto with typeclass_instances.
-rewrite average1_correct.
+rewrite avg_naive_correct.
 apply error_le_half_ulp...
 Qed.
 
-Lemma average1_correct_weak2: Rabs (av -a) <= 3/2*ulp_flt a.
+Lemma avg_naive_correct_weak2: Rabs (av -a) <= 3/2*ulp_flt a.
 Proof with auto with typeclass_instances.
-apply Rle_trans with (1:=average1_correct_weak1).
+apply Rle_trans with (1:=avg_naive_correct_weak1).
 apply Rmult_le_compat_r.
 unfold ulp; apply ulp_ge_0.
 apply Rle_trans with (1/2); unfold Rdiv.
@@ -737,17 +737,17 @@ Qed.
 
 
 
-Definition average2 (x y : R) :=round_flt(round_flt(x/2) + round_flt(y/2)).
+Definition avg_sum_half (x y : R) :=round_flt(round_flt(x/2) + round_flt(y/2)).
 
-Let av2:=average2 x y.
+Let av2:=avg_sum_half x y.
 
 
-Lemma average2_correct: bpow (emin +prec+prec+1) <= Rabs x -> av2 = round_flt a.
+Lemma avg_sum_half_correct: bpow (emin +prec+prec+1) <= Rabs x -> av2 = round_flt a.
 Proof with auto with typeclass_instances.
 intros Hx.
 assert (G:(0 < prec)%Z).
 unfold Prec_gt_0 in prec_gt_0_; assumption.
-unfold av2, average2.
+unfold av2, avg_sum_half.
 replace (round_flt (x/2)) with (x/2).
 2: apply sym_eq, round_generic...
 2: apply FLT_format_half; try assumption.
@@ -844,18 +844,18 @@ Notation round_flt :=(round radix2 (FLT_exp emin prec) ZnearestE).
 Notation ulp_flt :=(ulp radix2 (FLT_exp emin prec)).
 Notation cexp := (cexp radix2 (FLT_exp emin prec)).
 
-Definition average3 (x y : R) :=round_flt(x+round_flt(round_flt(y-x)/2)).
+Definition avg_half_sub (x y : R) :=round_flt(x+round_flt(round_flt(y-x)/2)).
 
 Variables x y:R.
 Hypothesis Fx: format x.
 Hypothesis Fy: format y.
 
 Let a:=(x+y)/2.
-Let av:=average3 x y.
+Let av:=avg_half_sub x y.
 
 
-Lemma average3_symmetry_Ropp: forall u v, average3 (-u) (-v) = - average3 u v.
-intros u v; unfold average3.
+Lemma avg_half_sub_symmetry_Ropp: forall u v, avg_half_sub (-u) (-v) = - avg_half_sub u v.
+intros u v; unfold avg_half_sub.
 replace (-v--u) with (-(v-u)) by ring.
 rewrite round_NE_opp.
 replace (- round_flt (v-u) / 2) with (- (round_flt (v-u) / 2)) by (unfold Rdiv; ring).
@@ -866,7 +866,7 @@ apply round_NE_opp.
 Qed.
 
 
-Lemma average3_same_sign_1: 0 <= a -> 0 <= av.
+Lemma avg_half_sub_same_sign_1: 0 <= a -> 0 <= av.
 Proof with auto with typeclass_instances.
 intros H.
 apply round_ge_generic...
@@ -892,7 +892,7 @@ apply Rle_trans with (1:=H).
 right; unfold a, Rdiv; ring.
 Qed.
 
-Lemma average3_same_sign_2: a <= 0-> av <= 0.
+Lemma avg_half_sub_same_sign_2: a <= 0-> av <= 0.
 Proof with auto with typeclass_instances.
 intros H.
 apply round_le_generic...
@@ -921,8 +921,8 @@ Qed.
 
 
 
-Lemma average3_between_aux: forall u v, format u -> format v -> u <= v ->
-    u <= average3 u v <= v.
+Lemma avg_half_sub_between_aux: forall u v, format u -> format v -> u <= v ->
+    u <= avg_half_sub u v <= v.
 Proof with auto with typeclass_instances.
 clear Fx Fy a av x y.
 intros x y Fx Fy M.
@@ -1045,31 +1045,31 @@ unfold Zminus; rewrite bpow_plus.
 reflexivity.
 Qed.
 
-Lemma average3_between: Rmin x y <= av <= Rmax x y.
+Lemma avg_half_sub_between: Rmin x y <= av <= Rmax x y.
 Proof with auto with typeclass_instances.
 case (Rle_or_lt x y); intros M.
 (* x <= y *)
 rewrite Rmin_left; try exact M.
 rewrite Rmax_right; try exact M.
-now apply average3_between_aux.
+now apply avg_half_sub_between_aux.
 (* y < x *)
 rewrite Rmin_right; try now left.
 rewrite Rmax_left; try now left.
 unfold av; rewrite <- (Ropp_involutive x); rewrite <- (Ropp_involutive y).
-rewrite average3_symmetry_Ropp.
+rewrite avg_half_sub_symmetry_Ropp.
 split; apply Ropp_le_contravar.
-apply average3_between_aux.
+apply avg_half_sub_between_aux.
 now apply generic_format_opp.
 now apply generic_format_opp.
 apply Ropp_le_contravar; now left.
-apply average3_between_aux.
+apply avg_half_sub_between_aux.
 now apply generic_format_opp.
 now apply generic_format_opp.
 apply Ropp_le_contravar; now left.
 Qed.
 
 
-Lemma average3_zero: a = 0 -> av = 0.
+Lemma avg_half_sub_zero: a = 0 -> av = 0.
 Proof with auto with typeclass_instances.
 intros H.
 assert (y=-x).
@@ -1080,7 +1080,7 @@ reflexivity.
 rewrite H; ring.
 apply Rgt_not_eq, Rlt_gt.
 auto with real.
-unfold av, average3.
+unfold av, avg_half_sub.
 rewrite H0.
 replace (-x-x) with (-(2*x)) by ring.
 rewrite round_generic with (x:=(-(2*x)))...
@@ -1094,7 +1094,7 @@ now apply FLT_format_double.
 Qed.
 
 
-Lemma average3_no_underflow_aux_aux: forall z:Z, (0 < z)%Z -> 
+Lemma avg_half_sub_no_underflow_aux_aux: forall z:Z, (0 < z)%Z -> 
     (ZnearestE (Z2R z / 2) < z)%Z.
 Proof.
 intros z H1.
@@ -1131,7 +1131,7 @@ auto with real.
 Qed.
 
 
-Lemma average3_no_underflow_aux1: forall f, format f -> 0 < f ->
+Lemma avg_half_sub_no_underflow_aux1: forall f, format f -> 0 < f ->
   f <= round_flt (f/2) -> False.
 Proof with auto with typeclass_instances.
 intros f Ff Hf1 Hf2.
@@ -1162,7 +1162,7 @@ apply Rmult_lt_compat_r.
 apply bpow_gt_0.
 apply Z2R_lt.
 replace (Z2R (Fnum g) * bpow emin / 2 * bpow (- emin)) with (Z2R (Fnum g) /2).
-apply average3_no_underflow_aux_aux.
+apply avg_half_sub_no_underflow_aux_aux.
 apply lt_Z2R.
 apply Rmult_lt_reg_r with (bpow (Fexp g)).
 apply bpow_gt_0.
@@ -1197,12 +1197,12 @@ omega.
 Qed.
 
 
-Lemma average3_no_underflow_aux2: forall u v, format u -> format v -> 
+Lemma avg_half_sub_no_underflow_aux2: forall u v, format u -> format v -> 
     (0 <= u /\ 0 <= v) \/ (u <= 0 /\ v <= 0) ->
     u <= v ->
-   (bpow emin) <= Rabs ((u+v)/2) -> average3 u v <> 0.
+   (bpow emin) <= Rabs ((u+v)/2) -> avg_half_sub u v <> 0.
 Proof with auto with typeclass_instances.
-clear Fx Fy a av x y; intros x y Fx Fy same_sign xLey H; unfold average3.
+clear Fx Fy a av x y; intros x y Fx Fy same_sign xLey H; unfold avg_half_sub.
 intros J.
 apply round_plus_eq_zero in J...
 2: apply generic_format_round...
@@ -1220,7 +1220,7 @@ destruct H1 as [H1|H1].
 (* *)
 destruct same_sign as [(H2,H3)|(_,H2)].
 contradict H2; now apply Rlt_not_le.
-apply average3_no_underflow_aux1 with (-x).
+apply avg_half_sub_no_underflow_aux1 with (-x).
 now apply generic_format_opp.
 rewrite <- Ropp_0; now apply Ropp_lt_contravar.
 apply Rle_trans with (round_flt (round_flt (y - x) / 2)).
@@ -1252,18 +1252,18 @@ rewrite <- H1; assumption.
 auto with real.
 Qed.
 
-Lemma average3_no_underflow_aux3: forall u v, format u -> format v -> 
+Lemma avg_half_sub_no_underflow_aux3: forall u v, format u -> format v -> 
     (0 <= u /\ 0 <= v) \/ (u <= 0 /\ v <= 0) ->
-   (bpow emin) <= Rabs ((u+v)/2) -> average3 u v <> 0.
+   (bpow emin) <= Rabs ((u+v)/2) -> avg_half_sub u v <> 0.
 Proof with auto with typeclass_instances.
 clear Fx Fy a av x y; intros x y Fx Fy.
 intros same_sign H.
 case (Rle_or_lt x y); intros H1.
-now apply average3_no_underflow_aux2.
+now apply avg_half_sub_no_underflow_aux2.
 rewrite <- (Ropp_involutive x); rewrite <- (Ropp_involutive y).
-rewrite average3_symmetry_Ropp.
+rewrite avg_half_sub_symmetry_Ropp.
 apply Ropp_neq_0_compat.
-apply average3_no_underflow_aux2.
+apply avg_half_sub_no_underflow_aux2.
 now apply generic_format_opp.
 now apply generic_format_opp.
 rewrite <- Ropp_0; case same_sign; intros (T1,T2).
@@ -1277,19 +1277,19 @@ unfold Rdiv; ring.
 Qed.
 
 
-Lemma average3_no_underflow: 
+Lemma avg_half_sub_no_underflow: 
   (0 <= x /\ 0 <= y) \/ (x <= 0 /\ y <= 0) ->
   (bpow emin) <= Rabs a -> av <> 0.
 Proof with auto with typeclass_instances.
-intros; now apply average3_no_underflow_aux3.
+intros; now apply avg_half_sub_no_underflow_aux3.
 Qed.
 
 
 
-Lemma average3_correct_aux: forall u v, format u -> format v -> u <= v ->
+Lemma avg_half_sub_correct_aux: forall u v, format u -> format v -> u <= v ->
      (0 <= u /\ 0 <= v) \/ (u <= 0 /\ v <= 0) ->
      0 < Rabs ((u+v)/2) < bpow emin ->
-     Rabs (average3 u v -((u+v)/2)) <= 3/2 * ulp_flt ((u+v)/2).
+     Rabs (avg_half_sub u v -((u+v)/2)) <= 3/2 * ulp_flt ((u+v)/2).
 Proof with auto with typeclass_instances.
 clear Fx Fy x y a av.
 intros u v Fu Fv uLev same_sign.
@@ -1378,7 +1378,7 @@ apply Rle_ge, bpow_ge_0.
 unfold Zminus; rewrite bpow_plus.
 reflexivity.
 case H3; intros (T1,T2).
-unfold b, average3.
+unfold b, avg_half_sub.
 rewrite J1,J3,J2,J4,T1,T2; unfold F2R; simpl.
 rewrite Rmult_0_l, Rmult_1_l, 2!Rplus_0_l.
 unfold Rminus; rewrite Ropp_0, Rplus_0_r.
@@ -1412,7 +1412,7 @@ rewrite ulp_neq_0.
 apply bpow_le.
 unfold cexp, FLT_exp.
 apply Z.le_max_r.
-unfold b, average3.
+unfold b, avg_half_sub.
 rewrite J1,J3,J2,J4,T1,T2; unfold F2R; simpl.
 rewrite Rmult_0_l, Rplus_0_r.
 replace (0 - -1 * bpow emin) with (bpow emin) by ring.
@@ -1455,9 +1455,9 @@ apply bpow_ge_0.
 now auto with real.
 Qed.
 
-Lemma average3_correct_aux2: forall u v, format u -> format v -> u <= v ->
+Lemma avg_half_sub_correct_aux2: forall u v, format u -> format v -> u <= v ->
      (0 <= u /\ 0 <= v) \/ (u <= 0 /\ v <= 0) ->
-     Rabs (average3 u v -((u+v)/2)) <= 3/2 * ulp_flt ((u+v)/2).
+     Rabs (avg_half_sub u v -((u+v)/2)) <= 3/2 * ulp_flt ((u+v)/2).
 Proof with auto with typeclass_instances.
 clear Fx Fy a av x y.
 intros u v Fu Fv uLev same_sign.
@@ -1524,7 +1524,7 @@ omega.
 (* . splitting case of av=0 *)
 case (Rle_or_lt (bpow emin) (Rabs b)); intros D.
 (* . main proof *)
-unfold average3.
+unfold avg_half_sub.
 case (Rle_or_lt (bpow (prec+emin)) (v-u)); intros H1.
 (* .. v-u is big enough: division by 2 is exact *)
 cut (round_flt (round_flt (v - u) / 2) = round_flt (v - u) / 2).
@@ -1670,11 +1670,11 @@ rewrite Rabs_right.
 now left.
 apply Rle_ge, Rplus_le_reg_l with u; now ring_simplify.
 (* . when b = bpow emin /2 *)
-apply average3_correct_aux; trivial.
+apply avg_half_sub_correct_aux; trivial.
 split; trivial.
 now apply Rabs_pos_lt.
 (* . x = y *)
-unfold average3,b.
+unfold avg_half_sub,b.
 rewrite uEqv.
 replace (v-v) with 0 by ring.
 rewrite round_0...
@@ -1696,20 +1696,20 @@ Qed.
 
 (* tight example x=1/2 and y=2^p-1: error is 5/4 ulp *) 
 
-Lemma average3_correct: (0 <= x /\ 0 <= y) \/ (x <= 0 /\ y <= 0) ->
+Lemma avg_half_sub_correct: (0 <= x /\ 0 <= y) \/ (x <= 0 /\ y <= 0) ->
      Rabs (av-a) <= 3/2 * ulp_flt a.
 Proof with auto with typeclass_instances.
 intros same_sign; case (Rle_or_lt x y); intros H.
-now apply average3_correct_aux2.
+now apply avg_half_sub_correct_aux2.
 unfold av, a.
 rewrite <- (Ropp_involutive x), <- (Ropp_involutive y).
-rewrite average3_symmetry_Ropp.
+rewrite avg_half_sub_symmetry_Ropp.
 rewrite <- Rabs_Ropp.
-replace (- (- average3 (- x) (- y) - (- - x + - - y) / 2)) with
-   (average3 (-x) (-y) - ((-x+-y)/2)).
+replace (- (- avg_half_sub (- x) (- y) - (- - x + - - y) / 2)) with
+   (avg_half_sub (-x) (-y) - ((-x+-y)/2)).
 2: unfold Rdiv; ring.
 apply Rle_trans with (3 / 2 * ulp_flt ((- x + - y) / 2)).
-apply average3_correct_aux2.
+apply avg_half_sub_correct_aux2.
 now apply generic_format_opp.
 now apply generic_format_opp.
 apply Ropp_le_contravar; now left.
@@ -1723,7 +1723,7 @@ unfold Rdiv; ring.
 Qed.
 
 
-(* Lemma average3_symmetry: forall u v, average3 u v = average3 v u.
+(* Lemma avg_half_sub_symmetry: forall u v, avg_half_sub u v = avg_half_sub v u.
    is false *)
 
 
@@ -1753,10 +1753,10 @@ Definition average (x y : R) :=
    end in
      if samesign then 
        match (Rle_bool (Rabs x) (Rabs y)) with
-            true => average3 emin prec x y
-          | false => average3 emin prec y x
+            true => avg_half_sub emin prec x y
+          | false => avg_half_sub emin prec y x
         end
-      else average1 emin prec x y.
+      else avg_naive emin prec x y.
 
 Variables x y:R.
 Hypothesis Fx: format x.
@@ -1773,8 +1773,8 @@ rewrite 2!Rabs_right; try apply Rle_ge; try assumption.
 case (Rle_bool_spec u v); case (Rle_bool_spec v u); trivial.
 intros; replace u with v; trivial; auto with real.
 intros H1 H2; contradict H1; auto with real.
-apply average1_symmetry.
-apply average1_symmetry.
+apply avg_naive_symmetry.
+apply avg_naive_symmetry.
 rewrite 2!Rabs_left; try assumption.
 case (Rle_bool_spec (-u) (-v)); case (Rle_bool_spec (-v) (-u)); trivial.
 intros; replace u with v; trivial; auto with real.
@@ -1806,13 +1806,13 @@ destruct Hu as [Hu|Hu].
    rewrite Rabs_right.
    2: apply Rle_ge; now left.
    case (Rle_bool_spec u v);intros.
-   apply average3_symmetry_Ropp.
-   apply average3_symmetry_Ropp.
+   apply avg_half_sub_symmetry_Ropp.
+   apply avg_half_sub_symmetry_Ropp.
  (* . 0 < u and v = 0 *)
    rewrite <- Hv, Ropp_0, Rabs_R0.
    rewrite Rle_bool_true ;[idtac|now right].
    rewrite Rle_bool_false; try exact Hu.
-   unfold average1, average3.
+   unfold avg_naive, avg_half_sub.
    unfold Rminus; rewrite Ropp_0, Rplus_0_l, 2!Rplus_0_r.
    rewrite (round_generic _ _ _ u); trivial.
    rewrite (round_generic _ _ _ (-u)).
@@ -1826,7 +1826,7 @@ destruct Hu as [Hu|Hu].
    rewrite Rabs_left; trivial.
    rewrite Rle_bool_true.
    rewrite Rle_bool_false; trivial.
-   apply average1_symmetry_Ropp.
+   apply avg_naive_symmetry_Ropp.
    rewrite <- Ropp_0; apply Ropp_le_contravar.
    now left.
  (* u = 0 *)
@@ -1839,7 +1839,7 @@ destruct Hu as [Hu|Hu].
    (* . u=0 and 0 < v *)
    rewrite Rle_bool_false.
    rewrite Rle_bool_true.
-   unfold average1, average3.
+   unfold avg_naive, avg_half_sub.
    unfold Rminus; rewrite Ropp_0, 2!Rplus_0_l, Rplus_0_r.
    rewrite (round_generic _ _ _ v); trivial.
    rewrite (round_generic _ _ _ (-v)).
@@ -1855,7 +1855,7 @@ destruct Hu as [Hu|Hu].
    rewrite <- Hv, Ropp_0.
    rewrite Rle_bool_true.
    2: now right.
-   unfold average3.
+   unfold avg_half_sub.
    replace (0-0) with 0 by ring; rewrite round_0...
    unfold Rdiv; rewrite Rmult_0_l, round_0, Rplus_0_l...
   rewrite round_0...
@@ -1863,7 +1863,7 @@ destruct Hu as [Hu|Hu].
   (* . u=0 and v < 0 *)
   rewrite Rle_bool_true.
   rewrite Rle_bool_false.
-   unfold average1, average3.
+   unfold avg_naive, avg_half_sub.
    unfold Rminus; rewrite Ropp_0, 2!Rplus_0_l, Rplus_0_r.
    rewrite (round_generic _ _ _ v); trivial.
    rewrite (round_generic _ _ _ (-v)).
@@ -1894,14 +1894,14 @@ Proof with auto with typeclass_instances.
 intros H; unfold av, average.
 case (Rle_bool_spec 0 x); case (Rle_bool_spec 0 y); intros.
 case (Rle_bool_spec (Rabs x) (Rabs y)); intros.
-apply average3_same_sign_1...
-apply average3_same_sign_1...
+apply avg_half_sub_same_sign_1...
+apply avg_half_sub_same_sign_1...
 now rewrite Rplus_comm.
-apply average1_same_sign_1...
-apply average1_same_sign_1...
+apply avg_naive_same_sign_1...
+apply avg_naive_same_sign_1...
 case (Rle_bool_spec (Rabs x) (Rabs y)); intros.
-apply average3_same_sign_1...
-apply average3_same_sign_1...
+apply avg_half_sub_same_sign_1...
+apply avg_half_sub_same_sign_1...
 now rewrite Rplus_comm.
 Qed.
 
@@ -1910,14 +1910,14 @@ Proof with auto with typeclass_instances.
 intros H; unfold av, average.
 case (Rle_bool_spec 0 x); case (Rle_bool_spec 0 y); intros.
 case (Rle_bool_spec (Rabs x) (Rabs y)); intros.
-apply average3_same_sign_2...
-apply average3_same_sign_2...
+apply avg_half_sub_same_sign_2...
+apply avg_half_sub_same_sign_2...
 now rewrite Rplus_comm.
-apply average1_same_sign_2...
-apply average1_same_sign_2...
+apply avg_naive_same_sign_2...
+apply avg_naive_same_sign_2...
 case (Rle_bool_spec (Rabs x) (Rabs y)); intros.
-apply average3_same_sign_2...
-apply average3_same_sign_2...
+apply avg_half_sub_same_sign_2...
+apply avg_half_sub_same_sign_2...
 now rewrite Rplus_comm.
 Qed.
 
@@ -1926,16 +1926,16 @@ Proof with auto with typeclass_instances.
 unfold av,a,average.
 case (Rle_bool_spec 0 x); case (Rle_bool_spec 0 y); intros.
 case (Rle_bool_spec (Rabs x) (Rabs y)); intros.
-apply average3_correct...
+apply avg_half_sub_correct...
 rewrite Rplus_comm.
-apply average3_correct...
-apply average1_correct_weak2...
-apply average1_correct_weak2...
+apply avg_half_sub_correct...
+apply avg_naive_correct_weak2...
+apply avg_naive_correct_weak2...
 case (Rle_bool_spec (Rabs x) (Rabs y)); intros.
-apply average3_correct...
+apply avg_half_sub_correct...
 right; split; now left.
 rewrite Rplus_comm.
-apply average3_correct...
+apply avg_half_sub_correct...
 right; split; now left.
 Qed.
 
@@ -1944,15 +1944,15 @@ Proof with auto with typeclass_instances.
 unfold av,a,average.
 case (Rle_bool_spec 0 x); case (Rle_bool_spec 0 y); intros.
 case (Rle_bool_spec (Rabs x) (Rabs y)); intros.
-apply average3_between...
+apply avg_half_sub_between...
 rewrite Rmin_comm, Rmax_comm.
-apply average3_between...
-apply average1_between...
-apply average1_between...
+apply avg_half_sub_between...
+apply avg_naive_between...
+apply avg_naive_between...
 case (Rle_bool_spec (Rabs x) (Rabs y)); intros.
-apply average3_between...
+apply avg_half_sub_between...
 rewrite Rmin_comm, Rmax_comm.
-apply average3_between...
+apply avg_half_sub_between...
 Qed.
 
 
@@ -1961,14 +1961,14 @@ Proof with auto with typeclass_instances.
 unfold av,a,average.
 case (Rle_bool_spec 0 x); case (Rle_bool_spec 0 y); intros.
 case (Rle_bool_spec (Rabs x) (Rabs y)); intros.
-apply average3_zero...
-apply average3_zero...
+apply avg_half_sub_zero...
+apply avg_half_sub_zero...
 now rewrite Rplus_comm.
-apply average1_zero...
-apply average1_zero...
+apply avg_naive_zero...
+apply avg_naive_zero...
 case (Rle_bool_spec (Rabs x) (Rabs y)); intros.
-apply average3_zero...
-apply average3_zero...
+apply avg_half_sub_zero...
+apply avg_half_sub_zero...
 now rewrite Rplus_comm.
 Qed.
 
@@ -1978,15 +1978,15 @@ Proof with auto with typeclass_instances.
 unfold av,a,average.
 case (Rle_bool_spec 0 x); case (Rle_bool_spec 0 y); intros.
 case (Rle_bool_spec (Rabs x) (Rabs y)); intros.
-apply average3_no_underflow...
-apply average3_no_underflow...
+apply avg_half_sub_no_underflow...
+apply avg_half_sub_no_underflow...
 now rewrite Rplus_comm.
-apply average1_no_underflow...
-apply average1_no_underflow...
+apply avg_naive_no_underflow...
+apply avg_naive_no_underflow...
 case (Rle_bool_spec (Rabs x) (Rabs y)); intros.
-apply average3_no_underflow...
+apply avg_half_sub_no_underflow...
 right; split; now left.
-apply average3_no_underflow...
+apply avg_half_sub_no_underflow...
 right; split; now left.
 now rewrite Rplus_comm.
 Qed.
