@@ -22,6 +22,7 @@ FILES = \
 	Prop/Div_sqrt_error.v \
 	Prop/Mult_error.v \
 	Prop/Plus_error.v \
+	Prop/Format_REM.v \
 	Prop/Relative.v \
 	Prop/Sterbenz.v \
 	Prop/Round_odd.v \
