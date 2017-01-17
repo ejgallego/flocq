@@ -68,7 +68,7 @@ Context { valid_rnd : Valid_rnd rnd }.
 Notation round_Int := (round beta (FIX_exp 0) rnd).
 Notation format := (generic_format beta fexp).
 
-Hypothesis rnd_small: forall x, (0 < x < /2)%R -> round_Int x = 0%R.
+Hypothesis rnd_small: forall x, (0 < x < /2)%R -> rnd x = 0%Z.
 
 
 Lemma format_REM_aux:
@@ -178,6 +178,9 @@ assert (J:(0 <= x / y)%R).
 apply Fourier_util.Rle_mult_inv_pos; assumption.
 case J; intros J'.
 apply eq_Z2R; rewrite Hn.
+unfold round, cexp, FIX_exp, F2R, scaled_mantissa; simpl.
+rewrite 2!Rmult_1_r.
+replace 0%R with (Z2R 0) by reflexivity; f_equal.
 apply rnd_small; now split.
 apply eq_Z2R; rewrite Hn, <- J', round_0...
 apply Ropp_le_cancel; apply Rplus_le_reg_l with 1%R.
@@ -204,14 +207,14 @@ Context { monotone_exp : Monotone_exp fexp }.
 Notation format := (generic_format beta fexp).
 
 Theorem format_REM: forall rnd : R -> Z, Valid_rnd rnd ->
-  (forall z, (- /2 < z < /2)%R -> round beta (FIX_exp 0) rnd z = 0%R) ->
+  (forall z, (- /2 < z < /2)%R -> rnd z = 0%Z) ->
   forall (x y : R),
   (format x) -> (format y) ->
     format (x-round beta (FIX_exp 0) rnd (x/y)*y).
 Proof with auto with typeclass_instances.
 (* assume 0 < y *)
 assert (H: forall rnd : R -> Z, Valid_rnd rnd ->
-  (forall z, (-/2 < z < /2)%R -> round beta (FIX_exp 0) rnd z = 0%R) ->
+  (forall z, (-/2 < z < /2)%R -> rnd z = 0%Z) ->
   forall (x y : R),
   (format x) -> (format y) -> (0 < y)%R ->
     format (x-round beta (FIX_exp 0) rnd (x/y)*y)).
@@ -228,9 +231,8 @@ replace (x-(round beta (FIX_exp 0) rnd (x/y))*y)%R with
 apply generic_format_opp.
 apply format_REM_aux; try easy...
 intros z Hz.
-rewrite <- (Ropp_involutive (round _ _ _ _)).
-rewrite <- round_opp, <- Ropp_0...
-f_equal; apply Hrnd; split.
+rewrite <- Zopp_0; unfold Zrnd_opp; f_equal.
+apply Hrnd; split.
 apply Ropp_lt_contravar, Hz.
 apply Rlt_trans with (-0)%R.
 apply Ropp_lt_contravar, Hz.
@@ -251,9 +253,8 @@ replace ((round beta (FIX_exp 0) rnd (x/y))*y)%R with
   (round beta (FIX_exp 0) (Zrnd_opp rnd) ((x/(-y)))*(-y))%R.
 apply H; try easy...
 intros z Hz.
-rewrite <- (Ropp_involutive (round _ _ _ _)).
-rewrite <- round_opp, <- Ropp_0...
-f_equal; apply Hrnd; split.
+unfold Zrnd_opp; rewrite <- Zopp_0; f_equal.
+apply Hrnd; split.
 apply Ropp_lt_contravar, Hz.
 rewrite <- (Ropp_involutive (/2)).
 apply Ropp_lt_contravar, Hz.
@@ -272,9 +273,6 @@ Proof with auto with typeclass_instances.
 intros x y Fx Fy.
 apply format_REM; try easy...
 intros z Hz.
-unfold round, cexp, FIX_exp, F2R, scaled_mantissa; simpl.
-rewrite 2!Rmult_1_r.
-replace 0%R with (Z2R 0) by reflexivity; f_equal.
 assert (forall z, (0 <= z < /2)%R -> Ztrunc z = 0)%Z.
 intros l Hl; rewrite Ztrunc_floor; try apply Hl.
 apply Zfloor_imp.
@@ -303,9 +301,6 @@ Proof with auto with typeclass_instances.
 intros choice x y Fx Fy.
 apply format_REM; try easy...
 intros z Hz.
-unfold round, cexp, FIX_exp, F2R, scaled_mantissa; simpl.
-rewrite 2!Rmult_1_r.
-replace 0%R with (Z2R 0) by reflexivity; f_equal.
 apply Znearest_imp.
 rewrite Rminus_0_r.
 now apply Rabs_lt.
