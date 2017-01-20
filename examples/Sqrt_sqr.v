@@ -1,4 +1,4 @@
-Require Import Fcore.
+Require Import Flocq.Core.Fcore.
 Require Import Interval.Interval_tactic.
 
 Section Sec1.
@@ -1580,7 +1580,7 @@ Hypothesis pGt1: (2 < prec)%Z.
 
 Hypothesis pradix5: (radix_val beta=5)%Z -> (3 < prec)%Z.
 
-Theorem sqrt_sqr: forall x y:R, format x ->
+Lemma sqrt_sqr_except: forall x y:R, format x ->
    -1 <=  round_flx1 (x / round_flx2(sqrt (round_flx3(round_flx4(x*x)+round_flx5(y*y))))) <= 1.
 Proof with auto with typeclass_instances.
 intros x y Fx.
@@ -1614,3 +1614,260 @@ repeat apply f_equal; apply f_equal2; apply f_equal; ring.
 Qed.
 
 End Sec5.
+Require Import Compute.
+Require Import Flocq.Calc.Fcalc_bracket Flocq.Calc.Fcalc_round Flocq.Calc.Fcalc_ops Flocq.Calc.Fcalc_div.
+
+
+Section Sec6.
+
+Lemma sqrt_sqr_special_case:
+  let beta := Build_radix 5 (eq_refl true) in
+  let prec := 3%Z in
+  forall c1 c2 mx,
+  let x := F2R (Float beta mx 0) in
+  (0 <= mx < 125)%Z ->
+  let rnd c := round beta (FLX_exp prec) (Znearest c) in
+  rnd c1 (R_sqrt.sqrt (rnd c2 (x * x)%R)) = x.
+Proof with auto with typeclass_instances.
+intros beta prec c1 c2 mx x Hm rnd.
+assert (Hprec: Prec_gt_0 prec) by easy.
+unfold x, rnd.
+set (r c (s : bool) m l := cond_incr (round_N (if s then negb (c (- (m + 1))%Z) else c m) l) m).
+rewrite mult_correct with (choice := r c2)...
+2: intros x' m l H ; now apply inbetween_int_N_sign.
+rewrite sqrt_correct with (prec := prec) (choice := r c1)...
+2: intros e ; apply Zle_refl.
+2: intros x' m l H ; now apply inbetween_int_N_sign.
+apply Rminus_diag_uniq.
+rewrite <- F2R_minus.
+set (f mx := let x := Float beta mx 0 in Fminus beta
+  (sqrt beta (FLX_exp prec) prec (r c1) (mult beta (FLX_exp prec) (r c2) x x)) x).
+fold (f mx).
+assert (Fnum (f mx) = Z0).
+clear x.
+revert mx Hm.
+set (g := fix g m := match m with O => true | S m => match Fnum (f (Z_of_nat m)) with Z0 => g m | _ => false end end).
+assert (g 125 = true) by now vm_compute.
+revert H.
+clearbody f.
+clear.
+change 125%Z with (Z_of_nat 125).
+induction (125).
+intros _ mx [H1 H2].
+elim (Zlt_irrefl 0).
+now apply Zle_lt_trans with mx.
+simpl g.
+rewrite inj_S.
+intros H mx [H1 H2].
+apply Zlt_succ_le in H2.
+destruct (Zle_lt_or_eq _ _ H2) as [H3|H3].
+destruct (Fnum (f (Z.of_nat n))) ; try easy.
+now apply IHn ; try split.
+rewrite H3.
+now destruct (Fnum (f (Z.of_nat n))).
+destruct (f mx).
+simpl in H.
+rewrite H.
+apply F2R_0.
+Qed.
+
+End Sec6.
+Section Sec7.
+
+
+Open Scope R_scope.
+
+Variable beta : radix.
+Notation bpow e := (bpow beta e).
+
+Variable prec : Z.
+
+Lemma round_FLX_mult_bpow: forall rnd, Valid_rnd rnd ->
+  forall x e, round beta (FLX_exp prec) rnd (x*bpow e) =
+      round beta (FLX_exp prec) rnd x*bpow e.
+Proof with auto with typeclass_instances.
+intros rnd Hrnd x e.
+case (Req_dec x 0); intros Hx.
+rewrite Hx, Rmult_0_l, round_0...
+ring.
+unfold round, FLX_exp, scaled_mantissa, canonic_exp.
+rewrite ln_beta_mult_bpow; try exact Hx.
+unfold F2R; simpl.
+rewrite Rmult_assoc; rewrite <- bpow_plus.
+rewrite Rmult_assoc; rewrite <- bpow_plus.
+f_equal; f_equal.
+f_equal; f_equal; f_equal; ring.
+ring.
+Qed.
+
+
+Lemma round_FLX_gt_0: forall rnd, Valid_rnd rnd -> Prec_gt_0 prec ->
+  forall x, 0 < x -> 0 < round beta (FLX_exp prec) rnd x.
+Proof with auto with typeclass_instances.
+intros rnd Hrnd Hprec x Hx.
+destruct (ln_beta beta x) as (e,He).
+apply Rlt_le_trans with (round beta (FLX_exp prec) rnd (bpow (e-1))).
+rewrite round_generic...
+apply bpow_gt_0.
+apply generic_format_bpow.
+unfold FLX_exp; unfold Prec_gt_0 in Hprec; omega.
+apply round_le...
+rewrite <- Rabs_right.
+apply He, Rgt_not_eq; easy.
+apply Rle_ge; left; easy.
+Qed.
+
+Variable choice1 : Z -> bool.
+Variable choice2 : Z -> bool.
+Variable choice3 : Z -> bool.
+Variable choice4 : Z -> bool.
+Variable choice5 : Z -> bool.
+
+Notation format := (generic_format beta (FLX_exp prec)).
+Notation round_flx1 :=(round beta (FLX_exp prec) (Znearest choice1)).
+Notation round_flx2 :=(round beta (FLX_exp prec) (Znearest choice2)).
+Notation round_flx3 :=(round beta (FLX_exp prec) (Znearest choice3)).
+Notation round_flx4 :=(round beta (FLX_exp prec) (Znearest choice4)).
+Notation round_flx5 :=(round beta (FLX_exp prec) (Znearest choice5)).
+
+Hypothesis pGt1: (2 < prec)%Z.
+
+
+Lemma sqrt_sqr_special_case_all:
+   (radix_val beta=5)%Z -> (prec=3)%Z ->
+     forall x, format x -> round_flx2 (R_sqrt.sqrt (round_flx4 (x * x))) = Rabs x.
+Proof with auto with typeclass_instances.
+intros H1 H2.
+assert (forall x : R, 0 < x -> format x -> round_flx2 (R_sqrt.sqrt (round_flx4 (x * x))) = x).
+intros x Hx Fx.
+rewrite Fx.
+unfold F2R; simpl.
+pose (m:=(Ztrunc (scaled_mantissa beta (FLX_exp prec) x))).
+pose (e:=(canonic_exp beta (FLX_exp prec) x)).
+fold m; fold e.
+replace (Z2R m * bpow e * (Z2R m * bpow e)) with
+  ((Z2R m * Z2R m)*(bpow e*bpow e)) by ring.
+rewrite <- bpow_plus.
+rewrite round_FLX_mult_bpow...
+rewrite sqrt_mult.
+replace (R_sqrt.sqrt (bpow (e + e))) with (bpow e).
+rewrite round_FLX_mult_bpow...
+f_equal.
+replace (Z2R m) with (F2R (Float beta m 0)).
+rewrite H2.
+replace beta with {| radix_val := 5; radix_prop := eq_refl |}.
+apply sqrt_sqr_special_case.
+assert (0 <= scaled_mantissa beta (FLX_exp prec) x).
+apply Rmult_le_pos;[now left|apply bpow_ge_0].
+unfold m; rewrite Ztrunc_floor; try easy.
+split.
+apply Zfloor_lub; simpl; easy.
+apply lt_Z2R.
+apply Rle_lt_trans with (1:=Zfloor_lb _).
+rewrite <- (Rabs_right (scaled_mantissa _ _ _)); try (apply Rle_ge; easy).
+apply Rlt_le_trans with (1:=abs_scaled_mantissa_lt_bpow _ _ _).
+unfold canonic_exp, FLX_exp.
+ring_simplify (ln_beta beta x - (ln_beta beta x - prec))%Z.
+rewrite H2; simpl.
+unfold Z.pow_pos; simpl; rewrite H1.
+simpl; right; ring.
+apply radix_val_inj; rewrite H1; easy.
+unfold F2R; simpl; ring.
+apply sym_eq, sqrt_lem_1.
+apply bpow_ge_0.
+apply bpow_ge_0.
+now rewrite bpow_plus.
+apply Rle_trans with (round_flx4 0).
+right; apply sym_eq, round_0...
+apply round_le...
+apply FLX_exp_valid; unfold Prec_gt_0; omega.
+apply Rle_trans with (1:=Rle_0_sqr (Z2R m)).
+right; unfold Rsqr; ring.
+apply bpow_ge_0.
+(* *)
+intros x Fx; case (Rle_or_lt 0 x); intros Hx.
+case Hx; intros Hx'.
+rewrite Rabs_right; try apply Rle_ge; try assumption.
+now apply H.
+rewrite <- Hx', Rabs_R0, Rmult_0_l, round_0...
+rewrite sqrt_0, round_0...
+replace (x*x) with ((-x)*(-x)) by ring.
+rewrite Rabs_left; try assumption.
+apply H.
+apply Ropp_lt_cancel.
+now rewrite Ropp_involutive, Ropp_0.
+now apply generic_format_opp.
+Qed.
+
+
+Theorem sqrt_sqr: forall x y:R, format x ->
+   -1 <=  round_flx1 (x / round_flx2(R_sqrt.sqrt (round_flx3(round_flx4(x*x)+round_flx5(y*y))))) <= 1.
+Proof with auto with typeclass_instances.
+intros x y Fx.
+assert (Y:Valid_exp (FLX_exp prec)).
+apply FLX_exp_valid; unfold Prec_gt_0; omega.
+assert (H: ((radix_val beta=5)%Z -> (3 < prec)%Z) \/ 
+    ((radix_val beta=5)%Z /\ (prec=3)%Z)).
+case (Zle_lt_or_eq 3 prec); omega.
+case H; intros H'; clear H.
+now apply sqrt_sqr_except.
+destruct H' as (H1,H2).
+apply Rabs_le_inv.
+apply abs_round_le_generic...
+apply generic_format_FLX.
+exists (Float beta 1 0); split.
+unfold F2R; simpl; ring.
+simpl.
+apply Zpower_gt_1; omega.
+case (Req_dec x 0); intros Hx.
+rewrite Hx; unfold Rdiv; rewrite Rmult_0_l, Rabs_R0.
+left; apply Rlt_0_1.
+unfold Rdiv; rewrite Rabs_mult.
+apply Rle_trans with (Rabs x * / (Rabs x)).
+2: right; field.
+2: apply Rgt_not_eq, Rabs_pos_lt; easy.
+apply Rmult_le_compat_l.
+apply Rabs_pos.
+rewrite Rabs_right.
+apply Rinv_le.
+apply Rabs_pos_lt; easy.
+apply Rle_trans with (round_flx2 (R_sqrt.sqrt (round_flx4 (x * x)))).
+right; apply sym_eq.
+now apply sqrt_sqr_special_case_all.
+apply round_le...
+apply sqrt_le_1_alt.
+apply round_ge_generic...
+apply generic_format_round...
+apply Rplus_le_reg_r with (-round_flx4 (x * x)); ring_simplify.
+replace 0 with (round_flx5 0).
+apply round_le...
+apply Rle_trans with (1:=Rle_0_sqr y).
+right; unfold Rsqr; ring.
+apply round_0...
+apply Rle_ge; left.
+apply Rinv_0_lt_compat.
+apply round_FLX_gt_0...
+unfold Prec_gt_0; omega.
+apply sqrt_lt_R0.
+apply round_FLX_gt_0...
+unfold Prec_gt_0; omega.
+apply Rle_lt_trans with (0+ round_flx5 (y * y)).
+rewrite Rplus_0_l.
+replace 0 with (round_flx5 0).
+apply round_le...
+apply Rle_trans with (1:=Rle_0_sqr y).
+right; unfold Rsqr; ring.
+apply round_0...
+apply Rplus_lt_compat_r.
+apply round_FLX_gt_0...
+unfold Prec_gt_0; omega.
+apply Rlt_le_trans with (Rsqr x).
+now apply Rlt_0_sqr.
+right; unfold Rsqr; ring.
+Qed.
+
+End Sec7.
+
+
+
+
