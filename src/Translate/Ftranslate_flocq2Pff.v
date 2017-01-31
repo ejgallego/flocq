@@ -20,8 +20,7 @@ COPYING file for more details.
 (** Translation from Flocq to Pff *)
 Require Import Float.Veltkamp.
 Require Import Float.RND.
-Require Import Fcore.
-Require Import Fappli_IEEE.
+From Flocq Require Import Fcore Fappli_IEEE.
 
 
 Section Bounds.
