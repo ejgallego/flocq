@@ -1278,8 +1278,8 @@ Let r2 := round_flt (gamma+alpha2).
 Let r3 := (gamma+alpha2) -r2.
 
 (** Non-underflow hypotheses *)
-Hypothesis U1: a * x = 0 \/ bpow radix2 (emin + 4 * prec - 1) <= Rabs (a * x).
-(*Hypothesis U2: y = 0 \/ bpow radix2 (emin + 2*prec) <= Rabs y.*)
+Hypothesis U1: a * x = 0 \/ bpow radix2 (emin + 4*prec - 3) <= Rabs (a * x).
+Hypothesis U2: y = 0 \/ bpow radix2 (emin + 2*prec) <= Rabs y.
 
 Lemma ErrFMA_bounded_simpl: format r1 /\ format r2 /\ format r3.
 Proof with auto with typeclass_instances.
@@ -1306,9 +1306,9 @@ apply Rle_trans with (2:=H).
 apply bpow_le; omega.
 Qed.
 
-Lemma V2_Und2:  u2 <> 0 ->  alpha1 = 0 \/ bpow radix2 (emin + prec) <= Rabs alpha1.
+Lemma V2_Und2:  y <> 0 ->  alpha1 = 0 \/ bpow radix2 (emin + prec) <= Rabs alpha1.
 Proof with auto with typeclass_instances.
-intros Zu2.
+intros Zy.
 unfold alpha1.
 assert (Fu2: format u2).
 replace (u2) with (-(u1-(a*x))) by (unfold u2; ring).
@@ -1317,14 +1317,9 @@ apply mult_error_FLT...
 case U1; intros H; [now left|right].
 apply Rle_trans with (2:=H); apply bpow_le.
 omega.
-rewrite Rplus_comm.
 replace (emin+prec)%Z with ((emin+2*prec)-prec)%Z by ring.
 apply rnd_0_or_ge_FLT...
-replace (emin+2*prec)%Z with ((emin + 4*prec-1)+1-2*prec)%Z by ring.
-unfold u2, u1.
-case (mult_error_FLT_ge a x (emin+4*prec-1)); try assumption.
-fold u1 u2; intros K; now contradict Zu2.
-easy.
+case U2; try easy.
 Qed.
 
 Lemma V2_Und5: a*x <> 0 -> r1 = 0 \/ bpow radix2 (emin + prec-1) <= Rabs r1.
@@ -1335,22 +1330,39 @@ now left.
 case U1; intros H.
 now contradict H.
 right.
+case U2; intros Hy.
+unfold r1; rewrite Hy, Rplus_0_r.
 apply abs_round_ge_generic...
 apply FLT_format_bpow...
 omega.
-replace (a*x)%R with (u1+u2)%R.
+apply Rle_trans with (2:=H).
+apply bpow_le; omega.
+unfold r1; replace (a*x)%R with (u1+u2)%R.
 2: unfold u2, u1; ring.
-case (rnd_0_or_ge_FLT radix2 ZnearestE emin prec u1 y (emin + 4 * prec - 1))...
+case (Req_dec u2 0); intros Zu2.
+rewrite Zu2, Rplus_0_r.
+case (rnd_0_or_ge_FLT radix2 ZnearestE emin prec y u1 (emin + 2*prec))...
+apply generic_format_round...
+intros Z; contradict Zr1.
+unfold r1; replace (a*x)%R with (u1+u2)%R.
+2: unfold u2, u1; ring.
+now rewrite Zu2, Rplus_0_r, Rplus_comm.
+intros H1; rewrite Rplus_comm; apply Rle_trans with (2:=H1).
+apply bpow_le; omega.
+(* *)
+case (rnd_0_or_ge_FLT radix2 ZnearestE emin prec u1 y (emin + 3 * prec - 2))...
 apply generic_format_round...
 apply abs_round_ge_generic...
 apply FLT_format_bpow...
 omega.
+apply Rle_trans with (2:=H).
+apply bpow_le; omega.
 intros H1.
 apply round_plus_eq_zero in H1...
 2: apply generic_format_round...
-replace (u1+u2+y) with (u1+y+u2) by ring.
+unfold r1; replace (u1+u2+y) with (u1+y+u2) by ring.
 rewrite H1, Rplus_0_l.
-case (mult_error_FLT_ge a x (emin + 4 * prec - 1)); try assumption.
+case (mult_error_FLT_ge a x (emin + 4 * prec - 3)); try assumption.
 intros H2; contradict Zr1.
 unfold r1; replace (a*x)%R with (u1+u2)%R.
 2: unfold u2, u1; ring.
@@ -1358,6 +1370,9 @@ replace (u1+u2+y) with (u1+y+u2) by ring.
 rewrite H1, Rplus_0_l.
 unfold u2, u1; rewrite H2, round_0...
 fold u1 u2; intros H2.
+apply abs_round_ge_generic...
+apply FLT_format_bpow...
+omega.
 apply Rle_trans with (2:=H2).
 apply bpow_le; omega.
 intros H1.
@@ -1372,7 +1387,10 @@ apply mult_error_FLT...
 case U1; intros J; [now left|right].
 apply Rle_trans with (2:=J); apply bpow_le.
 omega.
-intros K; assert (K':u1 + y + u2 <> 0).
+intros K; apply abs_round_ge_generic...
+apply FLT_format_bpow...
+omega.
+assert (K':u1 + y + u2 <> 0).
 intros L; apply K; rewrite L.
 apply round_0...
 generalize K'.
@@ -1381,13 +1399,37 @@ rewrite Fy, Fu2.
 rewrite <- F2R_plus, <- F2R_plus.
 intros L.
 apply Rle_trans with (2:=F2R_ge _ L).
-rewrite Fexp_Fplus.
+rewrite 2!Fexp_Fplus.
 apply bpow_le.
 apply Z.min_glb.
-
-
-
-Admitted.
+apply Z.min_glb.
+simpl.
+apply Zle_trans with (FLT_exp emin prec (emin +3*prec-1)).
+unfold FLT_exp.
+rewrite Z.max_l; omega.
+apply canonic_exp_ge_bpow...
+apply Rle_trans with (2:=H).
+apply bpow_le; omega.
+simpl.
+apply Zle_trans with (FLT_exp emin prec (emin +2*prec+1)).
+unfold FLT_exp.
+rewrite Z.max_l; omega.
+apply canonic_exp_ge_bpow...
+apply Rle_trans with (2:=Hy).
+apply bpow_le; omega.
+simpl.
+apply Zle_trans with (FLT_exp emin prec (emin +2*prec-1)).
+unfold FLT_exp.
+rewrite Z.max_l; omega.
+apply canonic_exp_ge_bpow...
+case (mult_error_FLT_ge a x (emin+4*prec-3)); try assumption.
+intros Z; contradict Zu2.
+unfold u2, u1; easy.
+intros H2.
+apply Rle_trans with (2:=H2).
+apply bpow_le.
+omega.
+Qed.
 
 
 Lemma ErrFMA_correct_simpl:
@@ -1427,6 +1469,27 @@ rewrite <- G.
 apply plus_error...
 apply generic_format_round...
 (* *)
+case (Req_dec y 0); intros Zy.
+assert (Fu2: format u2).
+replace (u2) with (-(u1-(a*x))) by (unfold u2; ring).
+apply generic_format_opp.
+apply mult_error_FLT...
+case U1; intros H; [now left|right].
+apply Rle_trans with (2:=H); apply bpow_le.
+omega.
+unfold r3, r2, gamma, alpha2, beta2, beta1, r1, alpha1, alpha2.
+rewrite Zy, Rplus_0_r, Rplus_0_l; fold u1.
+rewrite (round_generic _ _ _ u2)...
+replace (u1+u2) with (a*x).
+2: unfold u2, u1; ring.
+fold u1; ring_simplify (u1-u1).
+rewrite round_0...
+rewrite Rplus_0_l.
+fold u2; rewrite (round_generic _ _ _ u2)...
+ring_simplify (u2+(u2-u2)).
+rewrite (round_generic _ _ _ u2)...
+unfold u2,u1; ring.
+(* *)
 apply ErrFMA_correct; try assumption.
 case U1; intros H; [now left|right].
 apply Rle_trans with (2:=H); apply bpow_le.
@@ -1438,104 +1501,4 @@ now apply V2_Und4.
 now apply V2_Und5.
 Qed.
 
-
-TOTO.
-
-
-(** Deduced from non-underflow hypotheses *)
-Lemma V2_Und1: a * x = 0 \/ bpow radix2 (emin + 2 * prec - 1) <= Rabs (a * x).
-Proof.
-case U1; [now left | right].
-apply Rle_trans with (2:=H).
-apply bpow_le; omega.
-Qed.
-
-Lemma V2_Und5: r1 = 0 \/ bpow radix2 (emin + prec-1) <= Rabs r1.
-Proof.
-
-Admitted.
-
-
-Lemma V2_Und3': u1 = 0 \/ bpow radix2 (emin + 2*prec-1) <= Rabs u1.
-Proof with auto with typeclass_instances.
-case U1; intros K.
-left; unfold u1.
-rewrite K; apply round_0...
-right; unfold u1.
-apply abs_round_ge_generic...
-apply FLT_format_bpow...
-omega.
-Qed.
-
-Lemma Und3: u1 = 0 \/ bpow radix2 (emin + prec) <= Rabs u1.
-Proof.
-case Und3';[now left|right].
-apply Rle_trans with (2:=H).
-apply bpow_le; omega.
-Qed.
-
-Lemma Und4: beta1 = 0 \/ bpow radix2 (emin + prec+1) <= Rabs beta1.
-Proof with auto with typeclass_instances.
-unfold beta1; case Und3'; intros H.
-(* *)
-rewrite H, Rplus_0_l.
-rewrite round_generic...
-unfold alpha1.
-replace u2 with 0.
-rewrite Rplus_0_r.
-rewrite round_generic...
-case U2;[now left|right].
-apply Rle_trans with (2:=H0).
-apply bpow_le; omega.
-unfold u2; rewrite H.
-case U1; intros H1.
-rewrite H1; ring.
-case U1; intros H2.
-rewrite H2; ring.
-absurd (bpow radix2 (emin + 2 * prec + 1) <= Rabs u1).
-rewrite H, Rabs_R0.
-apply Rlt_not_le, bpow_gt_0.
-unfold u1; apply abs_round_ge_generic...
-apply FLT_format_bpow...
-omega.
-apply generic_format_round...
-(* *)
-replace (emin+prec+1)%Z with ((emin+2*prec+1)-prec)%Z by ring.
-apply rnd_0_or_ge_FLT; try assumption...
-apply generic_format_round...
-apply generic_format_round...
-Qed.
-
-
-Lemma Und2: alpha1 = 0 \/ bpow radix2 (emin + prec) <= Rabs alpha1.
-Proof with auto with typeclass_instances.
-unfold alpha1.
-assert (Fu2: format u2).
-replace (u2) with (-(u1-(a*x))) by (unfold u2; ring).
-apply generic_format_opp.
-apply mult_error_FLT...
-apply Und1.
-case U2; intros H.
-rewrite H, Rplus_0_l.
-rewrite round_generic...
-
-admit.
-
-replace (emin+prec)%Z with ((emin+2*prec)-prec)%Z by ring.
-apply rnd_0_or_ge_FLT...
-Admitted.
-
-
-
-
-
-(**************** TODO ************************************)
-(* supprimer hypothèses inutiles 
-   au moins Und3, mais peut-être les autres aussi.... sauf Und1 *)
-
-
-(** Theorems *)
-Lemma ErrFMA_bounded: format r1 /\ format r2 /\ format r3.
-Proof with auto with typeclass_instances.
-split.
-
+End ErrFMA_V2.
