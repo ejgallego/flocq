@@ -1456,7 +1456,7 @@ Definition bpow e :=
   match e with
   | Zpos p => Z2R (Zpower_pos r p)
   | Zneg p => Rinv (Z2R (Zpower_pos r p))
-  | Z0 => R1
+  | Z0 => 1%R
   end.
 
 Theorem Z2R_Zpower_pos :
@@ -1875,7 +1875,7 @@ apply bpow_ge_0.
 Qed.
 
 Theorem ln_beta_mult_bpow :
-  forall x e, x <> R0 ->
+  forall x e, x <> 0%R ->
   (ln_beta (x * bpow e) = ln_beta x + e :>Z)%Z.
 Proof.
 intros x e Zx.
@@ -1898,7 +1898,7 @@ Qed.
 
 Theorem ln_beta_le_bpow :
   forall x e,
-  x <> R0 ->
+  x <> 0%R ->
   (Rabs x < bpow e)%R ->
   (ln_beta x <= e)%Z.
 Proof.

@@ -103,7 +103,7 @@ apply Rlt_le_trans with (Rabs x * 1)%R.
 apply Rmult_lt_compat_l.
 now apply Rabs_pos_lt.
 apply Rlt_le_trans with (1 := Heps1).
-change R1 with (bpow 0).
+change 1%R with (bpow 0).
 apply bpow_le.
 generalize (prec_gt_0 prec).
 clear ; omega.

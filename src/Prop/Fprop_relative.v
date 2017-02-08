@@ -44,7 +44,7 @@ Proof with auto with typeclass_instances.
 intros x b Hb0 Hxb.
 destruct (Req_dec x 0) as [Hx0|Hx0].
 (* *)
-exists R0.
+exists 0%R.
 split.
 now rewrite Rabs_R0.
 rewrite Hx0, Rmult_0_l.
@@ -71,7 +71,7 @@ Proof with auto with typeclass_instances.
 intros x b Hb0 Hxb.
 destruct (Req_dec x 0) as [Hx0|Hx0].
 (* *)
-exists R0.
+exists 0%R.
 split.
 now rewrite Rabs_R0.
 rewrite Hx0, Rmult_0_l.
@@ -650,7 +650,7 @@ destruct (Rtotal_order x 0) as [Nx|[Zx|Px]].
   { apply (Rmult_le_reg_l 2 _ _ Rlt_0_2).
     rewrite Rmult_0_r, Rinv_r; [exact Rle_0_1|].
     apply Rgt_not_eq, Rlt_gt, Rlt_0_2. }
-  exists R0; exists R0; rewrite Zx; split; [|split; [|split]].
+  exists 0%R; exists 0%R; rewrite Zx; split; [|split; [|split]].
   { now rewrite Rabs_R0; apply Rmult_le_pos; [|apply bpow_ge_0]. }
   { now rewrite Rabs_R0; apply Rmult_le_pos; [|apply bpow_ge_0]. }
   { now rewrite Rmult_0_l. }

@@ -1514,7 +1514,7 @@ now apply pred_pos_plus_ulp.
 Qed.
 
 Theorem pred_ulp_0 :
-  pred (ulp 0) = R0.
+  pred (ulp 0) = 0%R.
 Proof.
 rewrite pred_eq_pos.
 2: apply ulp_ge_0.
