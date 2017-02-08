@@ -346,11 +346,11 @@ Proof.
 intros. destruct x, y; try (apply B2R_inj; now eauto).
 - simpl in H2. congruence.
 - symmetry in H1. apply Rmult_integral in H1.
-  destruct H1. apply eq_Z2R with (n:=0%Z) in H1. destruct b0; discriminate H1.
+  destruct H1. apply (eq_Z2R _ 0) in H1. destruct b0; discriminate H1.
   simpl in H1. pose proof (bpow_gt_0 radix2 e).
   rewrite H1 in H3. apply Rlt_irrefl in H3. destruct H3.
 - apply Rmult_integral in H1.
-  destruct H1. apply eq_Z2R with (n:=0%Z) in H1. destruct b; discriminate H1.
+  destruct H1. apply (eq_Z2R _ 0) in H1. destruct b; discriminate H1.
   simpl in H1. pose proof (bpow_gt_0 radix2 e).
   rewrite H1 in H3. apply Rlt_irrefl in H3. destruct H3.
 Qed.

@@ -588,7 +588,7 @@ rewrite Rabs_right;[assumption|apply Rle_ge; now left].
 exists eps; exists 0%R.
 split;[assumption|split].
 rewrite Rabs_R0; apply Rmult_le_pos.
-auto with real.
+apply Rlt_le, pos_half_prf.
 apply bpow_ge_0.
 split;[apply Rmult_0_r|idtac].
 now rewrite Rplus_0_r.
@@ -596,13 +596,14 @@ now rewrite Rplus_0_r.
 exists 0%R; exists (round beta (FLT_exp emin prec) (Znearest choice) x - x)%R.
 split.
 rewrite Rabs_R0; apply Rmult_le_pos.
-auto with real.
+apply Rlt_le, pos_half_prf.
 apply bpow_ge_0.
 split.
 apply Rle_trans with (/2*ulp beta (FLT_exp emin prec) x)%R.
 apply error_le_half_ulp.
 now apply FLT_exp_valid.
-apply Rmult_le_compat_l; auto with real.
+apply Rmult_le_compat_l.
+apply Rlt_le, pos_half_prf.
 rewrite ulp_neq_0.
 2: now apply Rgt_not_eq.
 apply bpow_le.

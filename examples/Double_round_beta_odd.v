@@ -627,7 +627,7 @@ destruct (Zle_or_lt (fexp1 ex) (fexp2 ex)) as [H2|H2].
       [now apply Rplus_le_lt_compat;
         [|rewrite Rabs_right; [|apply Rle_ge, Rlt_le]]|].
     apply Rle_trans with (2 * bpow (fexp1 ex - 1)).
-    - rewrite Rmult_plus_distr_r, Rmult_1_l.
+    - replace (2 * bpow (fexp1 ex - 1)) with (bpow (fexp1 ex - 1) + bpow (fexp1 ex - 1)) by ring.
       apply Rplus_le_compat; [|now apply bpow_le; omega].
       apply Rle_trans with (bpow (fexp2 ex)); [|now apply bpow_le; omega].
       rewrite <- (Rmult_1_l (bpow (fexp2 _))); unfold canonic_exp.
@@ -645,7 +645,8 @@ destruct (Zle_or_lt (fexp1 ex) (fexp2 ex)) as [H2|H2].
   replace (bpow ex) with (/ 2 * (2 * bpow ex)) by field.
   rewrite <- Rmult_plus_distr_l; apply Rmult_le_compat_l; [lra|].
   apply Rle_trans with (3 * bpow (fexp1 ex - 1)).
-  + rewrite (Rmult_plus_distr_r _ 2); rewrite Rmult_1_l; apply Rplus_le_compat.
+  + replace (3 * bpow (fexp1 ex - 1)) with (bpow (fexp1 ex - 1) + 2 * bpow (fexp1 ex - 1)) by ring.
+    apply Rplus_le_compat.
     * apply bpow_le; unfold canonic_exp; rewrite Hex'; omega.
     * apply Rmult_le_compat_l; [lra|]; apply bpow_le; omega.
   + rewrite <- (Rmult_1_l (bpow (fexp1 _))).
@@ -1781,8 +1782,8 @@ destruct (Req_dec rd 0) as [Zrd|Nzrd].
   rewrite <- Rmult_plus_distr_r.
   replace (Z2R m) with (/ 2 * (2 * Z2R m)) by field.
   rewrite <- (Rmult_1_r (/ 2)) at 2; rewrite <- Rmult_plus_distr_l.
-  change 2 with (Z2R 2) at 2; rewrite <- Z2R_mult.
-  change 1 with (Z2R 1) at 3; rewrite <- Z2R_plus.
+  change (2 * Z2R m + 1) with (Z2R 2 * Z2R m + Z2R 1).
+  rewrite <- Z2R_mult, <- Z2R_plus.
   rewrite <- Hm.
   unfold Zminus; rewrite Zplus_comm; rewrite bpow_plus.
   rewrite <- Rmult_assoc; rewrite (Rmult_assoc (/ 2)).
@@ -1828,7 +1829,7 @@ destruct (Req_dec rd 0) as [Zrd|Nzrd].
         rewrite <- Rmult_plus_distr_l.
         apply Rlt_le_trans with (/ 2 * (2 * u)).
         * apply Rmult_lt_compat_l; [lra|].
-          rewrite Rmult_plus_distr_r; rewrite Rmult_1_l.
+          replace (2 * u) with (u + u) by ring.
           apply Rplus_lt_compat_l.
           unfold u, ulp, canonic_exp; apply bpow_lt.
           omega.
@@ -1859,7 +1860,7 @@ destruct (Req_dec rd 0) as [Zrd|Nzrd].
       * rewrite Xmid' at 1.
         rewrite <- Rmult_plus_distr_l.
         apply Rmult_lt_compat_l; [lra|].
-        rewrite Rmult_plus_distr_r; rewrite Rmult_1_l.
+        replace (2 * u) with (u + u) by ring.
         apply Rplus_lt_compat_l.
         unfold u, ulp, canonic_exp; apply bpow_lt.
         omega.
@@ -1889,7 +1890,7 @@ destruct (Req_dec rd 0) as [Zrd|Nzrd].
     apply (Rmult_le_reg_l 2); [lra|].
     rewrite <- Rmult_assoc; replace (2 * _) with 1 by field;
     rewrite Rmult_1_l.
-    rewrite Rmult_plus_distr_r; rewrite Rmult_1_l.
+    replace (2 * bpow (ln_beta x)) with (bpow (ln_beta x) + bpow (ln_beta x)) by ring.
     unfold u, ulp, canonic_exp; rewrite <- Hlx.
     apply Rplus_le_compat_l; apply bpow_le; omega.
 - (* rd <> 0 *)
@@ -1974,7 +1975,7 @@ destruct (Req_dec rd 0) as [Zrd|Nzrd].
       rewrite Rmult_1_l.
       rewrite ulp_neq_0; trivial.
       unfold canonic_exp; rewrite <- Hlr; change (bpow (fexp1 _)) with u.
-      rewrite Rmult_plus_distr_r; rewrite Rmult_1_l.
+      replace (2 * u) with (u + u) by ring.
       apply Rplus_lt_compat_l; unfold u, ulp, canonic_exp, f2; apply bpow_lt.
       omega. }
   rewrite Hl2.
@@ -1999,7 +2000,8 @@ destruct (Req_dec rd 0) as [Zrd|Nzrd].
       apply (Rmult_lt_reg_l 2); [lra|]; rewrite <- Rmult_assoc.
       replace (2 * / 2) with 1 by field; rewrite Rmult_1_l.
       change (bpow f1) with u.
-      rewrite Rmult_plus_distr_r; rewrite Rmult_1_l; apply Rplus_lt_compat_l.
+      replace (2 * u) with (u + u) by ring.
+      apply Rplus_lt_compat_l.
       unfold f2, u, ulp, canonic_exp; apply bpow_lt; omega. }
   unfold Znearest.
   rewrite Hfld.
@@ -2150,7 +2152,7 @@ destruct (Zle_or_lt (fexp1 ex) (fexp2 ex)) as [H2|H2].
       [now apply Rplus_le_lt_compat;
         [|rewrite Rabs_right; [|apply Rle_ge, Rlt_le]]|].
     apply Rle_trans with (2 * bpow (fexp1 ex - 1)).
-    - rewrite Rmult_plus_distr_r, Rmult_1_l.
+    - replace (2 * bpow (fexp1 ex - 1)) with (bpow (fexp1 ex - 1) + bpow (fexp1 ex - 1)) by ring.
       apply Rplus_le_compat; [|now apply bpow_le; omega].
       apply Rle_trans with (bpow (fexp2 ex)); [|now apply bpow_le; omega].
       rewrite <- (Rmult_1_l (bpow _)).
@@ -2170,7 +2172,8 @@ destruct (Zle_or_lt (fexp1 ex) (fexp2 ex)) as [H2|H2].
   replace (bpow ex) with (/ 2 * (2 * bpow ex)) by field.
   rewrite <- Rmult_plus_distr_l; apply Rmult_le_compat_l; [lra|].
   apply Rle_trans with (3 * bpow (fexp1 ex - 1)).
-  + rewrite (Rmult_plus_distr_r _ 2); rewrite Rmult_1_l; apply Rplus_le_compat.
+  + replace (3 * bpow (fexp1 ex - 1)) with (bpow (fexp1 ex - 1) + 2 * bpow (fexp1 ex - 1)) by ring.
+    apply Rplus_le_compat.
     * rewrite ulp_neq_0; try now apply Rgt_not_eq.
       apply bpow_le; unfold canonic_exp; rewrite Hex'; omega.
     * apply Rmult_le_compat_l; [lra|]; apply bpow_le; omega.
