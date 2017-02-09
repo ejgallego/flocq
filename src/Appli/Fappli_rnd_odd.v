@@ -709,7 +709,7 @@ unfold F2R; simpl; unfold Z.pow_pos; simpl.
 rewrite Zmult_1_r, Hb, Z2R_mult.
 simpl; field.
 apply Rgt_not_eq, Rmult_lt_reg_l with (1 := Rlt_0_2).
-rewrite Rmult_0_r, <-Z2R_mult, <-Hb.
+rewrite Rmult_0_r, <- (Z2R_mult 2), <-Hb.
 apply radix_pos.
 apply trans_eq with (-1+Fexp (Fplus beta d u'))%Z.
 unfold Fmult.
@@ -737,7 +737,7 @@ unfold F2R; simpl; unfold Z.pow_pos; simpl.
 rewrite Zmult_1_r, Hb, Z2R_mult.
 simpl; field.
 apply Rgt_not_eq, Rmult_lt_reg_l with (1 := Rlt_0_2).
-rewrite Rmult_0_r, <-Z2R_mult, <-Hb.
+rewrite Rmult_0_r, <- (Z2R_mult 2), <-Hb.
 apply radix_pos.
 apply trans_eq with (-1+Fexp u)%Z.
 unfold Fmult.

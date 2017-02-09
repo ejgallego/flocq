@@ -183,8 +183,8 @@ destruct (Req_dec x' 0) as [Zx'|Nzx'].
   apply Rplus_le_compat_r.
   apply (Rmult_le_reg_r (bpow (- ln_beta x))); [now apply bpow_gt_0|].
   unfold ulp, canonic_exp; bpow_simplify.
-  replace 1%R with (/2 * 2)%R by field.
-  apply Rmult_le_compat_l; [lra|].
+  apply Rmult_le_reg_l with (1 := Rlt_0_2).
+  replace (2 * (/ 2 * _)) with (bpow (fexp1 (ln_beta x) - ln_beta x)) by field.
   apply Rle_trans with 1; [|lra].
   change 1 with (bpow 0); apply bpow_le.
   omega.
@@ -1461,6 +1461,7 @@ apply double_round_gt_mid.
       unfold Fcore_Raux.bpow, Z.pow_pos; simpl.
       rewrite Zmult_1_r.
       apply Z2R_le, Rinv_le in Hbeta.
+      simpl in Hbeta.
       lra.
       apply Rlt_0_2.
 Qed.

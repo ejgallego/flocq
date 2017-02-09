@@ -201,7 +201,7 @@ apply Rmult_le_compat_r.
 apply ulp_ge_0.
 left; apply Rlt_plus_1.
 rewrite 2!ulp_neq_0; trivial.
-2: now apply Rmult_integral_contrapositive_currified.
+2: lra.
 change 2 at 2 with (bpow 1).
 rewrite <- bpow_plus.
 apply bpow_le.
@@ -221,18 +221,16 @@ rewrite Rabs_mult.
 pattern (Rabs u) at 1; rewrite <- (Rmult_1_l (Rabs u)).
 apply Rmult_le_compat_r.
 apply Rabs_pos.
+change 2 with (Z2R 2).
 rewrite <- (Z2R_abs 2).
 now apply (Z2R_le 1 2).
 (* *)
-case (Req_dec u 0); intros K.
-rewrite K, Rmult_0_r.
-omega.
 rewrite canonic_exp_FLT_FIX.
 rewrite canonic_exp_FLT_FIX; trivial.
 unfold FIX_exp, canonic_exp; omega.
 apply Rlt_le_trans with (1:=Hu).
 apply bpow_le; omega.
-apply Rmult_integral_contrapositive_currified; trivial.
+lra.
 rewrite Rabs_mult.
 rewrite Rabs_pos_eq.
 2: now apply (Z2R_le 0 2).
@@ -1449,7 +1447,7 @@ destruct uLev as [uLtv|uEqv].
 (* when u < v *)
 assert (B: u <= v) by now left.
 assert (K1: b <> 0).
-apply Rmult_integral_contrapositive_currified ; lra.
+unfold b ; lra.
 (* . initial lemma *)
 assert (Y:(Rabs (round_flt (v - u) - (v-u)) <= ulp_flt b)).
 apply Rle_trans with (/2*ulp_flt (v-u)).
@@ -1467,7 +1465,7 @@ apply ulp_le_pos...
 lra.
 unfold b ; lra.
 rewrite 2!ulp_neq_0; trivial.
-2: apply Rmult_integral_contrapositive_currified; trivial.
+2: lra.
 change 2 with (bpow 1).
 rewrite <- bpow_plus.
 apply bpow_le.
@@ -1553,10 +1551,8 @@ apply Rmult_eq_reg_l with 2.
 rewrite Rmult_0_r, J1,M; unfold F2R; simpl; ring.
 rewrite Rabs_mult.
 rewrite Rabs_right.
-2: apply Rle_ge; auto with real.
-apply Rmult_le_compat_l.
-lra.
-exact Y.
+2: lra.
+apply Rmult_le_compat_l with (2 := Y).
 lra.
 apply round_generic...
 apply FLT_format_half...
