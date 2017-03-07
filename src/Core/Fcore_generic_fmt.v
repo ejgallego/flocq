@@ -755,7 +755,7 @@ Theorem round_0 :
 Proof.
 unfold round, scaled_mantissa.
 rewrite Rmult_0_l.
-fold (Z2R 0).
+change 0%R with (Z2R 0).
 rewrite Zrnd_Z2R.
 apply F2R_0.
 Qed.
@@ -1177,7 +1177,7 @@ rewrite <- (Rmult_0_l (bpow (- canonic_exp x))).
 apply Rmult_le_compat_r with (2 := Hx).
 apply bpow_ge_0.
 rewrite <- H.
-change R0 with (Z2R 0).
+change 0%R with (Z2R 0).
 now rewrite Zfloor_Z2R, Zceil_Z2R.
 Qed.
 
@@ -1212,7 +1212,7 @@ rewrite <- (Rmult_0_l (bpow (- canonic_exp x))).
 apply Rmult_le_compat_r with (2 := Hx).
 apply bpow_ge_0.
 rewrite <- H.
-change R0 with (Z2R 0).
+change 0%R with (Z2R 0).
 now rewrite Zfloor_Z2R, Zceil_Z2R.
 Qed.
 

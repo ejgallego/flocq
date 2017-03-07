@@ -403,7 +403,7 @@ Definition Z2R n :=
   match n with
   | Zpos p => P2R p
   | Zneg p => Ropp (P2R p)
-  | Z0 => R0
+  | Z0 => 0%R
   end.
 
 Theorem P2R_INR :
@@ -432,10 +432,13 @@ Theorem Z2R_IZR :
   forall n, Z2R n = IZR n.
 Proof.
 intro.
-case n ; intros ; simpl.
+case n ; intros ; unfold Z2R.
 apply refl_equal.
+rewrite <- positive_nat_Z, <- INR_IZR_INZ.
 apply P2R_INR.
+change (IZR (Zneg p)) with (Ropp (IZR (Zpos p))).
 apply Ropp_eq_compat.
+rewrite <- positive_nat_Z, <- INR_IZR_INZ.
 apply P2R_INR.
 Qed.
 
@@ -1193,7 +1196,7 @@ unfold Ztrunc.
 case Rlt_bool_spec ; intro H.
 apply refl_equal.
 rewrite (Rle_antisym _ _ Hx H).
-fold (Z2R 0).
+change 0%R with (Z2R 0).
 rewrite Zceil_Z2R.
 apply Zfloor_Z2R.
 Qed.
@@ -1304,7 +1307,7 @@ unfold Zaway.
 case Rlt_bool_spec ; intro H.
 apply refl_equal.
 rewrite (Rle_antisym _ _ Hx H).
-fold (Z2R 0).
+change 0%R with (Z2R 0).
 rewrite Zfloor_Z2R.
 apply Zceil_Z2R.
 Qed.

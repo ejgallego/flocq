@@ -1392,20 +1392,20 @@ apply Z.le_max_r.
 unfold b, average3.
 rewrite J1,J3,J2,J4,T1,T2; unfold F2R; simpl.
 rewrite Rmult_0_l, Rplus_0_r.
-replace (0 - -1 * bpow emin) with (bpow emin) by ring.
-rewrite (round_generic _ _ _ (bpow (emin)))...
+replace (0 - _ * bpow emin) with (bpow emin) by ring.
+rewrite (round_generic _ _ _ (bpow emin))...
 2: apply FLT_format_bpow...
 2: omega.
 rewrite G1.
-replace (-1 * bpow emin + 0) with (-bpow emin) by ring.
+replace (_ * bpow emin + 0) with (-bpow emin) by ring.
 rewrite round_generic...
 2: apply generic_format_opp.
 2: apply FLT_format_bpow...
 2: omega.
-replace (- bpow emin - -1 * bpow emin / 2) with (-((bpow emin)/2)) by field.
+replace (- bpow emin - _ * bpow emin / 2) with (-(bpow emin/2)) by field.
 rewrite Rabs_Ropp.
 rewrite Rabs_right.
-replace (-1 * bpow emin / 2) with (-((bpow emin/2))) by field.
+replace (_ * bpow emin / 2) with (-(bpow emin/2)) by field.
 rewrite ulp_opp.
 apply Rle_trans with ((3*ulp_flt (bpow emin / 2))/2);[idtac|right; unfold Rdiv; ring].
 unfold Rdiv; apply Rmult_le_compat_r.
