@@ -1485,22 +1485,22 @@ Qed.
 
 Theorem lt_succ_le :
   forall x y,
-  F x -> F y -> (y <> 0)%R ->
+  (y <> 0)%R ->
   (x <= y)%R ->
   (x < succ y)%R.
 Proof.
-intros x y Fx Fy Zy Hxy.
+intros x y Zy Hxy.
 apply Rle_lt_trans with (1 := Hxy).
 now apply succ_gt_id.
 Qed.
 
 Theorem pred_lt_le :
   forall x y,
-  F x -> F y -> (x <> 0)%R ->
+  (x <> 0)%R ->
   (x <= y)%R ->
   (pred x < y)%R.
 Proof.
-intros x y Fx Fy Zy Hxy.
+intros x y Zy Hxy.
 apply Rlt_le_trans with (2 := Hxy).
 now apply pred_lt_id.
 Qed.
