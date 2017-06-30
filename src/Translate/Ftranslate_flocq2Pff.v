@@ -20,8 +20,129 @@ COPYING file for more details.
 (** Translation from Flocq to Pff *)
 Require Import Float.Veltkamp.
 Require Import Float.RND.
-Require Import Fcore.
-Require Import Fappli_IEEE.
+Require Import Core.
+
+Section RND_Closest_c.
+(* extension of pff for rounding function with arbitrary tie *)
+Variable b : Fbound.
+Variable beta : radix.
+Variable p : nat.
+
+Coercion Local FtoRradix := FtoR beta.
+Hypothesis pGreaterThanOne : 1 < p.
+Hypothesis pGivesBound : Zpos (vNum b) = Zpower_nat beta p.
+
+Variable choice: Z -> bool.
+
+
+Definition RND_Closest (r : R) :=
+   let ru := RND_Max b beta p r in
+   let rd := RND_Min b beta p r in
+  match Rle_dec (Rabs (ru - r)) (Rabs (rd - r)) with
+  | left H =>
+      match
+        Rle_lt_or_eq_dec (Rabs (ru - r)) (Rabs (rd - r)) H
+      with
+      | left _ => ru
+      | right _ =>
+          match choice (Zfloor (scaled_mantissa beta (FLT_exp (- dExp b) p) r)) with
+          | true => ru
+          | false => rd
+          end
+      end
+  | right _ => rd
+  end.
+
+
+Theorem RND_Closest_canonic :
+ forall r : R, Fcanonic beta b (RND_Closest r).
+intros r; unfold RND_Closest in |- *.
+case (Rle_dec _ _ ); intros H1.
+case (Rle_lt_or_eq_dec _ _ H1); intros H2.
+apply RND_Max_canonic; try easy; apply radix_gt_1.
+case (choice _).
+now apply RND_Max_canonic; try easy; apply radix_gt_1.
+now apply RND_Min_canonic; try easy; apply radix_gt_1.
+now apply RND_Min_canonic; try easy; apply radix_gt_1.
+Qed.
+
+Theorem RND_Closest_correct :
+ forall r : R, Closest b beta r (RND_Closest r).
+intros r.
+generalize (radix_gt_1 beta); intros M.
+split.
+apply FcanonicBound with beta; apply RND_Closest_canonic.
+intros f H3; fold FtoRradix.
+(* *)
+cut (RND_Min b beta p r <= r)%R; [ intros V1 | idtac ].
+2: apply (RND_Min_correct b beta p) with (r:=r); easy.
+cut (r <= RND_Max b beta p r)%R; [ intros V2 | idtac ].
+2: apply (RND_Max_correct b beta p) with (r:=r); easy.
+cut (forall v w : R, (v <= w)%R -> (0 <= w - v)%R); [ intros V3 | idtac ].
+2: intros v w H; apply Rplus_le_reg_l with v; ring_simplify; auto with real.
+cut (forall v w : R, (v <= w)%R -> (v - w <= 0)%R); [ intros V4 | idtac ].
+2: intros v w H; apply Rplus_le_reg_l with w; ring_simplify; auto with real.
+(* *)
+unfold RND_Closest; case (Rle_dec _ _); intros H1.
+case (Rle_lt_or_eq_dec _ _ H1); intros H2.
+(* . *)
+rewrite Rabs_right in H1; [ idtac | apply Rle_ge; apply V3; auto with real ].
+rewrite Faux.Rabsolu_left1 in H1; [ idtac | apply V4; auto with real ].
+rewrite Rabs_right; [ idtac | apply Rle_ge; apply V3; auto with real ].
+case (Rle_or_lt f r); intros H4.
+rewrite Faux.Rabsolu_left1; [ idtac | apply V4; auto with real ].
+apply Rle_trans with (1 := H1); apply Ropp_le_contravar;
+ unfold Rminus in |- *; apply Rplus_le_compat_r.
+apply (RND_Min_correct b beta p) with (r:=r); easy.
+rewrite Rabs_right; [ idtac | apply Rle_ge; apply V3; auto with real ].
+unfold Rminus in |- *; apply Rplus_le_compat_r.
+apply (RND_Max_correct b beta p) with (r:=r); try easy.
+now apply Rlt_le.
+(* . *)
+case (choice _).
+rewrite Rabs_right in H1; [ idtac | apply Rle_ge; apply V3; auto with real ].
+rewrite Faux.Rabsolu_left1 in H1; [ idtac | apply V4; auto with real ].
+rewrite Rabs_right; [ idtac | apply Rle_ge; apply V3; auto with real ].
+case (Rle_or_lt f r); intros H5.
+rewrite Faux.Rabsolu_left1; [ idtac | apply V4; auto with real ].
+apply Rle_trans with (1 := H1); apply Ropp_le_contravar;
+ unfold Rminus in |- *; apply Rplus_le_compat_r.
+apply (RND_Min_correct b beta p) with (r:=r); easy.
+rewrite Rabs_right; [ idtac | apply Rle_ge; apply V3; auto with real ].
+unfold Rminus in |- *; apply Rplus_le_compat_r.
+apply (RND_Max_correct b beta p) with (r:=r); try easy.
+now apply Rlt_le.
+(* . *)
+rewrite Rabs_right in H1; [ idtac | apply Rle_ge; apply V3; auto with real ].
+rewrite Faux.Rabsolu_left1 in H1; [ idtac | apply V4; auto with real ].
+rewrite <- H2.
+rewrite Rabs_right; [ idtac | apply Rle_ge; apply V3; auto with real ].
+case (Rle_or_lt f r); intros H5.
+rewrite Faux.Rabsolu_left1; [ idtac | apply V4; auto with real ].
+apply Rle_trans with (1 := H1); apply Ropp_le_contravar;
+ unfold Rminus in |- *; apply Rplus_le_compat_r.
+apply (RND_Min_correct b beta p) with (r:=r); easy.
+rewrite Rabs_right; [ idtac | apply Rle_ge; apply V3; auto with real ].
+unfold Rminus in |- *; apply Rplus_le_compat_r.
+apply (RND_Max_correct b beta p) with (r:=r); try easy.
+now apply Rlt_le.
+(* . *)
+apply Rnot_le_lt in H1.
+rewrite Faux.Rabsolu_left1 in H1; [ idtac | apply V4; auto with real ].
+rewrite Rabs_right in H1; [ idtac | apply Rle_ge; apply V3; auto with real ].
+rewrite Faux.Rabsolu_left1; [ idtac | apply V4; auto with real ].
+case (Rle_or_lt f r); intros H4.
+rewrite Faux.Rabsolu_left1; [ idtac | apply V4; auto with real ].
+apply Ropp_le_contravar, Rplus_le_compat_r.
+apply (RND_Min_correct b beta p) with (r:=r); easy.
+rewrite Rabs_right; [ idtac | apply Rle_ge; apply V3; auto with real ].
+left; apply Rlt_le_trans with (1:=H1).
+apply Rplus_le_compat_r.
+apply (RND_Max_correct b beta p) with (r:=r); try easy.
+now left.
+Qed.
+
+End RND_Closest_c.
 
 
 Section Bounds.
@@ -97,26 +218,25 @@ Lemma pff_format_is_format: forall f, Fbounded b f ->
 intros f Hf.
 apply generic_format_FLT; auto with zarith.
 exists (Float beta (Float.Fnum f) (Float.Fexp f)).
-simpl; split.
 unfold F2R, FtoR; simpl.
 rewrite <- 2!Z2R_IZR.
 rewrite bpow_powerRZ.
 reflexivity.
-split; destruct Hf.
+destruct Hf.
 apply Zlt_le_trans with (1:=H).
 rewrite pGivesBound.
 rewrite Zpower_Zpower_nat; auto with zarith.
-exact H0.
+now destruct Hf.
 Qed.
 
 
 Lemma format_is_pff_format': forall r,
    (generic_format beta (FLT_exp (-dExp b) p) r) ->
     Fbounded b (Float.Float (Ztrunc (scaled_mantissa beta (FLT_exp (-dExp b) p) r))
-                            (canonic_exp beta (FLT_exp (-dExp b) p) r)).
+                            (cexp beta (FLT_exp (-dExp b) p) r)).
 Proof.
 intros x; unfold generic_format.
-set (ex := canonic_exp beta (FLT_exp (-dExp b) p) x).
+set (ex := cexp beta (FLT_exp (-dExp b) p) x).
 set (mx := Ztrunc (scaled_mantissa beta (FLT_exp (-dExp b) p) x)).
 intros Hx; repeat split ; simpl.
 apply lt_Z2R.
@@ -131,7 +251,7 @@ rewrite <- Hx.
 destruct (Req_dec x 0) as [Hx0|Hx0].
 rewrite Hx0, Rabs_R0.
 apply bpow_gt_0.
-unfold canonic_exp in ex.
+unfold cexp in ex.
 destruct (mag beta x) as (ex', He).
 simpl in ex.
 specialize (He Hx0).
@@ -188,13 +308,13 @@ intros H; contradict H; auto.
 Qed.
 
 Lemma pff_canonic_is_canonic: forall f, Fcanonic beta b f -> FtoR beta f <> 0 ->
-  canonic beta (FLT_exp (- dExp b) p)
+  canonical beta (FLT_exp (- dExp b) p)
     (Float beta (Float.Fnum f) (Float.Fexp f)).
-intros f Hf1 Hf2; unfold canonic; simpl.
+intros f Hf1 Hf2; unfold canonical; simpl.
 assert (K:(F2R (Float beta (Float.Fnum f) (Float.Fexp f)) = FtoR beta f)).
 unfold FtoR, F2R; simpl.
 rewrite bpow_powerRZ; rewrite <- 2!Z2R_IZR; reflexivity.
-unfold canonic_exp, FLT_exp.
+unfold cexp, FLT_exp.
 rewrite K.
 destruct (mag beta (FtoR beta f)) as (e, He).
 simpl; destruct Hf1.
@@ -333,7 +453,7 @@ apply equiv_RNDs_aux.
 replace (Float.Fnum (Fnormalize beta b (Zabs_nat p) f)) with (Fnum g); try assumption.
 replace g with (Float beta (Float.Fnum (Fnormalize beta b (Zabs_nat p) f)) (Float.Fexp (Fnormalize beta b (Zabs_nat p) f))).
 easy.
-apply canonic_unicity with (FLT_exp (- dExp b) p).
+apply canonical_unicity with (FLT_exp (- dExp b) p).
 2: assumption.
 apply pff_canonic_is_canonic.
 apply FnormalizeCanonic; auto with zarith real.
@@ -381,6 +501,199 @@ apply Nat2Z.inj_lt.
 rewrite inj_abs; simpl; omega.
 apply pff_round_NE_is_round.
 Qed.
+
+Lemma pff_round_UP_is_round: forall (r:R),
+  FtoR beta (RND_Max b beta (Z.abs_nat p) r) 
+             = round beta (FLT_exp (- dExp b) p) Zceil r.
+Proof with auto with typeclass_instances.
+intros r.
+generalize (radix_gt_1 beta); intros M.
+assert (K:Valid_exp (FLT_exp (- dExp b) p)).
+apply FLT_exp_valid.
+unfold Prec_gt_0; auto with zarith.
+destruct (format_is_pff_format_can (round beta (FLT_exp (- dExp b) p) Zceil r)) as (fu,(Hfu1,Hfu2)).
+apply generic_format_round...
+rewrite <- Hfu1.
+apply MaxUniqueP with b r.
+apply RND_Max_correct; try assumption.
+apply Nat2Z.inj_lt; rewrite inj_abs; simpl; omega.
+split.
+apply FcanonicBound with (1:=Hfu2).
+assert (T:Rnd_UP_pt (generic_format beta (FLT_exp (- dExp b) p)) r
+             (round beta (FLT_exp (- dExp b) p) Zceil r)).
+apply round_UP_pt...
+destruct T as (T1,(T2,T3)).
+split.
+rewrite Hfu1; apply T2.
+intros g Hg1 Hg2.
+rewrite Hfu1; apply T3; try assumption.
+now apply pff_format_is_format.
+Qed.
+
+
+Lemma pff_round_DN_is_round: forall (r:R),
+  FtoR beta (RND_Min b beta (Z.abs_nat p) r) 
+             = round beta (FLT_exp (- dExp b) p) Zfloor r.
+Proof with auto with typeclass_instances.
+intros r.
+generalize (radix_gt_1 beta); intros M.
+assert (K:Valid_exp (FLT_exp (- dExp b) p)).
+apply FLT_exp_valid.
+unfold Prec_gt_0; auto with zarith.
+destruct (format_is_pff_format_can (round beta (FLT_exp (- dExp b) p) Zfloor r)) as (fd,(Hfd1,Hfd2)).
+apply generic_format_round...
+rewrite <- Hfd1.
+apply MinUniqueP with b r.
+apply RND_Min_correct; try assumption.
+apply Nat2Z.inj_lt; rewrite inj_abs; simpl; omega.
+split.
+apply FcanonicBound with (1:=Hfd2).
+assert (T:Rnd_DN_pt (generic_format beta (FLT_exp (- dExp b) p)) r
+             (round beta (FLT_exp (- dExp b) p) Zfloor r)).
+apply round_DN_pt...
+destruct T as (T1,(T2,T3)).
+split.
+rewrite Hfd1; apply T2.
+intros g Hg1 Hg2.
+rewrite Hfd1; apply T3; try assumption.
+now apply pff_format_is_format.
+Qed.
+
+
+
+
+Lemma pff_round_N_is_round: forall choice, forall (r:R),
+   (FtoR beta (RND_Closest b beta (Zabs_nat p) choice r)
+     =  round beta (FLT_exp (-dExp b) p) (Znearest choice) r).
+Proof with auto with typeclass_instances.
+generalize (radix_gt_1 beta); intros M.
+intros choice r; apply sym_eq.
+assert (K:Valid_exp (FLT_exp (- dExp b) p)).
+apply FLT_exp_valid.
+unfold Prec_gt_0; auto with zarith.
+unfold RND_Closest, FtoRradix.
+rewrite pff_round_DN_is_round.
+rewrite pff_round_UP_is_round.
+case (Rle_dec _ _); intros H1.
+case (Rle_lt_or_eq_dec _ _ H1); intros H2.
+(* *)
+rewrite pff_round_UP_is_round.
+apply round_N_eq_UP...
+rewrite Rabs_right in H2;[idtac| apply Rle_ge, Rle_0_minus, round_UP_pt; easy].
+rewrite Rabs_left1 in H2;[idtac| apply Rle_minus, round_DN_pt; easy].
+apply Rmult_lt_reg_r with 2%R; try apply Rlt_0_2.
+unfold Rdiv; rewrite Rmult_assoc, Rinv_l.
+2: apply Rgt_not_eq, Rlt_0_2.
+apply Rplus_lt_reg_l with (-round beta (FLT_exp (- dExp b) p) Zfloor r - r)%R.
+apply Rle_lt_trans with (round beta (FLT_exp (- dExp b) p) Zceil r - r)%R;[right;ring|idtac].
+apply Rlt_le_trans with (1:=H2).
+right; ring.
+(* *)
+rewrite round_N_middle.
+rewrite inj_abs;[idtac|omega].
+case (choice _).
+apply sym_eq, pff_round_UP_is_round.
+apply sym_eq, pff_round_DN_is_round.
+rewrite Rabs_right in H2;[idtac| apply Rle_ge, Rle_0_minus, round_UP_pt; easy].
+rewrite Rabs_left1 in H2;[idtac| apply Rle_minus, round_DN_pt; easy].
+rewrite H2; ring.
+(* *)
+rewrite pff_round_DN_is_round.
+apply round_N_eq_DN...
+apply Rnot_le_lt in H1.
+rewrite Rabs_left1 in H1;[idtac| apply Rle_minus, round_DN_pt; easy].
+rewrite Rabs_right in H1;[idtac| apply Rle_ge, Rle_0_minus, round_UP_pt; easy].
+apply Rmult_lt_reg_r with 2%R; try apply Rlt_0_2.
+unfold Rdiv; rewrite Rmult_assoc, Rinv_l.
+2: apply Rgt_not_eq, Rlt_0_2.
+apply Rplus_lt_reg_l with (-round beta (FLT_exp (- dExp b) p) Zfloor r - r)%R.
+apply Rle_lt_trans with (-(round beta (FLT_exp (- dExp b) p) Zfloor r - r))%R;[right;ring|idtac].
+apply Rlt_le_trans with (1:=H1).
+right; ring.
+Qed.
+
+
+Lemma round_N_is_pff_round: forall choice, forall (r:R),
+   exists f:Float.float, (Fcanonic beta b f /\ (Closest b beta r f) /\
+    FtoR beta f =  round beta (FLT_exp (-dExp b) p) (Znearest choice) r).
+Proof.
+intros choice r.
+assert (1 < Z.abs_nat p).
+apply Nat2Z.inj_lt; simpl.
+rewrite inj_abs; omega.
+exists (RND_Closest b beta (Zabs_nat p) choice r); split.
+apply RND_Closest_canonic; easy.
+split.
+apply RND_Closest_correct; easy.
+apply pff_round_N_is_round.
+Qed.
+
+Lemma pff_round_is_round_N: forall r f, Closest b beta r f ->
+    exists (choice:Z->bool), 
+      FtoR beta f = round beta (FLT_exp (-dExp b) p) (Znearest choice) r.
+Proof with auto with typeclass_instances.
+intros r f Hf.
+generalize (radix_gt_1 beta); intros M.
+assert (M':1 < Z.abs_nat p).
+apply Nat2Z.inj_lt; simpl.
+rewrite inj_abs; omega.
+pose (d := round beta (FLT_exp (-dExp b) p) Zfloor r).
+pose (u := round beta (FLT_exp (-dExp b) p) Zceil r).
+case (Rle_or_lt ((d+u)/2) r); intros L.
+destruct L as [L|L].
+(* rnd up *)
+exists (fun _ => true).
+rewrite <- pff_round_N_is_round.
+apply trans_eq with (FtoR beta (RND_Max b beta (Z.abs_nat p) r)).
+apply ClosestMaxEq with b r (RND_Min b beta (Z.abs_nat p) r); try assumption.
+apply RND_Min_correct; assumption.
+apply RND_Max_correct; assumption.
+rewrite pff_round_DN_is_round; fold d.
+rewrite pff_round_UP_is_round; fold u.
+apply Rmult_lt_reg_r with (/2)%R.
+apply RlIt2.
+apply Rlt_le_trans with (1:=L).
+right; simpl; field.
+rewrite pff_round_N_is_round.
+rewrite pff_round_UP_is_round; fold u.
+apply sym_eq, round_N_eq_UP...
+apply FLT_exp_valid.
+unfold Prec_gt_0; auto with zarith.
+(* middle *)
+case (ClosestMinOrMax b beta r f); try assumption; intros LL.
+exists (fun _ => false).
+rewrite round_N_middle.
+rewrite <- pff_round_DN_is_round.
+apply (MinUniqueP b beta r); try assumption.
+apply RND_Min_correct; assumption.
+fold d; fold u; rewrite <- L; field.
+exists (fun _ => true).
+rewrite round_N_middle.
+rewrite <- pff_round_UP_is_round.
+apply (MaxUniqueP b beta r); try assumption.
+apply RND_Max_correct; assumption.
+fold d; fold u; rewrite <- L; field.
+(* rnd down *)
+exists (fun _ => true).
+rewrite <- pff_round_N_is_round.
+apply trans_eq with (FtoR beta (RND_Min b beta (Z.abs_nat p) r)).
+apply ClosestMinEq with b r (RND_Max b beta (Z.abs_nat p) r); try assumption.
+apply RND_Min_correct; assumption.
+apply RND_Max_correct; assumption.
+rewrite pff_round_DN_is_round; fold d.
+rewrite pff_round_UP_is_round; fold u.
+apply Rmult_lt_reg_r with (/2)%R.
+apply RlIt2.
+apply Rle_lt_trans with (2:=L).
+right; simpl; field.
+rewrite pff_round_N_is_round.
+rewrite pff_round_DN_is_round; fold d.
+apply sym_eq, round_N_eq_DN...
+apply FLT_exp_valid.
+unfold Prec_gt_0; auto with zarith.
+Qed.
+
+
 
 Lemma FloatFexp_gt:  forall e f, Fbounded b f ->
   (bpow beta (e+p) <= Rabs (FtoR beta f))%R ->

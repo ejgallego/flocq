@@ -4,23 +4,42 @@ Require Export Float.Fast2Sum.
 Require Import Float.TwoSum.
 Require Import Float.FmaErr.
 Require Import Float.Dekker.
+Require Import Float.FmaErrApprox.
 
-Require Import Fcore.
-Require Import Fprop_plus_error.
-Require Import Fprop_mult_error.
+Require Import Core.
+Require Import Plus_error.
+Require Import Mult_error.
 Require Import Ftranslate_flocq2Pff.
 
 Open Scope R_scope.
 
 Section FTS.
 Variable emin prec : Z.
+Variable choice : Z -> bool.
 Hypothesis precisionNotZero : (1 < prec)%Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Hypothesis emin_neg: (emin <= 0)%Z.
+Hypothesis choice_sym: forall x, choice x  = negb (choice (- (x + 1))).
+
+
 
 Notation format := (generic_format radix2 (FLT_exp emin prec)).
-Notation round_flt :=(round radix2 (FLT_exp emin prec) ZnearestE).
+Notation round_flt :=(round radix2 (FLT_exp emin prec) (Znearest choice)).
 Notation bpow e := (bpow radix2 e).
+
+
+Lemma round_N_opp_sym: forall x, round_flt (- x) =
+       - round_flt x.
+Proof.
+intros x; unfold round; rewrite <- F2R_Zopp.
+rewrite cexp_opp; f_equal; f_equal.
+rewrite scaled_mantissa_opp.
+rewrite Znearest_opp.
+generalize (scaled_mantissa radix2 (FLT_exp emin prec) x).
+intros z; unfold Znearest; case (Rcompare _); try easy.
+now rewrite <- choice_sym.
+Qed.
+
 
 (** inputs *)
 Variable x y:R.
@@ -29,10 +48,10 @@ Hypothesis Fy: format y.
 
 (** algorithm *)
 Let a := round_flt (x+y).
-Let b := round_flt (round_flt (a-x)-y).
+Let b := round_flt (y+round_flt (x-a)).
 
 (** Theorem *)
-Theorem FastTwoSum: Rabs y <= Rabs x -> a-b=x+y.
+Theorem Fast2Sum_correct: Rabs y <= Rabs x -> a+b=x+y.
 Proof with auto with typeclass_instances.
 intros H.
 (* *)
@@ -47,32 +66,32 @@ destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega; assumption.
 (* *)
-pose (Iplus := fun (f g:Float.float) => 
-  Fnormalize radix2 (make_bound radix2 prec emin) (Zabs_nat prec)
-   (Float.Float 
-     (Ztrunc (scaled_mantissa radix2 (FLT_exp (emin) prec) (round_flt (FtoR radix2 f+FtoR radix2 g))))
-     (canonic_exp radix2 (FLT_exp (emin) prec) (round_flt (FtoR radix2 f+FtoR radix2 g))))).
-pose (Iminus := fun (f g:Float.float) => 
-  Fnormalize radix2 (make_bound radix2 prec emin) (Zabs_nat prec)
-   (Float.Float 
-      (Ztrunc (scaled_mantissa radix2 (FLT_exp (emin) prec) (round_flt (FtoR radix2 f-FtoR radix2 g))))
-      (canonic_exp radix2 (FLT_exp (emin) prec) (round_flt (FtoR radix2 f-FtoR radix2 g))))).
+pose (Iplus := fun (f g:Float.float) => RND_Closest 
+        (make_bound radix2 prec emin) radix2 (Zabs_nat prec) choice 
+         (FtoR radix2 f + FtoR radix2 g)).
+pose (Iminus := fun (f g:Float.float) => RND_Closest 
+        (make_bound radix2 prec emin) radix2 (Zabs_nat prec) choice 
+         (FtoR radix2 f - FtoR radix2 g)).
 assert (H1: forall x y, FtoR 2 (Iplus x y) = round_flt (FtoR 2 x + FtoR 2 y)).
-clear -prec_gt_0_; intros x y.
-assert (format (round_flt (FtoR 2 x + FtoR 2 y))).
-apply generic_format_round...
-unfold Iplus; rewrite FnormalizeCorrect.
-2: apply radix_gt_1.
-rewrite H; change 2%Z with (radix_val radix2).
-apply FtoR_F2R; try easy.
+clear -prec_gt_0_ precisionNotZero emin_neg; intros x y.
+unfold Iplus.
+apply trans_eq with (round radix2
+  (FLT_exp (- dExp (make_bound radix2 prec emin)) prec)
+  (Znearest choice) (FtoR radix2 x + FtoR radix2 y)).
+apply pff_round_N_is_round; try assumption.
+now apply make_bound_p.
+rewrite make_bound_Emin; try assumption.
+now rewrite Zopp_involutive.
 assert (H2: forall x y, FtoR 2 (Iminus x y) = round_flt (FtoR 2 x - FtoR 2 y)).
-clear -prec_gt_0_; intros x y.
-assert (format (round_flt (FtoR 2 x - FtoR 2 y))).
-apply generic_format_round...
-unfold Iminus; rewrite FnormalizeCorrect.
-2: apply radix_gt_1.
-rewrite H; change 2%Z with (radix_val radix2).
-apply FtoR_F2R; try easy.
+clear -prec_gt_0_ precisionNotZero emin_neg; intros x y.
+unfold Iminus.
+apply trans_eq with (round radix2
+  (FLT_exp (- dExp (make_bound radix2 prec emin)) prec)
+  (Znearest choice) (FtoR radix2 x - FtoR radix2 y)).
+apply pff_round_N_is_round; try assumption.
+now apply make_bound_p.
+rewrite make_bound_Emin; try assumption.
+now rewrite Zopp_involutive.
 (* *)
 assert (K: FtoR 2 (Iminus fy (Iminus (Iplus fx fy) fx)) =
        FtoR 2 fx + FtoR 2 fy - FtoR 2 (Iplus fx fy)).
@@ -82,29 +101,10 @@ rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
 (* . *)
 intros p q Fp Fq.
-destruct round_NE_is_pff_round with radix2 (make_bound radix2 prec emin) prec (FtoR 2 p +FtoR 2 q)
-   as (f, (L1,(L2,L3))); try assumption.
-apply make_bound_p; omega.
-generalize ClosestCompatible; unfold CompatibleP.
-intros T; apply T with (FtoR 2 p + FtoR 2 q) f; clear T; try easy.
-apply L2.
-change 2%Z with (radix_val radix2).
-rewrite L3, H1.
-rewrite make_bound_Emin; try easy.
-f_equal; f_equal; ring.
-unfold Iplus.
-apply FnormalizeBounded.
-apply radix_gt_1.
-apply notEqLt, lt_Zlt_inv.
+apply RND_Closest_correct.
+apply Nat2Z.inj_lt.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
-replace emin with (-dExp (make_bound radix2 prec emin))%Z at 2 4.
-apply format_is_pff_format'; try omega.
-apply make_bound_p; omega.
-rewrite make_bound_Emin; try easy.
-rewrite Zopp_involutive.
-apply generic_format_round...
-rewrite make_bound_Emin; omega.
 (* . *)
 intros p q.
 apply FcanonicUnique with radix2 (make_bound radix2 prec emin) (Zabs_nat prec).
@@ -113,35 +113,16 @@ apply notEqLt, lt_Zlt_inv.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
 apply FcanonicFopp.
-apply FnormalizeCanonic.
-apply radix_gt_1.
-apply notEqLt, lt_Zlt_inv.
+apply RND_Closest_canonic.
+apply Nat2Z.inj_lt.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
-replace emin with (-dExp (make_bound radix2 prec emin))%Z at 2 4.
-apply format_is_pff_format'; try omega.
-apply make_bound_p; omega.
-rewrite make_bound_Emin; try easy.
-rewrite Zopp_involutive.
-apply generic_format_round...
-rewrite make_bound_Emin; omega.
-apply FnormalizeCanonic.
-apply radix_gt_1.
-apply notEqLt, lt_Zlt_inv.
+apply RND_Closest_canonic.
+apply Nat2Z.inj_lt.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
-replace emin with (-dExp (make_bound radix2 prec emin))%Z at 2 4.
-apply format_is_pff_format'; try omega.
-apply make_bound_p; omega.
-rewrite make_bound_Emin; try easy.
-rewrite Zopp_involutive.
-apply generic_format_round...
-rewrite make_bound_Emin; omega.
-rewrite Fopp_correct.
-rewrite 2!H1.
-rewrite <- round_NE_opp.
-rewrite 2!Fopp_correct.
-f_equal; ring.
+rewrite Fopp_correct, 2!H1, 2!Fopp_correct, <- Ropp_plus_distr.
+now rewrite round_N_opp_sym.
 (* . *)
 intros p q.
 apply FcanonicUnique with radix2 (make_bound radix2 prec emin) (Zabs_nat prec).
@@ -149,30 +130,14 @@ apply radix_gt_1.
 apply notEqLt, lt_Zlt_inv.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
-apply FnormalizeCanonic.
-apply radix_gt_1.
-apply notEqLt, lt_Zlt_inv.
+apply RND_Closest_canonic.
+apply Nat2Z.inj_lt.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
-replace emin with (-dExp (make_bound radix2 prec emin))%Z at 2 4.
-apply format_is_pff_format'; try omega.
-apply make_bound_p; omega.
-rewrite make_bound_Emin; try easy.
-rewrite Zopp_involutive.
-apply generic_format_round...
-rewrite make_bound_Emin; omega.
-apply FnormalizeCanonic.
-apply radix_gt_1.
-apply notEqLt, lt_Zlt_inv.
+apply RND_Closest_canonic.
+apply Nat2Z.inj_lt.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
-replace emin with (-dExp (make_bound radix2 prec emin))%Z at 2 4.
-apply format_is_pff_format'; try omega.
-apply make_bound_p; omega.
-rewrite make_bound_Emin; try easy.
-rewrite Zopp_involutive.
-apply generic_format_round...
-rewrite make_bound_Emin; omega.
 rewrite H1,H2.
 rewrite Fopp_correct.
 f_equal; ring.
@@ -187,8 +152,8 @@ rewrite Hfx, Hfy; fold a; unfold b; intros K'.
 apply Rplus_eq_reg_r with (-a).
 apply trans_eq with (round_flt (y - round_flt (a - x))).
 2: rewrite K'; ring.
-ring_simplify.
-rewrite <- round_NE_opp.
+ring_simplify; f_equal; unfold Rminus; f_equal.
+rewrite <- round_N_opp_sym.
 f_equal; ring.
 Qed.
 
@@ -197,12 +162,14 @@ End FTS.
 Section TS.
 
 Variable emin prec : Z.
+Variable choice : Z -> bool.
 Hypothesis precisionNotZero : (1 < prec)%Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Hypothesis emin_neg: (emin <= 0)%Z.
+Hypothesis choice_sym: forall x, choice x  = negb (choice (- (x + 1))).
 
 Notation format := (generic_format radix2 (FLT_exp emin prec)).
-Notation round_flt :=(round radix2 (FLT_exp emin prec) ZnearestE).
+Notation round_flt :=(round radix2 (FLT_exp emin prec) (Znearest choice)).
 Notation bpow e := (bpow radix2 e).
 
 (** inputs *)
@@ -218,7 +185,7 @@ Let dy := round_flt (y - x').
 Let b  := round_flt (dx + dy).
 
 (** Theorem *)
-Theorem TwoSum: a+b=x+y.
+Theorem TwoSum_correct: a+b=x+y.
 Proof with auto with typeclass_instances.
 (* *)
 destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
@@ -232,32 +199,32 @@ destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega; assumption.
 (* *)
-pose (Iplus := fun (f g:Float.float) => 
-  Fnormalize radix2 (make_bound radix2 prec emin) (Zabs_nat prec)
-   (Float.Float 
-     (Ztrunc (scaled_mantissa radix2 (FLT_exp (emin) prec) (round_flt (FtoR radix2 f+FtoR radix2 g))))
-     (canonic_exp radix2 (FLT_exp (emin) prec) (round_flt (FtoR radix2 f+FtoR radix2 g))))).
-pose (Iminus := fun (f g:Float.float) => 
-  Fnormalize radix2 (make_bound radix2 prec emin) (Zabs_nat prec)
-   (Float.Float 
-      (Ztrunc (scaled_mantissa radix2 (FLT_exp (emin) prec) (round_flt (FtoR radix2 f-FtoR radix2 g))))
-      (canonic_exp radix2 (FLT_exp (emin) prec) (round_flt (FtoR radix2 f-FtoR radix2 g))))).
+pose (Iplus := fun (f g:Float.float) => RND_Closest 
+        (make_bound radix2 prec emin) radix2 (Zabs_nat prec) choice 
+         (FtoR radix2 f + FtoR radix2 g)).
+pose (Iminus := fun (f g:Float.float) => RND_Closest 
+        (make_bound radix2 prec emin) radix2 (Zabs_nat prec) choice 
+         (FtoR radix2 f - FtoR radix2 g)).
 assert (H1: forall x y, FtoR 2 (Iplus x y) = round_flt (FtoR 2 x + FtoR 2 y)).
-clear -prec_gt_0_; intros x y.
-assert (format (round_flt (FtoR 2 x + FtoR 2 y))).
-apply generic_format_round...
-unfold Iplus; rewrite FnormalizeCorrect.
-2: apply radix_gt_1.
-rewrite H; change 2%Z with (radix_val radix2).
-apply FtoR_F2R; try easy.
+clear -prec_gt_0_ precisionNotZero emin_neg; intros x y.
+unfold Iplus.
+apply trans_eq with (round radix2
+  (FLT_exp (- dExp (make_bound radix2 prec emin)) prec)
+  (Znearest choice) (FtoR radix2 x + FtoR radix2 y)).
+apply pff_round_N_is_round; try assumption.
+now apply make_bound_p.
+rewrite make_bound_Emin; try assumption.
+now rewrite Zopp_involutive.
 assert (H2: forall x y, FtoR 2 (Iminus x y) = round_flt (FtoR 2 x - FtoR 2 y)).
-clear -prec_gt_0_; intros x y.
-assert (format (round_flt (FtoR 2 x - FtoR 2 y))).
-apply generic_format_round...
-unfold Iminus; rewrite FnormalizeCorrect.
-2: apply radix_gt_1.
-rewrite H; change 2%Z with (radix_val radix2).
-apply FtoR_F2R; try easy.
+clear -prec_gt_0_ precisionNotZero emin_neg; intros x y.
+unfold Iminus.
+apply trans_eq with (round radix2
+  (FLT_exp (- dExp (make_bound radix2 prec emin)) prec)
+  (Znearest choice) (FtoR radix2 x - FtoR radix2 y)).
+apply pff_round_N_is_round; try assumption.
+now apply make_bound_p.
+rewrite make_bound_Emin; try assumption.
+now rewrite Zopp_involutive.
 (* *)
 assert (K: FtoR 2 (Iplus (Iminus fx (Iminus (Iplus fx fy) (Iminus (Iplus fx fy) fx)))
             (Iminus fy (Iminus (Iplus fx fy) fx))) =
@@ -268,29 +235,10 @@ rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
 (* . *)
 intros p q Fp Fq.
-destruct round_NE_is_pff_round with radix2 (make_bound radix2 prec emin) prec (FtoR 2 p +FtoR 2 q)
-   as (f, (L1,(L2,L3))); try assumption.
-apply make_bound_p; omega.
-generalize ClosestCompatible; unfold CompatibleP.
-intros T; apply T with (FtoR 2 p + FtoR 2 q) f; clear T; try easy.
-apply L2.
-change 2%Z with (radix_val radix2).
-rewrite L3, H1.
-rewrite make_bound_Emin; try easy.
-f_equal; f_equal; ring.
-unfold Iplus.
-apply FnormalizeBounded.
-apply radix_gt_1.
-apply notEqLt, lt_Zlt_inv.
+apply RND_Closest_correct.
+apply Nat2Z.inj_lt.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
-replace emin with (-dExp (make_bound radix2 prec emin))%Z at 2 4.
-apply format_is_pff_format'; try omega.
-apply make_bound_p; omega.
-rewrite make_bound_Emin; try easy.
-rewrite Zopp_involutive.
-apply generic_format_round...
-rewrite make_bound_Emin; omega.
 (* . *)
 unfold TwoSum.FtoRradix.
 intros p q r s Fp Fq Fr Fs M1 M2.
@@ -302,32 +250,15 @@ apply radix_gt_1.
 apply notEqLt, lt_Zlt_inv.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
-apply FnormalizeCanonic.
-apply radix_gt_1.
-apply notEqLt, lt_Zlt_inv.
+apply RND_Closest_canonic.
+apply Nat2Z.inj_lt.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
-replace emin with (-dExp (make_bound radix2 prec emin))%Z at 2 4.
-apply format_is_pff_format'; try omega.
-apply make_bound_p; omega.
-rewrite make_bound_Emin; try easy.
-rewrite Zopp_involutive.
-apply generic_format_round...
-rewrite make_bound_Emin; omega.
-apply FnormalizeCanonic.
-apply radix_gt_1.
-apply notEqLt, lt_Zlt_inv.
+apply RND_Closest_canonic.
+apply Nat2Z.inj_lt.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
-replace emin with (-dExp (make_bound radix2 prec emin))%Z at 2 4.
-apply format_is_pff_format'; try omega.
-apply make_bound_p; omega.
-rewrite make_bound_Emin; try easy.
-rewrite Zopp_involutive.
-apply generic_format_round...
-rewrite make_bound_Emin; omega.
-rewrite 2!H1.
-f_equal; ring.
+now rewrite 2!H1, Rplus_comm.
 (* . *)
 intros p q.
 apply FcanonicUnique with radix2 (make_bound radix2 prec emin) (Zabs_nat prec).
@@ -336,35 +267,16 @@ apply notEqLt, lt_Zlt_inv.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
 apply FcanonicFopp.
-apply FnormalizeCanonic.
-apply radix_gt_1.
-apply notEqLt, lt_Zlt_inv.
+apply RND_Closest_canonic.
+apply Nat2Z.inj_lt.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
-replace emin with (-dExp (make_bound radix2 prec emin))%Z at 2 4.
-apply format_is_pff_format'; try omega.
-apply make_bound_p; omega.
-rewrite make_bound_Emin; try easy.
-rewrite Zopp_involutive.
-apply generic_format_round...
-rewrite make_bound_Emin; omega.
-apply FnormalizeCanonic.
-apply radix_gt_1.
-apply notEqLt, lt_Zlt_inv.
+apply RND_Closest_canonic.
+apply Nat2Z.inj_lt.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
-replace emin with (-dExp (make_bound radix2 prec emin))%Z at 2 4.
-apply format_is_pff_format'; try omega.
-apply make_bound_p; omega.
-rewrite make_bound_Emin; try easy.
-rewrite Zopp_involutive.
-apply generic_format_round...
-rewrite make_bound_Emin; omega.
-rewrite Fopp_correct.
-rewrite 2!H1.
-rewrite <- round_NE_opp.
-rewrite 2!Fopp_correct.
-f_equal; ring.
+rewrite Fopp_correct, 2!H1, 2!Fopp_correct, <- Ropp_plus_distr.
+now rewrite round_N_opp_sym.
 (* . *)
 intros p q.
 apply FcanonicUnique with radix2 (make_bound radix2 prec emin) (Zabs_nat prec).
@@ -372,32 +284,15 @@ apply radix_gt_1.
 apply notEqLt, lt_Zlt_inv.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
-apply FnormalizeCanonic.
-apply radix_gt_1.
-apply notEqLt, lt_Zlt_inv.
+apply RND_Closest_canonic.
+apply Nat2Z.inj_lt.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
-replace emin with (-dExp (make_bound radix2 prec emin))%Z at 2 4.
-apply format_is_pff_format'; try omega.
-apply make_bound_p; omega.
-rewrite make_bound_Emin; try easy.
-rewrite Zopp_involutive.
-apply generic_format_round...
-rewrite make_bound_Emin; omega.
-apply FnormalizeCanonic.
-apply radix_gt_1.
-apply notEqLt, lt_Zlt_inv.
+apply RND_Closest_canonic.
+apply Nat2Z.inj_lt.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
-replace emin with (-dExp (make_bound radix2 prec emin))%Z at 2 4.
-apply format_is_pff_format'; try omega.
-apply make_bound_p; omega.
-rewrite make_bound_Emin; try easy.
-rewrite Zopp_involutive.
-apply generic_format_round...
-rewrite make_bound_Emin; omega.
-rewrite H1,H2.
-rewrite Fopp_correct.
+rewrite H1, H2, Fopp_correct.
 f_equal; ring.
 (* *)
 generalize K; rewrite 2!H1, 5!H2, H1.
@@ -417,14 +312,15 @@ Section Veltkamp.
 
 Variable beta : radix.
 Variable emin prec : Z.
+Variable choice : Z -> bool.
 Variable s:Z.
 Hypothesis precisionGe3 : (3 <= prec)%Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Hypothesis emin_neg: (emin <= 0)%Z.
 
 Notation format := (generic_format beta (FLT_exp emin prec)).
-Notation round_flt :=(round beta (FLT_exp emin prec) ZnearestE).
-Notation round_flt_s :=(round beta (FLT_exp emin (prec-s)) ZnearestE).
+Notation round_flt :=(round beta (FLT_exp emin prec) (Znearest choice)).
+Notation round_flt_s :=(round beta (FLT_exp emin (prec-s)) (Znearest choice)).
 Notation ulp_flt :=(ulp beta (FLT_exp emin prec)).
 Notation bpow e := (bpow beta e).
 
@@ -446,9 +342,7 @@ Let tx:=round_flt (x-hx).
 Lemma C_format: format (bpow s +1).
 Proof with auto with typeclass_instances.
 apply generic_format_FLT.
-unfold FLT_format.
-exists (Fcore_defs.Float beta (Zpower beta s+1)%Z 0%Z).
-split; try split; simpl; try easy.
+exists (Float beta (Zpower beta s+1)%Z 0%Z); simpl.
 unfold F2R; simpl.
 rewrite Z2R_plus, Z2R_Zpower; try omega.
 simpl; ring.
@@ -462,18 +356,22 @@ apply Zle_lt_trans with (2*beta^s)%Z.
 omega.
 apply Zle_lt_trans with (beta^1*beta^s)%Z.
 apply Zmult_le_compat_r.
-rewrite Z.pow_1_r. 
+rewrite Z.pow_1_r.
 apply Zle_bool_imp_le; apply beta.
 apply Zpower_ge_0.
 rewrite <- Zpower_plus; try omega.
 apply Zpower_lt; omega.
 apply Zle_trans with (beta^s)%Z; try omega.
 apply Zpower_ge_0.
+assumption.
 Qed.
 
 
-Theorem Veltkamp_Even: hx = round_flt_s x.
+Theorem Veltkamp_Even: 
+  (choice = fun z => negb (Zeven z)) ->
+   hx = round_flt_s x.
 Proof with auto with typeclass_instances.
+intros Hchoice.
 assert (precisionNotZero : (1 < prec)%Z) by omega.
 destruct (format_is_pff_format beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero x)
@@ -510,10 +408,10 @@ rewrite inj_abs; try omega.
 rewrite inj_minus, Zmax_r; rewrite inj_abs; simpl; omega.
 rewrite Hfx; rewrite inj_abs; try omega.
 rewrite bpow_powerRZ in Hfp'; rewrite Z2R_IZR in Hfp'; exact Hfp'.
-rewrite Hfx, Hfp''; assumption.
-rewrite Hfp'', Hfq''; assumption.
+rewrite Hfx, Hfp'', <- Hchoice; assumption.
+rewrite Hfp'', Hfq'', <- Hchoice; assumption.
 (* *)
-unfold hx; rewrite <- Hfhx'', <- H1.
+unfold hx; rewrite Hchoice, <- Hfhx'', <- H1.
 apply trans_eq with (FtoR beta (RND_EvenClosest 
  (make_bound beta (prec-s) emin) beta (Zabs_nat (prec-s)) x)).
 generalize (EvenClosestUniqueP (make_bound beta (prec-s) emin) beta 
@@ -563,8 +461,80 @@ rewrite make_bound_Emin; omega.
 apply make_bound_p; omega.
 Qed.
 
+Theorem Veltkamp: exists choice': Z->bool ,
+   hx = round beta (FLT_exp emin (prec-s)) (Znearest choice') x.
+Proof with auto with typeclass_instances.
+assert (precisionNotZero : (1 < prec)%Z) by omega.
+destruct (format_is_pff_format beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero x)
+  as (fx,(Hfx,Hfx')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega; assumption.
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  choice (x*(bpow s+1)))
+  as (fp,(Hfp, (Hfp',Hfp''))).
+rewrite make_bound_Emin in Hfp''; try assumption.
+replace (--emin)%Z with emin in Hfp'' by omega.
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  choice (x-p))
+  as (fq,(Hfq, (Hfq',Hfq''))).
+rewrite make_bound_Emin in Hfq''; try assumption.
+replace (--emin)%Z with emin in Hfq'' by omega.
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
+  choice (q+p))
+  as (fhx,(Hfhx, (Hfhx',Hfhx''))).
+rewrite make_bound_Emin in Hfhx''; try assumption.
+replace (--emin)%Z with emin in Hfhx'' by omega.
+(* *)
+destruct Veltkamp with beta (make_bound beta prec emin) (Zabs_nat s) 
+   (Zabs_nat prec) fx fp fq fhx as (H1,(hx', (H2,(H3,H4)))); try assumption.
+apply radix_gt_1.
+apply make_bound_p; omega.
+replace 2%nat with (Zabs_nat 2) by easy.
+apply Zabs_nat_le; omega.
+apply Nat2Z.inj_le.
+rewrite inj_abs; try omega.
+rewrite inj_minus, Zmax_r; rewrite inj_abs; simpl; omega.
+rewrite Hfx; rewrite inj_abs; try omega.
+rewrite bpow_powerRZ in Hfp'; rewrite Z2R_IZR in Hfp'; exact Hfp'.
+rewrite Hfx, Hfp''; assumption.
+rewrite Hfp'', Hfq''; assumption.
+(* *)
+destruct pff_round_is_round_N with beta (make_bound beta (prec-s) emin)
+ (Z.abs_nat (prec-s)) (FtoR beta fx) hx' as (choice',M).
+rewrite Zabs2Nat.id.
+apply make_bound_p; omega.
+rewrite inj_abs; simpl; omega.
+unfold make_bound.
+replace (Z.to_pos (beta ^ (prec - s))) with (Pos.of_succ_nat
+                 (Init.Nat.pred
+                    (Z.abs_nat
+                       (Zpower_nat beta
+                          (Z.abs_nat prec - Z.abs_nat s))))).
+replace (Z.abs_N emin) with (dExp (make_bound beta prec emin)) by easy.
+exact H3.
+apply Zpos_eq_iff.
+apply trans_eq with (Zpower_nat beta (Z.abs_nat prec - Z.abs_nat s)).
+rewrite <- p''GivesBound with (b:=make_bound beta prec emin) at 2.
+easy.
+apply radix_gt_1.
+rewrite Zpower_Zpower_nat,Z2Pos.id.
+f_equal; apply sym_eq, Zabs2Nat.inj_sub; omega.
+apply Zpower_nat_less.
+apply radix_gt_1.
+omega.
+exists choice'.
+unfold hx; rewrite <- Hfhx'', <- H2, M.
+f_equal; try easy.
+f_equal.
+rewrite make_bound_Emin; omega.
+rewrite inj_abs; simpl; omega.
+Qed.
 
-Theorem Veltkamp_Tail:
+Theorem Veltkamp_tail:
  x = hx+tx /\  generic_format beta (FLT_exp emin s) tx.
 Proof with auto with typeclass_instances.
 assert (precisionNotZero : (1 < prec)%Z) by omega.
@@ -573,27 +543,27 @@ destruct (format_is_pff_format beta (make_bound beta prec emin)
   as (fx,(Hfx,Hfx')).
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega; assumption.
-destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
-  (x*(bpow s+1)))
+  choice (x*(bpow s+1)))
   as (fp,(Hfp, (Hfp',Hfp''))).
 rewrite make_bound_Emin in Hfp''; try assumption.
 replace (--emin)%Z with emin in Hfp'' by omega.
-destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
-  (x-p))
+  choice (x-p))
   as (fq,(Hfq, (Hfq',Hfq''))).
 rewrite make_bound_Emin in Hfq''; try assumption.
 replace (--emin)%Z with emin in Hfq'' by omega.
-destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
-  (q+p))
+  choice (q+p))
   as (fhx,(Hfhx, (Hfhx',Hfhx''))).
 rewrite make_bound_Emin in Hfhx''; try assumption.
 replace (--emin)%Z with emin in Hfhx'' by omega.
-destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
-  (x-hx))
+  choice (x-hx))
   as (ftx,(Hftx, (Hftx',Hftx''))).
 rewrite make_bound_Emin in Hftx''; try assumption.
 replace (--emin)%Z with emin in Hftx'' by omega.
@@ -691,6 +661,7 @@ Section Dekker.
 
 Variable beta : radix.
 Variable emin prec: Z.
+Variable choice : Z -> bool.
 Let s:= (prec- Z.div2 prec)%Z.
 
 Hypothesis precisionGe4 : (4 <= prec)%Z.
@@ -698,8 +669,8 @@ Context { prec_gt_0_ : Prec_gt_0 prec }.
 Hypothesis emin_neg: (emin < 0)%Z.
 
 Notation format := (generic_format beta (FLT_exp emin prec)).
-Notation round_flt :=(round beta (FLT_exp emin prec) ZnearestE).
-Notation round_flt_s :=(round beta (FLT_exp emin (prec-s)) ZnearestE).
+Notation round_flt :=(round beta (FLT_exp emin prec) (Znearest choice)).
+Notation round_flt_s :=(round beta (FLT_exp emin (prec-s)) (Znearest choice)).
 Notation ulp_flt :=(ulp beta (FLT_exp emin prec)).
 Notation bpow e := (bpow beta e).
 
@@ -735,10 +706,56 @@ Let t3 :=round_flt (t2+x2y1).
 Let t4 :=round_flt (t3+x2y2).
 
 Theorem Dekker: (radix_val beta=2)%Z \/ (Z.Even prec) ->
-  (bpow (emin + 2 * prec - 1) <= Rabs (x * y) ->  (x*y=r+t4)%R) /\
+  (x*y=0 \/ bpow (emin + 2 * prec - 1) <= Rabs (x * y) ->  (x*y=r+t4)%R) /\
     (Rabs (x*y-(r+t4)) <= (7/2)*bpow emin)%R.
 Proof with auto with typeclass_instances.
 intros HH.
+(* x=0 *)
+case (Req_dec x 0); intros Kx.
+assert (Kr: r=0).
+unfold r; rewrite Kx, Rmult_0_l, round_0...
+assert (Khx: hx=0).
+unfold hx, qx, px; rewrite Kx, Rmult_0_l, round_0...
+rewrite Rplus_0_r, Rminus_0_l, Ropp_0, round_0...
+apply round_0...
+assert (Kt4: t4=0).
+unfold t4, t3, t2, t1, x1y1, x1y2, x2y1, x2y2, tx; rewrite Kr, Kx, Khx.
+rewrite 2!Rmult_0_l, round_0...
+rewrite Rminus_0_r, Rplus_0_r, round_0...
+rewrite 2!Rmult_0_l, round_0...
+rewrite 3!Rplus_0_r, Ropp_0; repeat rewrite round_0...
+rewrite Kx, Kr, Kt4.
+split;[intros; ring|idtac].
+rewrite Rmult_0_l, Rplus_0_l, Rminus_0_l, Ropp_0, Rabs_R0.
+apply Rmult_le_pos; try apply bpow_ge_0.
+apply Rmult_le_pos.
+apply Fourier_util.Rle_zero_pos_plus1; apply Rmult_le_pos.
+left; apply Rlt_0_2.
+apply Fourier_util.Rle_zero_pos_plus1; left; apply Rlt_0_2.
+left; apply pos_half_prf.
+(* y = 0 *)
+case (Req_dec y 0); intros Ky.
+assert (Kr: r=0).
+unfold r; rewrite Ky, Rmult_0_r, round_0...
+assert (Khy: hy=0).
+unfold hy, qy, py; rewrite Ky, Rmult_0_l, round_0...
+rewrite Rplus_0_r, Rminus_0_l, Ropp_0, round_0...
+apply round_0...
+assert (Kt4: t4=0).
+unfold t4, t3, t2, t1, x1y1, x1y2, x2y1, x2y2, ty; rewrite Kr, Ky, Khy.
+rewrite 2!Rmult_0_r, round_0...
+rewrite Rminus_0_r, Rplus_0_r, round_0...
+rewrite 2!Rmult_0_r, round_0...
+rewrite 3!Rplus_0_r, Ropp_0; repeat rewrite round_0...
+rewrite Ky, Kr, Kt4.
+split;[intros; ring|idtac].
+rewrite Rmult_0_r, Rplus_0_l, Rminus_0_l, Ropp_0, Rabs_R0.
+apply Rmult_le_pos; try apply bpow_ge_0.
+apply Rmult_le_pos.
+apply Fourier_util.Rle_zero_pos_plus1; apply Rmult_le_pos.
+left; apply Rlt_0_2.
+apply Fourier_util.Rle_zero_pos_plus1; left; apply Rlt_0_2.
+left; apply pos_half_prf.
 (* Veltkamp x *)
 assert (precisionNotZero : (1 < prec)%Z) by omega.
 assert (emin_neg': (emin <= 0)%Z) by omega.
@@ -747,27 +764,27 @@ destruct (format_is_pff_format_can beta (make_bound beta prec emin)
   as (fx,(Hfx,Hfx')).
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega; assumption.
-destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
-  (x*(bpow s+1)))
+  choice (x*(bpow s+1)))
   as (fpx,(Hfpx, (Hfpx',Hfpx''))).
 rewrite make_bound_Emin in Hfpx''; try assumption.
 replace (--emin)%Z with emin in Hfpx'' by omega.
-destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
-  (x-px))
+  choice (x-px))
   as (fqx,(Hfqx, (Hfqx',Hfqx''))).
 rewrite make_bound_Emin in Hfqx''; try assumption.
 replace (--emin)%Z with emin in Hfqx'' by omega.
-destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
-  (qx+px))
+  choice (qx+px))
   as (fhx,(Hfhx, (Hfhx',Hfhx''))).
 rewrite make_bound_Emin in Hfhx''; try assumption.
 replace (--emin)%Z with emin in Hfhx'' by omega.
-destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
-  (x-hx))
+  choice (x-hx))
   as (ftx,(Hftx, (Hftx',Hftx''))).
 rewrite make_bound_Emin in Hftx''; try assumption.
 replace (--emin)%Z with emin in Hftx'' by omega.
@@ -777,83 +794,83 @@ destruct (format_is_pff_format_can beta (make_bound beta prec emin)
   as (fy,(Hfy,Hfy')).
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega; assumption.
-destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
-  (y*(bpow s+1)))
+  choice (y*(bpow s+1)))
   as (fpy,(Hfpy, (Hfpy',Hfpy''))).
 rewrite make_bound_Emin in Hfpy''; try assumption.
 replace (--emin)%Z with emin in Hfpy'' by omega.
-destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
-  (y-py))
+  choice (y-py))
   as (fqy,(Hfqy, (Hfqy',Hfqy''))).
 rewrite make_bound_Emin in Hfqy''; try assumption.
 replace (--emin)%Z with emin in Hfqy'' by omega.
-destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
-  (qy+py))
+  choice (qy+py))
   as (fhy,(Hfhy, (Hfhy',Hfhy''))).
 rewrite make_bound_Emin in Hfhy''; try assumption.
 replace (--emin)%Z with emin in Hfhy'' by omega.
-destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
-  (y-hy))
+  choice (y-hy))
   as (fty,(Hfty, (Hfty',Hfty''))).
 rewrite make_bound_Emin in Hfty''; try assumption.
 replace (--emin)%Z with emin in Hfty'' by omega.
 (* products *)
-destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
-  (hx*hy))
+  choice (hx*hy))
   as (fx1y1,(Hfx1y1, (Hfx1y1',Hfx1y1''))).
 rewrite make_bound_Emin in Hfx1y1''; try assumption.
 replace (--emin)%Z with emin in Hfx1y1'' by omega.
-destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
-  (hx*ty))
+  choice (hx*ty))
   as (fx1y2,(Hfx1y2, (Hfx1y2',Hfx1y2''))).
 rewrite make_bound_Emin in Hfx1y2''; try assumption.
 replace (--emin)%Z with emin in Hfx1y2'' by omega.
-destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
-  (tx*hy))
+  choice (tx*hy))
   as (fx2y1,(Hfx2y1, (Hfx2y1',Hfx2y1''))).
 rewrite make_bound_Emin in Hfx2y1''; try assumption.
 replace (--emin)%Z with emin in Hfx2y1'' by omega.
-destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
-  (tx*ty))
+  choice (tx*ty))
   as (fx2y2,(Hfx2y2, (Hfx2y2',Hfx2y2''))).
 rewrite make_bound_Emin in Hfx2y2''; try assumption.
 replace (--emin)%Z with emin in Hfx2y2'' by omega.
 (* t_is *)
-destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
-  (x*y))
+  choice (x*y))
   as (fr,(Hfr, (Hfr',Hfr''))).
 rewrite make_bound_Emin in Hfr''; try assumption.
 replace (--emin)%Z with emin in Hfr'' by omega.
-destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
-  (-r+x1y1))
+  choice (-r+x1y1))
   as (ft1,(Hft1, (Hft1',Hft1''))).
 rewrite make_bound_Emin in Hft1''; try assumption.
 replace (--emin)%Z with emin in Hft1'' by omega.
-destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
-  (t1+x1y2))
+  choice (t1+x1y2))
   as (ft2,(Hft2, (Hft2',Hft2''))).
 rewrite make_bound_Emin in Hft2''; try assumption.
 replace (--emin)%Z with emin in Hft2'' by omega.
-destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
-  (t2+x2y1))
+  choice (t2+x2y1))
   as (ft3,(Hft3, (Hft3',Hft3''))).
 rewrite make_bound_Emin in Hft3''; try assumption.
 replace (--emin)%Z with emin in Hft3'' by omega.
-destruct (round_NE_is_pff_round beta (make_bound beta prec emin)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
    prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero 
-  (t3+x2y2))
+  choice (t3+x2y2))
   as (ft4,(Hft4, (Hft4',Hft4''))).
 rewrite make_bound_Emin in Hft4''; try assumption.
 replace (--emin)%Z with emin in Hft4'' by omega.
@@ -919,7 +936,12 @@ apply underf_mult_aux with beta prec; try assumption.
 apply make_bound_p; assumption.
 now apply FcanonicBound with beta.
 now apply FcanonicBound with beta.
-apply Rle_trans with (2:=L).
+case L; intros L'.
+contradict L'.
+apply Rmult_integral_contrapositive_currified.
+rewrite Hfx; easy.
+rewrite Hfy; easy.
+apply Rle_trans with (2:=L').
 right; repeat f_equal.
 rewrite make_bound_Emin, Zopp_involutive; omega.
 apply Rle_trans with (1:=D2).
@@ -934,14 +956,17 @@ End Dekker.
 
 Section ErrFMA.
 
+Variable beta: radix.
 Variable emin prec : Z.
 Hypothesis precisionGe3 : (3 <= prec)%Z.
+Variable choice : Z -> bool.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Hypothesis emin_neg: (emin <= 0)%Z.
+Hypothesis Even_radix: (Even beta).
 
-Notation format := (generic_format radix2 (FLT_exp emin prec)).
-Notation round_flt :=(round radix2 (FLT_exp emin prec) ZnearestE).
-Notation ulp_flt :=(ulp radix2 (FLT_exp emin prec)).
+Notation format := (generic_format beta (FLT_exp emin prec)).
+Notation round_flt :=(round beta (FLT_exp emin prec) (Znearest choice)).
+Notation ulp_flt :=(ulp beta (FLT_exp emin prec)).
 
 (** inputs *)
 Variable a x y:R.
@@ -962,15 +987,14 @@ Let r2 := round_flt (gamma+alpha2).
 Let r3 := (gamma+alpha2) -r2.
 
 (** Non-underflow hypotheses *)
-Hypothesis Und1: a * x = 0 \/ bpow radix2 (emin + 2 * prec - 1) <= Rabs (a * x).
-(*Hypothesis Und2: alpha1 = 0 \/ bpow radix2 (emin + prec) <= Rabs alpha1.*)
+Hypothesis Und1: a * x = 0 \/ bpow beta (emin + 2 * prec - 1) <= Rabs (a * x).
+Hypothesis Und2: alpha1 = 0 \/ bpow beta (emin + prec) <= Rabs alpha1.
+Hypothesis Und4: beta1 = 0 \/ bpow beta (emin + prec+1) <= Rabs beta1.
+Hypothesis Und5: r1 = 0 \/ bpow beta (emin + prec-1) <= Rabs r1.
 
-(*Hypothesis Und4: beta1 = 0 \/ bpow radix2 (emin + prec+1) <= Rabs beta1.*)
-Hypothesis Und5: r1 = 0 \/ bpow radix2 (emin + prec-1) <= Rabs r1.
 
-
-(** Deduced from non-underflow hypotheses *)
-Lemma Und3': u1 = 0 \/ bpow radix2 (emin + 2*prec-1) <= Rabs u1.
+(** Deduced from previous underflow hypotheses *)
+Lemma Und3': u1 = 0 \/ bpow beta (emin + 2*prec-1) <= Rabs u1.
 Proof with auto with typeclass_instances.
 case Und1; intros K.
 left; unfold u1.
@@ -981,46 +1005,12 @@ apply FLT_format_bpow...
 omega.
 Qed.
 
-Lemma Und3: u1 = 0 \/ bpow radix2 (emin + prec) <= Rabs u1.
+Lemma Und3: u1 = 0 \/ bpow beta (emin + prec) <= Rabs u1.
 Proof.
 case Und3';[now left|right].
 apply Rle_trans with (2:=H).
 apply bpow_le; omega.
 Qed.
-
-Lemma Und4: beta1 = 0 \/ bpow radix2 (emin + prec+1) <= Rabs beta1.
-Proof with auto with typeclass_instances.
-unfold beta1.
-replace (emin+prec+1)%Z with ((emin+2*prec+1)-prec)%Z by ring.
-apply rnd_0_or_ge_FLT...
-apply generic_format_round...
-apply generic_format_round...
-apply Und3'.
-TOTO.
-
-replace (u2) with (-(u1-(a*x))) by (unfold u2; ring).
-apply generic_format_opp.
-apply mult_error_FLT...
-
-
-Lemma Und2: alpha1 = 0 \/ bpow radix2 (emin + prec) <= Rabs alpha1.
-Proof with auto with typeclass_instances.
-unfold alpha1.
-replace (emin+prec)%Z with ((emin+2*prec)-prec)%Z by ring.
-rewrite Rplus_comm.
-apply rnd_0_or_ge_FLT...
-replace (u2) with (-(u1-(a*x))) by (unfold u2; ring).
-apply generic_format_opp.
-apply mult_error_FLT...
-
-
-Hypothesis Und2: alpha1 = 0 \/ bpow radix2 (emin + prec) <= Rabs alpha1.
-
-
-
-(**************** TODO ************************************)
-(* supprimer hypothèses inutiles 
-   au moins Und3, mais peut-être les autres aussi.... sauf Und1 *)
 
 
 (** Theorems *)
@@ -1081,89 +1071,97 @@ apply plus_error...
 apply generic_format_round...
 apply generic_format_round...
 (* values *)
-destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
-   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero a)
+destruct (format_is_pff_format beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero a)
   as (fa,(Hfa,Hfa')).
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega; assumption.
-destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
-   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero x)
+destruct (format_is_pff_format beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero x)
   as (fx,(Hfx,Hfx')).
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega; assumption.
-destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
-   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero y)
+destruct (format_is_pff_format beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero y)
   as (fy,(Hfy,Hfy')).
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega; assumption.
-destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
-   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero u2)
+destruct (format_is_pff_format beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero u2)
   as (fu2,(Hfu2,Hfu2')).
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega; assumption.
-destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
-   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero alpha2)
+destruct (format_is_pff_format beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero alpha2)
   as (fal2,(Hfal2,Hfal2')).
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega; assumption.
-destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
-   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero beta2)
+destruct (format_is_pff_format beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero beta2)
   as (fbe2,(Hfbe2,Hfbe2')).
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega; assumption.
 rewrite <- Hfa, <- Hfx, <- Hfy, <- Hfal2.
 (* roundings *)
-destruct (round_NE_is_pff_round radix2 (make_bound radix2 prec emin)
-   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero (a*x+y))
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero choice (a*x+y))
   as (fr1,(Hfr1, (Hfr1',Hfr1''))).
 rewrite make_bound_Emin in Hfr1''; try assumption.
 replace (--emin)%Z with emin in Hfr1'' by omega.
-destruct (round_NE_is_pff_round radix2 (make_bound radix2 prec emin)
-   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero (a*x))
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero choice (a*x))
   as (fu1,(Hfu1, (Hfu1',Hfu1''))).
 rewrite make_bound_Emin in Hfu1''; try assumption.
 replace (--emin)%Z with emin in Hfu1'' by omega.
-destruct (round_NE_is_pff_round radix2 (make_bound radix2 prec emin)
-   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero (y+u2))
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero choice (y+u2))
   as (fal1,(Hfal1, (Hfal1',Hfal1''))).
 rewrite make_bound_Emin in Hfal1''; try assumption.
 replace (--emin)%Z with emin in Hfal1'' by omega.
-destruct (round_NE_is_pff_round radix2 (make_bound radix2 prec emin)
-   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero (u1+alpha1))
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero choice (u1+alpha1))
   as (fbe1,(Hfbe1, (Hfbe1',Hfbe1''))).
 rewrite make_bound_Emin in Hfbe1''; try assumption.
 replace (--emin)%Z with emin in Hfbe1'' by omega.
-destruct (round_NE_is_pff_round radix2 (make_bound radix2 prec emin)
-   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero (beta1-r1))
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero choice (beta1-r1))
   as (ff,(Hff, (Hff',Hff''))).
 rewrite make_bound_Emin in Hff''; try assumption.
 replace (--emin)%Z with emin in Hff'' by omega.
-destruct (round_NE_is_pff_round radix2 (make_bound radix2 prec emin)
-   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero (FtoR 2 ff+beta2))
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero choice (FtoR beta ff+beta2))
   as (fga,(Hfga, (Hfga',Hfga''))).
 rewrite make_bound_Emin in Hfga''; try assumption.
 replace (--emin)%Z with emin in Hfga'' by omega.
-destruct (round_NE_is_pff_round radix2 (make_bound radix2 prec emin)
-   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero (gamma+alpha2))
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero choice (gamma+alpha2))
   as (fr2,(Hfr2, (Hfr2',Hfr2''))).
 rewrite make_bound_Emin in Hfr2''; try assumption.
 replace (--emin)%Z with emin in Hfr2'' by omega.
 unfold r1; rewrite <- Hfr1''.
-change 2%Z with (radix_val radix2) in Hfga''.
-unfold gamma; rewrite <- Hff'', <- Hfga''.
+unfold gamma; rewrite <- Hff''; rewrite <- Hfga''.
 (* *)
-apply FmaErr_Even with (make_bound radix2 prec emin) (Z.abs_nat prec) fu1 fu2 fal1 fbe1 fbe2 ff;
+apply FmaErr with (make_bound beta prec emin) (Z.abs_nat prec) 
+  (fun r f => f = RND_Closest (make_bound beta prec emin) beta (Zabs_nat prec) choice r)
+   fu1 fu2 fal1 fbe1 fbe2 ff;
   try assumption.
 apply radix_gt_1.
 apply make_bound_p; omega.
 replace 3%nat with (Z.abs_nat 3).
 apply Zabs_nat_le; omega.
 now unfold Z.abs_nat, Pos.to_nat.
-now exists 1%Z.
+intros r f H.
+rewrite H.
+apply RND_Closest_correct.
+replace 1%nat with (Zabs_nat 1) by easy.
+apply Zabs_nat_lt; omega.
+apply make_bound_p; omega.
+intros x1 x2 g1 g2 K1 K2 K3.
+rewrite K1, K2, K3; easy.
 (* . underflow *)
 rewrite Hfal1''; fold alpha1.
 case Und2; intros V;[now right|left].
-apply FloatFexp_gt with radix2 (make_bound radix2 prec emin) prec.
+apply FloatFexp_gt with beta (make_bound beta prec emin) prec.
 apply make_bound_p; omega.
 omega.
 apply FcanonicBound with (1:=Hfal1).
@@ -1171,7 +1169,7 @@ rewrite Hfal1''; fold alpha1.
 now rewrite make_bound_Emin, Zopp_involutive.
 rewrite Hfu1''; fold u1.
 case Und3; intros V;[now right|left].
-apply FloatFexp_gt with radix2 (make_bound radix2 prec emin) prec.
+apply FloatFexp_gt with beta (make_bound beta prec emin) prec.
 apply make_bound_p; omega.
 omega.
 apply FcanonicBound with (1:=Hfu1).
@@ -1179,7 +1177,7 @@ rewrite Hfu1''; fold u1.
 now rewrite make_bound_Emin, Zopp_involutive.
 rewrite Hfbe1''; fold beta1.
 case Und4; intros V;[now right|left].
-apply FloatFexp_gt with radix2 (make_bound radix2 prec emin) prec.
+apply FloatFexp_gt with beta (make_bound beta prec emin) prec.
 apply make_bound_p; omega.
 omega.
 apply FcanonicBound with (1:=Hfbe1).
@@ -1193,7 +1191,7 @@ apply CanonicGeNormal with prec; try assumption.
 apply make_bound_p; omega.
 rewrite Hfr1''; fold r1.
 rewrite make_bound_Emin, Zopp_involutive; try assumption.
-apply underf_mult_aux with radix2 prec; try assumption.
+apply underf_mult_aux with beta prec; try assumption.
 apply make_bound_p; omega.
 rewrite Hfa, Hfx.
 apply Rle_trans with (2:=Und1').
@@ -1208,8 +1206,232 @@ now rewrite Hfal2, Hfy, Hfu2, Hfal1''.
 now rewrite Hfbe2, Hfu1'', Hfal1'', Hfbe1''.
 rewrite Hfbe1'', Hfr1''; apply Hff'.
 rewrite Hfbe2; apply Hfga'.
-rewrite Hfa, Hfx, Hfy; apply Hfr1'.
-rewrite Hfu1'', Hfal1''; apply Hfbe1'.
+apply FcanonicUnique with (4:=Hfr1) (precision:=Zabs_nat prec).
+apply radix_gt_1.
+apply notEqLt.
+apply absolu_lt_nz; omega.
+apply make_bound_p; omega.
+apply RND_Closest_canonic.
+replace 1%nat with (Zabs_nat 1) by easy.
+apply Zabs_nat_lt; omega.
+apply make_bound_p; omega.
+rewrite Hfr1''.
+rewrite Hfa, Hfx, Hfy.
+rewrite pff_round_N_is_round; try assumption.
+f_equal; f_equal.
+rewrite make_bound_Emin; try easy; ring.
+apply make_bound_p; omega.
+rewrite Hfu1'', Hfal1''; fold u1; fold alpha1.
+apply FcanonicUnique with (4:=Hfbe1) (precision:=Zabs_nat prec).
+apply radix_gt_1.
+apply notEqLt.
+apply absolu_lt_nz; omega.
+apply make_bound_p; omega.
+apply RND_Closest_canonic.
+replace 1%nat with (Zabs_nat 1) by easy.
+apply Zabs_nat_lt; omega.
+apply make_bound_p; omega.
+rewrite pff_round_N_is_round; try assumption.
+rewrite Hfbe1''.
+f_equal; f_equal.
+rewrite make_bound_Emin; try easy; ring.
+apply make_bound_p; omega.
 Qed.
 
 End ErrFMA.
+
+Section ErrFmaAppr.
+
+Variable beta : radix.
+Variable emin prec : Z.
+Hypothesis precisionGe3 : (4 <= prec)%Z.
+Variable choice : Z -> bool.
+Context { prec_gt_0_ : Prec_gt_0 prec }.
+Hypothesis emin_neg: (emin <= 0)%Z.
+
+Notation format := (generic_format beta (FLT_exp emin prec)).
+Notation round_flt :=(round beta (FLT_exp emin prec) (Znearest choice)).
+Notation ulp_flt :=(ulp beta (FLT_exp emin prec)).
+
+(** inputs *)
+Variable a x y:R.
+Hypothesis Fa: format a.
+Hypothesis Fx: format x.
+Hypothesis Fy: format y.
+
+(** algorithm *)
+Let r1 := round_flt (a*x+y).
+Let u1 := round_flt (a*x).
+Let u2 := a*x-u1.
+Let v1 := round_flt (y+u1).
+Let v2 := (y+u1)-v1.
+Let t1 := round_flt (v1-r1).
+Let t2 := round_flt (u2+v2).
+Let r2 := round_flt (t1+t2).
+
+(** Non-underflow hypotheses *)
+Hypothesis Und1: a * x = 0 \/ bpow beta (emin + 2 * prec - 1) <= Rabs (a * x).
+Hypothesis Und2: v1 = 0 \/ bpow beta (emin + prec - 1) <= Rabs v1.
+Hypothesis Und3: r1 = 0 \/ bpow beta (emin + prec - 1) <= Rabs r1.
+Hypothesis Und4: r2 = 0 \/ bpow beta (emin + prec - 1) <= Rabs r2.
+Hypothesis Und5: t2 = 0 \/ bpow beta (emin + prec - 1) <= Rabs t2.
+
+(*Hypothesis Und2: alpha1 = 0 \/ bpow beta (emin + prec) <= Rabs alpha1.
+Hypothesis Und4: beta1 = 0 \/ bpow beta (emin + prec+1) <= Rabs beta1.
+Hypothesis Und5: r1 = 0 \/ bpow beta (emin + prec-1) <= Rabs r1.*)
+
+
+Lemma ErrFmaAppr_correct:
+   Rabs (r1+r2 -(a*x+y)) <= (3*beta/2+/2) * bpow beta (2-2*prec)%Z * Rabs (r1).
+Proof with auto with typeclass_instances.
+assert (precisionNotZero : (1 < prec)%Z) by omega.
+assert (J1: format u2).
+replace (u2) with (-(u1-(a*x))) by (unfold u2; ring).
+apply generic_format_opp.
+apply mult_error_FLT...
+assert (J2: format v2).
+replace (v2) with (-(v1-(y+u1))) by (unfold v2; ring).
+apply generic_format_opp.
+apply plus_error...
+apply generic_format_round...
+assert (G: forall f, Fcanonic beta (make_bound beta prec emin) f -> (FtoR beta f = 0 \/ 
+   bpow beta (emin+prec-1)%Z <= Rabs (FtoR beta f)) ->
+    Fnormal beta (make_bound beta prec emin) f \/
+      FtoR beta f = 0%nat).
+intros f Hf K; case K; [right|left].
+now rewrite H.
+apply CanonicGeNormal with prec; try easy.
+apply make_bound_p; omega.
+rewrite make_bound_Emin; try assumption.
+apply Rle_trans with (2:=H).
+apply bpow_le; omega.
+(* ax = 0 *)
+case Und1; intros Und1'.
+unfold r2, t1, t2, v2, v1, r1, u2, u1; rewrite Und1'.
+rewrite round_0...
+rewrite Rplus_0_l, Rplus_0_r.
+rewrite (round_generic _ _ _ y)...
+replace (y-y) with 0 by ring.
+rewrite Rplus_0_r, Rminus_0_l, Ropp_0, round_0...
+rewrite Rplus_0_l, round_0...
+replace (y+0-y) with 0 by ring; rewrite Rabs_R0.
+apply Rmult_le_pos.
+2: apply Rabs_pos.
+apply Rmult_le_pos; try apply bpow_ge_0.
+apply Rplus_le_le_0_compat.
+apply Rmult_le_pos.
+apply Rmult_le_pos.
+left; rewrite Rplus_comm; apply Rle_lt_0_plus_1; left; apply Rlt_0_2.
+SearchPattern (0 < radix_val _)%R.
+replace 0 with (Z2R 0) by easy; left; rewrite <- Z2R_IZR.
+apply Z2R_lt; apply radix_gt_0.
+left; apply pos_half_prf.
+left; apply pos_half_prf.
+(* values *)
+destruct (format_is_pff_format beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero a)
+  as (fa,(Hfa,Hfa')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega; assumption.
+destruct (format_is_pff_format beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero x)
+  as (fx,(Hfx,Hfx')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega; assumption.
+destruct (format_is_pff_format beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero y)
+  as (fy,(Hfy,Hfy')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega; assumption.
+destruct (format_is_pff_format beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero u2)
+  as (fu2,(Hfu2,Hfu2')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega; assumption.
+destruct (format_is_pff_format beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero v2)
+  as (fv2,(Hfv2,Hfv2')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega; assumption.
+(* roundings *)
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero choice (a*x+y))
+  as (fr1,(Hfr1, (Hfr1',Hfr1''))).
+rewrite make_bound_Emin in Hfr1''; try assumption.
+replace (--emin)%Z with emin in Hfr1'' by omega.
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero choice (a*x))
+  as (fu1,(Hfu1, (Hfu1',Hfu1''))).
+rewrite make_bound_Emin in Hfu1''; try assumption.
+replace (--emin)%Z with emin in Hfu1'' by omega.
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero choice (y+u1))
+  as (fv1,(Hfv1, (Hfv1',Hfv1''))).
+rewrite make_bound_Emin in Hfv1''; try assumption.
+replace (--emin)%Z with emin in Hfv1'' by omega.
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero choice (v1-r1))
+  as (ft1,(Hft1, (Hft1',Hft1''))).
+rewrite make_bound_Emin in Hft1''; try assumption.
+replace (--emin)%Z with emin in Hft1'' by omega.
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero choice (u2+v2))
+  as (ft2,(Hft2, (Hft2',Hft2''))).
+rewrite make_bound_Emin in Hft2''; try assumption.
+replace (--emin)%Z with emin in Hft2'' by omega.
+destruct (round_N_is_pff_round beta (make_bound beta prec emin)
+   prec (make_bound_p beta prec emin precisionNotZero) precisionNotZero choice (t1+t2))
+  as (fr2,(Hfr2, (Hfr2',Hfr2''))).
+rewrite make_bound_Emin in Hfr2''; try assumption.
+replace (--emin)%Z with emin in Hfr2'' by omega.
+(* *)
+unfold r1; rewrite <- Hfr1''.
+unfold r2; rewrite <- Hfr2''.
+rewrite <- Hfa, <- Hfx, <- Hfy.
+rewrite bpow_powerRZ.
+rewrite Z2R_IZR.
+replace prec with (Z.of_nat (Zabs_nat prec)).
+2: rewrite inj_abs; omega.
+apply ErrFmaApprox with (make_bound beta prec emin) fu1 fu2 fv1 fv2 ft1 ft2; try assumption.
+apply radix_gt_1.
+apply make_bound_p; omega.
+replace 4%nat with (Z.abs_nat 4).
+apply Zabs_nat_le; omega.
+now unfold Z.abs_nat, Pos.to_nat.
+(* underflow *)
+apply G; try assumption.
+case Und1; intros K1;[left|right].
+rewrite Hfu1'', K1, round_0...
+rewrite Hfu1''.
+apply abs_round_ge_generic...
+apply generic_format_bpow.
+unfold FLT_exp; rewrite Z.max_l; omega.
+apply Rle_trans with (2:=K1).
+apply bpow_le; omega.
+apply G; try assumption.
+rewrite Hfv1''; apply Und2.
+apply G; try assumption.
+rewrite Hfr1''; apply Und3.
+apply G; try assumption.
+rewrite Hfr2''; apply Und4.
+apply G; try assumption.
+rewrite Hft2''; apply Und5.
+apply underf_mult_aux with beta prec; try assumption.
+apply make_bound_p; assumption.
+rewrite Hfa, Hfx.
+apply Rle_trans with (2:=Und1').
+apply bpow_le.
+rewrite make_bound_Emin, Zopp_involutive; omega.
+(* *)
+rewrite Hfa, Hfx, Hfy; apply Hfr1'.
+rewrite Hfa, Hfx; apply Hfu1'.
+now rewrite Hfu2, Hfa, Hfx, Hfu1''.
+rewrite Hfu1'', Hfy, Rplus_comm; apply Hfv1'.
+rewrite Hfv2, Hfu1'', Hfy, Hfv1''.
+unfold v2; unfold v1; unfold u1; ring.
+rewrite Hfv1'', Hfr1''; apply Hft1'.
+rewrite Hfu2, Hfv2; apply Hft2'.
+rewrite Hft1'', Hft2''; apply Hfr2'.
+Qed.
+
+End ErrFmaAppr.
