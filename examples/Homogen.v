@@ -205,7 +205,7 @@ apply Rmult_le_compat_r with (1 := HM).
 now apply Rplus_le_compat.
 unfold Zminus.
 rewrite bpow_plus.
-simpl (bpow radix2 1).
+change (bpow radix2 1) with 2%R.
 rewrite F2R_bpow.
 ring.
 Qed.

@@ -20,7 +20,8 @@ COPYING file for more details.
 (** Translation from Flocq to Pff *)
 Require Import Float.Veltkamp.
 Require Import Float.RND.
-Require Import Core.
+
+From Flocq Require Import Core Binary.
 
 Section RND_Closest_c.
 (* extension of pff for rounding function with arbitrary tie *)

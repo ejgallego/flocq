@@ -20,7 +20,7 @@ COPYING file for more details.
 (** * Rounding to odd and its properties, including the equivalence
       between rnd_NE and double rounding with rnd_odd and then rnd_NE *)
 
-
+Require Import Reals Psatz.
 Require Import Core Operations.
 
 Definition Zrnd_odd x :=  match Req_EM_T x (Z2R (Zfloor x))  with
@@ -569,29 +569,23 @@ Qed.
 
 
 Lemma d_le_m: (F2R d <= m)%R.
-apply Rmult_le_reg_l with 2%R.
-auto with real.
-apply Rplus_le_reg_l with (-F2R d)%R.
-apply Rle_trans with (F2R d).
-right; ring.
-apply Rle_trans with (F2R u).
-apply Rle_trans with x.
-apply Hd.
-apply Hu.
-right; unfold m; field.
+Proof.
+assert (F2R d <= F2R u)%R.
+  apply Rle_trans with x.
+  apply Hd.
+  apply Hu.
+unfold m.
+lra.
 Qed.
 
 Lemma m_le_u: (m <= F2R u)%R.
-apply Rmult_le_reg_l with 2%R.
-auto with real.
-apply Rplus_le_reg_l with (-F2R u)%R.
-apply Rle_trans with (F2R d).
-right; unfold m; field.
-apply Rle_trans with (F2R u).
-apply Rle_trans with x.
-apply Hd.
-apply Hu.
-right; ring.
+Proof.
+assert (F2R d <= F2R u)%R.
+  apply Rle_trans with x.
+  apply Hd.
+  apply Hu.
+unfold m.
+lra.
 Qed.
 
 Lemma mag_m: (0 < F2R d)%R -> (mag beta m =mag beta (F2R d) :>Z).
@@ -633,20 +627,13 @@ now apply Rgt_not_eq.
 now apply generic_format_canonical.
 now left.
 replace m with (F2R d).
-destruct  (mag beta (F2R d)) as (e,He).
+destruct (mag beta (F2R d)) as (e,He).
 simpl in *; rewrite Rabs_right in He.
 apply He.
 now apply Rgt_not_eq.
 apply Rle_ge; now left.
-assert (F2R d = F2R u).
-apply Rmult_eq_reg_l with (/2)%R.
-apply Rplus_eq_reg_l with (/2*F2R u)%R.
-apply trans_eq with m.
-unfold m, Rdiv; ring.
-rewrite H; field.
-auto with real.
-apply Rgt_not_eq, Rlt_gt; auto with real.
-unfold m; rewrite <- H0; field.
+unfold m in H |- *.
+lra.
 Qed.
 
 
@@ -658,7 +645,7 @@ apply mag_unique_pos.
 unfold m; rewrite <- Y, Rplus_0_l.
 rewrite u_eq.
 destruct (mag beta x) as (e,He).
-rewrite Rabs_right in He.
+rewrite Rabs_pos_eq in He by now apply Rlt_le.
 rewrite round_UP_small_pos with (ex:=e).
 rewrite mag_bpow.
 ring_simplify (fexp e + 1 - 1)%Z.
@@ -668,7 +655,7 @@ unfold Rdiv; apply Rmult_le_compat_l.
 apply bpow_ge_0.
 simpl; unfold Z.pow_pos; simpl.
 rewrite Zmult_1_r; apply Rinv_le.
-auto with real.
+exact Rlt_0_2.
 apply (Z2R_le 2).
 specialize (radix_gt_1 beta).
 omega.
@@ -676,13 +663,11 @@ apply Rlt_le_trans with (bpow (fexp e)*1)%R.
 2: right; ring.
 unfold Rdiv; apply Rmult_lt_compat_l.
 apply bpow_gt_0.
-rewrite <- Rinv_1 at 3.
-apply Rinv_lt; auto with real.
+lra.
 now apply He, Rgt_not_eq.
 apply exp_small_round_0_pos with beta (Zfloor) x...
 now apply He, Rgt_not_eq.
 now rewrite <- d_eq, Y.
-now left.
 Qed.
 
 
@@ -713,9 +698,8 @@ unfold Rdiv; apply f_equal.
 unfold F2R; simpl; unfold Z.pow_pos; simpl.
 rewrite Zmult_1_r, Hb, Z2R_mult.
 simpl; field.
-apply Rgt_not_eq, Rmult_lt_reg_l with (Z2R 2).
-simpl; auto with real.
-rewrite Rmult_0_r, <-Z2R_mult, <-Hb.
+apply Rgt_not_eq, Rmult_lt_reg_l with (1 := Rlt_0_2).
+rewrite Rmult_0_r, <- (Z2R_mult 2), <-Hb.
 apply radix_pos.
 apply trans_eq with (-1+Fexp (Fplus beta d u'))%Z.
 unfold Fmult.
@@ -742,9 +726,8 @@ unfold Rdiv; apply f_equal.
 unfold F2R; simpl; unfold Z.pow_pos; simpl.
 rewrite Zmult_1_r, Hb, Z2R_mult.
 simpl; field.
-apply Rgt_not_eq, Rmult_lt_reg_l with (Z2R 2).
-simpl; auto with real.
-rewrite Rmult_0_r, <-Z2R_mult, <-Hb.
+apply Rgt_not_eq, Rmult_lt_reg_l with (1 := Rlt_0_2).
+rewrite Rmult_0_r, <- (Z2R_mult 2), <-Hb.
 apply radix_pos.
 apply trans_eq with (-1+Fexp u)%Z.
 unfold Fmult.

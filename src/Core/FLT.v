@@ -181,7 +181,7 @@ Qed.
 
 (** Links between FLT and FIX (underflow) *)
 Theorem cexp_FLT_FIX :
-  forall x, x <> R0 ->
+  forall x, x <> 0%R ->
   (Rabs x < bpow (emin + prec))%R ->
   cexp beta FLT_exp x = cexp beta (FIX_exp emin) x.
 Proof.

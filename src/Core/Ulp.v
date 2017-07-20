@@ -18,6 +18,7 @@ COPYING file for more details.
 *)
 
 (** * Unit in the Last Place: our definition using fexp and its properties, successor and predecessor *)
+Require Import Reals Psatz.
 Require Import Raux Definitions Round_pred Generic_fmt Float_prop.
 
 Section Fcore_ulp.
@@ -1479,22 +1480,22 @@ Qed.
 
 Theorem lt_succ_le :
   forall x y,
-  F x -> F y -> (y <> 0)%R ->
+  (y <> 0)%R ->
   (x <= y)%R ->
   (x < succ y)%R.
 Proof.
-intros x y Fx Fy Zy Hxy.
+intros x y Zy Hxy.
 apply Rle_lt_trans with (1 := Hxy).
 now apply succ_gt_id.
 Qed.
 
 Theorem pred_lt_le :
   forall x y,
-  F x -> F y -> (x <> 0)%R ->
+  (x <> 0)%R ->
   (x <= y)%R ->
   (pred x < y)%R.
 Proof.
-intros x y Fx Fy Zy Hxy.
+intros x y Zy Hxy.
 apply Rlt_le_trans with (2 := Hxy).
 now apply pred_lt_id.
 Qed.
@@ -1509,7 +1510,7 @@ now apply pred_pos_plus_ulp.
 Qed.
 
 Theorem pred_ulp_0 :
-  pred (ulp 0) = R0.
+  pred (ulp 0) = 0%R.
 Proof.
 rewrite pred_eq_pos.
 2: apply ulp_ge_0.
@@ -1961,7 +1962,7 @@ rewrite Hx in Hfx; contradict Hfx; auto with real.
 intros H.
 apply Rle_trans with (1:=error_le_half_ulp _ _).
 apply Rmult_le_compat_l.
-auto with real.
+apply Rlt_le, pos_half_prf.
 apply ulp_le.
 rewrite Hx; rewrite (Rabs_left1 x), Rabs_left; try assumption.
 apply Ropp_le_contravar.
@@ -1977,7 +1978,7 @@ case (Rle_or_lt 0 (round beta fexp Zceil x)).
 intros H; destruct H.
 apply Rle_trans with (1:=error_le_half_ulp _ _).
 apply Rmult_le_compat_l.
-auto with real.
+apply Rlt_le, pos_half_prf.
 apply ulp_le_pos; trivial.
 case (Rle_or_lt 0 x); trivial.
 intros H1; contradict H.
@@ -2205,21 +2206,7 @@ apply generic_format_0.
 left; apply Rlt_le_trans with (1:=H).
 rewrite V1,V2; right; field.
 (* *)
-assert (T: (u < (u + succ u) / 2 < succ u)%R).
-split.
-apply Rmult_lt_reg_l with 2%R.
-now auto with real.
-apply Rplus_lt_reg_l with (-u)%R.
-apply Rle_lt_trans with u;[right; ring|idtac].
-apply Rlt_le_trans with (1:=V).
-right; field.
-apply Rmult_lt_reg_l with 2%R.
-now auto with real.
-apply Rplus_lt_reg_l with (-succ u)%R.
-apply Rle_lt_trans with u;[right; field|idtac].
-apply Rlt_le_trans with (1:=V).
-right; ring.
-(* *)
+assert (T: (u < (u + succ u) / 2 < succ u)%R) by lra.
 destruct T as (T1,T2).
 apply Rnd_N_pt_monotone with F v ((u + succ u) / 2)%R...
 apply round_N_pt...

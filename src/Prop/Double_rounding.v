@@ -178,8 +178,8 @@ destruct (Req_dec x' 0) as [Zx'|Nzx'].
   apply Rplus_le_compat_r.
   apply (Rmult_le_reg_r (bpow (- mag x))); [now apply bpow_gt_0|].
   unfold ulp, cexp; bpow_simplify.
-  rewrite <- (Rinv_r 2) at 3; [|lra].
-  rewrite Rmult_comm; apply Rmult_le_compat_r; [lra|].
+  apply Rmult_le_reg_l with (1 := Rlt_0_2).
+  replace (2 * (/ 2 * _)) with (bpow (fexp1 (mag x) - mag x)) by field.
   apply Rle_trans with 1; [|lra].
   change 1 with (bpow 0); apply bpow_le.
   omega.
@@ -1024,10 +1024,11 @@ destruct Hexp as (_,(_,(_,Hexp4))).
 assert (Hf2 : (fexp2 (mag x) <= fexp1 (mag x))%Z);
   [now apply Hexp4; omega|].
 assert (Bpow2 : bpow (- 2) <= / 2 * / 2).
-{ unfold Raux.bpow, Z.pow_pos; simpl.
-  rewrite <- Rinv_mult_distr; [|lra|lra].
+{ replace (/2 * /2) with (/4) by field.
+  rewrite (bpow_opp _ 2).
   apply Rinv_le; [lra|].
-  change 4 with (Z2R (2 * 2)); apply Z2R_le; rewrite Zmult_1_r.
+  apply (Z2R_le (2 * 2) (beta * (beta * 1))).
+  rewrite Zmult_1_r.
   now apply Zmult_le_compat; omega. }
 assert (P2 : (0 < 2)%Z) by omega.
 unfold double_round_eq.
@@ -1371,10 +1372,11 @@ assert (Hf2 : (fexp2 (mag x) <= fexp1 (mag x))%Z);
 assert (Hfx : (fexp1 (mag x) < mag x)%Z);
   [now apply mag_generic_gt; [|apply Rgt_not_eq|]|].
 assert (Bpow2 : bpow (- 2) <= / 2 * / 2).
-{ unfold Raux.bpow, Z.pow_pos; simpl.
-  rewrite <- Rinv_mult_distr; [|lra|lra].
+{ replace (/2 * /2) with (/4) by field.
+  rewrite (bpow_opp _ 2).
   apply Rinv_le; [lra|].
-  change 4 with (Z2R (2 * 2)); apply Z2R_le; rewrite Zmult_1_r.
+  apply (Z2R_le (2 * 2) (beta * (beta * 1))).
+  rewrite Zmult_1_r.
   now apply Zmult_le_compat; omega. }
 assert (Ly : y < bpow (mag y)).
 { apply Rabs_lt_inv.
@@ -1436,7 +1438,7 @@ apply double_round_gt_mid.
     unfold cexp.
     apply (Rplus_le_reg_r (bpow (fexp2 (mag (x - y))))); ring_simplify.
     apply Rle_trans with (2 * bpow (fexp1 (mag (x - y)) - 1)).
-    * rewrite Rmult_plus_distr_r; rewrite Rmult_1_l.
+    * rewrite double.
       apply Rplus_le_compat_l.
       now apply bpow_le.
     * unfold Zminus; rewrite bpow_plus.
@@ -1445,10 +1447,10 @@ apply double_round_gt_mid.
       apply Rmult_le_compat_l; [now apply bpow_ge_0|].
       unfold Raux.bpow, Z.pow_pos; simpl.
       rewrite Zmult_1_r.
-      rewrite <- (Rinv_r 2) at 3; [|lra].
-      rewrite Rmult_comm; apply Rmult_le_compat_l; [lra|].
-      apply Rinv_le; [lra|].
-      now change 2 with (Z2R 2); apply Z2R_le.
+      apply Z2R_le, Rinv_le in Hbeta.
+      simpl in Hbeta.
+      lra.
+      apply Rlt_0_2.
 Qed.
 
 (* double_round_minus_aux{0,1,2} together *)
@@ -4175,7 +4177,7 @@ destruct (Zle_or_lt Z0 (fexp1 (mag x) - fexp1 (mag (x / y))
     bpow_simplify.
     rewrite (Rmult_comm _ y).
     do 2 rewrite Rmult_assoc.
-    change (Z2R _ * _) with x'.
+    change (Z2R (Zfloor _) * _) with x'.
     change (bpow _) with u1.
     apply (Rmult_lt_reg_l (/ 2)); [lra|].
     rewrite Rmult_plus_distr_l.

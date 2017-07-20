@@ -31,7 +31,7 @@ Inductive full_float :=
 Definition FF2R beta x :=
   match x with
   | F754_finite s m e => F2R (Float beta (cond_Zopp s (Zpos m)) e)
-  | _ => R0
+  | _ => 0%R
   end.
 
 End AnyRadix.
@@ -98,7 +98,7 @@ Definition B2FF x :=
 Definition B2R f :=
   match f with
   | B754_finite s m e _ => F2R (Float radix2 (cond_Zopp s (Zpos m)) e)
-  | _ => R0
+  | _ => 0%R
   end.
 
 Theorem FF2R_B2FF :
@@ -340,11 +340,11 @@ Proof.
 intros. destruct x, y; try (apply B2R_inj; now eauto).
 - simpl in H2. congruence.
 - symmetry in H1. apply Rmult_integral in H1.
-  destruct H1. apply eq_Z2R with (n:=0%Z) in H1. destruct s0; discriminate H1.
+  destruct H1. apply (eq_Z2R _ 0) in H1. destruct s0; discriminate H1.
   simpl in H1. pose proof (bpow_gt_0 radix2 e).
   rewrite H1 in H3. apply Rlt_irrefl in H3. destruct H3.
 - apply Rmult_integral in H1.
-  destruct H1. apply eq_Z2R with (n:=0%Z) in H1. destruct s; discriminate H1.
+  destruct H1. apply (eq_Z2R _ 0) in H1. destruct s; discriminate H1.
   simpl in H1. pose proof (bpow_gt_0 radix2 e).
   rewrite H1 in H3. apply Rlt_irrefl in H3. destruct H3.
 Qed.
@@ -1712,7 +1712,7 @@ Definition Bdiv div_nan m x y :=
 
 Theorem Bdiv_correct :
   forall div_nan m x y,
-  B2R y <> R0 ->
+  B2R y <> 0%R ->
   if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (B2R x / B2R y))) (bpow radix2 emax) then
     B2R (Bdiv div_nan m x y) = round radix2 fexp (round_mode m) (B2R x / B2R y) /\
     is_finite (Bdiv div_nan m x y) = is_finite x /\
