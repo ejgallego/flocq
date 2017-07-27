@@ -961,7 +961,6 @@ Hypothesis precisionGe3 : (3 <= prec)%Z.
 Variable choice : Z -> bool.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Hypothesis emin_neg: (emin <= 0)%Z.
-Hypothesis Even_radix: (Even beta).
 
 Notation format := (generic_format beta (FLT_exp emin prec)).
 Notation round_flt :=(round beta (FLT_exp emin prec) (Znearest choice)).
@@ -1293,17 +1292,17 @@ simpl (Fmult _ _ _).
 destruct (round_repr_same_exp beta (FLT_exp emin prec) 
  ZnearestE (Ztrunc (scaled_mantissa beta (FLT_exp emin prec) a) *
              Ztrunc (scaled_mantissa beta (FLT_exp emin prec) b))
-      (canonic_exp beta (FLT_exp emin prec) a +
-             canonic_exp beta (FLT_exp emin prec) b)) as (n,Hn).
+      (cexp beta (FLT_exp emin prec) a +
+             cexp beta (FLT_exp emin prec) b)) as (n,Hn).
 rewrite Hn; clear Hn.
 rewrite <- F2R_minus, Fminus_same_exp.
 intros K.
 eapply Rle_trans with (2:=F2R_ge _ K).
 simpl (Fexp _).
 apply bpow_le.
-unfold canonic_exp, FLT_exp.
-destruct (ln_beta beta a) as (ea,Ha).
-destruct (ln_beta beta b) as (eb,Hb).
+unfold cexp, FLT_exp.
+destruct (mag beta a) as (ea,Ha).
+destruct (mag beta b) as (eb,Hb).
 apply Zle_trans with ((ea-prec)+(eb-prec))%Z.
 replace ((ea-prec)+(eb-prec))%Z with ((-1+(ea+eb))+(1-2*prec))%Z by ring.
 rewrite <- Z.add_sub_assoc.
@@ -1471,21 +1470,21 @@ simpl.
 apply Zle_trans with (FLT_exp emin prec (emin +3*prec-1)).
 unfold FLT_exp.
 rewrite Z.max_l; omega.
-apply canonic_exp_ge_bpow...
+apply cexp_ge_bpow...
 apply Rle_trans with (2:=H).
 apply bpow_le; omega.
 simpl.
 apply Zle_trans with (FLT_exp emin prec (emin +2*prec+1)).
 unfold FLT_exp.
 rewrite Z.max_l; omega.
-apply canonic_exp_ge_bpow...
+apply cexp_ge_bpow...
 apply Rle_trans with (2:=Hy).
 apply bpow_le; omega.
 simpl.
 apply Zle_trans with (FLT_exp emin prec (emin +2*prec-1)).
 unfold FLT_exp.
 rewrite Z.max_l; omega.
-apply canonic_exp_ge_bpow...
+apply cexp_ge_bpow...
 case (mult_error_FLT_ge a x (emin+4*prec-3)); try assumption.
 intros Z; contradict Zu2.
 unfold u2, u1; easy.

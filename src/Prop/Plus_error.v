@@ -518,6 +518,21 @@ apply Rgt_not_eq.
 apply radix_pos.
 Qed.
 
+Lemma rnd_0_or_ge_FLT_z: forall x y e, 
+ generic_format beta (FLT_exp emin prec) x 
+   -> generic_format beta (FLT_exp emin prec) y 
+   -> x = 0%R \/ (bpow e <= Rabs x)%R 
+   -> (x = 0%R -> (y = 0 \/ bpow (e - prec) <= Rabs y)%R)
+   -> (round beta (FLT_exp emin prec) rnd (x+y) = 0)%R \/ 
+      (bpow (e - prec) <= Rabs (round beta (FLT_exp emin prec) rnd (x+y)))%R.
+Proof with auto with typeclass_instances.
+intros x y e Fx Fy H1 H2; case H1.
+intros H3; rewrite H3, Rplus_0_l.
+rewrite round_generic...
+intros H3.
+now apply rnd_0_or_ge_FLT.
+Qed.
+
 Lemma rnd_0_or_ge_FLX: forall x y e, 
     generic_format beta (FLX_exp prec) x -> generic_format beta (FLX_exp prec) y ->
     (bpow e <= Rabs x)%R ->

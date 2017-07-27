@@ -34,7 +34,7 @@ Notation format := (generic_format beta fexp).
 Theorem generic_format_plus :
   forall x y,
   format x -> format y ->
-  (Rabs (x + y) < bpow (Zmin (mag beta x) (mag beta y)))%R ->
+  (Rabs (x + y) <= bpow (Zmin (mag beta x) (mag beta y)))%R ->
   format (x + y)%R.
 Proof.
 intros x y Fx Fy Hxy.
@@ -45,6 +45,7 @@ destruct (Req_dec x R0) as [Zx|Zx].
 now rewrite Zx, Rplus_0_l.
 destruct (Req_dec y R0) as [Zy|Zy].
 now rewrite Zy, Rplus_0_r.
+destruct Hxy as [Hxy|Hxy].
 revert Hxy.
 destruct (mag beta x) as (ex, Ex). simpl.
 specialize (Ex Zx).
@@ -83,6 +84,12 @@ apply Zmin_r.
 apply monotone_exp.
 apply Zlt_le_weak.
 now apply Zgt_lt.
+apply generic_format_abs_inv.
+rewrite Hxy.
+apply generic_format_bpow.
+apply valid_exp.
+case (Zmin_spec (mag beta x) (mag beta y)); intros (H1,H2); 
+   rewrite H2; now apply mag_generic_gt.
 Qed.
 
 Theorem generic_format_plus_weak :
@@ -97,16 +104,16 @@ now rewrite Zx, Rplus_0_l.
 destruct (Req_dec y R0) as [Zy|Zy].
 now rewrite Zy, Rplus_0_r.
 apply generic_format_plus ; try assumption.
-apply Rle_lt_trans with (1 := Hxy).
+apply Rle_trans with (1 := Hxy).
 unfold Rmin.
 destruct (Rle_dec (Rabs x) (Rabs y)) as [Hxy'|Hxy'].
 rewrite Zmin_l.
 destruct (mag beta x) as (ex, Hx).
-now apply Hx.
+apply Rlt_le; now apply Hx.
 now apply mag_le_abs.
 rewrite Zmin_r.
 destruct (mag beta y) as (ex, Hy).
-now apply Hy.
+apply Rlt_le; now apply Hy.
 apply mag_le_abs.
 exact Zy.
 apply Rlt_le.
