@@ -1,3 +1,9 @@
+Version 2.6.0:
+ - ensured compatibility from Coq 8.4 to 8.7
+ - removed some hypotheses on some lemmas of Fcore_ulp
+ - added lemmas to Fprop_plus_error
+ - improved examples
+
 Version 2.5.2:
  - ensured compatibility from Coq 8.4 to 8.6
 
