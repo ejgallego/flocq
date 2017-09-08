@@ -19,6 +19,7 @@ COPYING file for more details.
 
 (** * Error of the rounded-to-nearest addition is representable. *)
 
+Require Import Psatz.
 Require Import Fcore_Raux.
 Require Import Fcore_defs.
 Require Import Fcore_float_prop.
@@ -269,7 +270,7 @@ Qed.
 
 End Fprop_plus_FLT.
 
-Section Fprop_plus_multi.
+Section Fprop_plus_mult_ulp.
 
 Variable beta : radix.
 Notation bpow e := (bpow beta e).
@@ -280,12 +281,12 @@ Context { monotone_exp : Monotone_exp fexp }.
 Variable rnd : R -> Z.
 Context { valid_rnd : Valid_rnd rnd }.
 
-
 Notation format := (generic_format beta fexp).
 Notation cexp := (canonic_exp beta fexp).
 
-Lemma ex_shift: forall x e, format x -> (e <= cexp x)%Z ->
-  exists m, (x = Z2R m*bpow e)%R.
+Lemma ex_shift :
+  forall x e, format x -> (e <= cexp x)%Z ->
+  exists m, (x = Z2R m * bpow e)%R.
 Proof with auto with typeclass_instances.
 intros x e Fx He.
 exists (Ztrunc (scaled_mantissa beta fexp x)*Zpower beta (cexp x -e))%Z.
@@ -297,34 +298,19 @@ rewrite Z2R_Zpower.
 rewrite <- bpow_plus; f_equal; ring.
 Qed.
 
-Lemma ln_beta_minus1: 
-   forall z, (z<>0)%R -> (ln_beta beta z -1 = ln_beta beta (z / Z2R beta))%Z.
-Proof with auto with typeclass_instances.
-intros z Hz; apply sym_eq, ln_beta_unique.
-destruct (ln_beta beta z) as (e,He); simpl.
-replace (z / Z2R beta)%R with (z*bpow (-1))%R.
-rewrite Rabs_mult, (Rabs_right (bpow _)); try split.
-apply Rmult_le_reg_r with (bpow 1).
-apply bpow_gt_0.
-rewrite Rmult_assoc, <- 2!bpow_plus.
-rewrite Rmult_1_r.
-apply Rle_trans with (2:=proj1 (He Hz)).
-apply bpow_le; omega.
-apply Rmult_lt_reg_r with (bpow 1).
-apply bpow_gt_0.
-rewrite Rmult_assoc, <- 2!bpow_plus.
-rewrite Rmult_1_r.
-apply Rlt_le_trans with (1:=proj2 (He Hz)).
-apply bpow_le; omega.
-apply Rle_ge, bpow_ge_0.
-simpl; unfold Rdiv; f_equal; f_equal; f_equal.
-unfold Z.pow_pos; simpl; ring.
+Lemma ln_beta_minus1 :
+  forall z, z <> 0%R ->
+  (ln_beta beta z - 1)%Z = ln_beta beta (z / Z2R beta).
+Proof.
+intros z Hz.
+unfold Zminus.
+rewrite <- ln_beta_mult_bpow with (1 := Hz).
+now rewrite bpow_opp, bpow_1.
 Qed.
 
-Lemma rnd_plus_mutiple:
-   forall x y, format x -> format y -> (x <> 0)%R ->
-    exists m,
-     (round beta fexp rnd (x+y) = Z2R m * ulp beta fexp (x/Z2R beta))%R.
+Theorem round_plus_mult_ulp :
+  forall x y, format x -> format y -> (x <> 0)%R ->
+  exists m, (round beta fexp rnd (x+y) = Z2R m * ulp beta fexp (x/Z2R beta))%R.
 Proof with auto with typeclass_instances.
 intros x y Fx Fy Zx.
 case (Zle_or_lt (ln_beta beta (x/Z2R beta)) (ln_beta beta y)); intros H1.
@@ -350,22 +336,22 @@ destruct (ex_shift (round beta fexp rnd (x + y)) (cexp (x/Z2R beta))) as (n,Hn).
 apply generic_format_round...
 apply Zle_trans with (cexp (x+y)).
 apply monotone_exp.
-rewrite <- ln_beta_minus1; try assumption.
+rewrite <- ln_beta_minus1 by easy.
 rewrite <- (ln_beta_abs beta (x+y)).
 (* . *)
-assert (U:(Rabs (x+y) = Rabs x + Rabs y)%R \/ (y <> 0 /\ Rabs (x+y)=Rabs x - Rabs y)%R).
-assert (V: forall x y, (Rabs y <= Rabs x)%R -> 
-   (Rabs (x+y) = Rabs x + Rabs y)%R \/ (y <> 0 /\ Rabs (x+y)=Rabs x - Rabs y)%R).
+assert (U: (Rabs (x+y) = Rabs x + Rabs y)%R \/ (y <> 0 /\ Rabs (x+y) = Rabs x - Rabs y)%R).
+assert (V: forall x y, (Rabs y <= Rabs x)%R ->
+   (Rabs (x+y) = Rabs x + Rabs y)%R \/ (y <> 0 /\ Rabs (x+y) = Rabs x - Rabs y)%R).
 clear; intros x y.
 case (Rle_or_lt 0 y); intros Hy.
 case Hy; intros Hy'.
 case (Rle_or_lt 0 x); intros Hx.
-intros _; rewrite (Rabs_right y); [idtac|now apply Rle_ge].
-rewrite (Rabs_right x); [idtac|now apply Rle_ge].
-left; apply Rabs_right.
-apply Rle_ge; apply Rplus_le_le_0_compat; assumption.
-rewrite (Rabs_right y); [idtac|now apply Rle_ge].
-rewrite (Rabs_left x); [idtac|assumption].
+intros _; rewrite (Rabs_pos_eq y) by easy.
+rewrite (Rabs_pos_eq x) by easy.
+left; apply Rabs_pos_eq.
+now apply Rplus_le_le_0_compat.
+rewrite (Rabs_pos_eq y) by easy.
+rewrite (Rabs_left x) by easy.
 intros H; right; split.
 now apply Rgt_not_eq.
 rewrite Rabs_left1.
@@ -374,23 +360,19 @@ apply Rplus_le_reg_l with (-x)%R; ring_simplify; assumption.
 intros _; left.
 now rewrite <- Hy', Rabs_R0, 2!Rplus_0_r.
 case (Rle_or_lt 0 x); intros Hx.
-rewrite (Rabs_left y); [idtac|assumption].
-rewrite (Rabs_right x); [idtac|now apply Rle_ge].
+rewrite (Rabs_left y) by easy.
+rewrite (Rabs_pos_eq x) by easy.
 intros H; right; split.
-apply sym_not_eq; now apply Rgt_not_eq.
-rewrite Rabs_right.
+now apply Rlt_not_eq.
+rewrite Rabs_pos_eq.
 ring.
-apply Rle_ge; apply Rplus_le_reg_l with (-y)%R; ring_simplify; assumption.
+apply Rplus_le_reg_l with (-y)%R; ring_simplify; assumption.
 intros _; left.
-rewrite (Rabs_left y); [idtac|assumption].
-rewrite (Rabs_left x); [idtac|assumption].
+rewrite (Rabs_left y) by easy.
+rewrite (Rabs_left x) by easy.
 rewrite Rabs_left1.
 ring.
-rewrite <- (Ropp_involutive (x+y)), <- Ropp_0.
-apply Ropp_le_contravar; rewrite Ropp_plus_distr.
-apply Rplus_le_le_0_compat.
-rewrite <- Ropp_0; apply Ropp_le_contravar; now left.
-rewrite <- Ropp_0; apply Ropp_le_contravar; now left.
+lra.
 apply V; left.
 apply ln_beta_lt_pos with beta.
 now apply Rabs_pos_lt.
@@ -398,7 +380,8 @@ rewrite <- ln_beta_minus1 in H1; try assumption.
 rewrite 2!ln_beta_abs; omega.
 (* . *)
 destruct U as [U|U].
-rewrite U; apply Zle_trans with (ln_beta beta x);[omega|idtac].
+rewrite U; apply Zle_trans with (ln_beta beta x).
+omega.
 rewrite <- ln_beta_abs.
 apply ln_beta_le.
 now apply Rabs_pos_lt.
@@ -410,18 +393,17 @@ apply ln_beta_minus_lb.
 now apply Rabs_pos_lt.
 now apply Rabs_pos_lt.
 rewrite 2!ln_beta_abs.
-assert (ln_beta beta y < ln_beta beta x -1)%Z;[idtac|omega].
+assert (ln_beta beta y < ln_beta beta x - 1)%Z.
 now rewrite (ln_beta_minus1 x Zx).
+omega.
 apply canonic_exp_round_ge...
 intros K.
-absurd (x+y=0)%R.
-intros K'.
+apply round_plus_eq_zero in K...
 contradict H1; apply Zle_not_lt.
 rewrite <- (ln_beta_minus1 x Zx).
 replace y with (-x)%R.
 rewrite ln_beta_opp; omega.
-apply Rplus_eq_reg_l with x; rewrite K'; ring.
-apply round_plus_eq_zero with (6:=K)...
+lra.
 exists n.
 rewrite ulp_neq_0.
 assumption.
@@ -431,11 +413,14 @@ apply Rgt_not_eq.
 apply radix_pos.
 Qed.
 
-Lemma rnd_0_or_ge: Exp_not_FTZ fexp -> forall x y, format x -> format y -> 
-   (round beta fexp rnd (x+y) = 0)%R \/ 
-     (ulp beta fexp (x/Z2R beta) <= Rabs (round beta fexp rnd (x+y)))%R.
+Context {exp_not_FTZ : Exp_not_FTZ fexp}.
+
+Theorem round_plus_ge_ulp :
+  forall x y, format x -> format y ->
+  round beta fexp rnd (x+y) = 0%R \/
+  (ulp beta fexp (x/Z2R beta) <= Rabs (round beta fexp rnd (x+y)))%R.
 Proof with auto with typeclass_instances.
-intros exp_not_FTZ x y Fx Fy.
+intros x y Fx Fy.
 case (Req_dec x 0); intros Zx.
 (* *)
 rewrite Zx, Rplus_0_l.
@@ -443,8 +428,7 @@ rewrite round_generic...
 unfold Rdiv; rewrite Rmult_0_l.
 rewrite Fy at 2.
 unfold F2R; simpl; rewrite Rabs_mult.
-rewrite (Rabs_right (bpow _)).
-2: apply Rle_ge, bpow_ge_0.
+rewrite (Rabs_pos_eq (bpow _)) by apply bpow_ge_0.
 case (Z.eq_dec (Ztrunc (scaled_mantissa beta fexp y)) 0); intros Hm.
 left.
 rewrite Fy, Hm; unfold F2R; simpl; ring.
@@ -455,37 +439,35 @@ rewrite <- ulp_neq_0.
 apply ulp_ge_ulp_0...
 intros K; apply Hm.
 rewrite K, scaled_mantissa_0.
-replace 0%R with (Z2R 0) by reflexivity.
-apply Ztrunc_Z2R.
+apply (Ztrunc_Z2R 0).
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 rewrite <- Z2R_abs.
-replace 1%R with (Z2R 1) by reflexivity.
-apply Z2R_le.
-assert (0 < Z.abs (Ztrunc (scaled_mantissa beta fexp y)))%Z;[|omega].
+apply (Z2R_le 1).
+apply (Zlt_le_succ 0).
 now apply Z.abs_pos.
 (* *)
-destruct (rnd_plus_mutiple x y Fx Fy Zx) as (m,Hm).
+destruct (round_plus_mult_ulp x y Fx Fy Zx) as (m,Hm).
 case (Z.eq_dec m 0); intros Zm.
 left.
 rewrite Hm, Zm; simpl; ring.
 right.
 rewrite Hm, Rabs_mult.
-rewrite (Rabs_right (ulp _ _ _)).
-2: apply Rle_ge, ulp_ge_0.
+rewrite (Rabs_pos_eq (ulp _ _ _)) by apply ulp_ge_0.
 apply Rle_trans with (1*ulp beta fexp (x/Z2R beta))%R.
 right; ring.
 apply Rmult_le_compat_r.
 apply ulp_ge_0.
 rewrite <- Z2R_abs.
-replace 1%R with (Z2R 1) by reflexivity.
-apply Z2R_le.
-assert (0 < Z.abs m)%Z;[|omega].
+apply (Z2R_le 1).
+apply (Zlt_le_succ 0).
 now apply Z.abs_pos.
 Qed.
 
-End Fprop_plus_multi.
-Section Fprop_plus_multii.
+End Fprop_plus_mult_ulp.
+
+Section Fprop_plus_ge_ulp.
+
 Variable beta : radix.
 Notation bpow e := (bpow beta e).
 
@@ -494,23 +476,23 @@ Context { valid_rnd : Valid_rnd rnd }.
 Variable emin prec : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 
-Lemma rnd_0_or_ge_FLT: forall x y e, 
-    generic_format beta (FLT_exp emin prec) x -> generic_format beta (FLT_exp emin prec) y ->
-    (bpow e <= Rabs x)%R ->
-   (round beta (FLT_exp emin prec) rnd (x+y) = 0)%R \/ 
-     (bpow (e - prec) <= Rabs (round beta (FLT_exp emin prec) rnd (x+y)))%R.
+Theorem round_plus_ge_ulp_FLT : forall x y e,
+  generic_format beta (FLT_exp emin prec) x -> generic_format beta (FLT_exp emin prec) y ->
+  (bpow e <= Rabs x)%R ->
+  round beta (FLT_exp emin prec) rnd (x+y) = 0%R \/
+  (bpow (e - prec) <= Rabs (round beta (FLT_exp emin prec) rnd (x+y)))%R.
 Proof with auto with typeclass_instances.
 intros x y e Fx Fy He.
-assert (Zx:(x <> 0)%R).
-intros K; contradict He.
-apply Rlt_not_le; rewrite K, Rabs_R0.
-apply bpow_gt_0.
-case rnd_0_or_ge with beta (FLT_exp emin prec) rnd x y...
+assert (Zx: x <> 0%R).
+  contradict He.
+  apply Rlt_not_le; rewrite He, Rabs_R0.
+  apply bpow_gt_0.
+case round_plus_ge_ulp with beta (FLT_exp emin prec) rnd x y...
 intros H; right.
 apply Rle_trans with (2:=H).
 rewrite ulp_neq_0.
 unfold canonic_exp.
-rewrite <- ln_beta_minus1; try assumption.
+rewrite <- ln_beta_minus1 by easy.
 unfold FLT_exp; apply bpow_le.
 apply Zle_trans with (2:=Z.le_max_l _ _).
 destruct (ln_beta beta x) as (n,Hn); simpl.
@@ -524,24 +506,23 @@ apply Rgt_not_eq.
 apply radix_pos.
 Qed.
 
-
-Lemma rnd_0_or_ge_FLX: forall x y e, 
-    generic_format beta (FLX_exp prec) x -> generic_format beta (FLX_exp prec) y ->
-    (bpow e <= Rabs x)%R ->
-   (round beta (FLX_exp prec) rnd (x+y) = 0)%R \/ 
-     (bpow (e - prec) <= Rabs (round beta (FLX_exp prec) rnd (x+y)))%R.
+Theorem round_plus_ge_ulp_FLX : forall x y e,
+  generic_format beta (FLX_exp prec) x -> generic_format beta (FLX_exp prec) y ->
+  (bpow e <= Rabs x)%R ->
+  round beta (FLX_exp prec) rnd (x+y) = 0%R \/
+  (bpow (e - prec) <= Rabs (round beta (FLX_exp prec) rnd (x+y)))%R.
 Proof with auto with typeclass_instances.
 intros x y e Fx Fy He.
-assert (Zx:(x <> 0)%R).
-intros K; contradict He.
-apply Rlt_not_le; rewrite K, Rabs_R0.
-apply bpow_gt_0.
-case rnd_0_or_ge with beta (FLX_exp prec) rnd x y...
+assert (Zx: x <> 0%R).
+  contradict He.
+  apply Rlt_not_le; rewrite He, Rabs_R0.
+  apply bpow_gt_0.
+case round_plus_ge_ulp with beta (FLX_exp prec) rnd x y...
 intros H; right.
 apply Rle_trans with (2:=H).
 rewrite ulp_neq_0.
 unfold canonic_exp.
-rewrite <- ln_beta_minus1; try assumption.
+rewrite <- ln_beta_minus1 by easy.
 unfold FLX_exp; apply bpow_le.
 destruct (ln_beta beta x) as (n,Hn); simpl.
 assert (e < n)%Z; try omega.
@@ -554,4 +535,4 @@ apply Rgt_not_eq.
 apply radix_pos.
 Qed.
 
-End Fprop_plus_multii.
+End Fprop_plus_ge_ulp.
