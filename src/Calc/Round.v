@@ -285,10 +285,10 @@ case Rlt_bool_spec ; intros Hx' ;
 elim Rlt_not_le with (1 := Hx').
 apply Rlt_le.
 apply Rle_lt_trans with (2 := proj1 Hx).
-now apply (IZR_le 0).
+now apply IZR_le.
 elim Rle_not_lt with (1 := Hx').
 apply Rlt_le_trans with (1 := proj2 Hx).
-apply (IZR_le _ 0).
+apply IZR_le.
 now apply Zlt_le_succ.
 rewrite Hm.
 now apply Rlt_not_eq.
@@ -376,7 +376,6 @@ rewrite <- Hl'.
 rewrite plus_IZR.
 rewrite <- (Rcompare_plus_r (- IZR m) x).
 apply f_equal.
-simpl (IZR 1).
 field.
 rewrite Hm.
 now apply Rlt_not_eq.
@@ -412,7 +411,6 @@ rewrite <- Hl'.
 rewrite plus_IZR.
 rewrite <- (Rcompare_plus_r (- IZR m) (-x)).
 apply f_equal.
-simpl (IZR 1).
 field.
 rewrite Hm.
 now apply Rlt_not_eq.
@@ -436,7 +434,6 @@ rewrite <- Hl'.
 rewrite plus_IZR.
 rewrite <- (Rcompare_plus_r (- IZR m) x).
 apply f_equal.
-simpl (IZR 1).
 field.
 rewrite Hm.
 now apply Rlt_not_eq.
@@ -918,7 +915,7 @@ rewrite <- (Zrnd_IZR rnd (-m)) at 1.
 assert (IZR (-m) < 0)%R.
 rewrite opp_IZR.
 apply Ropp_lt_gt_0_contravar.
-apply (IZR_lt 0).
+apply IZR_lt.
 apply F2R_gt_0_reg with beta e.
 rewrite <- H.
 apply Rabs_pos_lt.
@@ -933,7 +930,7 @@ apply Ropp_involutive.
 change (m = cond_Zopp false (choice false m loc_Exact))%Z.
 rewrite <- (Zrnd_IZR rnd m) at 1.
 assert (0 <= IZR m)%R.
-apply (IZR_le 0).
+apply IZR_le.
 apply F2R_ge_0_reg with beta e.
 rewrite <- H.
 apply Rabs_pos.

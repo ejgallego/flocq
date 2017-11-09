@@ -656,7 +656,7 @@ apply bpow_ge_0.
 simpl; unfold Z.pow_pos; simpl.
 rewrite Zmult_1_r; apply Rinv_le.
 exact Rlt_0_2.
-apply (IZR_le 2).
+apply IZR_le.
 specialize (radix_gt_1 beta).
 omega.
 apply Rlt_le_trans with (bpow (fexp e)*1)%R.

@@ -405,7 +405,7 @@ apply Nat2Z.inj_le.
 rewrite inj_abs; try omega.
 rewrite inj_minus, Zmax_r; rewrite inj_abs; simpl; omega.
 rewrite Hfx; rewrite inj_abs; try omega.
-rewrite bpow_powerRZ in Hfp'; rewrite IZR_IZR in Hfp'; exact Hfp'.
+rewrite bpow_powerRZ in Hfp'; exact Hfp'.
 rewrite Hfx, Hfp'', <- Hchoice; assumption.
 rewrite Hfp'', Hfq'', <- Hchoice; assumption.
 (* *)
@@ -497,7 +497,7 @@ apply Nat2Z.inj_le.
 rewrite inj_abs; try omega.
 rewrite inj_minus, Zmax_r; rewrite inj_abs; simpl; omega.
 rewrite Hfx; rewrite inj_abs; try omega.
-rewrite bpow_powerRZ in Hfp'; rewrite IZR_IZR in Hfp'; exact Hfp'.
+rewrite bpow_powerRZ in Hfp'; exact Hfp'.
 rewrite Hfx, Hfp''; assumption.
 rewrite Hfp'', Hfq''; assumption.
 (* *)
@@ -576,7 +576,7 @@ apply Nat2Z.inj_le.
 rewrite inj_abs; try omega.
 rewrite inj_minus, Zmax_r; rewrite inj_abs; simpl; omega.
 rewrite Hfx; rewrite inj_abs; try omega.
-rewrite bpow_powerRZ in Hfp'; rewrite IZR_IZR in Hfp'; apply Hfp'.
+rewrite bpow_powerRZ in Hfp'; apply Hfp'.
 rewrite Hfx, Hfp''; apply Hfq'.
 rewrite Hfp'', Hfq''; apply Hfhx'.
 rewrite Hfhx'', Hfx; apply Hftx'.
@@ -628,7 +628,7 @@ intros x y Fx Fy H.
 assert (HH: forall z, Fbounded b z 
    -> Rabs (FtoR beta z) < bpow beta (Float.Fexp z + prec)).
 clear -precisionGt1 pGivesBound; intros z Hz.
-unfold FtoR; rewrite <- 2!IZR_IZR; rewrite <- bpow_powerRZ.
+unfold FtoR; rewrite <- bpow_powerRZ.
 rewrite Rabs_mult, Rmult_comm.
 rewrite Rabs_right.
 2: apply Rle_ge, bpow_ge_0.
@@ -897,11 +897,11 @@ apply make_bound_p; omega.
 replace 4%nat with (Zabs_nat 4) by easy.
 apply Zabs_nat_le; omega.
 (* . *)
-rewrite Hfx, <- Hs, <- IZR_IZR, <- bpow_powerRZ; apply Hfpx'.
+rewrite Hfx, <- Hs, <- bpow_powerRZ; apply Hfpx'.
 rewrite Hfx, Hfpx''; apply Hfqx'.
 rewrite Hfpx'', Hfqx''; apply Hfhx'.
 rewrite Hfx, Hfhx''; apply Hftx'.
-rewrite Hfy, <- Hs, <- IZR_IZR, <- bpow_powerRZ; apply Hfpy'.
+rewrite Hfy, <- Hs, <- bpow_powerRZ; apply Hfpy'.
 rewrite Hfy, Hfpy''; apply Hfqy'.
 rewrite Hfpy'', Hfqy''; apply Hfhy'.
 rewrite Hfy, Hfhy''; apply Hfty'.
@@ -945,7 +945,7 @@ rewrite make_bound_Emin, Zopp_involutive; omega.
 apply Rle_trans with (1:=D2).
 rewrite make_bound_Emin, Zopp_involutive.
 2: omega.
-rewrite bpow_powerRZ, IZR_IZR.
+rewrite bpow_powerRZ.
 now right.
 Qed.
 
@@ -1262,7 +1262,7 @@ intros Hy _.
 rewrite <- (Rmult_1_l (bpow _ _)) at 1.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-replace 1 with (IZR 1) by reflexivity; apply IZR_le; omega.
+apply IZR_le; omega.
 intros H1 H2; contradict H2.
 replace ny with 0%Z.
 simpl; ring.
@@ -1648,8 +1648,7 @@ apply Rplus_le_le_0_compat.
 apply Rmult_le_pos.
 apply Rmult_le_pos.
 left; rewrite Rplus_comm; apply Rle_lt_0_plus_1; left; apply Rlt_0_2.
-SearchPattern (0 < radix_val _)%R.
-replace 0 with (IZR 0) by easy; left; rewrite <- IZR_IZR.
+left.
 apply IZR_lt; apply radix_gt_0.
 left; apply pos_half_prf.
 left; apply pos_half_prf.
@@ -1715,7 +1714,6 @@ unfold r1; rewrite <- Hfr1''.
 unfold r2; rewrite <- Hfr2''.
 rewrite <- Hfa, <- Hfx, <- Hfy.
 rewrite bpow_powerRZ.
-rewrite IZR_IZR.
 replace prec with (Z.of_nat (Zabs_nat prec)).
 2: rewrite inj_abs; omega.
 apply ErrFmaApprox with (make_bound beta prec emin) fu1 fu2 fv1 fv2 ft1 ft2; try assumption.

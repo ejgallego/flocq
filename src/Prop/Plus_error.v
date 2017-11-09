@@ -449,12 +449,10 @@ rewrite <- ulp_neq_0.
 apply ulp_ge_ulp_0...
 intros K; apply Hm.
 rewrite K, scaled_mantissa_0.
-replace 0%R with (IZR 0) by reflexivity.
 apply Ztrunc_IZR.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 rewrite <- abs_IZR.
-replace 1%R with (IZR 1) by reflexivity.
 apply IZR_le.
 assert (0 < Z.abs (Ztrunc (scaled_mantissa beta fexp y)))%Z;[|omega].
 now apply Z.abs_pos.
@@ -472,7 +470,6 @@ right; ring.
 apply Rmult_le_compat_r.
 apply ulp_ge_0.
 rewrite <- abs_IZR.
-replace 1%R with (IZR 1) by reflexivity.
 apply IZR_le.
 assert (0 < Z.abs m)%Z;[|omega].
 now apply Z.abs_pos.

@@ -181,8 +181,8 @@ Lemma FtoR_F2R: forall (f:Float.float) (g: float beta), Float.Fnum f = Fnum g ->
   FtoR beta f = F2R g.
 Proof.
 intros f g H1 H2; unfold FtoR, F2R.
-rewrite H1, H2, IZR_IZR.
-now rewrite bpow_powerRZ, IZR_IZR.
+rewrite H1, H2.
+now rewrite bpow_powerRZ.
 Qed.
 
 
@@ -220,7 +220,6 @@ intros f Hf.
 apply generic_format_FLT; auto with zarith.
 exists (Float beta (Float.Fnum f) (Float.Fexp f)).
 unfold F2R, FtoR; simpl.
-rewrite <- 2!IZR_IZR.
 rewrite bpow_powerRZ.
 reflexivity.
 destruct Hf.
@@ -272,7 +271,7 @@ intros r Hr.
 eexists; split.
 2: apply (format_is_pff_format' _ Hr).
 rewrite Hr at 3; unfold FtoR, F2R; simpl.
-now rewrite IZR_IZR, bpow_powerRZ, IZR_IZR.
+now rewrite bpow_powerRZ.
 Qed.
 
 
@@ -311,10 +310,11 @@ Qed.
 Lemma pff_canonic_is_canonic: forall f, Fcanonic beta b f -> FtoR beta f <> 0 ->
   canonical beta (FLT_exp (- dExp b) p)
     (Float beta (Float.Fnum f) (Float.Fexp f)).
+Proof.
 intros f Hf1 Hf2; unfold canonical; simpl.
 assert (K:(F2R (Float beta (Float.Fnum f) (Float.Fexp f)) = FtoR beta f)).
-unfold FtoR, F2R; simpl.
-rewrite bpow_powerRZ; rewrite <- 2!IZR_IZR; reflexivity.
+  unfold FtoR, F2R; simpl.
+  now rewrite bpow_powerRZ.
 unfold cexp, FLT_exp.
 rewrite K.
 destruct (mag beta (FtoR beta f)) as (e, He).
@@ -341,13 +341,12 @@ apply Rmult_le_compat_r.
 apply bpow_ge_0.
 (* .. *)
 apply Rmult_le_reg_l with (IZR beta).
-replace 0%R with (IZR 0) by reflexivity.
 apply IZR_lt.
 apply radix_gt_0.
 rewrite <- bpow_plus1.
 replace (p-1+1)%Z with (Z_of_nat (Zabs_nat p)).
 rewrite <- IZR_Zpower_nat.
-simpl; rewrite <- pGivesBound, 3!IZR_IZR.
+simpl; rewrite <- pGivesBound.
 rewrite Rabs_Zabs.
 rewrite <- mult_IZR.
 apply IZR_le.
@@ -363,7 +362,7 @@ apply Rmult_lt_compat_r.
 apply bpow_gt_0.
 rewrite <- (inj_abs p);[idtac|omega].
 rewrite <- IZR_Zpower_nat.
-simpl; rewrite <- pGivesBound, 2!IZR_IZR.
+simpl; rewrite <- pGivesBound.
 rewrite Rabs_Zabs.
 apply IZR_lt.
 destruct H1; assumption.
@@ -390,14 +389,13 @@ apply radix_gt_0.
 unfold firstNormalPos, FtoR, nNormMin.
 simpl.
 replace (IZR (Zpower_nat beta (Peano.pred (Zabs_nat p)))) with (bpow beta (p-1)).
-rewrite <- IZR_IZR.
 rewrite <- (bpow_powerRZ _).
 rewrite <- bpow_plus.
 apply bpow_le.
 omega.
 replace (p-1)%Z with (Z_of_nat (Peano.pred (Zabs_nat p))).
 rewrite <- IZR_Zpower_nat.
-rewrite IZR_IZR; reflexivity.
+reflexivity.
 rewrite inj_pred; try omega.
 rewrite inj_abs; omega.
 intros KK; absurd (1 < p)%Z; try assumption.
@@ -440,10 +438,10 @@ exists 0%Z.
 rewrite Zmult_0_r.
 apply eq_IZR.
 apply Rmult_eq_reg_l with (powerRZ beta (Float.Fexp (Fnormalize beta b (Zabs_nat p) f)))%R.
-simpl (IZR 0); rewrite Rmult_0_r.
+rewrite Rmult_0_r.
 rewrite <- L; unfold FtoR; simpl; ring.
 apply powerRZ_NOR; auto with zarith real.
-apply Rgt_not_eq; replace 0%R with (IZR 0) by reflexivity.
+apply Rgt_not_eq.
 apply IZR_lt; apply radix_gt_0.
 destruct H3.
 (* . *)
@@ -465,8 +463,8 @@ exact L.
 rewrite <- Hg1, <- Hf1.
 rewrite <- FnormalizeCorrect with beta b (Zabs_nat p) f; auto with zarith.
 unfold F2R, FtoR; simpl.
-rewrite IZR_IZR, bpow_powerRZ.
-rewrite IZR_IZR; reflexivity.
+rewrite bpow_powerRZ.
+reflexivity.
 apply radix_gt_1.
 (* . *)
 right; intros q (Hq1,Hq2).
@@ -709,14 +707,12 @@ apply Rle_lt_trans with (1:=H1).
 rewrite <- Fabs_correct.
 2: apply radix_gt_0.
 unfold Fabs, FtoR; simpl; rewrite Rmult_comm.
-rewrite bpow_powerRZ, IZR_IZR.
+rewrite bpow_powerRZ.
 apply Rmult_lt_compat_l.
 apply powerRZ_lt.
-replace 0%R with (IZR 0) by reflexivity.
 apply IZR_lt, radix_gt_0.
 destruct Ff as (T1,T2).
 rewrite bpow_powerRZ.
-rewrite IZR_IZR.
 replace p with (Z.of_nat (Zabs_nat p)).
 rewrite <- Zpower_nat_Z_powerRZ.
 apply IZR_lt.
@@ -735,23 +731,23 @@ contradict H1; apply Rlt_not_le.
 rewrite <- Fabs_correct.
 2: apply radix_gt_0.
 unfold FtoR, Fabs; simpl.
-rewrite H3, <- (IZR_IZR beta), <- bpow_powerRZ.
+rewrite H3, <- bpow_powerRZ.
 apply Rlt_le_trans with (bpow beta (p-1)*bpow beta (-dExp b))%R.
 2: rewrite <- bpow_plus.
 2: right; f_equal; ring.
 apply Rmult_lt_compat_r.
 apply bpow_gt_0.
 apply Rmult_lt_reg_l with (IZR beta).
-change 0%R with (IZR 0); apply IZR_lt, radix_gt_0.
-rewrite IZR_IZR, <- mult_IZR.
+apply IZR_lt, radix_gt_0.
+rewrite <- mult_IZR.
 apply Rlt_le_trans with (IZR (Z.pos (vNum b))).
 apply IZR_lt.
 rewrite <- (Zabs_eq beta).
 now rewrite <- Zabs_Zmult.
 apply Zlt_le_weak, radix_gt_0.
 rewrite pGivesBound.
-rewrite <- IZR_IZR, IZR_Zpower_nat.
-rewrite <- IZR_IZR, <- bpow_1.
+rewrite <- IZR_Zpower_nat.
+rewrite <- bpow_1.
 rewrite <- bpow_plus.
 apply bpow_le.
 rewrite inj_abs; omega.
@@ -764,6 +760,7 @@ Section Equiv_instanc.
 Lemma round_NE_is_pff_round_b32: forall (r:R),
    exists f:Float.float, (Fcanonic 2 bsingle f /\ (EvenClosest bsingle 2 24 r f) /\
     FtoR 2 f =  round radix2 (FLT_exp (-149) 24) rndNE r).
+Proof.
 apply (round_NE_is_pff_round radix2 bsingle 24).
 apply psGivesBound.
 omega.
@@ -774,6 +771,7 @@ Lemma round_NE_is_pff_round_b64: forall (r:R),
    exists f:Float.float, (Fcanonic 2 bdouble f /\ (EvenClosest bdouble 2 53 r f) /\
     FtoR 2 f =  round radix2 (FLT_exp (-1074) 53) rndNE r).
 apply (round_NE_is_pff_round radix2 bdouble 53).
+Proof.
 apply pdGivesBound.
 omega.
 Qed.

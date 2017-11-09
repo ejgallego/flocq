@@ -186,37 +186,34 @@ replace (-1 + (1 + Rabs eps))%R with (Rabs eps) by ring.
 apply Rle_trans with (1 := Heps1).
 rewrite Rabs_pos_eq.
 apply Rmult_le_reg_l with 2%R.
-now apply (IZR_lt 0 2).
+now apply IZR_lt.
 rewrite <- Rmult_assoc, Rinv_r, Rmult_1_l.
 apply Rle_trans with (bpow (-1)).
 apply bpow_le.
 omega.
 replace (2 * (-1 + 5 / 4))%R with (/2)%R by field.
 apply Rinv_le.
-now apply (IZR_lt 0 2).
-apply (IZR_le 2).
+now apply IZR_lt.
+apply IZR_le.
 unfold Zpower_pos. simpl.
 rewrite Zmult_1_r.
 apply Zle_bool_imp_le.
 apply beta.
-apply Rgt_not_eq.
-now apply (IZR_lt 0 2).
+now apply IZR_neq.
 unfold Rdiv.
 apply Rmult_le_pos.
-now apply (IZR_le 0 5).
+now apply IZR_le.
 apply Rlt_le.
 apply Rinv_0_lt_compat.
-now apply (IZR_lt 0 4).
-apply Rgt_not_eq.
-now apply (IZR_lt 0 4).
+now apply IZR_lt.
+now apply IZR_neq.
 unfold Rsqr.
 replace (5 * 5 / (4 * 4))%R with (25 * /16)%R by field.
 apply Rmult_le_reg_r with 16%R.
-now apply (IZR_lt 0 16).
+now apply IZR_lt.
 rewrite Rmult_assoc, Rinv_l, Rmult_1_r.
-now apply (IZR_le 25 32).
-apply Rgt_not_eq.
-now apply (IZR_lt 0 16).
+now apply (IZR_le _ 32).
+now apply IZR_neq.
 rewrite Hx2, <- Hx1; unfold cexp, FLX_exp.
 ring_simplify (prec + (mag beta x - prec))%Z.
 destruct (mag beta x); simpl.

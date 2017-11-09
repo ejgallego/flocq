@@ -365,8 +365,7 @@ destruct (Rle_or_lt (round beta fexp Zfloor x) 0) as [Hr|Hr].
 rewrite (Rle_antisym _ _ Hr).
 unfold scaled_mantissa.
 rewrite Rmult_0_l.
-change 0%R with (IZR 0).
-now rewrite (Ztrunc_IZR 0).
+now rewrite Ztrunc_IZR.
 rewrite <- (round_0 beta fexp Zfloor).
 apply round_le...
 now apply Rlt_le.
@@ -389,7 +388,7 @@ rewrite Rplus_opp_r in Hm.
 elim (Rlt_irrefl 0).
 rewrite Hm at 2.
 apply Rinv_0_lt_compat.
-now apply (IZR_lt 0 2).
+now apply IZR_lt.
 destruct (proj2 Hu) as [Hu'|Hu'].
 (* ... u <> bpow *)
 unfold scaled_mantissa.

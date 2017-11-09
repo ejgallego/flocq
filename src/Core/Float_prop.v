@@ -299,7 +299,7 @@ unfold F2R. simpl.
 rewrite <- (Rmult_1_l (bpow e1)) at 1.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-apply (IZR_le 1).
+apply IZR_le.
 now apply (Zlt_le_succ 0).
 now apply Rlt_le.
 (* . *)
@@ -350,7 +350,6 @@ now apply Zlt_le_weak.
 unfold F2R. simpl.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-replace 1%R with (IZR 1) by reflexivity.
 apply IZR_le.
 omega.
 Qed.
@@ -448,7 +447,7 @@ Proof.
 intros m e H.
 unfold F2R ; simpl.
 apply mag_mult_bpow.
-exact (IZR_neq m 0 H).
+now apply IZR_neq.
 Qed.
 
 Theorem Zdigits_mag :

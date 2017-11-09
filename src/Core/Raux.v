@@ -620,7 +620,7 @@ rewrite <- (Rcompare_mult_r (/2) (x - d)).
 field_simplify (x + (- x / 2 - d / 2))%R.
 now field_simplify ((d + u) / 2 + (- x / 2 - d / 2))%R.
 apply Rinv_0_lt_compat.
-now apply (IZR_lt 0 2).
+now apply IZR_lt.
 Qed.
 
 Theorem Rcompare_half_l :
@@ -631,8 +631,8 @@ rewrite <- (Rcompare_mult_r 2%R).
 unfold Rdiv.
 rewrite Rmult_assoc, Rinv_l, Rmult_1_r.
 now rewrite Rmult_comm.
-now apply (IZR_neq 2 0).
-now apply (IZR_lt 0 2).
+now apply IZR_neq.
+now apply IZR_lt.
 Qed.
 
 Theorem Rcompare_half_r :
@@ -643,8 +643,8 @@ rewrite <- (Rcompare_mult_r 2%R).
 unfold Rdiv.
 rewrite Rmult_assoc, Rinv_l, Rmult_1_r.
 now rewrite Rmult_comm.
-now apply (IZR_neq 2 0).
-now apply (IZR_lt 0 2).
+now apply IZR_neq.
+now apply IZR_lt.
 Qed.
 
 Theorem Rcompare_sqr :
@@ -1041,7 +1041,6 @@ unfold Ztrunc.
 case Rlt_bool_spec ; intro H.
 apply refl_equal.
 rewrite (Rle_antisym _ _ Hx H).
-change 0%R with (IZR 0).
 rewrite Zceil_IZR.
 apply Zfloor_IZR.
 Qed.
@@ -1152,7 +1151,6 @@ unfold Zaway.
 case Rlt_bool_spec ; intro H.
 apply refl_equal.
 rewrite (Rle_antisym _ _ Hx H).
-change 0%R with (IZR 0).
 rewrite Zfloor_IZR.
 apply Zceil_IZR.
 Qed.
@@ -1235,7 +1233,7 @@ intros x y Zy.
 generalize (Z_div_mod_eq_full x y Zy).
 intros Hx.
 rewrite Hx at 1.
-assert (Zy': IZR y <> R0).
+assert (Zy': IZR y <> 0%R).
 contradict Zy.
 now apply eq_IZR.
 unfold Rdiv.
@@ -1251,20 +1249,20 @@ clear.
 intros x y Hy.
 split.
 apply Rmult_le_pos.
-apply (IZR_le 0).
+apply IZR_le.
 refine (proj1 (Z_mod_lt _ _ _)).
 now apply Zlt_gt.
 apply Rlt_le.
 apply Rinv_0_lt_compat.
-now apply (IZR_lt 0).
+now apply IZR_lt.
 apply Rmult_lt_reg_r with (IZR y).
-now apply (IZR_lt 0).
+now apply IZR_lt.
 rewrite Rmult_1_l, Rmult_assoc, Rinv_l, Rmult_1_r.
 apply IZR_lt.
 eapply Z_mod_lt.
 now apply Zlt_gt.
 apply Rgt_not_eq.
-now apply (IZR_lt 0).
+now apply IZR_lt.
 (* . *)
 destruct (Z_lt_le_dec y 0) as [Hy|Hy].
 rewrite <- Rmult_opp_opp.
@@ -1293,7 +1291,7 @@ Variable r : radix.
 Theorem radix_pos : (0 < IZR r)%R.
 Proof.
 destruct r as (v, Hr). simpl.
-apply (IZR_lt 0).
+apply IZR_lt.
 apply Zlt_le_trans with 2%Z.
 easy.
 now apply Zle_bool_imp_le.
@@ -1425,7 +1423,7 @@ assert (0 < e2 - e1)%Z by omega.
 destruct (e2 - e1)%Z ; try discriminate H0.
 clear.
 rewrite <- IZR_Zpower by easy.
-apply (IZR_lt 1).
+apply IZR_lt.
 now apply Zpower_gt_1.
 Qed.
 
@@ -1535,7 +1533,7 @@ apply exp_lt_inv.
 rewrite exp_0.
 unfold fact.
 rewrite exp_ln.
-apply (IZR_lt 1).
+apply IZR_lt.
 apply radix_gt_1.
 apply radix_pos.
 (* . *)
@@ -1820,7 +1818,7 @@ Theorem mag_le_Zpower :
 Proof.
 intros m e Zm Hm.
 apply mag_le_bpow.
-exact (IZR_neq m 0 Zm).
+now apply IZR_neq.
 destruct (Zle_or_lt 0 e).
 rewrite <- abs_IZR, <- IZR_Zpower with (1 := H).
 now apply IZR_lt.
@@ -1846,7 +1844,7 @@ now apply IZR_le.
 apply Rle_trans with (bpow 0).
 apply bpow_le.
 now apply Zlt_le_weak.
-apply (IZR_le 1).
+apply IZR_le.
 clear -Zm.
 zify ; omega.
 Qed.
@@ -1907,7 +1905,7 @@ assert (Haxy : (Rabs (x + y) < bpow (ex + 1))%R).
       now apply Rlt_le, Rplus_lt_compat.
   - apply Rmult_le_compat_r.
     now apply bpow_ge_0.
-    now apply (IZR_le 2). }
+    now apply IZR_le. }
 assert (Haxy2 : (bpow (ex - 1) <= Rabs (x + y))%R).
 { apply (Rle_trans _ _ _ Hex0).
   rewrite Rabs_right; [|now apply Rgt_ge].
@@ -1959,7 +1957,7 @@ assert (Hbx : (bpow (ex - 2) + bpow (ex - 2) <= x)%R).
   - replace (ex - 1)%Z with (ex - 2 + 1)%Z by ring.
     rewrite bpow_plus1.
     apply Rmult_le_compat_r; [now apply bpow_ge_0|].
-    now change 2%R with (IZR 2); apply IZR_le.
+    now apply IZR_le.
   - now rewrite Rabs_right in Hex; [|apply Rle_ge; apply Rlt_le]. }
 assert (Hby : (y < bpow (ex - 2))%R).
 { apply Rlt_le_trans with (bpow ey).

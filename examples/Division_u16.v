@@ -92,7 +92,7 @@ apply Zfloor_imp.
 rewrite plus_IZR.
 simpl.
 apply Rmult_le_lt_reg_l with b.
-  apply (IZR_lt 0) ; lia.
+  apply IZR_lt ; lia.
 apply Rplus_le_lt_reg_r with (-a).
 replace (b * (a / b)%Z + - a) with (-(a - (a / b)%Z * b)) by ring.
 replace (b * ((a / b)%Z + 1) + - a) with (b - (a - (a / b)%Z * b)) by ring.
@@ -101,9 +101,8 @@ rewrite <- Zmod_eq_full by lia.
 cut (0 <= b * q1 - a < 1).
   cut (0 <= Zmod a b <= b - 1).
     lra.
-  change 1 with (IZR 1).
   rewrite <- minus_IZR.
-  apply (IZR_le_le 0).
+  apply IZR_le_le.
   generalize (Z_mod_lt a b).
   lia.
 assert (Ba': 1 <= a <= 65535).

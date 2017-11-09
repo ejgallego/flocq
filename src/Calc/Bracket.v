@@ -144,23 +144,17 @@ assert (0 < v < 1)%R.
 split.
 unfold v, Rdiv.
 apply Rmult_lt_0_compat.
-case l.
-now apply (IZR_lt 0 2).
-now apply (IZR_lt 0 1).
-now apply (IZR_lt 0 3).
+case l ; now apply IZR_lt.
 apply Rinv_0_lt_compat.
-now apply (IZR_lt 0 4).
+now apply IZR_lt.
 unfold v, Rdiv.
 apply Rmult_lt_reg_r with 4%R.
-now apply (IZR_lt 0 4).
+now apply IZR_lt.
 rewrite Rmult_assoc, Rinv_l.
 rewrite Rmult_1_r, Rmult_1_l.
-case l.
-now apply (IZR_lt 2 4).
-now apply (IZR_lt 1 4).
-now apply (IZR_lt 3 4).
+case l ; now apply IZR_lt.
 apply Rgt_not_eq.
-now apply (IZR_lt 0 4).
+now apply IZR_lt.
 split.
 apply Rplus_lt_reg_r with (d * (v - 1))%R.
 ring_simplify.
@@ -177,7 +171,7 @@ exact Hdu.
 set (v := (match l with Lt => 1 | Eq => 2 | Gt => 3 end)%R).
 rewrite <- (Rcompare_plus_r (- (d + u) / 2)).
 rewrite <- (Rcompare_mult_r 4).
-2: now apply (IZR_lt 0 4).
+2: now apply IZR_lt.
 replace (((d + u) / 2 + - (d + u) / 2) * 4)%R with ((u - d) * 0)%R by field.
 replace ((d + v / 4 * (u - d) + - (d + u) / 2) * 4)%R with ((u - d) * (v - 2))%R by field.
 rewrite Rcompare_mult_l.
@@ -185,10 +179,7 @@ rewrite Rcompare_mult_l.
 rewrite <- (Rcompare_plus_r 2).
 ring_simplify (v - 2 + 2)%R (0 + 2)%R.
 unfold v.
-case l.
-exact (Rcompare_IZR 2 2).
-exact (Rcompare_IZR 1 2).
-exact (Rcompare_IZR 3 2).
+case l ; apply Rcompare_IZR.
 Qed.
 
 Section Fcalc_bracket_step.
@@ -235,7 +226,7 @@ apply Rlt_le_trans with (2 := proj1 Hx').
 rewrite <- (Rplus_0_r start) at 1.
 apply Rplus_lt_compat_l.
 apply Rmult_lt_0_compat.
-now apply (IZR_lt 0).
+now apply IZR_lt.
 exact Hstep.
 apply Rlt_le_trans with (1 := proj2 Hx').
 apply Rplus_le_compat_l.
@@ -262,7 +253,6 @@ apply Rlt_le_trans with (1 := proj2 Hx').
 apply Rcompare_not_Lt_inv.
 rewrite Rcompare_plus_l, Rcompare_mult_r, Rcompare_half_l.
 apply Rcompare_not_Lt.
-change 2%R with (IZR 2).
 rewrite <- mult_IZR.
 apply IZR_le.
 omega.
@@ -284,7 +274,6 @@ apply Rlt_le_trans with (2 := proj1 Hx').
 apply Rcompare_Lt_inv.
 rewrite Rcompare_plus_l, Rcompare_mult_r, Rcompare_half_l.
 apply Rcompare_Lt.
-change 2%R with (IZR 2).
 rewrite <- mult_IZR.
 apply IZR_lt.
 omega.
@@ -308,7 +297,7 @@ apply Rplus_lt_compat_l.
 rewrite <- (Rmult_1_l step) at 1.
 apply Rmult_lt_compat_r.
 exact Hstep.
-now apply (IZR_lt 1).
+now apply IZR_lt.
 (* . *)
 apply Rcompare_Lt.
 apply Rlt_le_trans with (1 := proj2 Hx').
@@ -318,7 +307,7 @@ rewrite <- (Rmult_1_l step) at 2.
 rewrite Rcompare_plus_l, Rcompare_mult_r, Rcompare_half_l.
 rewrite Rmult_1_r.
 apply Rcompare_not_Lt.
-apply (IZR_le 2).
+apply IZR_le.
 now apply (Zlt_le_succ 1).
 exact Hstep.
 Qed.
@@ -360,7 +349,6 @@ inversion_clear Hx as [Hl|].
 rewrite Hl.
 rewrite Rcompare_plus_l, Rcompare_mult_r, Rcompare_half_r.
 apply Rcompare_Lt.
-change 2%R with (IZR 2).
 rewrite <- mult_IZR.
 apply IZR_lt.
 rewrite <- Hk.
@@ -383,7 +371,6 @@ assert (Hx' := inbetween_bounds_not_Eq _ _ _ _ Hx Hl).
 apply Rle_lt_trans with (2 := proj1 Hx').
 apply Rcompare_not_Lt_inv.
 rewrite Rcompare_plus_l, Rcompare_mult_r, Rcompare_half_r.
-change 2%R with (IZR 2).
 rewrite <- mult_IZR.
 apply Rcompare_not_Lt.
 apply IZR_le.
@@ -404,7 +391,6 @@ omega.
 apply Rcompare_Eq.
 inversion_clear Hx as [Hx'|].
 rewrite Hx', <- Hk, mult_IZR.
-simpl (IZR 2).
 field.
 Qed.
 

@@ -722,7 +722,7 @@ intros x mrs e Hm Hl.
 refine (_ (new_location_even_correct (F2R (Float radix2 (shr_m (shr_1 mrs)) (e + 1))) (bpow radix2 e) 2 _ _ _ x (if shr_r (shr_1 mrs) then 1 else 0) (loc_of_shr_record mrs) _ _)) ; try easy.
 2: apply bpow_gt_0.
 2: now case (shr_r (shr_1 mrs)) ; split.
-change (IZR 2) with (bpow radix2 1).
+change 2%R with (bpow radix2 1).
 rewrite <- bpow_plus.
 rewrite (Zplus_comm 1), <- (F2R_bpow radix2 (e + 1)).
 unfold inbetween_float, F2R. simpl.
@@ -1811,14 +1811,14 @@ apply Rle_0_sqr.
 apply bpow_gt_0.
 now apply bounded_lt_emax.
 apply Rlt_le_trans with 4%R.
-apply Rsqr_incrst_1.
+apply (Rsqr_incrst_1 _ 2).
 apply Rplus_lt_compat_l.
 apply (Rabs_lt_inv _ _ Heps').
 rewrite <- (Rplus_opp_r 1).
 apply Rplus_le_compat_l.
 apply Rlt_le.
 apply (Rabs_lt_inv _ _ Heps').
-now apply (IZR_le 0 2).
+now apply IZR_le.
 change 4%R with (bpow radix2 2).
 apply bpow_le.
 generalize (prec_gt_0 prec).

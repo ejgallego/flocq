@@ -123,9 +123,9 @@ rewrite Hx2, <- F2R_Zabs.
 rewrite <- (Rmult_1_l (bpow ex)).
 unfold F2R. simpl.
 apply Rmult_le_compat.
-now apply (IZR_le 0 1).
+now apply IZR_le.
 apply bpow_ge_0.
-apply (IZR_le 1).
+apply IZR_le.
 apply (Zlt_le_succ 0).
 apply lt_IZR.
 apply Rmult_lt_reg_r with (bpow (emin + prec - 1)).
@@ -226,7 +226,7 @@ case Rle_bool_spec ; intros Hx ;
 now apply Zrnd_le.
 rewrite <- (Zrnd_IZR rnd 0).
 apply Zrnd_le...
-apply Rle_trans with (IZR (-1)). 2: now apply IZR_le.
+apply Rle_trans with (-1)%R. 2: now apply IZR_le.
 destruct (Rabs_ge_inv _ _ Hx) as [Hx1|Hx1].
 exact Hx1.
 elim Rle_not_lt with (1 := Hx1).
@@ -236,7 +236,7 @@ apply RRle_abs.
 (* |x| < 1 *)
 rewrite <- (Zrnd_IZR rnd 0).
 apply Zrnd_le...
-apply Rle_trans with (IZR 1).
+apply Rle_trans with 1%R.
 now apply IZR_le.
 destruct (Rabs_ge_inv _ _ Hy) as [Hy1|Hy1].
 elim Rle_not_lt with (1 := Hy1).

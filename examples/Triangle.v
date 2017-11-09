@@ -87,6 +87,7 @@ Lemma FLXN_le_exp: forall f1 f2:float beta,
 ((Zpower beta (prec - 1) <= Zabs (Fnum f1) < Zpower beta prec)%Z) ->
 ((Zpower beta (prec - 1) <= Zabs (Fnum f2) < Zpower beta prec))%Z ->
 0 <= F2R f1 -> F2R f1 <= F2R f2 ->  (Fexp f1 <= Fexp f2)%Z.
+Proof.
 intros f1 f2 H1 H2 H3 H4.
 case (Zle_or_lt (Fexp f1) (Fexp f2)).
 trivial.
@@ -788,31 +789,23 @@ apply Rle_trans with (15/2*/100+26*/100).
 apply Rplus_le_compat.
 apply Rmult_le_compat_l.
 unfold Rdiv; apply Rmult_le_pos.
-replace 0 with (IZR 0) by reflexivity.
-replace 15 with (IZR 15) by reflexivity.
 apply IZR_le; auto with zarith.
 auto with real.
 assumption.
 rewrite Rmult_assoc.
 apply Rmult_le_compat_l.
-replace 0 with (IZR 0) by reflexivity.
-replace 26 with (IZR 26) by reflexivity.
 apply IZR_le; auto with zarith.
 rewrite <- (Rmult_1_l (/100)).
 apply Rmult_le_compat.
 apply epsPos.
 apply epsPos.
 apply Rle_trans with (1:=prec_suff).
-replace 100 with (IZR 100) by reflexivity.
-apply Rmult_le_reg_l with (IZR 100).
-replace 0 with (IZR 0) by reflexivity.
+apply Rmult_le_reg_l with 100%R.
 apply IZR_lt; auto with zarith.
 rewrite Rinv_r.
 rewrite Rmult_1_r.
-replace 1 with (IZR 1) by reflexivity.
 apply IZR_le; auto with zarith.
 apply Rgt_not_eq, Rlt_gt.
-replace 0 with (IZR 0) by reflexivity.
 apply IZR_lt; auto with zarith.
 assumption.
 rewrite <- Rmult_plus_distr_r.
@@ -884,31 +877,23 @@ apply Rle_trans with (15/2*/100+26*/100).
 apply Rplus_le_compat.
 apply Rmult_le_compat_l.
 unfold Rdiv; apply Rmult_le_pos.
-replace 0 with (IZR 0) by reflexivity.
-replace 15 with (IZR 15) by reflexivity.
 apply IZR_le; auto with zarith.
 auto with real.
 assumption.
 rewrite Rmult_assoc.
 apply Rmult_le_compat_l.
-replace 0 with (IZR 0) by reflexivity.
-replace 26 with (IZR 26) by reflexivity.
 apply IZR_le; auto with zarith.
 rewrite <- (Rmult_1_l (/100)).
 apply Rmult_le_compat.
 apply epsPos.
 apply epsPos.
 apply Rle_trans with (1:=prec_suff).
-replace 100 with (IZR 100) by reflexivity.
-apply Rmult_le_reg_l with (IZR 100).
-replace 0 with (IZR 0) by reflexivity.
+apply Rmult_le_reg_l with 100%R.
 apply IZR_lt; auto with zarith.
 rewrite Rinv_r.
 rewrite Rmult_1_r.
-replace 1 with (IZR 1) by reflexivity.
 apply IZR_le; auto with zarith.
 apply Rgt_not_eq, Rlt_gt.
-replace 0 with (IZR 0) by reflexivity.
 apply IZR_lt; auto with zarith.
 assumption.
 interval.
@@ -978,6 +963,7 @@ Definition radix2 := Build_radix 2 (refl_equal true).
 Definition radix10 := Build_radix 10 (refl_equal true).
 
 Lemma prec_suff_2: forall prec:Z, (7 <= prec)%Z -> (/2*bpow radix2 (1-prec) <= /100)%R.
+Proof.
 intros p Hp.
 apply Rle_trans with (/2* bpow radix2 (-6))%R.
 apply Rmult_le_compat_l.
@@ -985,25 +971,20 @@ intuition.
 apply bpow_le.
 omega.
 simpl; rewrite <- Rinv_mult_distr.
-replace 100%R with (IZR 100) by reflexivity.
-replace 128%R with (IZR 128) by reflexivity.
 apply Rle_Rinv.
-replace 0%R with (IZR 0) by reflexivity.
 apply IZR_lt; auto with zarith.
-replace 0%R with (IZR 0) by reflexivity.
 apply IZR_lt; auto with zarith.
 apply IZR_le; auto with zarith.
 apply Rgt_not_eq, Rlt_gt.
 apply Rle_lt_0_plus_1; apply Rlt_le; exact Rlt_0_1.
 apply Rgt_not_eq, Rlt_gt.
-replace 0%R with (IZR 0) by reflexivity.
-replace 64%R with (IZR 64) by reflexivity.
 apply IZR_lt; auto with zarith.
 Qed.
 
 
 
 Lemma prec_suff_10: forall prec:Z, (3 <= prec)%Z -> (/2*bpow radix10 (1-prec) <= /100)%R.
+Proof.
 intros p Hp.
 apply Rle_trans with (/2* bpow radix10 (-2))%R.
 apply Rmult_le_compat_l.
@@ -1011,19 +992,13 @@ intuition.
 apply bpow_le.
 omega.
 simpl; rewrite <- Rinv_mult_distr.
-replace 200%R with (IZR 200) by reflexivity.
-replace 100%R with (IZR 100) by reflexivity.
 apply Rle_Rinv.
-replace 0%R with (IZR 0) by reflexivity.
 apply IZR_lt; auto with zarith.
-replace 0%R with (IZR 0) by reflexivity.
 apply IZR_lt; auto with zarith.
 apply IZR_le; auto with zarith.
 apply Rgt_not_eq, Rlt_gt.
 apply Rle_lt_0_plus_1; apply Rlt_le; exact Rlt_0_1.
 apply Rgt_not_eq, Rlt_gt.
-replace 0%R with (IZR 0) by reflexivity.
-replace 100%R with (IZR 100) by reflexivity.
 apply IZR_lt; auto with zarith.
 Qed.
 
@@ -1636,7 +1611,7 @@ apply Rmult_le_reg_l with 2%R.
 intuition.
 apply Rplus_le_reg_l with (-IZR (emin+prec-1)).
 apply Rle_trans with (IZR (emin + prec - 1));[right; ring|idtac].
-apply Rle_trans with (IZR 0);[idtac|right;simpl;field].
+apply Rle_trans with 0%R;[idtac|right;simpl;field].
 apply IZR_le.
 omega.
 apply Rle_trans with (sqrt (bpow (emin + prec - 1))).
@@ -1645,7 +1620,7 @@ apply Rle_trans with (sqrt (bpow (2*Zceil (IZR (emin + prec - 1) / 2)))).
 apply sqrt_le_1_alt.
 apply bpow_le.
 apply le_IZR.
-rewrite mult_IZR; simpl (IZR 2).
+rewrite mult_IZR.
 apply Rle_trans with ( 2 * ((IZR (emin + prec - 1) / 2))).
 right; field.
 apply Rmult_le_compat_l.
@@ -1973,7 +1948,7 @@ intuition.
 unfold Rdiv; rewrite Rmult_assoc.
 rewrite Rinv_l.
 rewrite Rmult_1_r.
-replace 2%R with (IZR 2) by reflexivity; rewrite <- mult_IZR.
+rewrite <- mult_IZR.
 apply IZR_le.
 omega.
 apply Rgt_not_eq; intuition.
@@ -2024,7 +1999,7 @@ apply Rmult_le_reg_l with 2%R.
 intuition.
 apply Rplus_le_reg_l with (-IZR (emin+prec-1)).
 apply Rle_trans with (IZR (emin + prec - 1));[right; ring|idtac].
-apply Rle_trans with (IZR 0);[idtac|right;simpl;field].
+apply Rle_trans with 0%R;[idtac|right;simpl;field].
 apply IZR_le.
 omega.
 rewrite Rabs_right.
@@ -2039,9 +2014,9 @@ apply Rmult_le_compat_r.
 apply bpow_ge_0.
 apply Rle_trans with (IZR (radix_val beta)*IZR (radix_val beta)).
 apply Rmult_le_compat;[intuition|intuition|idtac|idtac]; clear.
-replace 2%R with (IZR 2) by reflexivity; apply IZR_le.
+apply IZR_le.
 apply Zle_bool_imp_le; now destruct beta.
-replace 2%R with (IZR 2) by reflexivity; apply IZR_le.
+apply IZR_le.
 apply Zle_bool_imp_le; now destruct beta.
 right; simpl.
 unfold Zpower_pos; simpl.
@@ -2054,7 +2029,7 @@ intuition.
 unfold Rdiv; rewrite Rmult_assoc.
 rewrite Rinv_l.
 rewrite Rmult_1_r.
-replace 2%R with (IZR 2) by reflexivity; rewrite <- mult_IZR.
+rewrite <- mult_IZR.
 apply IZR_le.
 omega.
 apply Rgt_not_eq.
@@ -2129,7 +2104,7 @@ intuition.
 unfold Rdiv; rewrite Rmult_assoc.
 rewrite Rinv_l.
 rewrite Rmult_1_r.
-replace 2%R with (IZR 2) by reflexivity; rewrite <- mult_IZR.
+rewrite <- mult_IZR.
 apply IZR_le.
 omega.
 apply Rgt_not_eq; intuition.
@@ -2179,7 +2154,7 @@ apply Rmult_le_reg_l with 2%R.
 intuition.
 apply Rplus_le_reg_l with (-IZR (emin+prec-1)).
 apply Rle_trans with (IZR (emin + prec - 1));[right; ring|idtac].
-apply Rle_trans with (IZR 0);[idtac|right;simpl;field].
+apply Rle_trans with 0%R;[idtac|right;simpl;field].
 apply IZR_le.
 omega.
 (* *)
@@ -2248,7 +2223,7 @@ intuition.
 unfold Rdiv; rewrite Rmult_assoc.
 rewrite Rinv_l.
 rewrite Rmult_1_r.
-replace 2%R with (IZR 2) by reflexivity; rewrite <- mult_IZR.
+rewrite <- mult_IZR.
 apply IZR_le.
 omega.
 apply Rgt_not_eq; intuition.

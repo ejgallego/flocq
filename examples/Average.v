@@ -214,9 +214,8 @@ rewrite Rabs_mult.
 pattern (Rabs u) at 1; rewrite <- (Rmult_1_l (Rabs u)).
 apply Rmult_le_compat_r.
 apply Rabs_pos.
-change 2 with (IZR 2).
 rewrite <- (abs_IZR 2).
-now apply (IZR_le 1 2).
+now apply IZR_le.
 (* *)
 rewrite cexp_FLT_FIX.
 rewrite cexp_FLT_FIX; trivial.
@@ -226,7 +225,7 @@ apply bpow_le; omega.
 lra.
 rewrite Rabs_mult.
 rewrite Rabs_pos_eq.
-2: now apply (IZR_le 0 2).
+2: now apply IZR_le.
 apply Rlt_le_trans with (2*bpow (emin + prec - 1)).
 apply Rmult_lt_compat_l with (1 := Rlt_0_2).
 assumption.
@@ -1092,7 +1091,7 @@ apply Rle_lt_trans with (1*/2);[right; ring|idtac].
 apply Rlt_le_trans with ((IZR z)*/2);[idtac|right; field].
 apply Rmult_lt_compat_r.
 lra.
-now apply (IZR_lt 1).
+now apply IZR_lt.
 rewrite <- H2.
 unfold Znearest; simpl.
 replace (Zfloor (1 / 2)) with 0%Z.
@@ -1369,9 +1368,9 @@ apply Rle_trans with (1*bpow emin).
 right; ring.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-now apply (IZR_le 1 3).
+now apply IZR_le.
 apply Rmult_le_compat_l.
-now apply (IZR_le 0 3).
+now apply IZR_le.
 rewrite ulp_neq_0.
 2: apply Rmult_integral_contrapositive_currified.
 2: apply Rgt_not_eq, bpow_gt_0.
@@ -1405,9 +1404,9 @@ apply Rle_trans with (1*bpow emin).
 right; ring.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-now apply (IZR_le 1 3).
+now apply IZR_le.
 apply Rmult_le_compat_l.
-now apply (IZR_le 0 3).
+now apply IZR_le.
 rewrite ulp_neq_0.
 2: apply Rmult_integral_contrapositive_currified.
 2: apply Rgt_not_eq, bpow_gt_0.
@@ -1503,7 +1502,7 @@ rewrite <- (Rmult_1_l (Rabs b)).
 rewrite (T b).
 apply Rmult_le_compat_r.
 apply Rabs_pos.
-now apply (IZR_le 1 2).
+now apply IZR_le.
 rewrite <- (T b).
 rewrite <- ulp_abs.
 apply FLT_ulp_le_id...
@@ -1529,7 +1528,6 @@ rewrite (Rabs_right (bpow emin)).
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 rewrite <- abs_IZR.
-replace 1 with (IZR 1) by reflexivity.
 apply IZR_le.
 assert (0 < Z.abs n)%Z;[idtac|omega].
 apply Z.abs_pos.
@@ -1615,7 +1613,7 @@ replace (v-v) with 0 by ring.
 rewrite Rabs_R0.
 apply Rmult_le_pos.
 apply Rmult_le_pos.
-now apply (IZR_le 0 3).
+now apply IZR_le.
 lra.
 apply ulp_ge_0.
 Qed.

@@ -88,7 +88,6 @@ Theorem generic_format_0 :
 Proof.
 unfold generic_format, scaled_mantissa.
 rewrite Rmult_0_l.
-change (Ztrunc 0) with (Ztrunc (IZR 0)).
 now rewrite Ztrunc_IZR, F2R_0.
 Qed.
 
@@ -377,7 +376,7 @@ Proof.
 intros x ex Ex He.
 destruct (Req_dec x 0) as [Zx|Zx].
 rewrite Zx, scaled_mantissa_0, Rabs_R0.
-now apply (IZR_lt 0 1).
+now apply IZR_lt.
 rewrite <- scaled_mantissa_abs.
 unfold scaled_mantissa.
 rewrite cexp_abs.
@@ -685,7 +684,7 @@ destruct (Zrnd_DN_or_UP (x * bpow (-fexp ex))) as [Hr|Hr] ; rewrite Hr.
 (* DN *)
 left.
 apply Rmult_eq_0_compat_r.
-apply (@f_equal _ _ IZR _ Z0).
+apply IZR_eq.
 apply Zfloor_imp.
 refine (let H := _ in conj (Rlt_le _ _ (proj1 H)) (proj2 H)).
 now apply mantissa_small_pos.
@@ -693,7 +692,7 @@ now apply mantissa_small_pos.
 right.
 pattern (bpow (fexp ex)) at 2 ; rewrite <- Rmult_1_l.
 apply (f_equal (fun m => (m * bpow (fexp ex))%R)).
-apply (@f_equal _ _ IZR _ 1%Z).
+apply IZR_eq.
 apply Zceil_imp.
 refine (let H := _ in conj (proj1 H) (Rlt_le _ _ (proj2 H))).
 now apply mantissa_small_pos.
@@ -763,7 +762,6 @@ Theorem round_0 :
 Proof.
 unfold round, scaled_mantissa.
 rewrite Rmult_0_l.
-change 0%R with (IZR 0).
 rewrite Zrnd_IZR.
 apply F2R_0.
 Qed.
@@ -1185,7 +1183,6 @@ rewrite <- (Rmult_0_l (bpow (- cexp x))).
 apply Rmult_le_compat_r with (2 := Hx).
 apply bpow_ge_0.
 rewrite <- H.
-change 0%R with (IZR 0).
 now rewrite Zfloor_IZR, Zceil_IZR.
 Qed.
 
@@ -1220,7 +1217,6 @@ rewrite <- (Rmult_0_l (bpow (- cexp x))).
 apply Rmult_le_compat_r with (2 := Hx).
 apply bpow_ge_0.
 rewrite <- H.
-change 0%R with (IZR 0).
 now rewrite Zfloor_IZR, Zceil_IZR.
 Qed.
 
@@ -1733,7 +1729,7 @@ easy.
 unfold Rminus.
 rewrite Rplus_opp_r.
 apply Rinv_0_lt_compat.
-now apply (IZR_lt 0 2).
+now apply IZR_lt.
 Qed.
 
 Theorem Rcompare_floor_ceil_mid :
@@ -1743,7 +1739,7 @@ Theorem Rcompare_floor_ceil_mid :
 Proof.
 intros x Hx.
 rewrite Zceil_floor_neq with (1 := Hx).
-rewrite plus_IZR. simpl.
+rewrite plus_IZR.
 destruct (Rcompare_spec (x - IZR (Zfloor x)) (/ 2)) as [H1|H1|H1] ; apply sym_eq.
 (* . *)
 apply Rcompare_Lt.
@@ -1751,7 +1747,7 @@ apply Rplus_lt_reg_l with (x - IZR (Zfloor x))%R.
 replace (x - IZR (Zfloor x) + (x - IZR (Zfloor x)))%R with ((x - IZR (Zfloor x)) * 2)%R by ring.
 replace (x - IZR (Zfloor x) + (IZR (Zfloor x) + 1 - x))%R with (/2 * 2)%R by field.
 apply Rmult_lt_compat_r with (2 := H1).
-now apply (IZR_lt 0 2).
+now apply IZR_lt.
 (* . *)
 apply Rcompare_Eq.
 replace (IZR (Zfloor x) + 1 - x)%R with (1 - (x - IZR (Zfloor x)))%R by ring.
@@ -1763,7 +1759,7 @@ apply Rplus_lt_reg_l with (x - IZR (Zfloor x))%R.
 replace (x - IZR (Zfloor x) + (x - IZR (Zfloor x)))%R with ((x - IZR (Zfloor x)) * 2)%R by ring.
 replace (x - IZR (Zfloor x) + (IZR (Zfloor x) + 1 - x))%R with (/2 * 2)%R by field.
 apply Rmult_lt_compat_r with (2 := H1).
-now apply (IZR_lt 0 2).
+now apply IZR_lt.
 Qed.
 
 Theorem Rcompare_ceil_floor_mid :
@@ -1773,7 +1769,7 @@ Theorem Rcompare_ceil_floor_mid :
 Proof.
 intros x Hx.
 rewrite Zceil_floor_neq with (1 := Hx).
-rewrite plus_IZR. simpl.
+rewrite plus_IZR.
 destruct (Rcompare_spec (IZR (Zfloor x) + 1 - x) (/ 2)) as [H1|H1|H1] ; apply sym_eq.
 (* . *)
 apply Rcompare_Lt.
@@ -1781,7 +1777,7 @@ apply Rplus_lt_reg_l with (IZR (Zfloor x) + 1 - x)%R.
 replace (IZR (Zfloor x) + 1 - x + (IZR (Zfloor x) + 1 - x))%R with ((IZR (Zfloor x) + 1 - x) * 2)%R by ring.
 replace (IZR (Zfloor x) + 1 - x + (x - IZR (Zfloor x)))%R with (/2 * 2)%R by field.
 apply Rmult_lt_compat_r with (2 := H1).
-now apply (IZR_lt 0 2).
+now apply IZR_lt.
 (* . *)
 apply Rcompare_Eq.
 replace (x - IZR (Zfloor x))%R with (1 - (IZR (Zfloor x) + 1 - x))%R by ring.
@@ -1793,7 +1789,7 @@ apply Rplus_lt_reg_l with (IZR (Zfloor x) + 1 - x)%R.
 replace (IZR (Zfloor x) + 1 - x + (IZR (Zfloor x) + 1 - x))%R with ((IZR (Zfloor x) + 1 - x) * 2)%R by ring.
 replace (IZR (Zfloor x) + 1 - x + (x - IZR (Zfloor x)))%R with (/2 * 2)%R by field.
 apply Rmult_lt_compat_r with (2 := H1).
-now apply (IZR_lt 0 2).
+now apply IZR_lt.
 Qed.
 
 Theorem Znearest_N_strict :
@@ -1813,7 +1809,6 @@ rewrite Rabs_left1.
 rewrite Ropp_minus_distr.
 rewrite Zceil_floor_neq.
 rewrite plus_IZR.
-simpl.
 apply Ropp_lt_cancel.
 apply Rplus_lt_reg_l with 1%R.
 replace (1 + -/2)%R with (/2)%R by field.
@@ -1823,7 +1818,7 @@ apply Rplus_lt_reg_l with (- IZR (Zfloor x))%R.
 apply Rlt_trans with (/2)%R.
 rewrite Rplus_opp_l.
 apply Rinv_0_lt_compat.
-now apply (IZR_lt 0 2).
+now apply IZR_lt.
 now rewrite <- (Rplus_comm x).
 apply Rle_minus.
 apply Zceil_ub.
@@ -1840,12 +1835,11 @@ apply Req_le.
 apply Rabs_pos_eq.
 apply Rlt_le.
 apply Rinv_0_lt_compat.
-now apply (IZR_lt 0 2).
+now apply IZR_lt.
 destruct (Znearest_DN_or_UP x) as [H|H] ; rewrite H ; clear H.
 now rewrite Hx.
 rewrite Zceil_floor_neq.
 rewrite plus_IZR.
-simpl.
 replace (x - (IZR (Zfloor x) + 1))%R with (x - IZR (Zfloor x) - 1)%R by ring.
 rewrite Hx.
 rewrite Rabs_minus_sym.
@@ -1856,7 +1850,7 @@ rewrite Rplus_opp_l, Rplus_comm.
 fold (x - IZR (Zfloor x))%R.
 rewrite Hx.
 apply Rinv_0_lt_compat.
-now apply (IZR_lt 0 2).
+now apply IZR_lt.
 apply Rlt_le.
 now apply Znearest_N_strict.
 Qed.
@@ -1916,7 +1910,7 @@ apply Rle_refl.
 apply Rle_0_minus.
 apply Zceil_ub.
 apply Rinv_0_lt_compat.
-now apply (IZR_lt 0 2).
+now apply IZR_lt.
 (* .. *)
 rewrite Rcompare_floor_ceil_mid with (1 := Hm).
 rewrite Rmin_compare.
@@ -1986,9 +1980,9 @@ apply (Rmult_eq_reg_r (bpow (- fexp (mag beta x))));
   [|now apply Rgt_not_eq; apply bpow_gt_0].
 rewrite Rmult_0_l, Rmult_assoc, <- bpow_plus.
 replace (_ + - _)%Z with 0%Z by ring; simpl; rewrite Rmult_1_r.
-change 0%R with (IZR 0); apply f_equal.
+apply IZR_eq.
 apply Znearest_imp.
-simpl; unfold Rminus; rewrite Ropp_0; rewrite Rplus_0_r.
+unfold Rminus; rewrite Ropp_0; rewrite Rplus_0_r.
 assert (H : (x >= 0)%R).
 { apply Rle_ge; apply Rle_trans with (bpow (ex - 1)); [|exact (proj1 Hex)].
   now apply bpow_ge_0. }
@@ -2011,7 +2005,7 @@ apply Rle_trans with (bpow (fexp (mag beta x) - 1)).
   unfold Raux.bpow, Z.pow_pos; simpl.
   rewrite Zmult_1_r.
   apply Rinv_le; [exact Rlt_0_2|].
-  change 2%R with (IZR 2); apply IZR_le.
+  apply IZR_le.
   destruct beta as (beta_val,beta_prop).
   now apply Zle_bool_imp_le.
 Qed.
@@ -2147,7 +2141,7 @@ rewrite <- Fx.
 apply He.
 contradict Zx.
 rewrite Zx, scaled_mantissa_0.
-apply (Ztrunc_IZR 0).
+apply Ztrunc_IZR.
 Qed.
 
 Theorem generic_inclusion_lt_ge :

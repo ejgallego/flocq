@@ -448,7 +448,7 @@ apply Rminus_lt.
 ring_simplify.
 apply Rlt_minus.
 apply Rmult_lt_compat_l.
-now apply (IZR_lt 0 2).
+now apply IZR_lt.
 exact Hxy.
 now apply Rlt_minus.
 apply Rle_0_minus.
@@ -941,7 +941,7 @@ rewrite H0.
 apply Rplus_le_reg_r with f.
 ring_simplify.
 apply Rmult_le_compat_l with (2 := Hxf).
-now apply (IZR_le 0 2).
+now apply IZR_le.
 (* . *)
 revert Hxf.
 apply Rlt_le in Hx.
@@ -953,7 +953,7 @@ apply Ropp_le_contravar.
 apply Rplus_le_reg_r with f.
 ring_simplify.
 apply Rmult_le_compat_l.
-now apply (IZR_le 0 2).
+now apply IZR_le.
 now apply Ropp_le_cancel.
 Qed.
 

@@ -152,7 +152,7 @@ omega.
 (* . round *)
 unfold inbetween_float, F2R. simpl.
 rewrite sqrt_mult.
-2: now apply (IZR_le 0) ; apply Zlt_le_weak.
+2: now apply IZR_le, Zlt_le_weak.
 2: apply Rlt_le ; apply bpow_gt_0.
 destruct (Zeven_ex e') as (e2, Hev).
 rewrite He1, Zplus_0_r in Hev. clear He1.
@@ -172,8 +172,8 @@ rewrite Hr', Zplus_0_r, mult_IZR.
 fold (Rsqr (IZR q)).
 rewrite sqrt_Rsqr.
 now constructor.
-apply (IZR_le 0).
-omega.
+apply IZR_le.
+clear -Hr ; omega.
 (* .. r <> 0 *)
 constructor.
 split.
@@ -183,20 +183,20 @@ rewrite mult_IZR.
 fold (Rsqr (IZR q)).
 rewrite sqrt_Rsqr.
 apply Rle_refl.
-apply (IZR_le 0).
-omega.
+apply IZR_le.
+clear -Hr ; omega.
 apply sqrt_lt_1.
 rewrite mult_IZR.
 apply Rle_0_sqr.
 rewrite <- Hq.
-apply (IZR_le 0).
+apply IZR_le.
 now apply Zlt_le_weak.
 apply IZR_lt.
 omega.
 apply Rlt_le_trans with (sqrt (IZR ((q + 1) * (q + 1)))).
 apply sqrt_lt_1.
 rewrite <- Hq.
-apply (IZR_le 0).
+apply IZR_le.
 now apply Zlt_le_weak.
 rewrite mult_IZR.
 apply Rle_0_sqr.
@@ -207,15 +207,14 @@ rewrite mult_IZR.
 fold (Rsqr (IZR (q + 1))).
 rewrite sqrt_Rsqr.
 apply Rle_refl.
-apply (IZR_le 0).
-omega.
+apply IZR_le.
+clear -Hr ; omega.
 (* ... location *)
 rewrite Rcompare_half_r.
 rewrite <- Rcompare_sqr.
 replace ((2 * sqrt (IZR (q * q + r))) * (2 * sqrt (IZR (q * q + r))))%R
   with (4 * Rsqr (sqrt (IZR (q * q + r))))%R by (unfold Rsqr ; ring).
 rewrite Rsqr_sqrt.
-change 4%R with (IZR 4).
 rewrite <- plus_IZR, <- 2!mult_IZR.
 rewrite Rcompare_IZR.
 replace ((q + (q + 1)) * (q + (q + 1)))%Z with (4 * (q * q) + 4 * q + 1)%Z by ring.
@@ -226,14 +225,14 @@ omega.
 change (4 * (q * q + r) > 4 * (q * q) + 4 * q + 1)%Z.
 omega.
 rewrite <- Hq.
-apply (IZR_le 0).
+apply IZR_le.
 now apply Zlt_le_weak.
 apply Rmult_le_pos.
-now apply (IZR_le 0 2).
+now apply IZR_le.
 apply sqrt_ge_0.
 rewrite <- plus_IZR.
-apply (IZR_le 0).
-omega.
+apply IZR_le.
+clear -Hr ; omega.
 Qed.
 
 End Fcalc_sqrt.
