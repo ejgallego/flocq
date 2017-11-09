@@ -123,13 +123,14 @@ assert (J:(0 < x/y)%R).
 apply Fourier_util.Rlt_mult_inv_pos; assumption.
 apply sterbenz...
 assert (H0:(Rabs (1  - x/y) < 1)%R).
-replace 1%R with (Z2R 1) at 1 by reflexivity.
+change 1%R with (Z2R 1) at 1.
 rewrite Hn', Hn.
 apply Rlt_le_trans with (ulp beta (FIX_exp 0) (round beta (FIX_exp 0) rnd (x / y)))%R.
 apply error_lt_ulp_round...
-now apply Rgt_not_eq, Rdiv_lt_0_compat.
+now apply Rgt_not_eq.
 rewrite ulp_FIX.
-simpl; right; ring.
+rewrite <- Hn'.
+apply Rle_refl.
 apply Rabs_lt_inv in H0.
 split; apply Rmult_le_reg_l with (/y)%R; try now apply Rinv_0_lt_compat.
 unfold Rdiv; rewrite <- Rmult_assoc.
@@ -154,6 +155,7 @@ now rewrite Rmult_0_l, Rminus_0_r.
 Qed.
 
 End format_REM_aux.
+
 Section format_REM.
 
 Variable beta : radix.
