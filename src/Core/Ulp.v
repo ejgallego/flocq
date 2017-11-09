@@ -157,7 +157,7 @@ rewrite ulp_neq_0.
 unfold F2R; simpl.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-apply (Z2R_le (Zsucc 0)).
+apply (IZR_le (Zsucc 0)).
 apply Zlt_le_succ.
 apply F2R_gt_0_reg with beta (cexp beta fexp x).
 now rewrite <- Fx.
@@ -187,13 +187,13 @@ rewrite ulp_neq_0.
 unfold round. simpl.
 unfold F2R. simpl.
 rewrite Zceil_floor_neq.
-rewrite Z2R_plus. simpl.
+rewrite plus_IZR. simpl.
 ring.
 intros H.
 apply Fx.
 unfold generic_format, F2R. simpl.
 rewrite <- H.
-rewrite Ztrunc_Z2R.
+rewrite Ztrunc_IZR.
 rewrite H.
 now rewrite scaled_mantissa_mult_bpow.
 intros V; apply Fx.
@@ -449,8 +449,8 @@ rewrite ulp_neq_0.
 unfold F2R. simpl.
 pattern (bpow (cexp beta fexp x)) at 2 ; rewrite <- Rmult_1_l.
 rewrite <- Rmult_minus_distr_r.
-change 1%R with (Z2R 1).
-rewrite <- Z2R_minus.
+change 1%R with (IZR 1).
+rewrite <- minus_IZR.
 apply bpow_le_F2R_m1.
 easy.
 now rewrite <- Fx.
@@ -479,8 +479,8 @@ rewrite ulp_neq_0.
 unfold F2R. simpl.
 pattern (bpow (cexp beta fexp x)) at 2 ; rewrite <- Rmult_1_l.
 rewrite <- Rmult_plus_distr_r.
-change 1%R with (Z2R 1).
-rewrite <- Z2R_plus.
+change 1%R with (IZR 1).
+rewrite <- plus_IZR.
 apply F2R_p1_le_bpow.
 apply F2R_gt_0_reg with beta (cexp beta fexp x).
 now rewrite <- Fx.
@@ -512,10 +512,10 @@ unfold F2R. simpl.
 rewrite Rmult_minus_distr_r.
 rewrite Rmult_assoc.
 rewrite <- bpow_plus, Zplus_opp_r, Rmult_1_r.
-change (bpow 0) with (Z2R 1).
-rewrite <- Z2R_minus.
-rewrite Ztrunc_Z2R.
-rewrite Z2R_minus.
+change (bpow 0) with (IZR 1).
+rewrite <- minus_IZR.
+rewrite Ztrunc_IZR.
+rewrite minus_IZR.
 rewrite Rmult_minus_distr_r.
 now rewrite Rmult_1_l.
 now apply Rgt_not_eq.
@@ -542,8 +542,8 @@ unfold F2R; simpl.
 pattern (bpow (cexp beta fexp x)) at 1; rewrite <- Rmult_1_l.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-replace 1%R with (Z2R 1) by reflexivity.
-apply Z2R_le.
+replace 1%R with (IZR 1) by reflexivity.
+apply IZR_le.
 assert (0 <  Ztrunc (scaled_mantissa beta fexp x))%Z.
 apply F2R_gt_0_reg with beta (cexp beta fexp x).
 rewrite <- Fx.
@@ -569,7 +569,7 @@ case (Zle_lt_or_eq _ _ He); clear He; intros He.
 assert (f = F2R (Float beta (Zpower beta (e-1-(fexp (e-1))) -1) (fexp (e-1))))%R.
 unfold f; rewrite Hx.
 unfold F2R; simpl.
-rewrite Z2R_minus, Z2R_Zpower.
+rewrite minus_IZR, IZR_Zpower.
 rewrite Rmult_minus_distr_r, Rmult_1_l.
 rewrite <- bpow_plus.
 now replace (e - 1 - fexp (e - 1) + fexp (e - 1))%Z with (e-1)%Z by ring.
@@ -591,9 +591,9 @@ apply Rle_trans with (2*bpow (e - 2))%R;[right; ring|idtac].
 apply Rle_trans with (bpow 1*bpow (e - 2))%R.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-replace 2%R with (Z2R 2) by reflexivity.
-replace (bpow 1) with (Z2R beta).
-apply Z2R_le.
+replace 2%R with (IZR 2) by reflexivity.
+replace (bpow 1) with (IZR beta).
+apply IZR_le.
 apply <- Zle_is_le_bool.
 now destruct beta.
 simpl.
@@ -637,10 +637,10 @@ unfold F2R. simpl.
 rewrite Rmult_plus_distr_r.
 rewrite Rmult_assoc.
 rewrite <- bpow_plus, Zplus_opp_r, Rmult_1_r.
-change (bpow 0) with (Z2R 1).
-rewrite <- Z2R_plus.
-rewrite Ztrunc_Z2R.
-rewrite Z2R_plus.
+change (bpow 0) with (IZR 1).
+rewrite <- plus_IZR.
+rewrite Ztrunc_IZR.
+rewrite plus_IZR.
 rewrite Rmult_plus_distr_r.
 now rewrite Rmult_1_l.
 now apply Rgt_not_eq.
@@ -875,8 +875,8 @@ rewrite Lex.
 pattern (bpow (fexp ex)) at 1; rewrite <- Rmult_1_l.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-replace 1%R with (Z2R (Zsucc 0)) by reflexivity.
-apply Z2R_le.
+replace 1%R with (IZR (Zsucc 0)) by reflexivity.
+apply IZR_le.
 apply Zlt_le_succ.
 apply F2R_gt_0_reg with beta (cexp beta fexp x).
 now rewrite <- Fx.
@@ -913,9 +913,9 @@ apply Rle_trans with (2*bpow (e - 2))%R;[right; ring|idtac].
 apply Rle_trans with (bpow 1*bpow (e - 2))%R.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-replace 2%R with (Z2R 2) by reflexivity.
-replace (bpow 1) with (Z2R beta).
-apply Z2R_le.
+replace 2%R with (IZR 2) by reflexivity.
+replace (bpow 1) with (IZR beta).
+apply IZR_le.
 apply <- Zle_is_le_bool.
 now destruct beta.
 simpl.
@@ -1010,8 +1010,8 @@ rewrite ulp_neq_0.
 unfold F2R. simpl.
 pattern (bpow (cexp beta fexp x)) at 2 ; rewrite <- Rmult_1_l.
 rewrite <- Rmult_plus_distr_r.
-change 1%R with (Z2R 1).
-rewrite <- Z2R_plus.
+change 1%R with (IZR 1).
+rewrite <- plus_IZR.
 apply F2R_p1_le_bpow.
 apply F2R_gt_0_reg with beta (cexp beta fexp x).
 now rewrite <- Fx.
@@ -1050,7 +1050,7 @@ apply Rmult_lt_compat_r.
 apply bpow_gt_0.
 now apply Rplus_lt_compat_l.
 rewrite Rmult_plus_distr_r.
-rewrite Z2R_plus.
+rewrite plus_IZR.
 apply Rplus_le_compat.
 pattern x at 1 3 ; rewrite Fx.
 unfold F2R. simpl.
@@ -1058,7 +1058,7 @@ rewrite Rmult_assoc.
 rewrite <- bpow_plus.
 rewrite Zplus_opp_r.
 rewrite Rmult_1_r.
-rewrite Zfloor_Z2R.
+rewrite Zfloor_IZR.
 apply Rle_refl.
 rewrite ulp_neq_0.
 2: now apply Rgt_not_eq.
@@ -1344,10 +1344,10 @@ omega.
 split.
 apply F2R_gt_0_reg with beta (cexp beta fexp x).
 now rewrite <- Fx.
-apply lt_Z2R.
+apply lt_IZR.
 apply Rmult_lt_reg_r with (bpow (cexp beta fexp x)).
 apply bpow_gt_0.
-replace (Z2R (Ztrunc (scaled_mantissa beta fexp x)) *
+replace (IZR (Ztrunc (scaled_mantissa beta fexp x)) *
   bpow (cexp beta fexp x))%R with x.
 rewrite Rmult_1_l.
 unfold cexp.
@@ -1743,7 +1743,7 @@ rewrite Rplus_opp_r, Rabs_R0.
 apply Rmult_le_pos.
 apply Rlt_le.
 apply Rinv_0_lt_compat.
-now apply (Z2R_lt 0 2).
+now apply (IZR_lt 0 2).
 apply ulp_ge_0.
 (* x <> rnd x *)
 set (d := round beta fexp Zfloor x).
@@ -1756,7 +1756,7 @@ apply (round_DN_pt beta fexp x).
 rewrite Rabs_left1.
 rewrite Ropp_minus_distr.
 apply Rmult_le_reg_r with 2%R.
-now apply (Z2R_lt 0 2).
+now apply (IZR_lt 0 2).
 apply Rplus_le_reg_r with (d - x)%R.
 ring_simplify.
 apply Rle_trans with (1 := H).
@@ -1773,7 +1773,7 @@ rewrite Hu.
 apply (round_UP_pt beta fexp x).
 rewrite Rabs_pos_eq.
 apply Rmult_le_reg_r with 2%R.
-now apply (Z2R_lt 0 2).
+now apply (IZR_lt 0 2).
 apply Rplus_le_reg_r with (- (d + ulp x - x))%R.
 ring_simplify.
 apply Rlt_le.

@@ -44,7 +44,7 @@ Theorem inbetween_float_round :
 Proof.
 intros rnd choice Hc x m l e Hl.
 unfold round, F2R. simpl.
-apply (f_equal (fun m => (Z2R m * bpow e)%R)).
+apply (f_equal (fun m => (IZR m * bpow e)%R)).
 apply Hc.
 apply inbetween_mult_reg with (bpow e).
 apply bpow_gt_0.
@@ -63,7 +63,7 @@ Theorem inbetween_float_round_sign :
   round beta fexp rnd x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (choice (Rlt_bool x 0) m l)) e).
 Proof.
 intros rnd choice Hc x m l e Hx.
-apply (f_equal (fun m => (Z2R m * bpow e)%R)).
+apply (f_equal (fun m => (IZR m * bpow e)%R)).
 simpl.
 replace (Rlt_bool x 0) with (Rlt_bool (scaled_mantissa beta fexp x) 0).
 (* *)
@@ -96,7 +96,7 @@ Proof.
 intros x m l Hl.
 refine (Zfloor_imp m _ _).
 apply inbetween_bounds with (2 := Hl).
-apply Z2R_lt.
+apply IZR_lt.
 apply Zlt_succ.
 Qed.
 
@@ -128,23 +128,23 @@ destruct (Rcase_abs x) as [Zx|Zx] .
 rewrite Rlt_bool_true with (1 := Zx).
 inversion_clear Hl ; simpl.
 rewrite <- (Ropp_involutive x).
-rewrite H, <- Z2R_opp.
-apply Zfloor_Z2R.
+rewrite H, <- opp_IZR.
+apply Zfloor_IZR.
 apply Zfloor_imp.
 split.
 apply Rlt_le.
-rewrite Z2R_opp.
+rewrite opp_IZR.
 apply Ropp_lt_cancel.
 now rewrite Ropp_involutive.
 ring_simplify (- (m + 1) + 1)%Z.
-rewrite Z2R_opp.
+rewrite opp_IZR.
 apply Ropp_lt_cancel.
 now rewrite Ropp_involutive.
 (* *)
 rewrite Rlt_bool_false.
 inversion_clear Hl ; simpl.
 rewrite H.
-apply Zfloor_Z2R.
+apply Zfloor_IZR.
 apply Zfloor_imp.
 split.
 now apply Rlt_le.
@@ -183,7 +183,7 @@ destruct Hl' as [Hl'|(Hl1, Hl2)].
 rewrite Hl'.
 destruct Hl ; try easy.
 rewrite H.
-exact (Zceil_Z2R _).
+exact (Zceil_IZR _).
 (* not Exact *)
 rewrite Hl2.
 simpl.
@@ -224,7 +224,7 @@ unfold Zceil.
 apply f_equal.
 inversion_clear Hl ; simpl.
 rewrite H.
-apply Zfloor_Z2R.
+apply Zfloor_IZR.
 apply Zfloor_imp.
 split.
 now apply Rlt_le.
@@ -234,7 +234,7 @@ rewrite Rlt_bool_false.
 simpl.
 inversion_clear Hl ; simpl.
 rewrite H.
-apply Zceil_Z2R.
+apply Zceil_IZR.
 apply Zceil_imp.
 split.
 change (m + 1 - 1)%Z with (Zpred (Zsucc m)).
@@ -270,7 +270,7 @@ intros x m l Hl.
 inversion_clear Hl as [Hx|l' Hx Hl'].
 (* Exact *)
 rewrite Hx.
-rewrite Zrnd_Z2R...
+rewrite Zrnd_IZR...
 (* not Exact *)
 unfold Ztrunc.
 assert (Hm: Zfloor x = m).
@@ -285,10 +285,10 @@ case Rlt_bool_spec ; intros Hx' ;
 elim Rlt_not_le with (1 := Hx').
 apply Rlt_le.
 apply Rle_lt_trans with (2 := proj1 Hx).
-now apply (Z2R_le 0).
+now apply (IZR_le 0).
 elim Rle_not_lt with (1 := Hx').
 apply Rlt_le_trans with (1 := proj2 Hx).
-apply (Z2R_le _ 0).
+apply (IZR_le _ 0).
 now apply Zlt_le_succ.
 rewrite Hm.
 now apply Rlt_not_eq.
@@ -321,7 +321,7 @@ apply f_equal.
 apply Zfloor_imp.
 rewrite <- Rabs_left with (1 := Zx).
 apply inbetween_bounds with (2 := Hl).
-apply Z2R_lt.
+apply IZR_lt.
 apply Zlt_succ.
 (* *)
 rewrite Rlt_bool_false with (1 := Zx).
@@ -329,7 +329,7 @@ simpl.
 apply Zfloor_imp.
 rewrite <- Rabs_pos_eq with (1 := Zx).
 apply inbetween_bounds with (2 := Hl).
-apply Z2R_lt.
+apply IZR_lt.
 apply Zlt_succ.
 Qed.
 
@@ -362,7 +362,7 @@ intros choice x m l Hl.
 inversion_clear Hl as [Hx|l' Hx Hl'].
 (* Exact *)
 rewrite Hx.
-rewrite Zrnd_Z2R...
+rewrite Zrnd_IZR...
 (* not Exact *)
 unfold Znearest.
 assert (Hm: Zfloor x = m).
@@ -370,13 +370,13 @@ apply Zfloor_imp.
 exact (conj (Rlt_le _ _ (proj1 Hx)) (proj2 Hx)).
 rewrite Zceil_floor_neq.
 rewrite Hm.
-replace (Rcompare (x - Z2R m) (/2)) with l'.
+replace (Rcompare (x - IZR m) (/2)) with l'.
 now case l'.
 rewrite <- Hl'.
-rewrite Z2R_plus.
-rewrite <- (Rcompare_plus_r (- Z2R m) x).
+rewrite plus_IZR.
+rewrite <- (Rcompare_plus_r (- IZR m) x).
 apply f_equal.
-simpl (Z2R 1).
+simpl (IZR 1).
 field.
 rewrite Hm.
 now apply Rlt_not_eq.
@@ -399,20 +399,20 @@ rewrite Znearest_opp.
 apply f_equal.
 inversion_clear Hl as [Hx|l' Hx Hl'].
 rewrite Hx.
-apply Zrnd_Z2R...
+apply Zrnd_IZR...
 assert (Hm: Zfloor (-x) = m).
 apply Zfloor_imp.
 exact (conj (Rlt_le _ _ (proj1 Hx)) (proj2 Hx)).
 unfold Znearest.
 rewrite Zceil_floor_neq.
 rewrite Hm.
-replace (Rcompare (- x - Z2R m) (/2)) with l'.
+replace (Rcompare (- x - IZR m) (/2)) with l'.
 now case l'.
 rewrite <- Hl'.
-rewrite Z2R_plus.
-rewrite <- (Rcompare_plus_r (- Z2R m) (-x)).
+rewrite plus_IZR.
+rewrite <- (Rcompare_plus_r (- IZR m) (-x)).
 apply f_equal.
-simpl (Z2R 1).
+simpl (IZR 1).
 field.
 rewrite Hm.
 now apply Rlt_not_eq.
@@ -423,20 +423,20 @@ rewrite Rlt_bool_false with (1 := Zx).
 simpl.
 inversion_clear Hl as [Hx|l' Hx Hl'].
 rewrite Hx.
-apply Zrnd_Z2R...
+apply Zrnd_IZR...
 assert (Hm: Zfloor x = m).
 apply Zfloor_imp.
 exact (conj (Rlt_le _ _ (proj1 Hx)) (proj2 Hx)).
 unfold Znearest.
 rewrite Zceil_floor_neq.
 rewrite Hm.
-replace (Rcompare (x - Z2R m) (/2)) with l'.
+replace (Rcompare (x - IZR m) (/2)) with l'.
 now case l'.
 rewrite <- Hl'.
-rewrite Z2R_plus.
-rewrite <- (Rcompare_plus_r (- Z2R m) x).
+rewrite plus_IZR.
+rewrite <- (Rcompare_plus_r (- IZR m) x).
 apply f_equal.
-simpl (Z2R 1).
+simpl (IZR 1).
 field.
 rewrite Hm.
 now apply Rlt_not_eq.
@@ -520,11 +520,11 @@ erewrite inbetween_int_N_sign with (choice := Zle_bool 0).
 apply f_equal.
 assert (Hm: (0 <= m)%Z).
 apply Zlt_succ_le.
-apply lt_Z2R.
+apply lt_IZR.
 apply Rle_lt_trans with (Rabs x).
 apply Rabs_pos.
 refine (proj2 (inbetween_bounds _ _ _ _ _ Hl)).
-apply Z2R_lt.
+apply IZR_lt.
 apply Zlt_succ.
 rewrite Zle_bool_true with (1 := Hm).
 rewrite Zle_bool_false.
@@ -648,8 +648,8 @@ unfold k. ring.
 refine (conj _ H).
 rewrite <- H.
 apply F2R_eq_compat.
-replace (scaled_mantissa beta fexp x) with (Z2R (Zfloor (scaled_mantissa beta fexp x))).
-rewrite Ztrunc_Z2R.
+replace (scaled_mantissa beta fexp x) with (IZR (Zfloor (scaled_mantissa beta fexp x))).
+rewrite Ztrunc_IZR.
 unfold scaled_mantissa.
 rewrite <- H.
 unfold x, F2R. simpl.
@@ -663,7 +663,7 @@ intros H.
 generalize (Zpower_pos_gt_0 beta k) (Zle_bool_imp_le _ _ (radix_prop beta)).
 omega.
 rewrite scaled_mantissa_generic with (1 := Fx).
-now rewrite Zfloor_Z2R.
+now rewrite Zfloor_IZR.
 (* *)
 split.
 apply refl_equal.
@@ -848,7 +848,7 @@ rewrite Hl.
 replace (choice m loc_Exact) with m.
 rewrite <- H.
 apply round_generic...
-rewrite <- (Zrnd_Z2R rnd m) at 1.
+rewrite <- (Zrnd_IZR rnd m) at 1.
 apply inbetween_int_valid.
 now constructor.
 Qed.
@@ -914,11 +914,11 @@ destruct (Rlt_bool_spec x 0) as [Zx|Zx].
 (* . *)
 apply Zopp_inj.
 change (- m = cond_Zopp true (choice true m loc_Exact))%Z.
-rewrite <- (Zrnd_Z2R rnd (-m)) at 1.
-assert (Z2R (-m) < 0)%R.
-rewrite Z2R_opp.
+rewrite <- (Zrnd_IZR rnd (-m)) at 1.
+assert (IZR (-m) < 0)%R.
+rewrite opp_IZR.
 apply Ropp_lt_gt_0_contravar.
-apply (Z2R_lt 0).
+apply (IZR_lt 0).
 apply F2R_gt_0_reg with beta e.
 rewrite <- H.
 apply Rabs_pos_lt.
@@ -927,13 +927,13 @@ rewrite <- Rlt_bool_true with (1 := H0).
 apply inbetween_int_valid.
 constructor.
 rewrite Rabs_left with (1 := H0).
-rewrite Z2R_opp.
+rewrite opp_IZR.
 apply Ropp_involutive.
 (* . *)
 change (m = cond_Zopp false (choice false m loc_Exact))%Z.
-rewrite <- (Zrnd_Z2R rnd m) at 1.
-assert (0 <= Z2R m)%R.
-apply (Z2R_le 0).
+rewrite <- (Zrnd_IZR rnd m) at 1.
+assert (0 <= IZR m)%R.
+apply (IZR_le 0).
 apply F2R_ge_0_reg with beta e.
 rewrite <- H.
 apply Rabs_pos.

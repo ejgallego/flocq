@@ -132,8 +132,8 @@ generalize (method_error t Bt).
 intros Ef.
 rewrite bpow_plus, Rmult_assoc.
 assert (exp x = pow2 (Zfloor k) * exp (x - k * ln 2)) as ->.
-  assert (exists k', k = Z2R k') as [k' ->] by (eexists ; apply Rmult_1_r).
-  rewrite Zfloor_Z2R, bpow_exp, <- exp_plus.
+  assert (exists k', k = IZR k') as [k' ->] by (eexists ; apply Rmult_1_r).
+  rewrite Zfloor_IZR, bpow_exp, <- exp_plus.
   apply f_equal.
   simpl ; ring.
 rewrite <- Rmult_minus_distr_l.

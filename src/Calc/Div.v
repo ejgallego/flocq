@@ -131,21 +131,21 @@ now apply Zle_lt_trans with r.
 exact Hq'.
 (* . the location is correctly computed *)
 unfold inbetween_float, F2R. simpl.
-rewrite bpow_plus, Z2R_plus.
-rewrite Hq, Z2R_plus, Z2R_mult.
-replace ((Z2R m2 * Z2R q + Z2R r) * (bpow e' * bpow e2) / (Z2R m2 * bpow e2))%R
-  with ((Z2R q + Z2R r / Z2R m2) * bpow e')%R.
+rewrite bpow_plus, plus_IZR.
+rewrite Hq, plus_IZR, mult_IZR.
+replace ((IZR m2 * IZR q + IZR r) * (bpow e' * bpow e2) / (IZR m2 * bpow e2))%R
+  with ((IZR q + IZR r / IZR m2) * bpow e')%R.
 apply inbetween_mult_compat.
 apply bpow_gt_0.
 destruct (Z_lt_le_dec 1 m2) as [Hm2''|Hm2''].
-replace (Z2R 1) with (Z2R m2 * /Z2R m2)%R.
+replace (IZR 1) with (IZR m2 * /IZR m2)%R.
 apply new_location_correct ; try easy.
 apply Rinv_0_lt_compat.
-now apply (Z2R_lt 0).
+now apply (IZR_lt 0).
 now constructor.
 apply Rinv_r.
 apply Rgt_not_eq.
-now apply (Z2R_lt 0).
+now apply (IZR_lt 0).
 assert (r = 0 /\ m2 = 1)%Z by (clear -Hr Hm2'' ; omega).
 rewrite (proj1 H), (proj2 H).
 unfold Rdiv.
@@ -154,7 +154,7 @@ now constructor.
 field.
 split ; apply Rgt_not_eq.
 apply bpow_gt_0.
-now apply (Z2R_lt 0).
+now apply (IZR_lt 0).
 Qed.
 
 End Fcalc_div.

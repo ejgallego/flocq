@@ -71,14 +71,14 @@ intros x H.
 rewrite H.
 eexists ; repeat split.
 simpl.
-apply lt_Z2R.
-rewrite Z2R_abs.
+apply lt_IZR.
+rewrite abs_IZR.
 rewrite <- scaled_mantissa_generic with (1 := H).
 rewrite <- scaled_mantissa_abs.
 apply Rmult_lt_reg_r with (bpow (cexp beta FLX_exp (Rabs x))).
 apply bpow_gt_0.
 rewrite scaled_mantissa_mult_bpow.
-rewrite Z2R_Zpower, <- bpow_plus.
+rewrite IZR_Zpower, <- bpow_plus.
 2: now apply Zlt_le_weak.
 unfold cexp, FLX_exp.
 ring_simplify (prec + (mag beta (Rabs x) - prec))%Z.
@@ -163,10 +163,10 @@ intros Zx.
 simpl.
 split.
 (* *)
-apply le_Z2R.
-rewrite Z2R_Zpower.
+apply le_IZR.
+rewrite IZR_Zpower.
 2: now apply Zlt_0_le_0_pred.
-rewrite Z2R_abs, <- scaled_mantissa_generic with (1 := Hx).
+rewrite abs_IZR, <- scaled_mantissa_generic with (1 := Hx).
 apply Rmult_le_reg_r with (bpow (cexp beta FLX_exp x)).
 apply bpow_gt_0.
 rewrite <- bpow_plus.
@@ -179,10 +179,10 @@ ring_simplify (prec - 1 + (mag beta x - prec))%Z.
 destruct (mag beta x) as (ex,Ex).
 now apply Ex.
 (* *)
-apply lt_Z2R.
-rewrite Z2R_Zpower.
+apply lt_IZR.
+rewrite IZR_Zpower.
 2: now apply Zlt_le_weak.
-rewrite Z2R_abs, <- scaled_mantissa_generic with (1 := Hx).
+rewrite abs_IZR, <- scaled_mantissa_generic with (1 := Hx).
 apply Rmult_lt_reg_r with (bpow (cexp beta FLX_exp x)).
 apply bpow_gt_0.
 rewrite <- bpow_plus.

@@ -93,7 +93,7 @@ unfold FTZ_exp, FLX_exp.
 rewrite Zlt_bool_false.
 apply Zle_refl.
 rewrite Hx1, mag_F2R with (1 := Zxm).
-cut (prec - 1 < mag beta (Z2R xm))%Z.
+cut (prec - 1 < mag beta (IZR xm))%Z.
 clear -Hx3 ; omega.
 apply mag_gt_Zpower with (1 := Zxm).
 apply Hx2.
@@ -123,11 +123,11 @@ rewrite Hx2, <- F2R_Zabs.
 rewrite <- (Rmult_1_l (bpow ex)).
 unfold F2R. simpl.
 apply Rmult_le_compat.
-now apply (Z2R_le 0 1).
+now apply (IZR_le 0 1).
 apply bpow_ge_0.
-apply (Z2R_le 1).
+apply (IZR_le 1).
 apply (Zlt_le_succ 0).
-apply lt_Z2R.
+apply lt_IZR.
 apply Rmult_lt_reg_r with (bpow (emin + prec - 1)).
 apply bpow_gt_0.
 rewrite Rmult_0_l.
@@ -138,8 +138,8 @@ apply bpow_le.
 omega.
 rewrite Hx2.
 eexists ; repeat split ; simpl.
-apply le_Z2R.
-rewrite Z2R_Zpower.
+apply le_IZR.
+rewrite IZR_Zpower.
 apply Rmult_le_reg_r with (bpow (ex - prec)).
 apply bpow_gt_0.
 rewrite <- bpow_plus.
@@ -149,8 +149,8 @@ rewrite F2R_Zabs, <- Hx2.
 apply Hx4.
 apply Zle_minus_le_0.
 now apply (Zlt_le_succ 0).
-apply lt_Z2R.
-rewrite Z2R_Zpower.
+apply lt_IZR.
+rewrite IZR_Zpower.
 apply Rmult_lt_reg_r with (bpow (ex - prec)).
 apply bpow_gt_0.
 rewrite <- bpow_plus.
@@ -224,9 +224,9 @@ case Rle_bool_spec ; intros Hx ;
 4: easy.
 (* 1 <= |x| *)
 now apply Zrnd_le.
-rewrite <- (Zrnd_Z2R rnd 0).
+rewrite <- (Zrnd_IZR rnd 0).
 apply Zrnd_le...
-apply Rle_trans with (Z2R (-1)). 2: now apply Z2R_le.
+apply Rle_trans with (IZR (-1)). 2: now apply IZR_le.
 destruct (Rabs_ge_inv _ _ Hx) as [Hx1|Hx1].
 exact Hx1.
 elim Rle_not_lt with (1 := Hx1).
@@ -234,10 +234,10 @@ apply Rle_lt_trans with (2 := Hy).
 apply Rle_trans with (1 := Hxy).
 apply RRle_abs.
 (* |x| < 1 *)
-rewrite <- (Zrnd_Z2R rnd 0).
+rewrite <- (Zrnd_IZR rnd 0).
 apply Zrnd_le...
-apply Rle_trans with (Z2R 1).
-now apply Z2R_le.
+apply Rle_trans with (IZR 1).
+now apply IZR_le.
 destruct (Rabs_ge_inv _ _ Hy) as [Hy1|Hy1].
 elim Rle_not_lt with (1 := Hy1).
 apply Rlt_le_trans with (2 := Hxy).
@@ -246,12 +246,12 @@ exact Hy1.
 (* *)
 intros n.
 unfold Zrnd_FTZ.
-rewrite Zrnd_Z2R...
+rewrite Zrnd_IZR...
 case Rle_bool_spec.
 easy.
-rewrite <- Z2R_abs.
+rewrite <- abs_IZR.
 intros H.
-generalize (lt_Z2R _ 1 H).
+generalize (lt_IZR _ 1 H).
 clear.
 now case n ; trivial ; simpl ; intros [p|p|].
 Qed.

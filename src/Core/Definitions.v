@@ -31,7 +31,7 @@ Implicit Arguments Fexp [[beta]].
 Variable beta : radix.
 
 Definition F2R (f : float beta) :=
-  (Z2R (Fnum f) * bpow beta (Fexp f))%R.
+  (IZR (Fnum f) * bpow beta (Fexp f))%R.
 
 (** Requirements on a rounding mode *)
 Definition round_pred_total (P : R -> R -> Prop) :=

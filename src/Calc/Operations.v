@@ -98,7 +98,7 @@ destruct (Falign f1 f2) as ((m1, m2), e).
 intros (H1, H2).
 rewrite H1, H2.
 unfold F2R. simpl.
-rewrite Z2R_plus.
+rewrite plus_IZR.
 apply Rmult_plus_distr_r.
 Qed.
 
@@ -154,7 +154,7 @@ Theorem F2R_mult :
 Proof.
 intros (m1, e1) (m2, e2).
 unfold Fmult, F2R. simpl.
-rewrite Z2R_mult, bpow_plus.
+rewrite mult_IZR, bpow_plus.
 ring.
 Qed.
 

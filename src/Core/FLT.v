@@ -75,8 +75,8 @@ set (mx := Ztrunc (scaled_mantissa beta FLT_exp x)).
 intros Hx.
 rewrite Hx.
 eexists ; repeat split ; simpl.
-apply lt_Z2R.
-rewrite Z2R_Zpower. 2: now apply Zlt_le_weak.
+apply lt_IZR.
+rewrite IZR_Zpower. 2: now apply Zlt_le_weak.
 apply Rmult_lt_reg_r with (bpow ex).
 apply bpow_gt_0.
 rewrite <- bpow_plus.

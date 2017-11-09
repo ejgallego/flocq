@@ -180,10 +180,10 @@ exact Hxe2.
 assert (Hd3: xd = Float beta (Zpower beta (ex - fexp ex) - 1) (fexp ex)).
 assert (H: F2R xd = F2R (Float beta (Zpower beta (ex - fexp ex) - 1) (fexp ex))).
 unfold F2R. simpl.
-rewrite Z2R_minus.
+rewrite minus_IZR.
 unfold Rminus.
 rewrite Rmult_plus_distr_r.
-rewrite Z2R_Zpower, <- bpow_plus.
+rewrite IZR_Zpower, <- bpow_plus.
 ring_simplify (ex - fexp ex + fexp ex)%Z.
 rewrite Hu2, Hud.
 rewrite ulp_neq_0;[idtac|now apply Rgt_not_eq].
@@ -231,8 +231,8 @@ replace (Fnum xu) with (Fnum xd + 1)%Z.
 rewrite Zeven_plus.
 now apply eqb_sym.
 apply sym_eq.
-apply eq_Z2R.
-rewrite Z2R_plus.
+apply eq_IZR.
+rewrite plus_IZR.
 apply Rmult_eq_reg_r with (bpow (fexp ex)).
 rewrite H.
 simpl. ring.
@@ -343,7 +343,7 @@ now apply round_N_pt.
 unfold NE_prop.
 set (mx := scaled_mantissa beta fexp x).
 set (xr := round beta fexp ZnearestE x).
-destruct (Req_dec (mx - Z2R (Zfloor mx)) (/2)) as [Hm|Hm].
+destruct (Req_dec (mx - IZR (Zfloor mx)) (/2)) as [Hm|Hm].
 (* midpoint *)
 left.
 exists (Float beta (Ztrunc (scaled_mantissa beta fexp xr)) (cexp beta fexp xr)).
@@ -365,13 +365,13 @@ destruct (Rle_or_lt (round beta fexp Zfloor x) 0) as [Hr|Hr].
 rewrite (Rle_antisym _ _ Hr).
 unfold scaled_mantissa.
 rewrite Rmult_0_l.
-change 0%R with (Z2R 0).
-now rewrite (Ztrunc_Z2R 0).
+change 0%R with (IZR 0).
+now rewrite (Ztrunc_IZR 0).
 rewrite <- (round_0 beta fexp Zfloor).
 apply round_le...
 now apply Rlt_le.
 rewrite scaled_mantissa_DN...
-now rewrite Ztrunc_Z2R.
+now rewrite Ztrunc_IZR.
 (* . odd floor *)
 change (Zeven (Ztrunc (scaled_mantissa beta fexp (round beta fexp Zceil x))) = true).
 destruct (mag beta x) as (ex, Hex).
@@ -389,7 +389,7 @@ rewrite Rplus_opp_r in Hm.
 elim (Rlt_irrefl 0).
 rewrite Hm at 2.
 apply Rinv_0_lt_compat.
-now apply (Z2R_lt 0 2).
+now apply (IZR_lt 0 2).
 destruct (proj2 Hu) as [Hu'|Hu'].
 (* ... u <> bpow *)
 unfold scaled_mantissa.
@@ -397,7 +397,7 @@ rewrite cexp_fexp_pos with (1 := conj (proj1 Hu) Hu').
 unfold round, F2R. simpl.
 rewrite cexp_fexp_pos with (1 := Hex).
 rewrite Rmult_assoc, <- bpow_plus, Zplus_opp_r, Rmult_1_r.
-rewrite Ztrunc_Z2R.
+rewrite Ztrunc_IZR.
 fold mx.
 rewrite Hfc.
 now rewrite Zeven_plus, Hmx.
@@ -405,8 +405,8 @@ now rewrite Zeven_plus, Hmx.
 rewrite Hu'.
 unfold scaled_mantissa, cexp.
 rewrite mag_bpow.
-rewrite <- bpow_plus, <- Z2R_Zpower.
-rewrite Ztrunc_Z2R.
+rewrite <- bpow_plus, <- IZR_Zpower.
+rewrite Ztrunc_IZR.
 case_eq (Zeven beta) ; intros Hr.
 destruct exists_NE_ as [Hs|Hs].
 now rewrite Hs in Hr.
@@ -423,8 +423,8 @@ replace (Zceil (scaled_mantissa beta fexp x)) with (Zpower beta (ex - fexp ex)).
 rewrite Zeven_Zpower_odd with (2 := Hr).
 easy.
 omega.
-apply eq_Z2R.
-rewrite Z2R_Zpower. 2: omega.
+apply eq_IZR.
+rewrite IZR_Zpower. 2: omega.
 apply Rmult_eq_reg_r with (bpow (fexp ex)).
 unfold Zminus.
 rewrite bpow_plus.
@@ -470,7 +470,7 @@ apply Rnd_N_pt_idempotent with (1 := Hg).
 rewrite <- (scaled_mantissa_mult_bpow beta fexp x).
 fold mx.
 rewrite <- Hxg.
-change (Z2R (Zfloor mx) * bpow (cexp beta fexp x))%R with d.
+change (IZR (Zfloor mx) * bpow (cexp beta fexp x))%R with d.
 now eapply round_DN_pt.
 apply Rgt_not_eq.
 apply bpow_gt_0.

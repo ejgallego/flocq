@@ -85,9 +85,9 @@ rewrite Rabs_mult; rewrite (Rabs_right (bpow e)).
 rewrite bpow_plus.
 apply Rmult_lt_compat_r.
 apply bpow_gt_0.
-rewrite <- Z2R_abs.
-rewrite <- Z2R_Zpower.
-now apply Z2R_lt.
+rewrite <- abs_IZR.
+rewrite <- IZR_Zpower.
+now apply IZR_lt.
 now apply Zlt_le_weak.
 Qed.
 
@@ -214,9 +214,9 @@ rewrite Rabs_mult.
 pattern (Rabs u) at 1; rewrite <- (Rmult_1_l (Rabs u)).
 apply Rmult_le_compat_r.
 apply Rabs_pos.
-change 2 with (Z2R 2).
-rewrite <- (Z2R_abs 2).
-now apply (Z2R_le 1 2).
+change 2 with (IZR 2).
+rewrite <- (abs_IZR 2).
+now apply (IZR_le 1 2).
 (* *)
 rewrite cexp_FLT_FIX.
 rewrite cexp_FLT_FIX; trivial.
@@ -226,7 +226,7 @@ apply bpow_le; omega.
 lra.
 rewrite Rabs_mult.
 rewrite Rabs_pos_eq.
-2: now apply (Z2R_le 0 2).
+2: now apply (IZR_le 0 2).
 apply Rlt_le_trans with (2*bpow (emin + prec - 1)).
 apply Rmult_lt_compat_l with (1 := Rlt_0_2).
 assumption.
@@ -519,7 +519,7 @@ rewrite Zeven_opp.
 rewrite Zeven_Zpower.
 reflexivity.
 unfold Prec_gt_0 in prec_gt_0_; omega.
-apply eq_Z2R.
+apply eq_IZR.
 rewrite <- scaled_mantissa_DN...
 2: rewrite H4; assumption.
 rewrite H4.
@@ -543,9 +543,9 @@ replace 2 with (bpow 1) by reflexivity.
 rewrite <- bpow_plus.
 rewrite H0.
 rewrite Rmult_minus_distr_r, <- 2!bpow_plus.
-rewrite Z2R_minus.
+rewrite minus_IZR.
 apply f_equal2.
-rewrite Z2R_Zpower.
+rewrite IZR_Zpower.
 apply f_equal.
 ring.
 unfold Prec_gt_0 in prec_gt_0_; omega.
@@ -1077,22 +1077,22 @@ Qed.
 
 
 Lemma avg_half_sub_no_underflow_aux_aux: forall z:Z, (0 < z)%Z -> 
-    (ZnearestE (Z2R z / 2) < z)%Z.
+    (ZnearestE (IZR z / 2) < z)%Z.
 Proof.
 intros z H1.
 case (Zle_lt_or_eq 1 z); [omega|intros H2|intros H2].
-apply lt_Z2R.
-apply Rplus_lt_reg_r with (- ((Z2R z)/2)).
-apply Rle_lt_trans with (-(((Z2R z) /2) - Z2R (ZnearestE (Z2R z / 2)))).
+apply lt_IZR.
+apply Rplus_lt_reg_r with (- ((IZR z)/2)).
+apply Rle_lt_trans with (-(((IZR z) /2) - IZR (ZnearestE (IZR z / 2)))).
 right; ring.
 apply Rle_lt_trans with (1:= RRle_abs _).
 rewrite Rabs_Ropp.
 apply Rle_lt_trans with (1:=Znearest_N (fun x => negb (Zeven x)) _).
 apply Rle_lt_trans with (1*/2);[right; ring|idtac].
-apply Rlt_le_trans with ((Z2R z)*/2);[idtac|right; field].
+apply Rlt_le_trans with ((IZR z)*/2);[idtac|right; field].
 apply Rmult_lt_compat_r.
 lra.
-now apply (Z2R_lt 1).
+now apply (IZR_lt 1).
 rewrite <- H2.
 unfold Znearest; simpl.
 replace (Zfloor (1 / 2)) with 0%Z.
@@ -1134,16 +1134,16 @@ rewrite H1; unfold F2R; simpl.
 rewrite <- H4.
 apply Rmult_lt_compat_r.
 apply bpow_gt_0.
-apply Z2R_lt.
-replace (Z2R (Fnum g) * bpow emin / 2 * bpow (- emin)) with (Z2R (Fnum g) /2).
+apply IZR_lt.
+replace (IZR (Fnum g) * bpow emin / 2 * bpow (- emin)) with (IZR (Fnum g) /2).
 apply avg_half_sub_no_underflow_aux_aux.
-apply lt_Z2R.
+apply lt_IZR.
 apply Rmult_lt_reg_r with (bpow (Fexp g)).
 apply bpow_gt_0.
 rewrite Rmult_0_l.
 apply Rlt_le_trans with (1:=Hf1).
 right; rewrite H1; reflexivity.
-unfold Rdiv; apply trans_eq with (Z2R (Fnum g) * / 2 * (bpow (- emin)*bpow emin)).
+unfold Rdiv; apply trans_eq with (IZR (Fnum g) * / 2 * (bpow (- emin)*bpow emin)).
 rewrite <- bpow_plus.
 ring_simplify (-emin+emin)%Z.
 simpl; ring.
@@ -1162,8 +1162,8 @@ rewrite (bpow_plus _ prec _).
 apply Rmult_lt_compat.
 apply Rabs_pos.
 apply bpow_ge_0.
-rewrite <- Z2R_Zpower, <- Z2R_abs.
-now apply Z2R_lt.
+rewrite <- IZR_Zpower, <- abs_IZR.
+now apply IZR_lt.
 unfold Prec_gt_0 in prec_gt_0_; omega.
 rewrite <- H4; apply bpow_lt.
 omega.
@@ -1274,14 +1274,14 @@ apply generic_format_FIX_FLT,FIX_format_generic in Fv.
 destruct Fu as [[nu eu] J1 J2].
 destruct Fv as [[nv ev] J3 J4]; simpl in J2, J4.
 (* b is bpow emin /2 *)
-assert (b = Z2R (nu+nv) * bpow (emin-1)).
+assert (b = IZR (nu+nv) * bpow (emin-1)).
 unfold b; rewrite J1, J3; unfold F2R; rewrite J2,J4; simpl.
-unfold Zminus; rewrite bpow_plus, Z2R_plus.
+unfold Zminus; rewrite bpow_plus, plus_IZR.
 change (bpow (-(1))) with (/2).
 field.
 assert (Z.abs (nu+nv) = 1)%Z.
 assert (0 < Z.abs (nu+nv) < 2)%Z;[idtac|omega].
-split; apply lt_Z2R; simpl; rewrite Z2R_abs; 
+split; apply lt_IZR; simpl; rewrite abs_IZR; 
  apply Rmult_lt_reg_l with (bpow (emin-1)); try apply bpow_gt_0.
 rewrite Rmult_0_r.
 apply Rlt_le_trans with (1:=H1).
@@ -1301,7 +1301,7 @@ field.
 (* only 2 possible values for u and v *)
 assert (((nu=0)/\ (nv=1)) \/ ((nu=-1)/\(nv=0)))%Z.
 assert (nu <= nv)%Z.
-apply le_Z2R.
+apply le_IZR.
 apply Rmult_le_reg_r with (bpow emin).
 apply bpow_gt_0.
 apply Rle_trans with u.
@@ -1369,9 +1369,9 @@ apply Rle_trans with (1*bpow emin).
 right; ring.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-now apply (Z2R_le 1 3).
+now apply (IZR_le 1 3).
 apply Rmult_le_compat_l.
-now apply (Z2R_le 0 3).
+now apply (IZR_le 0 3).
 rewrite ulp_neq_0.
 2: apply Rmult_integral_contrapositive_currified.
 2: apply Rgt_not_eq, bpow_gt_0.
@@ -1405,9 +1405,9 @@ apply Rle_trans with (1*bpow emin).
 right; ring.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-now apply (Z2R_le 1 3).
+now apply (IZR_le 1 3).
 apply Rmult_le_compat_l.
-now apply (Z2R_le 0 3).
+now apply (IZR_le 0 3).
 rewrite ulp_neq_0.
 2: apply Rmult_integral_contrapositive_currified.
 2: apply Rgt_not_eq, bpow_gt_0.
@@ -1503,7 +1503,7 @@ rewrite <- (Rmult_1_l (Rabs b)).
 rewrite (T b).
 apply Rmult_le_compat_r.
 apply Rabs_pos.
-now apply (Z2R_le 1 2).
+now apply (IZR_le 1 2).
 rewrite <- (T b).
 rewrite <- ulp_abs.
 apply FLT_ulp_le_id...
@@ -1517,7 +1517,7 @@ destruct Fv as [fv J3 J4].
 apply generic_format_FIX.
 exists (Float radix2 (Fnum fu+Fnum fv) emin).
 rewrite J1,J3; unfold F2R; simpl.
-rewrite J2,J4, Z2R_plus; ring.
+rewrite J2,J4, plus_IZR; ring.
 easy.
 apply FIX_format_generic in H.
 destruct H as [[n e] J1 J2].
@@ -1528,9 +1528,9 @@ rewrite (Rabs_right (bpow emin)).
 2: apply Rle_ge, bpow_ge_0.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-rewrite <- Z2R_abs.
-replace 1 with (Z2R 1) by reflexivity.
-apply Z2R_le.
+rewrite <- abs_IZR.
+replace 1 with (IZR 1) by reflexivity.
+apply IZR_le.
 assert (0 < Z.abs n)%Z;[idtac|omega].
 apply Z.abs_pos.
 intros M; apply K1.
@@ -1615,7 +1615,7 @@ replace (v-v) with 0 by ring.
 rewrite Rabs_R0.
 apply Rmult_le_pos.
 apply Rmult_le_pos.
-now apply (Z2R_le 0 3).
+now apply (IZR_le 0 3).
 lra.
 apply ulp_ge_0.
 Qed.

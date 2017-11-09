@@ -32,7 +32,7 @@ Proof.
 intros e m1 m2.
 unfold F2R. simpl.
 rewrite Rcompare_mult_r.
-apply Rcompare_Z2R.
+apply Rcompare_IZR.
 apply bpow_gt_0.
 Qed.
 
@@ -43,7 +43,7 @@ Theorem F2R_le_reg :
   (m1 <= m2)%Z.
 Proof.
 intros e m1 m2 H.
-apply le_Z2R.
+apply le_IZR.
 apply Rmult_le_reg_r with (bpow e).
 apply bpow_gt_0.
 exact H.
@@ -58,7 +58,7 @@ intros m1 m2 e H.
 unfold F2R. simpl.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-now apply Z2R_le.
+now apply IZR_le.
 Qed.
 
 Theorem F2R_lt_reg :
@@ -67,7 +67,7 @@ Theorem F2R_lt_reg :
   (m1 < m2)%Z.
 Proof.
 intros e m1 m2 H.
-apply lt_Z2R.
+apply lt_IZR.
 apply Rmult_lt_reg_r with (bpow e).
 apply bpow_gt_0.
 exact H.
@@ -82,7 +82,7 @@ intros e m1 m2 H.
 unfold F2R. simpl.
 apply Rmult_lt_compat_r.
 apply bpow_gt_0.
-now apply Z2R_lt.
+now apply IZR_lt.
 Qed.
 
 Theorem F2R_eq_compat :
@@ -113,7 +113,7 @@ Proof.
 intros m e.
 unfold F2R.
 rewrite Rabs_mult.
-rewrite <- Z2R_abs.
+rewrite <- abs_IZR.
 simpl.
 apply f_equal.
 apply sym_eq; apply Rabs_right.
@@ -128,7 +128,7 @@ Proof.
 intros m e.
 unfold F2R. simpl.
 rewrite <- Ropp_mult_distr_l_reverse.
-now rewrite Z2R_opp.
+now rewrite opp_IZR.
 Qed.
 
 (** Sign facts *)
@@ -299,7 +299,7 @@ unfold F2R. simpl.
 rewrite <- (Rmult_1_l (bpow e1)) at 1.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-apply (Z2R_le 1).
+apply (IZR_le 1).
 now apply (Zlt_le_succ 0).
 now apply Rlt_le.
 (* . *)
@@ -307,14 +307,14 @@ revert H.
 replace e2 with (e2 - e1 + e1)%Z by ring.
 rewrite bpow_plus.
 unfold F2R. simpl.
-rewrite <- (Z2R_Zpower beta (e2 - e1)).
+rewrite <- (IZR_Zpower beta (e2 - e1)).
 intros H.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 apply Rmult_lt_reg_r in H.
-apply Z2R_le.
+apply IZR_le.
 apply Zlt_le_succ.
-now apply lt_Z2R.
+now apply lt_IZR.
 apply bpow_gt_0.
 now apply Zle_minus_le_0.
 Qed.
@@ -330,16 +330,16 @@ case (Zle_or_lt e1 e2); intros He.
 replace e2 with (e2 - e1 + e1)%Z by ring.
 rewrite bpow_plus.
 unfold F2R. simpl.
-rewrite <- (Z2R_Zpower beta (e2 - e1)).
+rewrite <- (IZR_Zpower beta (e2 - e1)).
 intros H.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 apply Rmult_lt_reg_r in H.
-apply Z2R_le.
+apply IZR_le.
 rewrite (Zpred_succ (Zpower _ _)).
 apply Zplus_le_compat_r.
 apply Zlt_le_succ.
-now apply lt_Z2R.
+now apply lt_IZR.
 apply bpow_gt_0.
 now apply Zle_minus_le_0.
 intros H.
@@ -350,8 +350,8 @@ now apply Zlt_le_weak.
 unfold F2R. simpl.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-replace 1%R with (Z2R 1) by reflexivity.
-apply Z2R_le.
+replace 1%R with (IZR 1) by reflexivity.
+apply IZR_le.
 omega.
 Qed.
 
@@ -367,8 +367,8 @@ unfold F2R. simpl.
 apply Rmult_lt_reg_r with (bpow (-e)).
 apply bpow_gt_0.
 rewrite Rmult_assoc, <- 2!bpow_plus, Zplus_opp_r, Rmult_1_r.
-rewrite <-Z2R_Zpower. 2: now apply Zle_left.
-now apply Z2R_lt.
+rewrite <-IZR_Zpower. 2: now apply Zle_left.
+now apply IZR_lt.
 elim Zlt_not_le with (1 := Hm).
 simpl.
 cut (e' - e < 0)%Z. 2: omega.
@@ -385,7 +385,7 @@ Theorem F2R_change_exp :
 Proof.
 intros e' m e He.
 unfold F2R. simpl.
-rewrite Z2R_mult, Z2R_Zpower, Rmult_assoc.
+rewrite mult_IZR, IZR_Zpower, Rmult_assoc.
 apply f_equal.
 pattern e at 1 ; replace e with (e - e' + e')%Z by ring.
 apply bpow_plus.
@@ -411,8 +411,8 @@ apply Rle_lt_trans with (1 := Hf).
 rewrite <- F2R_Zabs, Zplus_comm, bpow_plus.
 apply Rmult_lt_compat_r.
 apply bpow_gt_0.
-rewrite <- Z2R_Zpower.
-now apply Z2R_lt.
+rewrite <- IZR_Zpower.
+now apply IZR_lt.
 exact Hp.
 Qed.
 
@@ -443,32 +443,32 @@ Qed.
 Theorem mag_F2R :
   forall m e : Z,
   m <> Z0 ->
-  (mag beta (F2R (Float beta m e)) = mag beta (Z2R m) + e :> Z)%Z.
+  (mag beta (F2R (Float beta m e)) = mag beta (IZR m) + e :> Z)%Z.
 Proof.
 intros m e H.
 unfold F2R ; simpl.
 apply mag_mult_bpow.
-exact (Z2R_neq m 0 H).
+exact (IZR_neq m 0 H).
 Qed.
 
 Theorem Zdigits_mag :
   forall n,
   n <> Z0 ->
-  Zdigits beta n = mag beta (Z2R n).
+  Zdigits beta n = mag beta (IZR n).
 Proof.
 intros n Hn.
-destruct (mag beta (Z2R n)) as (e, He) ; simpl.
-specialize (He (Z2R_neq _ _ Hn)).
-rewrite <- Z2R_abs in He.
+destruct (mag beta (IZR n)) as (e, He) ; simpl.
+specialize (He (IZR_neq _ _ Hn)).
+rewrite <- abs_IZR in He.
 assert (Hd := Zdigits_correct beta n).
 assert (Hd' := Zdigits_gt_0 beta n).
 apply Zle_antisym ; apply (bpow_lt_bpow beta).
 apply Rle_lt_trans with (2 := proj2 He).
-rewrite <- Z2R_Zpower by omega.
-now apply Z2R_le.
+rewrite <- IZR_Zpower by omega.
+now apply IZR_le.
 apply Rle_lt_trans with (1 := proj1 He).
-rewrite <- Z2R_Zpower by omega.
-now apply Z2R_lt.
+rewrite <- IZR_Zpower by omega.
+now apply IZR_lt.
 Qed.
 
 Theorem mag_F2R_Zdigits :
@@ -486,7 +486,7 @@ Theorem float_distribution_pos :
   forall m1 e1 m2 e2 : Z,
   (0 < m1)%Z ->
   (F2R (Float beta m1 e1) < F2R (Float beta m2 e2) < F2R (Float beta (m1 + 1) e1))%R ->
-  (e2 < e1)%Z /\ (e1 + mag beta (Z2R m1) = e2 + mag beta (Z2R m2))%Z.
+  (e2 < e1)%Z /\ (e1 + mag beta (IZR m1) = e2 + mag beta (IZR m2))%Z.
 Proof.
 intros m1 e1 m2 e2 Hp1 (H12, H21).
 assert (He: (e2 < e1)%Z).
@@ -541,7 +541,7 @@ Theorem F2R_cond_Zopp :
   F2R (Float beta (cond_Zopp b m) e) = cond_Ropp b (F2R (Float beta m e)).
 Proof.
 intros [|] m e ; unfold F2R ; simpl.
-now rewrite Z2R_opp, Ropp_mult_distr_l_reverse.
+now rewrite opp_IZR, Ropp_mult_distr_l_reverse.
 apply refl_equal.
 Qed.
 

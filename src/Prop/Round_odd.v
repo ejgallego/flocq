@@ -23,7 +23,7 @@ COPYING file for more details.
 Require Import Reals Psatz.
 Require Import Core Operations.
 
-Definition Zrnd_odd x :=  match Req_EM_T x (Z2R (Zfloor x))  with
+Definition Zrnd_odd x :=  match Req_EM_T x (IZR (Zfloor x))  with
   | left _   => Zfloor x
   | right _  => match (Zeven (Zfloor x)) with
       | true => Zceil x
@@ -42,23 +42,23 @@ assert (Zfloor x <= Zrnd_odd y)%Z.
 (* .. *)
 apply Zle_trans with (Zfloor y).
 now apply Zfloor_le.
-unfold Zrnd_odd; destruct (Req_EM_T  y (Z2R (Zfloor y))).
+unfold Zrnd_odd; destruct (Req_EM_T  y (IZR (Zfloor y))).
 now apply Zle_refl.
 case (Zeven (Zfloor y)).
-apply le_Z2R.
+apply le_IZR.
 apply Rle_trans with y.
 apply Zfloor_lb.
 apply Zceil_ub.
 now apply Zle_refl.
 unfold Zrnd_odd at 1.
 (* . *)
-destruct (Req_EM_T  x (Z2R (Zfloor x))) as [Hx|Hx].
+destruct (Req_EM_T  x (IZR (Zfloor x))) as [Hx|Hx].
 (* .. *)
 apply H.
 (* .. *)
 case_eq (Zeven (Zfloor x)); intros Hx2.
 2: apply H.
-unfold Zrnd_odd; destruct (Req_EM_T  y (Z2R (Zfloor y))) as [Hy|Hy].
+unfold Zrnd_odd; destruct (Req_EM_T  y (IZR (Zfloor y))) as [Hy|Hy].
 apply Zceil_glb.
 now rewrite <- Hy.
 case_eq (Zeven (Zfloor y)); intros Hy2.
@@ -68,24 +68,24 @@ assert (H0:(Zfloor x <= Zfloor y)%Z) by now apply Zfloor_le.
 case (Zle_lt_or_eq _ _  H0); intros H1.
 apply Rle_trans with (1:=Zceil_ub _).
 rewrite Zceil_floor_neq.
-apply Z2R_le; omega.
+apply IZR_le; omega.
 now apply sym_not_eq.
 contradict Hy2.
 rewrite <- H1, Hx2; discriminate.
 (* . *)
 intros n; unfold Zrnd_odd.
-rewrite Zfloor_Z2R, Zceil_Z2R.
-destruct (Req_EM_T  (Z2R n) (Z2R n)); trivial.
+rewrite Zfloor_IZR, Zceil_IZR.
+destruct (Req_EM_T  (IZR n) (IZR n)); trivial.
 case (Zeven n); trivial.
 Qed.
 
 
 
-Lemma Zrnd_odd_Zodd: forall x, x <> (Z2R (Zfloor x)) ->
+Lemma Zrnd_odd_Zodd: forall x, x <> (IZR (Zfloor x)) ->
   (Zeven (Zrnd_odd x)) = false.
 Proof.
 intros x Hx; unfold Zrnd_odd.
-destruct (Req_EM_T  x (Z2R (Zfloor x))) as [H|H].
+destruct (Req_EM_T  x (IZR (Zfloor x))) as [H|H].
 now contradict H.
 case_eq (Zeven (Zfloor x)).
 (* difficult case *)
@@ -173,24 +173,24 @@ apply f_equal2; apply f_equal.
 rewrite scaled_mantissa_opp.
 generalize (scaled_mantissa beta fexp x); intros r.
 unfold Zrnd_odd.
-case (Req_EM_T (- r) (Z2R (Zfloor (- r)))).
-case (Req_EM_T r (Z2R (Zfloor r))).
+case (Req_EM_T (- r) (IZR (Zfloor (- r)))).
+case (Req_EM_T r (IZR (Zfloor r))).
 intros Y1 Y2.
-apply eq_Z2R.
-now rewrite Z2R_opp, <- Y1, <-Y2.
+apply eq_IZR.
+now rewrite opp_IZR, <- Y1, <-Y2.
 intros Y1 Y2.
-absurd (r=Z2R (Zfloor r)); trivial.
+absurd (r=IZR (Zfloor r)); trivial.
 pattern r at 2; replace r with (-(-r))%R by ring.
-rewrite Y2, <- Z2R_opp.
-rewrite Zfloor_Z2R.
-rewrite Z2R_opp, <- Y2.
+rewrite Y2, <- opp_IZR.
+rewrite Zfloor_IZR.
+rewrite opp_IZR, <- Y2.
 ring.
-case (Req_EM_T r (Z2R (Zfloor r))).
+case (Req_EM_T r (IZR (Zfloor r))).
 intros Y1 Y2.
-absurd (-r=Z2R (Zfloor (-r)))%R; trivial.
+absurd (-r=IZR (Zfloor (-r)))%R; trivial.
 pattern r at 2; rewrite Y1.
-rewrite <- Z2R_opp, Zfloor_Z2R.
-now rewrite Z2R_opp, <- Y1.
+rewrite <- opp_IZR, Zfloor_IZR.
+now rewrite opp_IZR, <- Y1.
 intros Y1 Y2.
 unfold Zceil; rewrite Ropp_involutive.
 replace  (Zeven (Zfloor (- r))) with (negb (Zeven (Zfloor r))).
@@ -247,7 +247,7 @@ right; apply round_UP_pt...
 (* *)
 unfold o, Zrnd_odd, round.
 case (Req_EM_T (scaled_mantissa beta fexp x)
-     (Z2R (Zfloor (scaled_mantissa beta fexp x)))).
+     (IZR (Zfloor (scaled_mantissa beta fexp x)))).
 intros T.
 absurd (o=x); trivial.
 apply round_generic...
@@ -326,7 +326,7 @@ apply trans_eq with (round beta fexp Ztrunc (round beta fexp Zceil x)).
 reflexivity.
 apply round_generic...
 simpl.
-apply eq_Z2R, Rmult_eq_reg_r with (bpow (cexp x)).
+apply eq_IZR, Rmult_eq_reg_r with (bpow (cexp x)).
 unfold round, F2R in Y; simpl in Y; rewrite <- Y.
 simpl; ring.
 apply Rgt_not_eq, bpow_gt_0.
@@ -349,7 +349,7 @@ reflexivity.
 intros Hrx; contradict Y.
 replace (Zfloor (scaled_mantissa beta fexp x)) with 0%Z.
 simpl; discriminate.
-apply eq_Z2R, Rmult_eq_reg_r with (bpow (cexp x)).
+apply eq_IZR, Rmult_eq_reg_r with (bpow (cexp x)).
 unfold round, F2R in Hrx; simpl in Hrx; rewrite <- Hrx.
 simpl; ring.
 apply Rgt_not_eq, bpow_gt_0.
@@ -465,7 +465,7 @@ assert (F2R (Float beta
      (Fnum g*Z.pow (radix_val beta) (Fexp g - c (mag beta x)))
      (c (mag beta x))) = x).
 unfold F2R; simpl.
-rewrite Z2R_mult, Z2R_Zpower.
+rewrite mult_IZR, IZR_Zpower.
 rewrite Rmult_assoc, <- bpow_plus.
 rewrite <- Hg1; unfold F2R.
 apply f_equal, f_equal.
@@ -656,7 +656,7 @@ apply bpow_ge_0.
 simpl; unfold Z.pow_pos; simpl.
 rewrite Zmult_1_r; apply Rinv_le.
 exact Rlt_0_2.
-apply (Z2R_le 2).
+apply (IZR_le 2).
 specialize (radix_gt_1 beta).
 omega.
 apply Rlt_le_trans with (bpow (fexp e)*1)%R.
@@ -696,10 +696,10 @@ rewrite F2R_mult, F2R_plus, Hu'1.
 unfold m; rewrite Rmult_comm.
 unfold Rdiv; apply f_equal.
 unfold F2R; simpl; unfold Z.pow_pos; simpl.
-rewrite Zmult_1_r, Hb, Z2R_mult.
+rewrite Zmult_1_r, Hb, mult_IZR.
 simpl; field.
 apply Rgt_not_eq, Rmult_lt_reg_l with (1 := Rlt_0_2).
-rewrite Rmult_0_r, <- (Z2R_mult 2), <-Hb.
+rewrite Rmult_0_r, <- (mult_IZR 2), <-Hb.
 apply radix_pos.
 apply trans_eq with (-1+Fexp (Fplus beta d u'))%Z.
 unfold Fmult.
@@ -724,10 +724,10 @@ rewrite F2R_mult; unfold m; rewrite <- Y, Rplus_0_l.
 rewrite Rmult_comm.
 unfold Rdiv; apply f_equal.
 unfold F2R; simpl; unfold Z.pow_pos; simpl.
-rewrite Zmult_1_r, Hb, Z2R_mult.
+rewrite Zmult_1_r, Hb, mult_IZR.
 simpl; field.
 apply Rgt_not_eq, Rmult_lt_reg_l with (1 := Rlt_0_2).
-rewrite Rmult_0_r, <- (Z2R_mult 2), <-Hb.
+rewrite Rmult_0_r, <- (mult_IZR 2), <-Hb.
 apply radix_pos.
 apply trans_eq with (-1+Fexp u)%Z.
 unfold Fmult.

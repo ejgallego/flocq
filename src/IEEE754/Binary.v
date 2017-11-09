@@ -340,11 +340,11 @@ Proof.
 intros. destruct x, y; try (apply B2R_inj; now eauto).
 - simpl in H2. congruence.
 - symmetry in H1. apply Rmult_integral in H1.
-  destruct H1. apply (eq_Z2R _ 0) in H1. destruct s0; discriminate H1.
+  destruct H1. apply (eq_IZR _ 0) in H1. destruct s0; discriminate H1.
   simpl in H1. pose proof (bpow_gt_0 radix2 e).
   rewrite H1 in H3. apply Rlt_irrefl in H3. destruct H3.
 - apply Rmult_integral in H1.
-  destruct H1. apply (eq_Z2R _ 0) in H1. destruct s; discriminate H1.
+  destruct H1. apply (eq_IZR _ 0) in H1. destruct s; discriminate H1.
   simpl in H1. pose proof (bpow_gt_0 radix2 e).
   rewrite H1 in H3. apply Rlt_irrefl in H3. destruct H3.
 Qed.
@@ -549,8 +549,8 @@ Proof.
   apply andb_prop in e2; destruct e2; apply (canonical_canonical_mantissa false) in H1.
   pose proof (Zcompare_spec e e1); unfold canonical, Fexp in H1, H.
   assert (forall m1 m2 e1 e2,
-    let x := (Z2R (Zpos m1) * bpow radix2 e1)%R in
-    let y := (Z2R (Zpos m2) * bpow radix2 e2)%R in
+    let x := (IZR (Zpos m1) * bpow radix2 e1)%R in
+    let y := (IZR (Zpos m2) * bpow radix2 e2)%R in
     (cexp radix2 fexp x < cexp radix2 fexp y)%Z -> (x < y)%R).
   {
   intros; apply Rnot_le_lt; intro; apply (mag_le radix2) in H5.
@@ -558,7 +558,7 @@ Proof.
   now apply fexp_monotone.
   now apply (F2R_gt_0_compat _ (Float radix2 (Zpos m2) e2)).
   }
-  assert (forall m1 m2 e1 e2, (Z2R (- Zpos m1) * bpow radix2 e1 < Z2R (Zpos m2) * bpow radix2 e2)%R).
+  assert (forall m1 m2 e1 e2, (IZR (- Zpos m1) * bpow radix2 e1 < IZR (Zpos m2) * bpow radix2 e2)%R).
   {
   intros; apply (Rlt_trans _ 0%R).
   now apply (F2R_lt_0_compat _ (Float radix2 (Zneg m1) e0)).
@@ -567,9 +567,9 @@ Proof.
   unfold F2R, Fnum, Fexp.
   destruct s, s0; try (now apply_Rcompare; apply H5); inversion H3;
     try (apply_Rcompare; apply H4; rewrite H, H1 in H7; assumption);
-    try (apply_Rcompare; do 2 rewrite Z2R_opp, Ropp_mult_distr_l_reverse;
+    try (apply_Rcompare; do 2 rewrite opp_IZR, Ropp_mult_distr_l_reverse;
       apply Ropp_lt_contravar; apply H4; rewrite H, H1 in H7; assumption);
-    rewrite H7, Rcompare_mult_r, Rcompare_Z2R by (apply bpow_gt_0); reflexivity.
+    rewrite H7, Rcompare_mult_r, Rcompare_IZR by (apply bpow_gt_0); reflexivity.
 Qed.
 
 Theorem Bcompare_swap :
@@ -722,11 +722,11 @@ intros x mrs e Hm Hl.
 refine (_ (new_location_even_correct (F2R (Float radix2 (shr_m (shr_1 mrs)) (e + 1))) (bpow radix2 e) 2 _ _ _ x (if shr_r (shr_1 mrs) then 1 else 0) (loc_of_shr_record mrs) _ _)) ; try easy.
 2: apply bpow_gt_0.
 2: now case (shr_r (shr_1 mrs)) ; split.
-change (Z2R 2) with (bpow radix2 1).
+change (IZR 2) with (bpow radix2 1).
 rewrite <- bpow_plus.
 rewrite (Zplus_comm 1), <- (F2R_bpow radix2 (e + 1)).
 unfold inbetween_float, F2R. simpl.
-rewrite Z2R_plus, Rmult_plus_distr_r.
+rewrite plus_IZR, Rmult_plus_distr_r.
 replace (new_location_even 2 (if shr_r (shr_1 mrs) then 1%Z else 0%Z) (loc_of_shr_record mrs)) with (loc_of_shr_record (shr_1 mrs)).
 easy.
 clear -Hm.
@@ -735,7 +735,7 @@ now destruct m as [|[m|m|]|m] ; try (now elim Hm) ; destruct r as [|] ; destruct
 rewrite (F2R_change_exp radix2 e).
 2: apply Zle_succ.
 unfold F2R. simpl.
-rewrite <- 2!Rmult_plus_distr_r, <- 2!Z2R_plus.
+rewrite <- 2!Rmult_plus_distr_r, <- 2!plus_IZR.
 rewrite Zplus_assoc.
 replace (shr_m (shr_1 mrs) * 2 ^ (e + 1 - e) + (if shr_r (shr_1 mrs) then 1%Z else 0%Z))%Z with (shr_m mrs).
 exact Hl.
@@ -1019,8 +1019,8 @@ cut (prec - 1 < Zdigits radix2 (Zpos p))%Z. clear ; omega.
 apply Zdigits_gt_Zpower.
 simpl Zabs. rewrite <- Hp.
 cut (Zpower radix2 (prec - 1) < Zpower radix2 prec)%Z. clear ; omega.
-apply lt_Z2R.
-rewrite 2!Z2R_Zpower. 2: now apply Zlt_le_weak.
+apply lt_IZR.
+rewrite 2!IZR_Zpower. 2: now apply Zlt_le_weak.
 apply bpow_lt.
 apply Zlt_pred.
 now apply Zlt_0_le_0_pred.
@@ -1393,7 +1393,7 @@ rewrite Rplus_0_l, round_generic, Rlt_bool_true...
 split... split...
 simpl. unfold F2R.
 erewrite <- Rmult_0_l, Rcompare_mult_r.
-rewrite Rcompare_Z2R with (y:=0%Z).
+rewrite Rcompare_IZR with (y:=0%Z).
 destruct sy...
 apply bpow_gt_0.
 apply abs_B2R_lt_emax.
@@ -1403,7 +1403,7 @@ rewrite Rplus_0_r, round_generic, Rlt_bool_true...
 split... split...
 simpl. unfold F2R.
 erewrite <- Rmult_0_l, Rcompare_mult_r.
-rewrite Rcompare_Z2R with (y:=0%Z).
+rewrite Rcompare_IZR with (y:=0%Z).
 destruct sx...
 apply bpow_gt_0.
 apply abs_B2R_lt_emax.
@@ -1432,7 +1432,7 @@ rewrite H1, H2.
 clear H1 H2.
 rewrite <- 2!F2R_cond_Zopp.
 unfold F2R. simpl.
-now rewrite <- Rmult_plus_distr_r, <- Z2R_plus.
+now rewrite <- Rmult_plus_distr_r, <- plus_IZR.
 rewrite Hp.
 assert (Sz: (bpow radix2 emax <= Rabs (round radix2 fexp (round_mode m) (F2R (Float radix2 mz ez))))%R -> sx = Rlt_bool (F2R (Float radix2 mz ez)) 0 /\ sx = sy).
 (* . *)
@@ -1818,7 +1818,7 @@ rewrite <- (Rplus_opp_r 1).
 apply Rplus_le_compat_l.
 apply Rlt_le.
 apply (Rabs_lt_inv _ _ Heps').
-now apply (Z2R_le 0 2).
+now apply (IZR_le 0 2).
 change 4%R with (bpow radix2 2).
 apply bpow_le.
 generalize (prec_gt_0 prec).

@@ -48,19 +48,19 @@ destruct (Zle_or_lt e' e) as [He|He].
 exists m.
 unfold F2R at 2. simpl.
 rewrite Rmult_assoc, <- bpow_plus.
-rewrite <- Z2R_Zpower. 2: omega.
-rewrite <- Z2R_mult, Zrnd_Z2R...
+rewrite <- IZR_Zpower. 2: omega.
+rewrite <- mult_IZR, Zrnd_IZR...
 unfold F2R. simpl.
-rewrite Z2R_mult.
+rewrite mult_IZR.
 rewrite Rmult_assoc.
-rewrite Z2R_Zpower. 2: omega.
+rewrite IZR_Zpower. 2: omega.
 rewrite <- bpow_plus.
-apply (f_equal (fun v => Z2R m * bpow v)%R).
+apply (f_equal (fun v => IZR m * bpow v)%R).
 ring.
-exists ((rnd (Z2R m * bpow (e - e'))) * Zpower beta (e' - e))%Z.
+exists ((rnd (IZR m * bpow (e - e'))) * Zpower beta (e' - e))%Z.
 unfold F2R. simpl.
-rewrite Z2R_mult.
-rewrite Z2R_Zpower. 2: omega.
+rewrite mult_IZR.
+rewrite IZR_Zpower. 2: omega.
 rewrite 2!Rmult_assoc.
 rewrite <- 2!bpow_plus.
 apply (f_equal (fun v => _ * bpow v)%R).
@@ -256,7 +256,7 @@ apply generic_format_FIX.
 exists (Float beta (Fnum nx+Fnum ny)%Z emin).
 rewrite H1x,H1y; unfold F2R; simpl.
 rewrite H2x, H2y.
-rewrite Z2R_plus; ring.
+rewrite plus_IZR; ring.
 easy.
 Qed.
 
@@ -279,24 +279,24 @@ Notation format := (generic_format beta fexp).
 Notation cexp := (cexp beta fexp).
 
 Lemma ex_shift: forall x e, format x -> (e <= cexp x)%Z ->
-  exists m, (x = Z2R m*bpow e)%R.
+  exists m, (x = IZR m*bpow e)%R.
 Proof with auto with typeclass_instances.
 intros x e Fx He.
 exists (Ztrunc (scaled_mantissa beta fexp x)*Zpower beta (cexp x -e))%Z.
 rewrite Fx at 1; unfold F2R; simpl.
-rewrite Z2R_mult, Rmult_assoc.
+rewrite mult_IZR, Rmult_assoc.
 f_equal.
-rewrite Z2R_Zpower.
+rewrite IZR_Zpower.
 2: omega.
 rewrite <- bpow_plus; f_equal; ring.
 Qed.
 
 Lemma mag_minus1: 
-   forall z, (z<>0)%R -> (mag beta z -1 = mag beta (z / Z2R beta))%Z.
+   forall z, (z<>0)%R -> (mag beta z -1 = mag beta (z / IZR beta))%Z.
 Proof with auto with typeclass_instances.
 intros z Hz; apply sym_eq, mag_unique.
 destruct (mag beta z) as (e,He); simpl.
-replace (z / Z2R beta)%R with (z*bpow (-1))%R.
+replace (z / IZR beta)%R with (z*bpow (-1))%R.
 rewrite Rabs_mult, (Rabs_right (bpow _)); try split.
 apply Rmult_le_reg_r with (bpow 1).
 apply bpow_gt_0.
@@ -318,11 +318,11 @@ Qed.
 Lemma rnd_plus_mutiple:
    forall x y, format x -> format y -> (x <> 0)%R ->
     exists m,
-     (round beta fexp rnd (x+y) = Z2R m * ulp beta fexp (x/Z2R beta))%R.
+     (round beta fexp rnd (x+y) = IZR m * ulp beta fexp (x/IZR beta))%R.
 Proof with auto with typeclass_instances.
 intros x y Fx Fy Zx.
-case (Zle_or_lt (mag beta (x/Z2R beta)) (mag beta y)); intros H1.
-pose (e:=cexp (x / Z2R beta)).
+case (Zle_or_lt (mag beta (x/IZR beta)) (mag beta y)); intros H1.
+pose (e:=cexp (x / IZR beta)).
 destruct (ex_shift x e) as (nx, Hnx); try exact Fx.
 apply monotone_exp.
 rewrite <- (mag_minus1 x Zx); omega.
@@ -332,7 +332,7 @@ destruct (round_repr_same_exp beta fexp rnd (nx+ny) e) as (n,Hn).
 exists n.
 apply trans_eq with (F2R (Float beta n e)).
 rewrite <- Hn; f_equal.
-rewrite Hnx, Hny; unfold F2R; simpl; rewrite Z2R_plus; ring.
+rewrite Hnx, Hny; unfold F2R; simpl; rewrite plus_IZR; ring.
 unfold F2R; simpl.
 rewrite ulp_neq_0; try easy.
 apply Rmult_integral_contrapositive_currified; try assumption.
@@ -340,7 +340,7 @@ apply Rinv_neq_0_compat.
 apply Rgt_not_eq.
 apply radix_pos.
 (* *)
-destruct (ex_shift (round beta fexp rnd (x + y)) (cexp (x/Z2R beta))) as (n,Hn).
+destruct (ex_shift (round beta fexp rnd (x + y)) (cexp (x/IZR beta))) as (n,Hn).
 apply generic_format_round...
 apply Zle_trans with (cexp (x+y)).
 apply monotone_exp.
@@ -427,7 +427,7 @@ Qed.
 
 Lemma rnd_0_or_ge: Exp_not_FTZ fexp -> forall x y, format x -> format y -> 
    (round beta fexp rnd (x+y) = 0)%R \/ 
-     (ulp beta fexp (x/Z2R beta) <= Rabs (round beta fexp rnd (x+y)))%R.
+     (ulp beta fexp (x/IZR beta) <= Rabs (round beta fexp rnd (x+y)))%R.
 Proof with auto with typeclass_instances.
 intros exp_not_FTZ x y Fx Fy.
 case (Req_dec x 0); intros Zx.
@@ -449,13 +449,13 @@ rewrite <- ulp_neq_0.
 apply ulp_ge_ulp_0...
 intros K; apply Hm.
 rewrite K, scaled_mantissa_0.
-replace 0%R with (Z2R 0) by reflexivity.
-apply Ztrunc_Z2R.
+replace 0%R with (IZR 0) by reflexivity.
+apply Ztrunc_IZR.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
-rewrite <- Z2R_abs.
-replace 1%R with (Z2R 1) by reflexivity.
-apply Z2R_le.
+rewrite <- abs_IZR.
+replace 1%R with (IZR 1) by reflexivity.
+apply IZR_le.
 assert (0 < Z.abs (Ztrunc (scaled_mantissa beta fexp y)))%Z;[|omega].
 now apply Z.abs_pos.
 (* *)
@@ -467,13 +467,13 @@ right.
 rewrite Hm, Rabs_mult.
 rewrite (Rabs_right (ulp _ _ _)).
 2: apply Rle_ge, ulp_ge_0.
-apply Rle_trans with (1*ulp beta fexp (x/Z2R beta))%R.
+apply Rle_trans with (1*ulp beta fexp (x/IZR beta))%R.
 right; ring.
 apply Rmult_le_compat_r.
 apply ulp_ge_0.
-rewrite <- Z2R_abs.
-replace 1%R with (Z2R 1) by reflexivity.
-apply Z2R_le.
+rewrite <- abs_IZR.
+replace 1%R with (IZR 1) by reflexivity.
+apply IZR_le.
 assert (0 < Z.abs m)%Z;[|omega].
 now apply Z.abs_pos.
 Qed.

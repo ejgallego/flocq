@@ -152,7 +152,7 @@ omega.
 (* . round *)
 unfold inbetween_float, F2R. simpl.
 rewrite sqrt_mult.
-2: now apply (Z2R_le 0) ; apply Zlt_le_weak.
+2: now apply (IZR_le 0) ; apply Zlt_le_weak.
 2: apply Rlt_le ; apply bpow_gt_0.
 destruct (Zeven_ex e') as (e2, Hev).
 rewrite He1, Zplus_0_r in Hev. clear He1.
@@ -168,56 +168,56 @@ apply bpow_gt_0.
 rewrite Hq.
 case Zeq_bool_spec ; intros Hr'.
 (* .. r = 0 *)
-rewrite Hr', Zplus_0_r, Z2R_mult.
-fold (Rsqr (Z2R q)).
+rewrite Hr', Zplus_0_r, mult_IZR.
+fold (Rsqr (IZR q)).
 rewrite sqrt_Rsqr.
 now constructor.
-apply (Z2R_le 0).
+apply (IZR_le 0).
 omega.
 (* .. r <> 0 *)
 constructor.
 split.
 (* ... bounds *)
-apply Rle_lt_trans with (sqrt (Z2R (q * q))).
-rewrite Z2R_mult.
-fold (Rsqr (Z2R q)).
+apply Rle_lt_trans with (sqrt (IZR (q * q))).
+rewrite mult_IZR.
+fold (Rsqr (IZR q)).
 rewrite sqrt_Rsqr.
 apply Rle_refl.
-apply (Z2R_le 0).
+apply (IZR_le 0).
 omega.
 apply sqrt_lt_1.
-rewrite Z2R_mult.
+rewrite mult_IZR.
 apply Rle_0_sqr.
 rewrite <- Hq.
-apply (Z2R_le 0).
+apply (IZR_le 0).
 now apply Zlt_le_weak.
-apply Z2R_lt.
+apply IZR_lt.
 omega.
-apply Rlt_le_trans with (sqrt (Z2R ((q + 1) * (q + 1)))).
+apply Rlt_le_trans with (sqrt (IZR ((q + 1) * (q + 1)))).
 apply sqrt_lt_1.
 rewrite <- Hq.
-apply (Z2R_le 0).
+apply (IZR_le 0).
 now apply Zlt_le_weak.
-rewrite Z2R_mult.
+rewrite mult_IZR.
 apply Rle_0_sqr.
-apply Z2R_lt.
+apply IZR_lt.
 ring_simplify.
 omega.
-rewrite Z2R_mult.
-fold (Rsqr (Z2R (q + 1))).
+rewrite mult_IZR.
+fold (Rsqr (IZR (q + 1))).
 rewrite sqrt_Rsqr.
 apply Rle_refl.
-apply (Z2R_le 0).
+apply (IZR_le 0).
 omega.
 (* ... location *)
 rewrite Rcompare_half_r.
 rewrite <- Rcompare_sqr.
-replace ((2 * sqrt (Z2R (q * q + r))) * (2 * sqrt (Z2R (q * q + r))))%R
-  with (4 * Rsqr (sqrt (Z2R (q * q + r))))%R by (unfold Rsqr ; ring).
+replace ((2 * sqrt (IZR (q * q + r))) * (2 * sqrt (IZR (q * q + r))))%R
+  with (4 * Rsqr (sqrt (IZR (q * q + r))))%R by (unfold Rsqr ; ring).
 rewrite Rsqr_sqrt.
-change 4%R with (Z2R 4).
-rewrite <- Z2R_plus, <- 2!Z2R_mult.
-rewrite Rcompare_Z2R.
+change 4%R with (IZR 4).
+rewrite <- plus_IZR, <- 2!mult_IZR.
+rewrite Rcompare_IZR.
 replace ((q + (q + 1)) * (q + (q + 1)))%Z with (4 * (q * q) + 4 * q + 1)%Z by ring.
 generalize (Zle_cases r q).
 case (Zle_bool r q) ; intros Hr''.
@@ -226,13 +226,13 @@ omega.
 change (4 * (q * q + r) > 4 * (q * q) + 4 * q + 1)%Z.
 omega.
 rewrite <- Hq.
-apply (Z2R_le 0).
+apply (IZR_le 0).
 now apply Zlt_le_weak.
 apply Rmult_le_pos.
-now apply (Z2R_le 0 2).
+now apply (IZR_le 0 2).
 apply sqrt_ge_0.
-rewrite <- Z2R_plus.
-apply (Z2R_le 0).
+rewrite <- plus_IZR.
+apply (IZR_le 0).
 omega.
 Qed.
 

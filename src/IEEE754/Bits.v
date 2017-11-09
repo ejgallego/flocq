@@ -412,19 +412,19 @@ assert (prec = Zdigits radix2 (Zpos px)).
 rewrite Zdigits_mag. 2: discriminate.
 apply sym_eq.
 apply mag_unique.
-rewrite <- Z2R_abs.
+rewrite <- abs_IZR.
 unfold Zabs.
 replace (prec - 1)%Z with mw by ( unfold prec ; ring ).
-rewrite <- Z2R_Zpower with (1 := Zlt_le_weak _ _ Hmw).
-rewrite <- Z2R_Zpower. 2: now apply Zlt_le_weak.
+rewrite <- IZR_Zpower with (1 := Zlt_le_weak _ _ Hmw).
+rewrite <- IZR_Zpower. 2: now apply Zlt_le_weak.
 rewrite <- Hm.
 split.
-apply Z2R_le.
+apply IZR_le.
 change (radix2^mw)%Z with (0 + 2^mw)%Z.
 apply Zplus_le_compat_r.
 eapply Z_mod_lt.
 now apply Zlt_gt.
-apply Z2R_lt.
+apply IZR_lt.
 unfold prec.
 rewrite Zpower_exp. 2: now apply Zle_ge ; apply Zlt_le_weak. 2: discriminate.
 rewrite <- Zplus_diag_eq_mult_2.

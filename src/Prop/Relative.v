@@ -237,7 +237,7 @@ rewrite Rmult_assoc.
 apply Rmult_le_compat_l.
 apply Rlt_le.
 apply Rinv_0_lt_compat.
-now apply (Z2R_lt 0 2).
+now apply (IZR_lt 0 2).
 assert (Hx': (x <> 0)%R).
 intros H.
 apply Rlt_not_le with (2 := Hx).
@@ -274,7 +274,7 @@ apply relative_error_le_conversion...
 apply Rlt_le.
 apply Rmult_lt_0_compat.
 apply Rinv_0_lt_compat.
-now apply (Z2R_lt 0 2).
+now apply (IZR_lt 0 2).
 apply bpow_gt_0.
 now apply relative_error_N.
 Qed.
@@ -311,7 +311,7 @@ apply relative_error_le_conversion...
 apply Rlt_le.
 apply Rmult_lt_0_compat.
 apply Rinv_0_lt_compat.
-now apply (Z2R_lt 0 2).
+now apply (IZR_lt 0 2).
 apply bpow_gt_0.
 now apply relative_error_N_F2R_emin.
 Qed.
@@ -329,7 +329,7 @@ rewrite Rmult_assoc.
 apply Rmult_le_compat_l.
 apply Rlt_le.
 apply Rinv_0_lt_compat.
-now apply (Z2R_lt 0 2).
+now apply (IZR_lt 0 2).
 assert (Hx': (x <> 0)%R).
 intros H.
 apply Rlt_not_le with (2 := Hx).
@@ -486,7 +486,7 @@ apply relative_error_le_conversion...
 apply Rlt_le.
 apply Rmult_lt_0_compat.
 apply Rinv_0_lt_compat.
-now apply (Z2R_lt 0 2).
+now apply (IZR_lt 0 2).
 apply bpow_gt_0.
 now apply relative_error_N_FLT.
 Qed.
@@ -749,7 +749,7 @@ apply relative_error_le_conversion...
 apply Rlt_le.
 apply Rmult_lt_0_compat.
 apply Rinv_0_lt_compat.
-now apply (Z2R_lt 0 2).
+now apply (IZR_lt 0 2).
 apply bpow_gt_0.
 now apply relative_error_N_FLX.
 Qed.
