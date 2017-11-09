@@ -22,11 +22,11 @@ Require Import Core Digits Binary.
 
 Section Binary_Bits.
 
-Implicit Arguments exist [[A] [P]].
-Implicit Arguments B754_zero [[prec] [emax]].
-Implicit Arguments B754_infinity [[prec] [emax]].
-Implicit Arguments B754_nan [[prec] [emax]].
-Implicit Arguments B754_finite [[prec] [emax]].
+Arguments exist {A} {P}.
+Arguments B754_zero {prec} {emax}.
+Arguments B754_infinity {prec} {emax}.
+Arguments B754_nan {prec} {emax}.
+Arguments B754_finite {prec} {emax}.
 
 (** Number of bits for the fraction and exponent *)
 Variable mw ew : Z.
@@ -39,17 +39,20 @@ Let emin := (3 - emax - prec)%Z.
 Let binary_float := binary_float prec emax.
 
 Let Hprec : (0 < prec)%Z.
+Proof.
 unfold prec.
 apply Zle_lt_succ.
 now apply Zlt_le_weak.
 Qed.
 
 Let Hm_gt_0 : (0 < 2^mw)%Z.
+Proof.
 apply (Zpower_gt_0 radix2).
 now apply Zlt_le_weak.
 Qed.
 
 Let He_gt_0 : (0 < 2^ew)%Z.
+Proof.
 apply (Zpower_gt_0 radix2).
 now apply Zlt_le_weak.
 Qed.
@@ -602,7 +605,7 @@ End Binary_Bits.
 (** Specialization for IEEE single precision operations *)
 Section B32_Bits.
 
-Implicit Arguments B754_nan [[prec] [emax]].
+Arguments B754_nan {prec} {emax}.
 
 Definition binary32 := binary_float 24 128.
 
@@ -645,7 +648,7 @@ End B32_Bits.
 (** Specialization for IEEE double precision operations *)
 Section B64_Bits.
 
-Implicit Arguments B754_nan [[prec] [emax]].
+Arguments B754_nan {prec} {emax}.
 
 Definition binary64 := binary_float 53 1024.
 
