@@ -169,7 +169,7 @@ intros He.
 specialize (He Zm).
 unfold F2R at 3. simpl.
 rewrite  F2R_change_exp with (1 := He).
-apply F2R_eq_compat.
+apply F2R_eq.
 rewrite Rmult_assoc, <- bpow_plus, <- IZR_Zpower, <- mult_IZR.
 now rewrite Ztrunc_IZR.
 now apply Zle_left.
@@ -187,7 +187,7 @@ apply generic_format_F2R.
 simpl in *; intros H3.
 rewrite H1; apply H2.
 intros Y; apply H3.
-apply F2R_eq_0_reg with beta e.
+apply eq_0_F2R with beta e.
 now rewrite H1.
 Qed.
 
@@ -232,7 +232,7 @@ rewrite H in H1.
 rewrite <- H2 in H1. clear H2.
 rewrite H1 in H |- *.
 apply (f_equal (fun m => Float beta m e2)).
-apply F2R_eq_reg with (1 := H).
+apply eq_F2R with (1 := H).
 Qed.
 
 Theorem scaled_mantissa_generic :
@@ -466,7 +466,7 @@ intros x m e (Hx,Hx2) Hf.
 apply Rlt_not_le with (1 := Hx2). clear Hx2.
 rewrite Hf.
 fold e.
-apply F2R_le_compat.
+apply F2R_le.
 apply Zlt_le_succ.
 apply lt_IZR.
 rewrite <- scaled_mantissa_generic with (1 := Hf).
@@ -483,7 +483,7 @@ intros (m, e) Hf.
 unfold canonical in Hf. simpl in Hf.
 unfold generic_format, scaled_mantissa.
 rewrite <- Hf.
-apply F2R_eq_compat.
+apply F2R_eq.
 unfold F2R. simpl.
 rewrite Rmult_assoc, <- bpow_plus, Zplus_opp_r, Rmult_1_r.
 now rewrite Ztrunc_IZR.
@@ -720,7 +720,7 @@ assert (Heq: fexp ex = fexp ey -> (round x <= round y)%R).
   rewrite mag_unique_pos with (1 := Hex).
   rewrite mag_unique_pos with (1 := Hey).
   rewrite H.
-  apply F2R_le_compat.
+  apply F2R_le.
   apply Zrnd_le.
   apply Rmult_le_compat_r with (2 := Hxy).
   apply bpow_ge_0.
@@ -853,7 +853,7 @@ Proof.
 intros x.
 unfold round.
 rewrite <- F2R_Zopp, cexp_opp, scaled_mantissa_opp.
-apply F2R_eq_compat.
+apply F2R_eq.
 apply sym_eq.
 exact (Zopp_involutive _).
 Qed.
@@ -938,7 +938,7 @@ now apply Ropp_lt_contravar.
 now apply Ropp_le_contravar.
 (* . 0 <= y *)
 apply Rle_trans with 0%R.
-apply F2R_le_0_compat. simpl.
+apply F2R_le_0. simpl.
 rewrite <- (Zrnd_IZR rnd 0).
 apply Zrnd_le...
 simpl.
@@ -946,7 +946,7 @@ rewrite <- (Rmult_0_l (bpow (- fexp (mag beta x)))).
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 now apply Rlt_le.
-apply F2R_ge_0_compat. simpl.
+apply F2R_ge_0. simpl.
 rewrite <- (Zrnd_IZR rnd 0).
 apply Zrnd_le...
 apply Rmult_le_pos.
@@ -955,7 +955,7 @@ apply bpow_ge_0.
 (* x = 0 *)
 rewrite Hx.
 rewrite round_0...
-apply F2R_ge_0_compat.
+apply F2R_ge_0.
 simpl.
 rewrite <- (Zrnd_IZR rnd 0).
 apply Zrnd_le...
@@ -2291,7 +2291,7 @@ intros Zx.
 unfold cexp at 1.
 rewrite mag_round_ZR...
 contradict Zx.
-apply F2R_eq_0_reg with (1 := Zx).
+apply eq_0_F2R with (1 := Zx).
 (* - - round fexp2 x has too many digits for fexp1 *)
 destruct (round_bounded_large_pos fexp2 rnd x ex He Ex) as (Hr1,[Hr2|Hr2]).
 apply generic_format_F2R.

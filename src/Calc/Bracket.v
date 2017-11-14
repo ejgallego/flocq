@@ -587,7 +587,7 @@ intros x m e l [Hx|l' Hx Hl].
 rewrite Hx.
 split.
 apply Rle_refl.
-apply F2R_lt_compat.
+apply F2R_lt.
 apply Zlt_succ.
 split.
 now apply Rlt_le.
@@ -649,7 +649,7 @@ Theorem inbetween_float_ex :
 Proof.
 intros m e l.
 apply inbetween_ex.
-apply F2R_lt_compat.
+apply F2R_lt.
 apply Zlt_succ.
 Qed.
 
@@ -666,7 +666,7 @@ apply inbetween_unique with (1 := H) (2 := H').
 destruct (inbetween_float_bounds x m e l H) as (H1,H2).
 destruct (inbetween_float_bounds x m' e l' H') as (H3,H4).
 cut (m < m' + 1 /\ m' < m + 1)%Z. clear ; omega.
-now split ; apply F2R_lt_reg with beta e ; apply Rle_lt_trans with x.
+now split ; apply lt_F2R with beta e ; apply Rle_lt_trans with x.
 Qed.
 
 End Fcalc_bracket_generic.

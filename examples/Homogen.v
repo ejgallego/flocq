@@ -162,7 +162,7 @@ apply Rplus_le_le_0_compat with (2 := Ho1).
 apply Rmult_le_pos.
 apply Rplus_le_le_0_compat with (1 := Ho1).
 now apply Rle_trans with (1 := Rle_0_1).
-now apply F2R_ge_0_compat.
+now apply F2R_ge_0.
 apply (conj Ho2).
 intros H.
 specialize (Ho (Rle_trans _ _ _ H (Rmin_l _ _))).
@@ -229,7 +229,7 @@ Lemma hombnd_sub_init :
 Proof.
 intros u v Fu Fv.
 split.
-now apply F2R_ge_0_compat.
+now apply F2R_ge_0.
 unfold F2R at 1 3 ; simpl.
 rewrite 2!Rmult_1_l.
 repeat split ; try apply Rle_refl.
@@ -239,7 +239,7 @@ rewrite round_generic.
 unfold Rminus at 1.
 rewrite Rplus_opp_r, Rabs_R0.
 apply Rmult_le_pos.
-now apply F2R_ge_0_compat.
+now apply F2R_ge_0.
 apply Rabs_pos.
 apply valid_rnd_N.
 apply FLT_format_plus_small ; try easy.

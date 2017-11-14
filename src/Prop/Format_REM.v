@@ -79,7 +79,7 @@ apply generic_format_F2R.
 rewrite <- H0; intros H3.
 apply monotone_exp.
 apply mag_le_abs.
-rewrite H0; apply F2R_neq_0_compat; easy.
+rewrite H0; apply F2R_neq_0; easy.
 apply Rmult_le_reg_l with (/Rabs y)%R.
 apply Rinv_0_lt_compat.
 apply Rabs_pos_lt.

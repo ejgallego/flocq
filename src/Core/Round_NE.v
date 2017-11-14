@@ -113,7 +113,7 @@ rewrite (Rabs_pos_eq _ (Rlt_le _ _ H0x)) in Hex.
 destruct (Zle_or_lt ex (fexp ex)) as [Hxe|Hxe].
 (* small x *)
 assert (Hd3 : Fnum xd = Z0).
-apply F2R_eq_0_reg with beta (Fexp xd).
+apply eq_0_F2R with beta (Fexp xd).
 change (F2R xd = R0).
 rewrite Hxd.
 apply round_DN_small_pos with (1 := Hex) (2 := Hxe).

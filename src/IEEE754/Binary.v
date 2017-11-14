@@ -255,12 +255,12 @@ case sx ; case sy ; try easy ;
   intros Heq ; apply False_ind ; revert Heq.
 apply Rlt_not_eq.
 apply Rlt_trans with R0.
-now apply F2R_lt_0_compat.
-now apply F2R_gt_0_compat.
+now apply F2R_lt_0.
+now apply F2R_gt_0.
 apply Rgt_not_eq.
 apply Rgt_trans with R0.
-now apply F2R_gt_0_compat.
-now apply F2R_lt_0_compat.
+now apply F2R_gt_0.
+now apply F2R_lt_0.
 assert (mx = my /\ ex = ey).
 (* *)
 refine (_ (canonical_unicity _ fexp _ _ _ _ Heq)).
@@ -538,11 +538,11 @@ Proof.
   destruct f1, f2 ; try easy.
   now rewrite Rcompare_Eq.
   destruct s0 ; apply_Rcompare.
-  now apply F2R_lt_0_compat.
-  now apply F2R_gt_0_compat.
+  now apply F2R_lt_0.
+  now apply F2R_gt_0.
   destruct s ; apply_Rcompare.
-  now apply F2R_lt_0_compat.
-  now apply F2R_gt_0_compat.
+  now apply F2R_lt_0.
+  now apply F2R_gt_0.
   simpl.
   clear H H0.
   apply andb_prop in e0; destruct e0; apply (canonical_canonical_mantissa false) in H.
@@ -556,13 +556,13 @@ Proof.
   intros; apply Rnot_le_lt; intro; apply (mag_le radix2) in H5.
   apply Zlt_not_le with (1 := H4).
   now apply fexp_monotone.
-  now apply (F2R_gt_0_compat _ (Float radix2 (Zpos m2) e2)).
+  now apply (F2R_gt_0 _ (Float radix2 (Zpos m2) e2)).
   }
   assert (forall m1 m2 e1 e2, (IZR (- Zpos m1) * bpow radix2 e1 < IZR (Zpos m2) * bpow radix2 e2)%R).
   {
   intros; apply (Rlt_trans _ 0%R).
-  now apply (F2R_lt_0_compat _ (Float radix2 (Zneg m1) e0)).
-  now apply (F2R_gt_0_compat _ (Float radix2 (Zpos m2) e2)).
+  now apply (F2R_lt_0 _ (Float radix2 (Zneg m1) e0)).
+  now apply (F2R_gt_0 _ (Float radix2 (Zpos m2) e2)).
   }
   unfold F2R, Fnum, Fexp.
   destruct s, s0; try (now apply_Rcompare; apply H5); inversion H3;
@@ -603,7 +603,7 @@ change (Zpos mx) with (Zabs (Zpos mx)).
 rewrite F2R_Zabs.
 apply Ex.
 apply Rgt_not_eq.
-now apply F2R_gt_0_compat.
+now apply F2R_gt_0.
 apply bpow_le.
 rewrite H. 2: discriminate.
 revert H1. clear -H2.
@@ -653,7 +653,7 @@ change (Zpos mx) with (Zabs (Zpos mx)).
 rewrite F2R_Zabs.
 apply Ex.
 apply Rgt_not_eq.
-now apply F2R_gt_0_compat.
+now apply F2R_gt_0.
 unfold emin.
 generalize (prec_gt_0 prec).
 clear -Hmax ; omega.
@@ -812,7 +812,7 @@ destruct (inbetween_float_ex radix2 m e l) as (x, Hx).
 generalize (inbetween_shr x m e l (fexp (Zdigits radix2 m + e) - e) Hm Hx).
 assert (Hx0 : (0 <= x)%R).
 apply Rle_trans with (F2R (Float radix2 m e)).
-now apply F2R_ge_0_compat.
+now apply F2R_ge_0.
 exact (proj1 (inbetween_float_bounds _ _ _ _ _ Hx)).
 case_eq (shr (shr_record_of_loc m l) e (fexp (Zdigits radix2 m + e) - e)).
 intros mrs e'' H3 H4 H1.
@@ -960,11 +960,11 @@ apply cexp_round_ge...
 rewrite H1c.
 case (Rlt_bool x 0).
 apply Rlt_not_eq.
-now apply F2R_lt_0_compat.
+now apply F2R_lt_0.
 apply Rgt_not_eq.
-now apply F2R_gt_0_compat.
+now apply F2R_gt_0.
 refine (_ (truncate_correct_partial _ _ _ _ _ _ _ Br He)).
-2: now rewrite Hr ; apply F2R_gt_0_compat.
+2: now rewrite Hr ; apply F2R_gt_0.
 refine (_ (truncate_correct_format radix2 fexp (Zpos m1') e1 _ _ He)).
 2: discriminate.
 rewrite shr_truncate. 2: easy.
@@ -974,7 +974,7 @@ intros (H3,H4) (H2,_).
 destruct m2 as [|m2|m2].
 elim Rgt_not_eq with (2 := H3).
 rewrite F2R_0.
-now apply F2R_gt_0_compat.
+now apply F2R_gt_0.
 rewrite F2R_cond_Zopp, H3, abs_cond_Ropp, <- F2R_abs.
 simpl Zabs.
 case_eq (Zle_bool e2 (emax - prec)) ; intros He2.
@@ -1042,19 +1042,19 @@ unfold canonical.
 now rewrite <- H3.
 elim Rgt_not_eq with (2 := H3).
 apply Rlt_trans with R0.
-now apply F2R_lt_0_compat.
-now apply F2R_gt_0_compat.
+now apply F2R_lt_0.
+now apply F2R_gt_0.
 rewrite <- Hr.
 apply generic_format_abs...
 apply generic_format_round...
 (* . not m1' < 0 *)
 elim Rgt_not_eq with (2 := Hr).
 apply Rlt_le_trans with R0.
-now apply F2R_lt_0_compat.
+now apply F2R_lt_0.
 apply Rabs_pos.
 (* *)
 apply Rlt_le_trans with (2 := proj1 (inbetween_float_bounds _ _ _ _ _ Bx)).
-now apply F2R_gt_0_compat.
+now apply F2R_gt_0.
 (* all the modes are valid *)
 clear. case m.
 exact inbetween_int_NE_sign.
@@ -1086,7 +1086,7 @@ replace (xorb sx sy) with (Rlt_bool (F2R (Float radix2 (cond_Zopp sx (Zpos mx) *
 apply binary_round_aux_correct.
 constructor.
 rewrite <- F2R_abs.
-apply F2R_eq_compat.
+apply F2R_eq.
 rewrite Zabs_Zmult.
 now rewrite 2!abs_cond_Zopp.
 (* *)
@@ -1110,13 +1110,13 @@ omega.
 (* *)
 case sx ; case sy.
 apply Rlt_bool_false.
-now apply F2R_ge_0_compat.
+now apply F2R_ge_0.
 apply Rlt_bool_true.
-now apply F2R_lt_0_compat.
+now apply F2R_lt_0.
 apply Rlt_bool_true.
-now apply F2R_lt_0_compat.
+now apply F2R_lt_0.
 apply Rlt_bool_false.
-now apply F2R_ge_0_compat.
+now apply F2R_ge_0.
 Qed.
 
 Definition Bmult mult_nan m x y :=
@@ -1272,9 +1272,9 @@ exact H2.
 unfold x.
 case sx.
 apply Rlt_bool_true.
-now apply F2R_lt_0_compat.
+now apply F2R_lt_0.
 apply Rlt_bool_false.
-now apply F2R_ge_0_compat.
+now apply F2R_ge_0.
 Qed.
 
 Definition binary_normalize mode m e szero :=
@@ -1315,14 +1315,14 @@ split.
 now rewrite is_finite_FF2B.
 rewrite Bsign_FF2B, Rz''.
 rewrite Rcompare_Gt...
-apply F2R_gt_0_compat.
+apply F2R_gt_0.
 simpl. zify; omega.
 intros Hz' (Vz, Rz).
 rewrite B2FF_FF2B, Rz.
 apply f_equal.
 apply sym_eq.
 apply Rlt_bool_false.
-now apply F2R_ge_0_compat.
+now apply F2R_ge_0.
 (* . mz < 0 *)
 generalize (binary_round_correct m true mz ez).
 simpl.
@@ -1334,14 +1334,14 @@ split.
 now rewrite is_finite_FF2B.
 rewrite Bsign_FF2B, Rz''.
 rewrite Rcompare_Lt...
-apply F2R_lt_0_compat.
+apply F2R_lt_0.
 simpl. zify; omega.
 intros Hz' (Vz, Rz).
 rewrite B2FF_FF2B, Rz.
 apply f_equal.
 apply sym_eq.
 apply Rlt_bool_true.
-now apply F2R_lt_0_compat.
+now apply F2R_lt_0.
 Qed.
 
 (** Addition *)
@@ -1447,13 +1447,13 @@ case sy.
 apply Rlt_bool_true.
 rewrite <- (Rplus_0_r 0).
 apply Rplus_lt_compat.
-now apply F2R_lt_0_compat.
-now apply F2R_lt_0_compat.
+now apply F2R_lt_0.
+now apply F2R_lt_0.
 apply Rlt_bool_false.
 rewrite <- (Rplus_0_r 0).
 apply Rplus_le_compat.
-now apply F2R_ge_0_compat.
-now apply F2R_ge_0_compat.
+now apply F2R_ge_0.
+now apply F2R_ge_0.
 (* .. *)
 elim Rle_not_lt with (1 := Bz).
 generalize (bounded_lt_emax _ _ Hx) (bounded_lt_emax _ _ Hy) (andb_prop _ _ Hx) (andb_prop _ _ Hy).
@@ -1475,13 +1475,13 @@ apply round_ge_generic...
 now apply generic_format_canonical.
 pattern (F2R (Float radix2 (cond_Zopp true (Zpos mx)) ex)) at 1 ; rewrite <- Rplus_0_r.
 apply Rplus_le_compat_l.
-now apply F2R_ge_0_compat.
+now apply F2R_ge_0.
 apply Rle_lt_trans with (2 := By).
 apply round_le_generic...
 now apply generic_format_canonical.
 rewrite <- (Rplus_0_l (F2R (Float radix2 (Zpos my) ey))).
 apply Rplus_le_compat_r.
-now apply F2R_le_0_compat.
+now apply F2R_le_0.
 (* ... *)
 destruct sy.
 2: now elim Hs.
@@ -1495,13 +1495,13 @@ apply round_ge_generic...
 now apply generic_format_canonical.
 pattern (F2R (Float radix2 (cond_Zopp true (Zpos my)) ey)) at 1 ; rewrite <- Rplus_0_l.
 apply Rplus_le_compat_r.
-now apply F2R_ge_0_compat.
+now apply F2R_ge_0.
 apply Rle_lt_trans with (2 := Bx).
 apply round_le_generic...
 now apply generic_format_canonical.
 rewrite <- (Rplus_0_r (F2R (Float radix2 (Zpos mx) ex))).
 apply Rplus_le_compat_l.
-now apply F2R_le_0_compat.
+now apply F2R_le_0.
 (* . *)
 generalize (binary_normalize_correct m mz ez szero).
 case Rlt_bool_spec.
@@ -1625,9 +1625,9 @@ rewrite Rabs_mult, Rabs_Rinv.
 now rewrite <- 2!F2R_Zabs, 2!abs_cond_Zopp.
 case sy.
 apply Rlt_not_eq.
-now apply F2R_lt_0_compat.
+now apply F2R_lt_0.
 apply Rgt_not_eq.
-now apply F2R_gt_0_compat.
+now apply F2R_gt_0.
 revert Pz.
 generalize (Zdigits radix2 (Zpos mz)).
 unfold fexp, FLT_exp.
@@ -1637,13 +1637,13 @@ omega.
 (* . mz < 0 *)
 elim Rlt_not_le with (1 := proj2 (inbetween_float_bounds _ _ _ _ _ Bz)).
 apply Rle_trans with R0.
-apply F2R_le_0_compat.
+apply F2R_le_0.
 now case mz.
 apply Rmult_le_pos.
-now apply F2R_ge_0_compat.
+now apply F2R_ge_0.
 apply Rlt_le.
 apply Rinv_0_lt_compat.
-now apply F2R_gt_0_compat.
+now apply F2R_gt_0.
 (* *)
 case sy ; simpl.
 change (Zneg my) with (Zopp (Zpos my)).
@@ -1655,19 +1655,19 @@ apply Rlt_bool_false.
 rewrite <- Ropp_mult_distr_l_reverse.
 apply Rmult_le_pos.
 rewrite <- F2R_opp.
-now apply F2R_ge_0_compat.
+now apply F2R_ge_0.
 apply Rlt_le.
 apply Rinv_0_lt_compat.
-now apply F2R_gt_0_compat.
+now apply F2R_gt_0.
 apply Rlt_bool_true.
 rewrite <- Ropp_0.
 apply Ropp_lt_contravar.
 apply Rmult_lt_0_compat.
-now apply F2R_gt_0_compat.
+now apply F2R_gt_0.
 apply Rinv_0_lt_compat.
-now apply F2R_gt_0_compat.
+now apply F2R_gt_0.
 apply Rgt_not_eq.
-now apply F2R_gt_0_compat.
+now apply F2R_gt_0.
 case sx.
 apply Rlt_bool_true.
 rewrite F2R_Zopp.
@@ -1675,15 +1675,15 @@ rewrite Ropp_mult_distr_l_reverse.
 rewrite <- Ropp_0.
 apply Ropp_lt_contravar.
 apply Rmult_lt_0_compat.
-now apply F2R_gt_0_compat.
+now apply F2R_gt_0.
 apply Rinv_0_lt_compat.
-now apply F2R_gt_0_compat.
+now apply F2R_gt_0.
 apply Rlt_bool_false.
 apply Rmult_le_pos.
-now apply F2R_ge_0_compat.
+now apply F2R_ge_0.
 apply Rlt_le.
 apply Rinv_0_lt_compat.
-now apply F2R_gt_0_compat.
+now apply F2R_gt_0.
 (* *)
 unfold Fdiv_core_binary, Fdiv_core.
 rewrite 2!Zdigits2_Zdigits.
@@ -1803,7 +1803,7 @@ apply Rsqr_incrst_0.
 3: apply bpow_ge_0.
 rewrite Rsqr_mult.
 rewrite Rsqr_sqrt.
-2: now apply F2R_ge_0_compat.
+2: now apply F2R_ge_0.
 unfold Rsqr.
 apply Rmult_ge_0_gt_0_lt_compat.
 apply Rle_ge.
@@ -1835,7 +1835,7 @@ apply Rsqr_incr_0.
 2: apply bpow_ge_0.
 2: apply sqrt_ge_0.
 rewrite Rsqr_sqrt.
-2: now apply F2R_ge_0_compat.
+2: now apply F2R_ge_0.
 apply Rle_trans with (bpow radix2 emin).
 unfold Rsqr.
 rewrite <- bpow_plus.
@@ -1845,7 +1845,7 @@ clear -Hmax ; omega.
 apply generic_format_ge_bpow with fexp.
 intros.
 apply Zle_max_r.
-now apply F2R_gt_0_compat.
+now apply F2R_gt_0.
 apply generic_format_canonical.
 apply (canonical_canonical_mantissa false).
 apply (andb_prop _ _ Hx).
@@ -1865,7 +1865,7 @@ omega.
 (* . mz < 0 *)
 elim Rlt_not_le  with (1 := proj2 (inbetween_float_bounds _ _ _ _ _ Bz)).
 apply Rle_trans with R0.
-apply F2R_le_0_compat.
+apply F2R_le_0.
 now case mz.
 apply sqrt_ge_0.
 (* *)
@@ -1908,7 +1908,7 @@ apply round_0.
 auto with typeclass_instances.
 intros H.
 elim Rge_not_lt with (1 := H).
-now apply F2R_lt_0_compat.
+now apply F2R_lt_0.
 easy.
 split.
 now rewrite B2R_FF2B.

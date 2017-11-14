@@ -37,7 +37,7 @@ apply bpow_gt_0.
 Qed.
 
 (** Basic facts *)
-Theorem F2R_le_reg :
+Theorem le_F2R :
   forall e m1 m2 : Z,
   (F2R (Float beta m1 e) <= F2R (Float beta m2 e))%R ->
   (m1 <= m2)%Z.
@@ -49,7 +49,7 @@ apply bpow_gt_0.
 exact H.
 Qed.
 
-Theorem F2R_le_compat :
+Theorem F2R_le :
   forall m1 m2 e : Z,
   (m1 <= m2)%Z ->
   (F2R (Float beta m1 e) <= F2R (Float beta m2 e))%R.
@@ -61,7 +61,7 @@ apply bpow_ge_0.
 now apply IZR_le.
 Qed.
 
-Theorem F2R_lt_reg :
+Theorem lt_F2R :
   forall e m1 m2 : Z,
   (F2R (Float beta m1 e) < F2R (Float beta m2 e))%R ->
   (m1 < m2)%Z.
@@ -73,7 +73,7 @@ apply bpow_gt_0.
 exact H.
 Qed.
 
-Theorem F2R_lt_compat :
+Theorem F2R_lt :
   forall e m1 m2 : Z,
   (m1 < m2)%Z ->
   (F2R (Float beta m1 e) < F2R (Float beta m2 e))%R.
@@ -85,7 +85,7 @@ apply bpow_gt_0.
 now apply IZR_lt.
 Qed.
 
-Theorem F2R_eq_compat :
+Theorem F2R_eq :
   forall e m1 m2 : Z,
   (m1 = m2)%Z ->
   (F2R (Float beta m1 e) = F2R (Float beta m2 e))%R.
@@ -94,14 +94,14 @@ intros e m1 m2 H.
 now apply (f_equal (fun m => F2R (Float beta m e))).
 Qed.
 
-Theorem F2R_eq_reg :
+Theorem eq_F2R :
   forall e m1 m2 : Z,
   F2R (Float beta m1 e) = F2R (Float beta m2 e) ->
   m1 = m2.
 Proof.
 intros e m1 m2 H.
 apply Zle_antisym ;
-  apply F2R_le_reg with e ;
+  apply le_F2R with e ;
   rewrite H ;
   apply Rle_refl.
 Qed.
@@ -131,6 +131,15 @@ rewrite <- Ropp_mult_distr_l_reverse.
 now rewrite opp_IZR.
 Qed.
 
+Theorem F2R_cond_Zopp :
+  forall b m e,
+  F2R (Float beta (cond_Zopp b m) e) = cond_Ropp b (F2R (Float beta m e)).
+Proof.
+intros [|] m e ; unfold F2R ; simpl.
+now rewrite opp_IZR, Ropp_mult_distr_l_reverse.
+apply refl_equal.
+Qed.
+
 (** Sign facts *)
 Theorem F2R_0 :
   forall e : Z,
@@ -141,33 +150,33 @@ unfold F2R. simpl.
 apply Rmult_0_l.
 Qed.
 
-Theorem F2R_eq_0_reg :
+Theorem eq_0_F2R :
   forall m e : Z,
   F2R (Float beta m e) = 0%R ->
   m = Z0.
 Proof.
 intros m e H.
-apply F2R_eq_reg with e.
+apply eq_F2R with e.
 now rewrite F2R_0.
 Qed.
 
-Theorem F2R_ge_0_reg :
+Theorem ge_0_F2R :
   forall m e : Z,
   (0 <= F2R (Float beta m e))%R ->
   (0 <= m)%Z.
 Proof.
 intros m e H.
-apply F2R_le_reg with e.
+apply le_F2R with e.
 now rewrite F2R_0.
 Qed.
 
-Theorem F2R_le_0_reg :
+Theorem le_0_F2R :
   forall m e : Z,
   (F2R (Float beta m e) <= 0)%R ->
   (m <= 0)%Z.
 Proof.
 intros m e H.
-apply F2R_le_reg with e.
+apply le_F2R with e.
 now rewrite F2R_0.
 Qed.
 
@@ -177,89 +186,89 @@ Theorem F2R_gt_0_reg :
   (0 < m)%Z.
 Proof.
 intros m e H.
-apply F2R_lt_reg with e.
+apply lt_F2R with e.
 now rewrite F2R_0.
 Qed.
 
-Theorem F2R_lt_0_reg :
+Theorem lt_0_F2R :
   forall m e : Z,
   (F2R (Float beta m e) < 0)%R ->
   (m < 0)%Z.
 Proof.
 intros m e H.
-apply F2R_lt_reg with e.
+apply lt_F2R with e.
 now rewrite F2R_0.
 Qed.
 
-Theorem F2R_ge_0_compat :
+Theorem F2R_ge_0 :
   forall f : float beta,
   (0 <= Fnum f)%Z ->
   (0 <= F2R f)%R.
 Proof.
 intros f H.
 rewrite <- F2R_0 with (Fexp f).
-now apply F2R_le_compat.
+now apply F2R_le.
 Qed.
 
-Theorem F2R_le_0_compat :
+Theorem F2R_le_0 :
   forall f : float beta,
   (Fnum f <= 0)%Z ->
   (F2R f <= 0)%R.
 Proof.
 intros f H.
 rewrite <- F2R_0 with (Fexp f).
-now apply F2R_le_compat.
+now apply F2R_le.
 Qed.
 
-Theorem F2R_gt_0_compat :
+Theorem F2R_gt_0 :
   forall f : float beta,
   (0 < Fnum f)%Z ->
   (0 < F2R f)%R.
 Proof.
 intros f H.
 rewrite <- F2R_0 with (Fexp f).
-now apply F2R_lt_compat.
+now apply F2R_lt.
 Qed.
 
-Theorem F2R_lt_0_compat :
+Theorem F2R_lt_0 :
   forall f : float beta,
   (Fnum f < 0)%Z ->
   (F2R f < 0)%R.
 Proof.
 intros f H.
 rewrite <- F2R_0 with (Fexp f).
-now apply F2R_lt_compat.
+now apply F2R_lt.
 Qed.
 
-Theorem F2R_neq_0_compat :
+Theorem F2R_neq_0 :
  forall f : float beta,
   (Fnum f <> 0)%Z ->
   (F2R f <> 0)%R.
 Proof.
 intros f H H1.
 apply H.
-now apply F2R_eq_0_reg with (Fexp f).
+now apply eq_0_F2R with (Fexp f).
 Qed.
 
 
-Lemma Fnum_ge_0_compat: forall (f : float beta),
+Lemma Fnum_ge_0: forall (f : float beta),
   (0 <= F2R f)%R -> (0 <= Fnum f)%Z.
 Proof.
 intros f H.
 case (Zle_or_lt 0 (Fnum f)); trivial.
 intros H1; contradict H.
 apply Rlt_not_le.
-now apply F2R_lt_0_compat.
+now apply F2R_lt_0.
 Qed.
 
-Lemma Fnum_le_0_compat: forall (f : float beta),
+Lemma Fnum_le_0: forall (f : float beta),
   (F2R f <= 0)%R -> (Fnum f <= 0)%Z.
 Proof.
 intros f H.
 case (Zle_or_lt (Fnum f) 0); trivial.
 intros H1; contradict H.
 apply Rlt_not_le.
-now apply F2R_gt_0_compat.
+now apply F2R_gt_0.
 Qed.
 
 (** Floats and bpow *)
@@ -279,7 +288,7 @@ Theorem bpow_le_F2R :
 Proof.
 intros m e H.
 rewrite <- F2R_bpow.
-apply F2R_le_compat.
+apply F2R_le.
 now apply (Zlt_le_succ 0).
 Qed.
 
@@ -426,7 +435,7 @@ destruct (mag beta (F2R (Float beta m e))) as (ex, He).
 simpl.
 apply mag_unique.
 assert (Hp1: (0 < F2R (Float beta m e))%R).
-now apply F2R_gt_0_compat.
+now apply F2R_gt_0.
 specialize (He (Rgt_not_eq _ _ Hp1)).
 rewrite Rabs_pos_eq in He. 2: now apply Rlt_le.
 destruct He as (He1, He2).
@@ -496,9 +505,9 @@ elim Rlt_not_le with (1 := H21).
 apply Zge_le in H0.
 apply (F2R_change_exp e1 m2 e2) in H0.
 rewrite H0.
-apply F2R_le_compat.
+apply F2R_le.
 apply Zlt_le_succ.
-apply (F2R_lt_reg e1).
+apply (lt_F2R e1).
 now rewrite <- H0.
 (* . *)
 split.
@@ -507,7 +516,7 @@ rewrite (Zplus_comm e1), (Zplus_comm e2).
 assert (Hp2: (0 < m2)%Z).
 apply (F2R_gt_0_reg m2 e2).
 apply Rlt_trans with (2 := H12).
-now apply F2R_gt_0_compat.
+now apply F2R_gt_0.
 rewrite <- 2!mag_F2R.
 destruct (mag beta (F2R (Float beta m1 e1))) as (e1', H1).
 simpl.
@@ -518,7 +527,7 @@ rewrite <- (Zabs_eq m1), F2R_Zabs.
 apply H1.
 apply Rgt_not_eq.
 apply Rlt_gt.
-now apply F2R_gt_0_compat.
+now apply F2R_gt_0.
 now apply Zlt_le_weak.
 clear H1.
 rewrite <- F2R_Zabs, Zabs_eq.
@@ -533,15 +542,6 @@ apply sym_not_eq.
 now apply Zlt_not_eq.
 apply sym_not_eq.
 now apply Zlt_not_eq.
-Qed.
-
-Theorem F2R_cond_Zopp :
-  forall b m e,
-  F2R (Float beta (cond_Zopp b m) e) = cond_Ropp b (F2R (Float beta m e)).
-Proof.
-intros [|] m e ; unfold F2R ; simpl.
-now rewrite opp_IZR, Ropp_mult_distr_l_reverse.
-apply refl_equal.
 Qed.
 
 End Float_prop.

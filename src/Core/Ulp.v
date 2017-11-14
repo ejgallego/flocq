@@ -1861,7 +1861,7 @@ case negligible_exp_spec.
 (* without minimal exponent *)
 intros K; contradict Hx2.
 apply Rlt_not_eq.
-apply F2R_gt_0_compat; simpl.
+apply F2R_gt_0; simpl.
 apply Zlt_le_trans with 1%Z.
 apply Pos2Z.is_pos.
 apply Zfloor_lub.

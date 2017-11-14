@@ -28,9 +28,9 @@ Proof.
 intros m e.
 case Zlt_bool_spec ; intros H.
 apply Rlt_bool_true.
-now apply F2R_lt_0_compat.
+now apply F2R_lt_0.
 apply Rlt_bool_false.
-now apply F2R_ge_0_compat.
+now apply F2R_ge_0.
 Qed.
 
 Definition plus (x y : float beta) :=
@@ -112,7 +112,7 @@ rewrite F2R_0.
 now apply round_0.
 destruct H as [H|H].
 elim Rgt_not_le with (1 := H).
-now apply F2R_le_0_compat.
+now apply F2R_le_0.
 now elim Hz.
 Qed.
 
@@ -196,7 +196,7 @@ apply (f_equal (fun s => F2R (Float beta (cond_Zopp s (choice s _ _)) _))).
 rewrite Rsgn_div.
 apply f_equal2 ; apply Rsgn_F2R.
 contradict Hm.
-apply F2R_eq_0_reg with (1 := Hm).
+apply eq_0_F2R with (1 := Hm).
 exact Hy.
 unfold Rdiv.
 rewrite Rabs_mult, Rabs_Rinv.

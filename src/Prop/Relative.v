@@ -150,7 +150,7 @@ apply relative_error.
 unfold x.
 rewrite <- F2R_Zabs.
 apply bpow_le_F2R.
-apply F2R_lt_reg with beta emin.
+apply lt_F2R with beta emin.
 rewrite F2R_0, F2R_Zabs.
 now apply Rabs_pos_lt.
 Qed.
@@ -218,7 +218,7 @@ exact Hp.
 unfold x.
 rewrite <- F2R_Zabs.
 apply bpow_le_F2R.
-apply F2R_lt_reg with beta emin.
+apply lt_F2R with beta emin.
 rewrite F2R_0, F2R_Zabs.
 now apply Rabs_pos_lt.
 Qed.
@@ -296,7 +296,7 @@ apply relative_error_N.
 unfold x.
 rewrite <- F2R_Zabs.
 apply bpow_le_F2R.
-apply F2R_lt_reg with beta emin.
+apply lt_F2R with beta emin.
 rewrite F2R_0, F2R_Zabs.
 now apply Rabs_pos_lt.
 Qed.
@@ -381,7 +381,7 @@ apply relative_error_N_round with (1 := Hp).
 unfold x.
 rewrite <- F2R_Zabs.
 apply bpow_le_F2R.
-apply F2R_lt_reg with beta emin.
+apply lt_F2R with beta emin.
 rewrite F2R_0, F2R_Zabs.
 now apply Rabs_pos_lt.
 Qed.

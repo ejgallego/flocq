@@ -644,7 +644,7 @@ assert (H: (e + k)%Z = cexp beta fexp x).
 unfold k. ring.
 refine (conj _ H).
 rewrite <- H.
-apply F2R_eq_compat.
+apply F2R_eq.
 replace (scaled_mantissa beta fexp x) with (IZR (Zfloor (scaled_mantissa beta fexp x))).
 rewrite Ztrunc_IZR.
 unfold scaled_mantissa.
@@ -686,7 +686,7 @@ apply inbetween_float_bounds with (1 := H1).
 (* *)
 assert (Hm: (0 <= m)%Z).
 cut (0 < m + 1)%Z. omega.
-apply F2R_lt_reg with beta e.
+apply lt_F2R with beta e.
 rewrite F2R_0.
 apply Rlt_trans with  (1 := Hx).
 apply Hx'.
@@ -787,7 +787,7 @@ assert (Hx': (F2R (Float beta m e) <= x < F2R (Float beta (m + 1) e))%R).
 apply inbetween_float_bounds with (1 := H1).
 rewrite <- Hx in Hx'.
 split.
-apply F2R_le_0_reg with (1 := proj1 Hx').
+apply le_0_F2R with (1 := proj1 Hx').
 apply F2R_gt_0_reg with (1 := proj2 Hx').
 rewrite Hm, <- Hx in H1 |- *.
 clear -H1.
@@ -931,7 +931,7 @@ change (m = cond_Zopp false (choice false m loc_Exact))%Z.
 rewrite <- (Zrnd_IZR rnd m) at 1.
 assert (0 <= IZR m)%R.
 apply IZR_le.
-apply F2R_ge_0_reg with beta e.
+apply ge_0_F2R with beta e.
 rewrite <- H.
 apply Rabs_pos.
 rewrite <- Rlt_bool_false with (1 := H0).

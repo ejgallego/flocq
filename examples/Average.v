@@ -1308,14 +1308,14 @@ right; rewrite J1,J2; reflexivity.
 apply Rle_trans with (1:=uLev).
 right; rewrite J3,J4; reflexivity.
 case same_sign; intros (L1,L2).
-rewrite J1 in L1; apply Fnum_ge_0_compat in L1; simpl in L1.
-rewrite J3 in L2; apply Fnum_ge_0_compat in L2; simpl in L2.
+rewrite J1 in L1; apply Fnum_ge_0 in L1; simpl in L1.
+rewrite J3 in L2; apply Fnum_ge_0 in L2; simpl in L2.
 left.
 rewrite Z.abs_eq in H0.
 omega.
 omega.
-rewrite J1 in L1; apply Fnum_le_0_compat in L1; simpl in L1.
-rewrite J3 in L2; apply Fnum_le_0_compat in L2; simpl in L2.
+rewrite J1 in L1; apply Fnum_le_0 in L1; simpl in L1.
+rewrite J3 in L2; apply Fnum_le_0 in L2; simpl in L2.
 right.
 rewrite Z.abs_neq in H0.
 omega.
