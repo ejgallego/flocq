@@ -285,6 +285,36 @@ apply Zpower_le.
 clear -H ; omega.
 Qed.
 
+Theorem Zpower_gt_id :
+  forall n, (n < Zpower r n)%Z.
+Proof.
+intros [|n|n] ; try easy.
+simpl.
+rewrite Zpower_pos_nat.
+rewrite Zpos_eq_Z_of_nat_o_nat_of_P.
+induction (nat_of_P n).
+easy.
+rewrite inj_S.
+change (Zpower_nat r (S n0)) with (r * Zpower_nat r n0)%Z.
+unfold Zsucc.
+apply Zlt_le_trans with (r * (Z_of_nat n0 + 1))%Z.
+clear.
+apply Zlt_0_minus_lt.
+replace (r * (Z_of_nat n0 + 1) - (Z_of_nat n0 + 1))%Z with ((r - 1) * (Z_of_nat n0 + 1))%Z by ring.
+apply Zmult_lt_0_compat.
+cut (2 <= r)%Z. omega.
+apply Zle_bool_imp_le.
+apply r.
+apply (Zle_lt_succ 0).
+apply Zle_0_nat.
+apply Zmult_le_compat_l.
+now apply Zlt_le_succ.
+apply Zle_trans with 2%Z.
+easy.
+apply Zle_bool_imp_le.
+apply r.
+Qed.
+
 End Zpower.
 
 Section Div_Mod.

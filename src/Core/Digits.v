@@ -283,36 +283,6 @@ apply Zle_0_nat.
 easy.
 Qed.
 
-Theorem Zpower_gt_id :
-  forall n, (n < Zpower beta n)%Z.
-Proof.
-intros [|n|n] ; try easy.
-simpl.
-rewrite Zpower_pos_nat.
-rewrite Zpos_eq_Z_of_nat_o_nat_of_P.
-induction (nat_of_P n).
-easy.
-rewrite inj_S.
-change (Zpower_nat beta (S n0)) with (beta * Zpower_nat beta n0)%Z.
-unfold Zsucc.
-apply Zlt_le_trans with (beta * (Z_of_nat n0 + 1))%Z.
-clear.
-apply Zlt_0_minus_lt.
-replace (beta * (Z_of_nat n0 + 1) - (Z_of_nat n0 + 1))%Z with ((beta - 1) * (Z_of_nat n0 + 1))%Z by ring.
-apply Zmult_lt_0_compat.
-cut (2 <= beta)%Z. omega.
-apply Zle_bool_imp_le.
-apply beta.
-apply (Zle_lt_succ 0).
-apply Zle_0_nat.
-apply Zmult_le_compat_l.
-now apply Zlt_le_succ.
-apply Zle_trans with 2%Z.
-easy.
-apply Zle_bool_imp_le.
-apply beta.
-Qed.
-
 Theorem Zdigit_ext :
   forall n1 n2,
   (forall k, (0 <= k)%Z -> Zdigit n1 k = Zdigit n2 k) ->
