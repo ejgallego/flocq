@@ -783,7 +783,7 @@ Lemma mag_minus_disj :
    \/ (mag (x - y) = (mag x - 1)%Z :> Z)).
 Proof.
 intros x y Px Py Hln.
-assert (Hxy : y < x); [now apply (mag_lt_pos beta); [ |omega]|].
+assert (Hxy : y < x); [now apply (lt_mag beta); [ |omega]|].
 generalize (mag_minus beta x y Py Hxy); intro Hln2.
 generalize (mag_minus_lb beta x y Px Py Hln); intro Hln3.
 omega.

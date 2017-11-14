@@ -315,7 +315,7 @@ simpl; unfold Rdiv; f_equal; f_equal; f_equal.
 unfold Z.pow_pos; simpl; ring.
 Qed.
 
-Lemma rnd_plus_mutiple:
+Lemma rnd_plus_multiple:
    forall x y, format x -> format y -> (x <> 0)%R ->
     exists m,
      (round beta fexp rnd (x+y) = IZR m * ulp beta fexp (x/IZR beta))%R.
@@ -386,7 +386,7 @@ apply Rplus_le_le_0_compat.
 rewrite <- Ropp_0; apply Ropp_le_contravar; now left.
 rewrite <- Ropp_0; apply Ropp_le_contravar; now left.
 apply V; left.
-apply mag_lt_pos with beta.
+apply lt_mag with beta.
 now apply Rabs_pos_lt.
 rewrite <- mag_minus1 in H1; try assumption.
 rewrite 2!mag_abs; omega.
@@ -457,7 +457,7 @@ apply IZR_le.
 assert (0 < Z.abs (Ztrunc (scaled_mantissa beta fexp y)))%Z;[|omega].
 now apply Z.abs_pos.
 (* *)
-destruct (rnd_plus_mutiple x y Fx Fy Zx) as (m,Hm).
+destruct (rnd_plus_multiple x y Fx Fy Zx) as (m,Hm).
 case (Z.eq_dec m 0); intros Zm.
 left.
 rewrite Hm, Zm; simpl; ring.

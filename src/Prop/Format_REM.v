@@ -114,7 +114,7 @@ assert (mag beta x < mag beta y)%Z.
 case (Zle_or_lt (mag beta y) (mag beta x)); try easy.
 intros J; apply monotone_exp in J; clear -J Hexy.
 unfold ex, ey, cexp in Hexy; omega.
-left; apply mag_lt_pos with beta; easy.
+left; apply lt_mag with beta; easy.
 (* n = 1 -> Sterbenz + rnd_small *)
 intros Hn'; fold n; rewrite <- Hn'.
 rewrite Rmult_1_l.

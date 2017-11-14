@@ -72,53 +72,6 @@ apply Rplus_eq_reg_l with r.
 now rewrite 2!(Rplus_comm r).
 Qed.
 
-Theorem Rplus_lt_reg_l :
-  forall r r1 r2 : R,
-  (r + r1 < r + r2)%R -> (r1 < r2)%R.
-Proof.
-intros.
-solve [ apply Rplus_lt_reg_l with (1 := H) |
-        apply Rplus_lt_reg_r with (1 := H) ].
-Qed.
-
-Theorem Rplus_lt_reg_r :
-  forall r r1 r2 : R,
-  (r1 + r < r2 + r)%R -> (r1 < r2)%R.
-Proof.
-intros.
-apply Rplus_lt_reg_l with r.
-now rewrite 2!(Rplus_comm r).
-Qed.
-
-Theorem Rplus_le_reg_r :
-  forall r r1 r2 : R,
-  (r1 + r <= r2 + r)%R -> (r1 <= r2)%R.
-Proof.
-intros.
-apply Rplus_le_reg_l with r.
-now rewrite 2!(Rplus_comm r).
-Qed.
-
-Theorem Rmult_lt_reg_r :
-  forall r r1 r2 : R, (0 < r)%R ->
-  (r1 * r < r2 * r)%R -> (r1 < r2)%R.
-Proof.
-intros.
-apply Rmult_lt_reg_l with r.
-exact H.
-now rewrite 2!(Rmult_comm r).
-Qed.
-
-Theorem Rmult_le_reg_r :
-  forall r r1 r2 : R, (0 < r)%R ->
-  (r1 * r <= r2 * r)%R -> (r1 <= r2)%R.
-Proof.
-intros.
-apply Rmult_le_reg_l with r.
-exact H.
-now rewrite 2!(Rmult_comm r).
-Qed.
-
 Theorem Rmult_lt_compat :
   forall r1 r2 r3 r4,
   (0 <= r1)%R -> (0 <= r3)%R -> (r1 < r2)%R -> (r3 < r4)%R ->
@@ -134,16 +87,6 @@ apply Rle_lt_trans with (r1 * r4)%R.
   + exact H12.
 Qed.
 
-Theorem Rmult_eq_reg_r :
-  forall r r1 r2 : R, (r1 * r)%R = (r2 * r)%R ->
-  r <> 0%R -> r1 = r2.
-Proof.
-intros r r1 r2 H1 H2.
-apply Rmult_eq_reg_l with r.
-now rewrite 2!(Rmult_comm r).
-exact H2.
-Qed.
-
 Theorem Rmult_minus_distr_r :
   forall r r1 r2 : R,
   ((r1 - r2) * r = r1 * r - r2 * r)%R.
@@ -153,13 +96,18 @@ rewrite <- 3!(Rmult_comm r).
 apply Rmult_minus_distr_l.
 Qed.
 
-Lemma Rmult_neq_reg_r: forall  r1 r2 r3:R, (r2 * r1 <> r3 * r1)%R -> r2 <> r3.
+Lemma Rmult_neq_reg_r :
+  forall r1 r2 r3 : R, (r2 * r1 <> r3 * r1)%R -> r2 <> r3.
+Proof.
 intros r1 r2 r3 H1 H2.
 apply H1; rewrite H2; ring.
 Qed.
 
-Lemma Rmult_neq_compat_r: forall  r1 r2 r3:R, (r1 <> 0)%R -> (r2 <> r3)%R
-   -> (r2 *r1 <> r3*r1)%R.
+Lemma Rmult_neq_compat_r :
+  forall r1 r2 r3 : R,
+  (r1 <> 0)%R -> (r2 <> r3)%R ->
+  (r2 * r1 <> r3 * r1)%R.
+Proof.
 intros r1 r2 r3 H H1 H2.
 now apply H1, Rmult_eq_reg_r with r1.
 Qed.
@@ -225,7 +173,6 @@ now apply Ropp_le_contravar.
 rewrite Rmax_right; trivial.
 now apply Ropp_le_contravar.
 Qed.
-
 
 Theorem exp_le :
   forall x y : R,
@@ -649,17 +596,17 @@ Qed.
 
 Theorem Rcompare_sqr :
   forall x y,
-  (0 <= x)%R -> (0 <= y)%R ->
-  Rcompare (x * x) (y * y) = Rcompare x y.
+  Rcompare (x * x) (y * y) = Rcompare (Rabs x) (Rabs y).
 Proof.
-intros x y Hx Hy.
-destruct (Rcompare_spec x y) as [H|H|H].
+intros x y.
+destruct (Rcompare_spec (Rabs x) (Rabs y)) as [H|H|H].
 apply Rcompare_Lt.
-now apply Rsqr_incrst_1.
-rewrite H.
+now apply Rsqr_lt_abs_1.
+change (Rcompare (Rsqr x) (Rsqr y) = Eq).
+rewrite Rsqr_abs, H, (Rsqr_abs y).
 now apply Rcompare_Eq.
 apply Rcompare_Gt.
-now apply Rsqr_incrst_1.
+now apply Rsqr_lt_abs_1.
 Qed.
 
 Theorem Rmin_compare :
@@ -1366,7 +1313,7 @@ unfold bpow, Zpower_pos. simpl.
 now rewrite Zmult_1_r.
 Qed.
 
-Theorem bpow_plus1 :
+Theorem bpow_plus_1 :
   forall e : Z, (bpow (e + 1) = IZR r * bpow e)%R.
 Proof.
 intros.
@@ -1683,7 +1630,7 @@ now apply Rlt_le.
 now apply Rlt_le.
 Qed.
 
-Lemma mag_lt_pos :
+Lemma lt_mag :
   forall x y,
   (0 < y)%R ->
   (mag x < mag y)%Z -> (x < y)%R.
@@ -1891,7 +1838,7 @@ assert (Hx : (0 < x)%R) by apply (Rlt_le_trans _ _ _ Hy Hxy).
 destruct (mag x) as (ex,Hex); simpl.
 destruct Hex as (Hex0,Hex1); [now apply Rgt_not_eq|].
 assert (Haxy : (Rabs (x + y) < bpow (ex + 1))%R).
-{ rewrite bpow_plus1.
+{ rewrite bpow_plus_1.
   apply Rlt_le_trans with (2 * bpow ex)%R.
   - rewrite Rabs_pos_eq.
     apply Rle_lt_trans with (2 * Rabs x)%R.
@@ -1945,7 +1892,7 @@ assert (Hbeta : (2 <= r)%Z).
 { destruct r as (beta_val,beta_prop).
   now apply Zle_bool_imp_le. }
 intros x y Px Py Hln.
-assert (Oxy : (y < x)%R); [apply mag_lt_pos;[assumption|omega]|].
+assert (Oxy : (y < x)%R); [apply lt_mag;[assumption|omega]|].
 destruct (mag x) as (ex,Hex).
 destruct (mag y) as (ey,Hey).
 simpl in Hln |- *.
@@ -1955,7 +1902,7 @@ assert (Hbx : (bpow (ex - 2) + bpow (ex - 2) <= x)%R).
 { ring_simplify.
   apply Rle_trans with (bpow (ex - 1)).
   - replace (ex - 1)%Z with (ex - 2 + 1)%Z by ring.
-    rewrite bpow_plus1.
+    rewrite bpow_plus_1.
     apply Rmult_le_compat_r; [now apply bpow_ge_0|].
     now apply IZR_le.
   - now rewrite Rabs_right in Hex; [|apply Rle_ge; apply Rlt_le]. }
@@ -2127,22 +2074,6 @@ Proof.
 intros [|] x.
 apply Ropp_involutive.
 apply refl_equal.
-Qed.
-
-Theorem cond_Ropp_even_function :
-  forall {A : Type} (f : R -> A),
-  (forall x, f (Ropp x) = f x) ->
-  forall b x, f (cond_Ropp b x) = f x.
-Proof.
-now intros A f Hf [|] x ; simpl.
-Qed.
-
-Theorem cond_Ropp_odd_function :
-  forall (f : R -> R),
-  (forall x, f (Ropp x) = Ropp (f x)) ->
-  forall b x, f (cond_Ropp b x) = cond_Ropp b (f x).
-Proof.
-now intros f Hf [|] x ; simpl.
 Qed.
 
 Theorem cond_Ropp_inj :

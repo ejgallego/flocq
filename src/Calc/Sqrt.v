@@ -211,7 +211,9 @@ apply IZR_le.
 clear -Hr ; omega.
 (* ... location *)
 rewrite Rcompare_half_r.
-rewrite <- Rcompare_sqr.
+generalize (Rcompare_sqr (2 * sqrt (IZR (q * q + r))) (IZR q + IZR (q + 1))).
+rewrite 2!Rabs_pos_eq.
+intros <-.
 replace ((2 * sqrt (IZR (q * q + r))) * (2 * sqrt (IZR (q * q + r))))%R
   with (4 * Rsqr (sqrt (IZR (q * q + r))))%R by (unfold Rsqr ; ring).
 rewrite Rsqr_sqrt.
@@ -227,12 +229,12 @@ omega.
 rewrite <- Hq.
 apply IZR_le.
 now apply Zlt_le_weak.
-apply Rmult_le_pos.
-now apply IZR_le.
-apply sqrt_ge_0.
 rewrite <- plus_IZR.
 apply IZR_le.
 clear -Hr ; omega.
+apply Rmult_le_pos.
+now apply IZR_le.
+apply sqrt_ge_0.
 Qed.
 
 End Fcalc_sqrt.
