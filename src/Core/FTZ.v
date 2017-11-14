@@ -18,7 +18,7 @@ COPYING file for more details.
 *)
 
 (** * Floating-point format with abrupt underflow *)
-Require Import Raux Definitions Round_pred Generic_fmt.
+Require Import Raux Defs Round_pred Generic_fmt.
 Require Import Float_prop Ulp FLX.
 
 Section RND_FTZ.

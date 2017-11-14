@@ -1,7 +1,7 @@
 (** * Conditions for innocuous double rounding. *)
 
 Require Import Psatz.
-Require Import Raux Definitions Generic_fmt Operations Ulp FLX FLT FTZ.
+Require Import Raux Defs Generic_fmt Operations Ulp FLX FLT FTZ.
 
 Open Scope R_scope.
 

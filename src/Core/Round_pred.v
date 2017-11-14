@@ -18,7 +18,7 @@ COPYING file for more details.
 *)
 
 (** * Roundings: properties and/or functions *)
-Require Import Raux Definitions.
+Require Import Raux Defs.
 
 Section RND_prop.
 

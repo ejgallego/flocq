@@ -18,7 +18,7 @@ COPYING file for more details.
 *)
 
 (** * Fixed-point format *)
-Require Import Raux Definitions Round_pred Generic_fmt Ulp Round_NE.
+Require Import Raux Defs Round_pred Generic_fmt Ulp Round_NE.
 
 Section RND_FIX.
 

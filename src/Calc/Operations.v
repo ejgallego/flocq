@@ -18,7 +18,7 @@ COPYING file for more details.
 *)
 
 (** Basic operations on floats: alignment, addition, multiplication *)
-Require Import Raux Definitions Float_prop.
+Require Import Raux Defs Float_prop.
 
 Section Float_ops.
 

@@ -19,7 +19,7 @@ COPYING file for more details.
 
 (** * Locations: where a real number is positioned with respect to its rounded-down value in an arbitrary format. *)
 
-Require Import Raux Definitions Float_prop.
+Require Import Raux Defs Float_prop.
 
 Section Fcalc_bracket.
 

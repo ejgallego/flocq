@@ -19,7 +19,7 @@ COPYING file for more details.
 
 (** * Sterbenz conditions for exact subtraction *)
 
-Require Import Raux Definitions Generic_fmt Operations.
+Require Import Raux Defs Generic_fmt Operations.
 
 Section Fprop_Sterbenz.
 

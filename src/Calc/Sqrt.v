@@ -19,7 +19,7 @@ COPYING file for more details.
 
 (** * Helper functions and theorems for computing the rounded square root of a floating-point number. *)
 
-Require Import Raux Definitions Digits Float_prop Bracket.
+Require Import Raux Defs Digits Float_prop Bracket.
 
 Section Fcalc_sqrt.
 

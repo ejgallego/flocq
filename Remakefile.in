@@ -2,7 +2,7 @@ FILES = \
 	Version.v \
 	Core/Raux.v \
 	Core/Zaux.v \
-	Core/Definitions.v \
+	Core/Defs.v \
 	Core/Digits.v \
 	Core/Float_prop.v \
 	Core/FIX.v \

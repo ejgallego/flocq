@@ -18,7 +18,7 @@ COPYING file for more details.
 *)
 
 (** * Basic properties of floating-point formats: lemmas about mantissa, exponent... *)
-Require Import Raux Definitions Digits.
+Require Import Raux Defs Digits.
 
 Section Float_prop.
 

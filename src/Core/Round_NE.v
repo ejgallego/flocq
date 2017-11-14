@@ -18,7 +18,7 @@ COPYING file for more details.
 *)
 
 (** * Rounding to nearest, ties to even: existence, unicity... *)
-Require Import Raux Definitions Round_pred Generic_fmt Float_prop Ulp.
+Require Import Raux Defs Round_pred Generic_fmt Float_prop Ulp.
 
 Notation ZnearestE := (Znearest (fun x => negb (Zeven x))).
 

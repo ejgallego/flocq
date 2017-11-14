@@ -18,7 +18,7 @@ COPYING file for more details.
 *)
 
 (** * What is a real number belonging to a format, and many properties. *)
-Require Import Raux Definitions Round_pred Float_prop.
+Require Import Raux Defs Round_pred Float_prop.
 
 Section Generic.
 

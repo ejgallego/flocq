@@ -18,5 +18,5 @@ COPYING file for more details.
 *)
 
 (** To ease the import *)
-Require Export Raux Definitions Float_prop Round_pred Generic_fmt Round_NE.
+Require Export Raux Defs Float_prop Round_pred Generic_fmt Round_NE.
 Require Export FIX FLX FLT Ulp.

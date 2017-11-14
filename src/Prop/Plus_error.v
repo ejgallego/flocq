@@ -19,7 +19,7 @@ COPYING file for more details.
 
 (** * Error of the rounded-to-nearest addition is representable. *)
 
-Require Import Raux Definitions Float_prop Generic_fmt.
+Require Import Raux Defs Float_prop Generic_fmt.
 Require Import FIX FLX FLT Ulp Operations.
 
 

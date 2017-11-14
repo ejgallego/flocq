@@ -19,7 +19,7 @@ COPYING file for more details.
 
 (** * Helper function and theorem for computing the rounded quotient of two floating-point numbers. *)
 
-Require Import Raux Definitions Float_prop Digits Bracket.
+Require Import Raux Defs Float_prop Digits Bracket.
 
 Section Fcalc_div.
 

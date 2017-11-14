@@ -1,7 +1,7 @@
 (** * Conditions for innocuous double rounding. *)
 
 Require Import Psatz.
-From Flocq Require Import Raux Definitions Generic_fmt Operations Ulp.
+From Flocq Require Import Raux Defs Generic_fmt Operations Ulp.
 From Flocq Require Import FLX FLT FTZ Double_rounding.
 
 Open Scope R_scope.

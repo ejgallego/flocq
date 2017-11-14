@@ -19,7 +19,7 @@ COPYING file for more details.
 
 (** * Unit in the Last Place: our definition using fexp and its properties, successor and predecessor *)
 Require Import Reals Psatz.
-Require Import Raux Definitions Round_pred Generic_fmt Float_prop.
+Require Import Raux Defs Round_pred Generic_fmt Float_prop.
 
 Section Fcore_ulp.
 
