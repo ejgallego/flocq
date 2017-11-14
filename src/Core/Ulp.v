@@ -97,7 +97,7 @@ Definition ulp x := match Req_bool x 0 with
  end.
 
 Lemma ulp_neq_0 :
-  forall x, x <> R0 ->
+  forall x, x <> 0%R ->
   ulp x = bpow (cexp beta fexp x).
 Proof.
 intros  x Hx.
@@ -821,7 +821,7 @@ Proof.
 intros x Zx Fx Hx.
 replace (ulp (x - ulp x)) with (ulp x).
 ring.
-assert (H : x <> R0) by now apply Rgt_not_eq.
+assert (H : x <> 0%R) by now apply Rgt_not_eq.
 assert (H' : x <> bpow (cexp beta fexp x)).
 unfold cexp ; intros M.
 case_eq (mag beta x); intros ex Hex T.

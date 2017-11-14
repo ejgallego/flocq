@@ -34,7 +34,7 @@ Context { prec_gt_0_ : Prec_gt_0 prec }.
 Inductive FTZ_format (x : R) : Prop :=
   FTZ_spec (f : float beta) :
     x = F2R f ->
-    (x <> R0 -> Zpower beta (prec - 1) <= Zabs (Fnum f) < Zpower beta prec)%Z ->
+    (x <> 0%R -> Zpower beta (prec - 1) <= Zabs (Fnum f) < Zpower beta prec)%Z ->
     (emin <= Fexp f)%Z ->
     FTZ_format x.
 
@@ -189,7 +189,8 @@ apply Zle_refl.
 omega.
 Qed.
 
-Theorem ulp_FTZ_0: ulp beta FTZ_exp 0 = bpow (emin+prec-1).
+Theorem ulp_FTZ_0 :
+  ulp beta FTZ_exp 0 = bpow (emin+prec-1).
 Proof with auto with typeclass_instances.
 unfold ulp; rewrite Req_bool_true; trivial.
 case (negligible_exp_spec FTZ_exp).
@@ -300,7 +301,7 @@ Qed.
 Theorem round_FTZ_small :
   forall x : R,
   (Rabs x < bpow (emin + prec - 1))%R ->
-  round beta FTZ_exp Zrnd_FTZ x = R0.
+  round beta FTZ_exp Zrnd_FTZ x = 0%R.
 Proof with auto with typeclass_instances.
 intros x Hx.
 destruct (Req_dec x 0) as [Hx0|Hx0].

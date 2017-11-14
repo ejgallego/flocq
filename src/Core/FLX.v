@@ -134,7 +134,7 @@ Qed.
 Inductive FLXN_format (x : R) : Prop :=
   FLXN_spec (f : float beta) :
     x = F2R f ->
-    (x <> R0 -> Zpower beta (prec - 1) <= Zabs (Fnum f) < Zpower beta prec)%Z ->
+    (x <> 0%R -> Zpower beta (prec - 1) <= Zabs (Fnum f) < Zpower beta prec)%Z ->
     FLXN_format x.
 
 Theorem generic_format_FLXN :

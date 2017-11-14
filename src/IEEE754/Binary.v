@@ -379,7 +379,7 @@ Definition build_nan (x : { x | is_nan x = true }) :=
   proj1_sig x.
 
 Theorem B2R_build_nan :
-  forall x, B2R (build_nan x) = R0.
+  forall x, B2R (build_nan x) = 0%R.
 Proof.
 now intros [[| | |] H].
 Qed.

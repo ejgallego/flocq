@@ -178,7 +178,7 @@ Qed.
 Lemma generic_format_F2R' :
   forall (x : R) (f : float beta),
   F2R f = x ->
-  (x <> R0 -> (cexp x <= Fexp f)%Z) ->
+  (x <> 0%R -> (cexp x <= Fexp f)%Z) ->
   generic_format x.
 Proof.
 intros x f H1 H2.
@@ -2129,7 +2129,7 @@ Context { valid_exp2 : Valid_exp fexp2 }.
 
 Theorem generic_inclusion_mag :
   forall x,
-  ( x <> R0 -> (fexp2 (mag beta x) <= fexp1 (mag beta x))%Z ) ->
+  ( x <> 0%R -> (fexp2 (mag beta x) <= fexp1 (mag beta x))%Z ) ->
   generic_format fexp1 x ->
   generic_format fexp2 x.
 Proof.
