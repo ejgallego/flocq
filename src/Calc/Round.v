@@ -444,34 +444,34 @@ Qed.
 Theorem inbetween_int_NE :
   forall x m l,
   inbetween_int m x l ->
-  ZnearestE x = cond_incr (round_N (negb (Zeven m)) l) m.
+  ZnearestE x = cond_incr (round_N (negb (Z.even m)) l) m.
 Proof.
 intros x m l Hl.
-now apply inbetween_int_N with (choice := fun x => negb (Zeven x)).
+now apply inbetween_int_N with (choice := fun x => negb (Z.even x)).
 Qed.
 
 Theorem inbetween_float_NE :
   forall x m l,
   let e := cexp beta fexp x in
   inbetween_float beta m e x l ->
-  round beta fexp ZnearestE x = F2R (Float beta (cond_incr (round_N (negb (Zeven m)) l) m) e).
+  round beta fexp ZnearestE x = F2R (Float beta (cond_incr (round_N (negb (Z.even m)) l) m) e).
 Proof.
-apply inbetween_float_round with (choice := fun m l => cond_incr (round_N (negb (Zeven m)) l) m).
+apply inbetween_float_round with (choice := fun m l => cond_incr (round_N (negb (Z.even m)) l) m).
 exact inbetween_int_NE.
 Qed.
 
 Theorem inbetween_int_NE_sign :
   forall x m l,
   inbetween_int m (Rabs x) l ->
-  ZnearestE x = cond_Zopp (Rlt_bool x 0) (cond_incr (round_N (negb (Zeven m)) l) m).
+  ZnearestE x = cond_Zopp (Rlt_bool x 0) (cond_incr (round_N (negb (Z.even m)) l) m).
 Proof.
 intros x m l Hl.
-erewrite inbetween_int_N_sign with (choice := fun x => negb (Zeven x)).
+erewrite inbetween_int_N_sign with (choice := fun x => negb (Z.even x)).
 2: eexact Hl.
 apply f_equal.
 case Rlt_bool.
-rewrite Zeven_opp, Zeven_plus.
-now case (Zeven m).
+rewrite Z.even_opp, Z.even_add.
+now case (Z.even m).
 apply refl_equal.
 Qed.
 
@@ -479,9 +479,9 @@ Theorem inbetween_float_NE_sign :
   forall x m l,
   let e := cexp beta fexp x in
   inbetween_float beta m e (Rabs x) l ->
-  round beta fexp ZnearestE x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (cond_incr (round_N (negb (Zeven m)) l) m)) e).
+  round beta fexp ZnearestE x = F2R (Float beta (cond_Zopp (Rlt_bool x 0) (cond_incr (round_N (negb (Z.even m)) l) m)) e).
 Proof.
-apply inbetween_float_round_sign with (choice := fun s m l => cond_incr (round_N (negb (Zeven m)) l) m).
+apply inbetween_float_round_sign with (choice := fun s m l => cond_incr (round_N (negb (Z.even m)) l) m).
 exact inbetween_int_NE_sign.
 Qed.
 
@@ -801,7 +801,7 @@ rewrite Zdiv_0_l, Zmod_0_l.
 eexists.
 apply f_equal.
 unfold new_location.
-now case Zeven.
+now case Z.even.
 now eexists.
 destruct H as (e', H).
 rewrite H.
@@ -1008,16 +1008,16 @@ Definition round_trunc_sign_ZR_correct :=
   round_trunc_sign_any_correct _ (fun s m l => m) inbetween_int_ZR_sign.
 
 Definition round_NE_correct :=
-  round_any_correct _ (fun m l => cond_incr (round_N (negb (Zeven m)) l) m) inbetween_int_NE.
+  round_any_correct _ (fun m l => cond_incr (round_N (negb (Z.even m)) l) m) inbetween_int_NE.
 
 Definition round_trunc_NE_correct :=
-  round_trunc_any_correct _ (fun m l => cond_incr (round_N (negb (Zeven m)) l) m) inbetween_int_NE.
+  round_trunc_any_correct _ (fun m l => cond_incr (round_N (negb (Z.even m)) l) m) inbetween_int_NE.
 
 Definition round_sign_NE_correct :=
-  round_sign_any_correct _ (fun s m l => cond_incr (round_N (negb (Zeven m)) l) m) inbetween_int_NE_sign.
+  round_sign_any_correct _ (fun s m l => cond_incr (round_N (negb (Z.even m)) l) m) inbetween_int_NE_sign.
 
 Definition round_trunc_sign_NE_correct :=
-  round_trunc_sign_any_correct _ (fun s m l => cond_incr (round_N (negb (Zeven m)) l) m) inbetween_int_NE_sign.
+  round_trunc_sign_any_correct _ (fun s m l => cond_incr (round_N (negb (Z.even m)) l) m) inbetween_int_NE_sign.
 
 Definition round_NA_correct :=
   round_any_correct _ (fun m l => cond_incr (round_N (Zle_bool 0 m) l) m) inbetween_int_NA.

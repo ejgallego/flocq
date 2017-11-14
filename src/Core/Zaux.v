@@ -69,29 +69,8 @@ End Proof_Irrelevance.
 
 Section Even_Odd.
 
-(** Zeven, used for rounding to nearest, ties to even *)
-Definition Zeven (n : Z) :=
-  match n with
-  | Zpos (xO _) => true
-  | Zneg (xO _) => true
-  | Z0 => true
-  | _ => false
-  end.
-
-Theorem Zeven_mult :
-  forall x y, Zeven (x * y) = orb (Zeven x) (Zeven y).
-Proof.
-now intros [|[xp|xp|]|[xp|xp|]] [|[yp|yp|]|[yp|yp|]].
-Qed.
-
-Theorem Zeven_opp :
-  forall x, Zeven (- x) = Zeven x.
-Proof.
-now intros [|[n|n|]|[n|n|]].
-Qed.
-
 Theorem Zeven_ex :
-  forall x, exists p, x = (2 * p + if Zeven x then 0 else 1)%Z.
+  forall x, exists p, x = (2 * p + if Z.even x then 0 else 1)%Z.
 Proof.
 intros [|[n|n|]|[n|n|]].
 now exists Z0.
@@ -103,37 +82,6 @@ change (2 * Zneg n - 1 = 2 * (Zneg n - 1) + 1)%Z.
 ring.
 now exists (Zneg n).
 now exists (-1)%Z.
-Qed.
-
-Theorem Zeven_2xp1 :
-  forall n, Zeven (2 * n + 1) = false.
-Proof.
-intros n.
-destruct (Zeven_ex (2 * n + 1)) as (p, Hp).
-revert Hp.
-case (Zeven (2 * n + 1)) ; try easy.
-intros H.
-apply False_ind.
-omega.
-Qed.
-
-Theorem Zeven_plus :
-  forall x y, Zeven (x + y) = Bool.eqb (Zeven x) (Zeven y).
-Proof.
-intros x y.
-destruct (Zeven_ex x) as (px, Hx).
-rewrite Hx at 1.
-destruct (Zeven_ex y) as (py, Hy).
-rewrite Hy at 1.
-replace (2 * px + (if Zeven x then 0 else 1) + (2 * py + (if Zeven y then 0 else 1)))%Z
-  with (2 * (px + py) + ((if Zeven x then 0 else 1) + (if Zeven y then 0 else 1)))%Z by ring.
-case (Zeven x) ; case (Zeven y).
-rewrite Zplus_0_r.
-now rewrite Zeven_mult.
-apply Zeven_2xp1.
-apply Zeven_2xp1.
-replace (2 * (px + py) + (1 + 1))%Z with (2 * (px + py + 1))%Z by ring.
-now rewrite Zeven_mult.
 Qed.
 
 End Even_Odd.
@@ -181,40 +129,14 @@ rewrite Zpower_nat_S.
 now apply Zmult_lt_0_compat.
 Qed.
 
-Theorem Zeven_Zpower :
-  forall b e, (0 < e)%Z ->
-  Zeven (Zpower b e) = Zeven b.
-Proof.
-intros b e He.
-case_eq (Zeven b) ; intros Hb.
-(* b even *)
-replace e with (e - 1 + 1)%Z by ring.
-rewrite Zpower_exp.
-rewrite Zeven_mult.
-replace (Zeven (b ^ 1)) with true.
-apply Bool.orb_true_r.
-unfold Zpower, Zpower_pos. simpl.
-now rewrite Zmult_1_r.
-omega.
-discriminate.
-(* b odd *)
-rewrite Zpower_Zpower_nat.
-induction (Zabs_nat e).
-easy.
-unfold Zpower_nat. simpl.
-rewrite Zeven_mult.
-now rewrite Hb.
-now apply Zlt_le_weak.
-Qed.
-
 Theorem Zeven_Zpower_odd :
-  forall b e, (0 <= e)%Z -> Zeven b = false ->
-  Zeven (Zpower b e) = false.
+  forall b e, (0 <= e)%Z -> Z.even b = false ->
+  Z.even (Zpower b e) = false.
 Proof.
 intros b e He Hb.
 destruct (Z_le_lt_eq_dec _ _ He) as [He'|He'].
 rewrite <- Hb.
-now apply Zeven_Zpower.
+now apply Z.even_pow.
 now rewrite <- He'.
 Qed.
 

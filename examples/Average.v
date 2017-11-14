@@ -510,12 +510,12 @@ apply f_equal; unfold FLT_exp.
 rewrite Z.max_l.
 ring.
 omega.
-assert ((Zeven (Zfloor (scaled_mantissa radix2 (FLT_exp emin prec) (f + h)))) = false).
+assert ((Z.even (Zfloor (scaled_mantissa radix2 (FLT_exp emin prec) (f + h)))) = false).
 replace (Zfloor (scaled_mantissa radix2 (FLT_exp emin prec) (f + h)))
    with (Zpower radix2 prec -1)%Z.
-unfold Zminus; rewrite Zeven_plus.
-rewrite Zeven_opp.
-rewrite Zeven_Zpower.
+unfold Zminus; rewrite Z.even_add.
+rewrite Z.even_opp.
+rewrite Z.even_pow.
 reflexivity.
 unfold Prec_gt_0 in prec_gt_0_; omega.
 apply eq_IZR.
@@ -1086,7 +1086,7 @@ apply Rle_lt_trans with (-(((IZR z) /2) - IZR (ZnearestE (IZR z / 2)))).
 right; ring.
 apply Rle_lt_trans with (1:= RRle_abs _).
 rewrite Rabs_Ropp.
-apply Rle_lt_trans with (1:=Znearest_N (fun x => negb (Zeven x)) _).
+apply Rle_lt_trans with (1:=Znearest_N (fun x => negb (Z.even x)) _).
 apply Rle_lt_trans with (1*/2);[right; ring|idtac].
 apply Rlt_le_trans with ((IZR z)*/2);[idtac|right; field].
 apply Rmult_lt_compat_r.

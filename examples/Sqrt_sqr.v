@@ -1242,8 +1242,8 @@ apply Rplus_le_compat_r.
 apply IZR_le, kLe2.
 rewrite minus_IZR; simpl.
 generalize (beta); intros n.
-case (Zeven_odd_dec n); intros V.
-apply Zeven_ex_iff in V; destruct V as (m, Hm).
+case (Z.even_odd_dec n); intros V.
+apply Z.even_ex_iff in V; destruct V as (m, Hm).
 rewrite Hm, mult_IZR.
 replace (2*IZR m / 2) with (IZR m).
 rewrite Zceil_IZR.

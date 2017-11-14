@@ -251,7 +251,7 @@ now apply Zplus_le_compat_r.
 Qed.
 
 (** and it allows a rounding to nearest, ties to even. *)
-Hypothesis NE_prop : Zeven beta = false \/ (1 < prec)%Z.
+Hypothesis NE_prop : Z.even beta = false \/ (1 < prec)%Z.
 
 Global Instance exists_NE_FLX : Exists_NE beta FLX_exp.
 Proof.

@@ -25,7 +25,7 @@ Require Import Core Operations.
 
 Definition Zrnd_odd x :=  match Req_EM_T x (IZR (Zfloor x))  with
   | left _   => Zfloor x
-  | right _  => match (Zeven (Zfloor x)) with
+  | right _  => match (Z.even (Zfloor x)) with
       | true => Zceil x
       | false => Zfloor x
      end
@@ -44,7 +44,7 @@ apply Zle_trans with (Zfloor y).
 now apply Zfloor_le.
 unfold Zrnd_odd; destruct (Req_EM_T  y (IZR (Zfloor y))).
 now apply Zle_refl.
-case (Zeven (Zfloor y)).
+case (Z.even (Zfloor y)).
 apply le_IZR.
 apply Rle_trans with y.
 apply Zfloor_lb.
@@ -56,12 +56,12 @@ destruct (Req_EM_T  x (IZR (Zfloor x))) as [Hx|Hx].
 (* .. *)
 apply H.
 (* .. *)
-case_eq (Zeven (Zfloor x)); intros Hx2.
+case_eq (Z.even (Zfloor x)); intros Hx2.
 2: apply H.
 unfold Zrnd_odd; destruct (Req_EM_T  y (IZR (Zfloor y))) as [Hy|Hy].
 apply Zceil_glb.
 now rewrite <- Hy.
-case_eq (Zeven (Zfloor y)); intros Hy2.
+case_eq (Z.even (Zfloor y)); intros Hy2.
 now apply Zceil_le.
 apply Zceil_glb.
 assert (H0:(Zfloor x <= Zfloor y)%Z) by now apply Zfloor_le.
@@ -76,22 +76,22 @@ rewrite <- H1, Hx2; discriminate.
 intros n; unfold Zrnd_odd.
 rewrite Zfloor_IZR, Zceil_IZR.
 destruct (Req_EM_T  (IZR n) (IZR n)); trivial.
-case (Zeven n); trivial.
+case (Z.even n); trivial.
 Qed.
 
 
 
 Lemma Zrnd_odd_Zodd: forall x, x <> (IZR (Zfloor x)) ->
-  (Zeven (Zrnd_odd x)) = false.
+  (Z.even (Zrnd_odd x)) = false.
 Proof.
 intros x Hx; unfold Zrnd_odd.
 destruct (Req_EM_T  x (IZR (Zfloor x))) as [H|H].
 now contradict H.
-case_eq (Zeven (Zfloor x)).
+case_eq (Z.even (Zfloor x)).
 (* difficult case *)
 intros H'.
 rewrite Zceil_floor_neq.
-rewrite Zeven_plus, H'.
+rewrite Z.even_add, H'.
 reflexivity.
 now apply sym_not_eq.
 trivial.
@@ -119,7 +119,7 @@ Notation cexp := (cexp beta fexp).
 Definition Rnd_odd_pt (x f : R) :=
   format f /\ ((f = x)%R \/
     ((Rnd_DN_pt format x f \/ Rnd_UP_pt format x f) /\
-    exists g : float beta, f = F2R g /\ canonical g /\ Zeven (Fnum g) = false)).
+    exists g : float beta, f = F2R g /\ canonical g /\ Z.even (Fnum g) = false)).
 
 Definition Rnd_odd (rnd : R -> R) :=
   forall x : R, Rnd_odd_pt x (rnd x).
@@ -158,7 +158,7 @@ rewrite Hg1; reflexivity.
 split.
 now apply canonical_opp.
 simpl.
-now rewrite Zeven_opp.
+now rewrite Z.even_opp.
 Qed.
 
 
@@ -193,14 +193,14 @@ rewrite <- opp_IZR, Zfloor_IZR.
 now rewrite opp_IZR, <- Y1.
 intros Y1 Y2.
 unfold Zceil; rewrite Ropp_involutive.
-replace  (Zeven (Zfloor (- r))) with (negb (Zeven (Zfloor r))).
-case (Zeven (Zfloor r));  simpl; ring.
-apply trans_eq with (Zeven (Zceil r)).
+replace  (Z.even (Zfloor (- r))) with (negb (Z.even (Zfloor r))).
+case (Z.even (Zfloor r));  simpl; ring.
+apply trans_eq with (Z.even (Zceil r)).
 rewrite Zceil_floor_neq.
-rewrite Zeven_plus.
+rewrite Z.even_add.
 simpl; reflexivity.
 now apply sym_not_eq.
-rewrite <- (Zeven_opp (Zfloor (- r))).
+rewrite <- (Z.even_opp (Zfloor (- r))).
 reflexivity.
 apply cexp_opp.
 Qed.
@@ -259,7 +259,7 @@ apply Rmult_le_pos.
 now left.
 apply bpow_ge_0.
 intros L.
-case_eq (Zeven (Zfloor (scaled_mantissa beta fexp x))).
+case_eq (Z.even (Zfloor (scaled_mantissa beta fexp x))).
 (* . *)
 generalize (generic_format_round beta fexp Zceil x).
 unfold generic_format.
@@ -270,9 +270,9 @@ exists (Float beta mf ef).
 unfold canonical.
 rewrite <- H0.
 repeat split; try assumption.
-apply trans_eq with (negb (Zeven (Zfloor (scaled_mantissa beta fexp x)))).
+apply trans_eq with (negb (Z.even (Zfloor (scaled_mantissa beta fexp x)))).
 2: rewrite H1; reflexivity.
-apply trans_eq with (negb (Zeven (Fnum
+apply trans_eq with (negb (Z.even (Fnum
   (Float beta  (Zfloor (scaled_mantissa beta fexp x)) (cexp x))))).
 2: reflexivity.
 case (Rle_lt_or_eq_dec 0 (round beta fexp Zfloor x)).
@@ -383,7 +383,7 @@ destruct H1' as (ff,(K1,(K2,K3))).
 destruct H2' as (gg,(L1,(L2,L3))).
 absurd (true = false); try discriminate.
 rewrite <- L3.
-apply trans_eq with (negb (Zeven (Fnum ff))).
+apply trans_eq with (negb (Z.even (Fnum ff))).
 rewrite K3; easy.
 apply sym_eq.
 generalize (DN_UP_parity_generic beta fexp).
@@ -397,7 +397,7 @@ destruct H1' as (ff,(K1,(K2,K3))).
 destruct H2' as (gg,(L1,(L2,L3))).
 absurd (true = false); try discriminate.
 rewrite <- K3.
-apply trans_eq with (negb (Zeven (Fnum gg))).
+apply trans_eq with (negb (Z.even (Fnum gg))).
 rewrite L3; easy.
 apply sym_eq.
 generalize (DN_UP_parity_generic beta fexp).
@@ -427,7 +427,7 @@ End Fcore_rnd_odd.
 Section Odd_prop_aux.
 
 Variable beta : radix.
-Hypothesis Even_beta: Zeven (radix_val beta)=true.
+Hypothesis Even_beta: Z.even (radix_val beta)=true.
 
 Notation bpow e := (bpow beta e).
 
@@ -455,7 +455,7 @@ Qed.
 
 Lemma exists_even_fexp_lt: forall (c:Z->Z), forall (x:R),
       (exists f:float beta, F2R f = x /\ (c (mag beta x) < Fexp f)%Z) ->
-      exists f:float beta, F2R f =x /\ canonical beta c f /\ Zeven (Fnum f) = true.
+      exists f:float beta, F2R f =x /\ canonical beta c f /\ Z.even (Fnum f) = true.
 Proof with auto with typeclass_instances.
 intros c x (g,(Hg1,Hg2)).
 exists (Float beta
@@ -476,8 +476,8 @@ split.
 unfold canonical, cexp.
 now rewrite H.
 simpl.
-rewrite Zeven_mult.
-rewrite Zeven_Zpower.
+rewrite Z.even_mul.
+rewrite Z.even_pow.
 rewrite Even_beta.
 apply Bool.orb_true_intro.
 now right.
@@ -787,7 +787,7 @@ Qed.
 
 
 Lemma Zm:
-   exists g : float beta, F2R g = m /\ canonical beta fexpe g /\ Zeven (Fnum g) = true.
+   exists g : float beta, F2R g = m /\ canonical beta fexpe g /\ Z.even (Fnum g) = true.
 Proof with auto with typeclass_instances.
 case (d_ge_0); intros Y.
 (* *)
@@ -948,7 +948,7 @@ End Odd_prop_aux.
 Section Odd_prop.
 
 Variable beta : radix.
-Hypothesis Even_beta: Zeven (radix_val beta)=true.
+Hypothesis Even_beta: Z.even (radix_val beta)=true.
 
 Variable fexp : Z -> Z.
 Variable fexpe : Z -> Z.

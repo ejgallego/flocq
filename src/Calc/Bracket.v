@@ -410,7 +410,7 @@ Definition new_location_even k l :=
     end.
 
 Theorem new_location_even_correct :
-  Zeven nb_steps = true ->
+  Z.even nb_steps = true ->
   forall x k l, (0 <= k < nb_steps)%Z ->
   inbetween (start + IZR k * step) (start + IZR (k + 1) * step) x l ->
   inbetween start (start + IZR nb_steps * step) x (new_location_even k l).
@@ -467,7 +467,7 @@ Definition new_location_odd k l :=
     end.
 
 Theorem new_location_odd_correct :
-  Zeven nb_steps = false ->
+  Z.even nb_steps = false ->
   forall x k l, (0 <= k < nb_steps)%Z ->
   inbetween (start + IZR k * step) (start + IZR (k + 1) * step) x l ->
   inbetween start (start + IZR nb_steps * step) x (new_location_odd k l).
@@ -504,7 +504,7 @@ apply Hk.
 Qed.
 
 Definition new_location :=
-  if Zeven nb_steps then new_location_even else new_location_odd.
+  if Z.even nb_steps then new_location_even else new_location_odd.
 
 Theorem new_location_correct :
   forall x k l, (0 <= k < nb_steps)%Z ->

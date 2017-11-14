@@ -366,7 +366,7 @@ Qed.
 
 
 Theorem Veltkamp_Even: 
-  (choice = fun z => negb (Zeven z)) ->
+  (choice = fun z => negb (Z.even z)) ->
    hx = round_flt_s x.
 Proof with auto with typeclass_instances.
 intros Hchoice.

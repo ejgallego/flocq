@@ -47,7 +47,7 @@ Definition Fsqrt_core prec m e :=
   let d := Zdigits beta m in
   let s := Zmax (2 * prec - d) 0 in
   let e' := (e - s)%Z in
-  let (s', e'') := if Zeven e' then (s, e') else (s + 1, e' - 1)%Z in
+  let (s', e'') := if Z.even e' then (s, e') else (s + 1, e' - 1)%Z in
   let m' :=
     match s' with
     | Zpos p => (m * Zpower_pos beta p)%Z
@@ -71,11 +71,11 @@ unfold Fsqrt_core.
 set (d := Zdigits beta m).
 set (s := Zmax (2 * prec - d) 0).
 (* . exponent *)
-case_eq (if Zeven (e - s) then (s, (e - s)%Z) else ((s + 1)%Z, (e - s - 1)%Z)).
+case_eq (if Z.even (e - s) then (s, (e - s)%Z) else ((s + 1)%Z, (e - s - 1)%Z)).
 intros s' e' Hse.
-assert (He: (Zeven e' = true /\ 0 <= s' /\ 2 * prec - d <= s' /\ s' + e' = e)%Z).
+assert (He: (Z.even e' = true /\ 0 <= s' /\ 2 * prec - d <= s' /\ s' + e' = e)%Z).
 revert Hse.
-case_eq (Zeven (e - s)) ; intros He Hse ; inversion Hse.
+case_eq (Z.even (e - s)) ; intros He Hse ; inversion Hse.
 repeat split.
 exact He.
 unfold s.
@@ -87,7 +87,7 @@ fold s.
 apply Zle_succ.
 repeat split.
 unfold Zminus at 1.
-now rewrite Zeven_plus, He.
+now rewrite Z.even_add, He.
 apply Zle_trans with (2 := H).
 apply Zle_max_r.
 apply Zle_trans with (2 := H).

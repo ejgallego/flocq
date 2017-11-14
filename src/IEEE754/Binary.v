@@ -855,7 +855,7 @@ Definition round_mode m :=
 
 Definition choice_mode m sx mx lx :=
   match m with
-  | mode_NE => cond_incr (round_N (negb (Zeven mx)) lx) mx
+  | mode_NE => cond_incr (round_N (negb (Z.even mx)) lx) mx
   | mode_ZR => mx
   | mode_DN => cond_incr (round_sign_DN sx lx) mx
   | mode_UP => cond_incr (round_sign_UP sx lx) mx
@@ -1747,7 +1747,7 @@ Definition Fsqrt_core_binary m e :=
   let d := Zdigits2 m in
   let s := Zmax (2 * prec - d) 0 in
   let e' := (e - s)%Z in
-  let (s', e'') := if Zeven e' then (s, e') else (s + 1, e' - 1)%Z in
+  let (s', e'') := if Z.even e' then (s, e') else (s + 1, e' - 1)%Z in
   let m' :=
     match s' with
     | Zpos p => Z.shiftl m (Zpos p)
@@ -1871,7 +1871,7 @@ apply sqrt_ge_0.
 (* *)
 unfold Fsqrt_core, Fsqrt_core_binary.
 rewrite Zdigits2_Zdigits.
-destruct (if Zeven _ then _ else _) as [[|s'|s'] e''] ; try easy.
+destruct (if Z.even _ then _ else _) as [[|s'|s'] e''] ; try easy.
 now rewrite Z.shiftl_mul_pow2.
 Qed.
 

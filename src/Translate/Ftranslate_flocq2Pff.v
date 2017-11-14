@@ -291,8 +291,8 @@ apply absolu_lt_nz; omega.
 Qed.
 
 
-Lemma equiv_RNDs_aux: forall z, Zeven z = true -> Even z.
-intros z; unfold Zeven, Even.
+Lemma equiv_RNDs_aux: forall z, Z.even z = true -> Even z.
+intros z; unfold Z.even, Even.
 case z.
 intros; exists 0%Z; auto with zarith.
 intros p0; case p0.
