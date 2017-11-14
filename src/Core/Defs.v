@@ -57,45 +57,27 @@ Definition Rnd_DN_pt (F : R -> Prop) (x f : R) :=
   F f /\ (f <= x)%R /\
   forall g : R, F g -> (g <= x)%R -> (g <= f)%R.
 
-Definition Rnd_DN (F : R -> Prop) (rnd : R -> R) :=
-  forall x : R, Rnd_DN_pt F x (rnd x).
-
 (** property of being a round toward +inf *)
 Definition Rnd_UP_pt (F : R -> Prop) (x f : R) :=
   F f /\ (x <= f)%R /\
   forall g : R, F g -> (x <= g)%R -> (f <= g)%R.
-
-Definition Rnd_UP (F : R -> Prop) (rnd : R -> R) :=
-  forall x : R, Rnd_UP_pt F x (rnd x).
 
 (** property of being a round toward zero *)
 Definition Rnd_ZR_pt (F : R -> Prop) (x f : R) :=
   ( (0 <= x)%R -> Rnd_DN_pt F x f ) /\
   ( (x <= 0)%R -> Rnd_UP_pt F x f ).
 
-Definition Rnd_ZR (F : R -> Prop) (rnd : R -> R) :=
-  forall x : R, Rnd_ZR_pt F x (rnd x).
-
 (** property of being a round to nearest *)
 Definition Rnd_N_pt (F : R -> Prop) (x f : R) :=
   F f /\
   forall g : R, F g -> (Rabs (f - x) <= Rabs (g - x))%R.
 
-Definition Rnd_N (F : R -> Prop) (rnd : R -> R) :=
-  forall x : R, Rnd_N_pt F x (rnd x).
-
 Definition Rnd_NG_pt (F : R -> Prop) (P : R -> R -> Prop) (x f : R) :=
   Rnd_N_pt F x f /\
   ( P x f \/ forall f2 : R, Rnd_N_pt F x f2 -> f2 = f ).
 
-Definition Rnd_NG (F : R -> Prop) (P : R -> R -> Prop) (rnd : R -> R) :=
-  forall x : R, Rnd_NG_pt F P x (rnd x).
-
 Definition Rnd_NA_pt (F : R -> Prop) (x f : R) :=
   Rnd_N_pt F x f /\
   forall f2 : R, Rnd_N_pt F x f2 -> (Rabs f2 <= Rabs f)%R.
-
-Definition Rnd_NA (F : R -> Prop) (rnd : R -> R) :=
-  forall x : R, Rnd_NA_pt F x (rnd x).
 
 End RND.

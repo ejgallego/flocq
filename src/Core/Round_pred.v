@@ -24,6 +24,24 @@ Section RND_prop.
 
 Open Scope R_scope.
 
+Definition Rnd_DN (F : R -> Prop) (rnd : R -> R) :=
+  forall x : R, Rnd_DN_pt F x (rnd x).
+
+Definition Rnd_UP (F : R -> Prop) (rnd : R -> R) :=
+  forall x : R, Rnd_UP_pt F x (rnd x).
+
+Definition Rnd_ZR (F : R -> Prop) (rnd : R -> R) :=
+  forall x : R, Rnd_ZR_pt F x (rnd x).
+
+Definition Rnd_N (F : R -> Prop) (rnd : R -> R) :=
+  forall x : R, Rnd_N_pt F x (rnd x).
+
+Definition Rnd_NG (F : R -> Prop) (P : R -> R -> Prop) (rnd : R -> R) :=
+  forall x : R, Rnd_NG_pt F P x (rnd x).
+
+Definition Rnd_NA (F : R -> Prop) (rnd : R -> R) :=
+  forall x : R, Rnd_NA_pt F x (rnd x).
+
 Theorem round_val_of_pred :
   forall rnd : R -> R -> Prop,
   round_pred rnd ->
