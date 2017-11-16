@@ -327,6 +327,7 @@ Qed.
 
 Theorem Rnd_NE_pt_round :
   round_pred Rnd_NE_pt.
+Proof.
 split.
 apply Rnd_NE_pt_total.
 apply Rnd_NE_pt_monotone.

@@ -175,8 +175,6 @@ now apply Rabs_pos_lt.
 now apply generic_format_abs.
 Qed.
 
-
-(* was ulp_DN_UP *)
 Theorem round_UP_DN_ulp :
   forall x, ~ F x ->
   round beta fexp Zceil x = (round beta fexp Zfloor x + ulp x)%R.
@@ -320,7 +318,7 @@ rewrite <- ulp_bpow.
 apply H.
 Qed.
 
-Theorem ulp_le_pos :
+Lemma ulp_le_pos :
   forall { Hm : Monotone_exp fexp },
   forall x y: R,
   (0 <= x)%R -> (x <= y)%R ->
@@ -395,30 +393,18 @@ intros x Hx; unfold succ.
 now rewrite Rle_bool_true.
 Qed.
 
-Lemma pred_eq_opp_succ_opp :
-  forall x, pred x = (- succ (-x))%R.
-Proof.
-reflexivity.
-Qed.
-
-Lemma succ_eq_opp_pred_opp :
-  forall x, succ x = (- pred (-x))%R.
-Proof.
-intros x; unfold pred.
-now rewrite 2!Ropp_involutive.
-Qed.
-
-Lemma succ_opp :
+Theorem succ_opp :
   forall x, succ (-x) = (- pred x)%R.
 Proof.
-intros x; rewrite succ_eq_opp_pred_opp.
-now rewrite Ropp_involutive.
+intros x.
+now apply sym_eq, Ropp_involutive.
 Qed.
 
-Lemma pred_opp :
+Theorem pred_opp :
   forall x, pred (-x) = (- succ x)%R.
 Proof.
-intros x; rewrite pred_eq_opp_succ_opp.
+intros x.
+unfold pred.
 now rewrite Ropp_involutive.
 Qed.
 
@@ -1540,7 +1526,7 @@ rewrite <- Ropp_0 at 1.
 apply pred_opp.
 Qed.
 
-Theorem pred_succ_aux :
+Lemma pred_succ_aux :
   forall x, F x -> (0 < x)%R ->
   pred (succ x) = x.
 Proof.
@@ -1572,8 +1558,8 @@ now apply succ_pred_aux.
 rewrite <- Hx.
 rewrite pred_0, succ_opp, pred_ulp_0.
 apply Ropp_0.
-rewrite pred_eq_opp_succ_opp, succ_opp.
-rewrite pred_succ_aux.
+unfold pred.
+rewrite succ_opp, pred_succ_aux.
 apply Ropp_involutive.
 now apply generic_format_opp.
 now apply Ropp_0_gt_lt_contravar.
@@ -2003,12 +1989,16 @@ apply Rle_lt_trans with (2 := Hxy).
 apply pred_le_id.
 Qed.
 
-Theorem succ_le: forall x y,
-   F x -> F y -> (x <= y)%R -> (succ x <= succ y)%R.
+Theorem succ_le :
+  forall x y, F x -> F y -> (x <= y)%R ->
+  (succ x <= succ y)%R.
 Proof.
 intros x y Fx Fy Hxy.
-rewrite 2!succ_eq_opp_pred_opp.
-apply Ropp_le_contravar, pred_le; try apply generic_format_opp; try assumption.
+apply Ropp_le_cancel.
+rewrite <- 2!pred_opp.
+apply pred_le.
+now apply generic_format_opp.
+now apply generic_format_opp.
 now apply Ropp_le_contravar.
 Qed.
 
