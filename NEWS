@@ -1,9 +1,54 @@
 Version 3.0.0:
  - stripped prefix from all the file names, renamed some files
+   . Definitions -> Defs
  - renamed canonic_exp into cexp, canonic into canonical
  - changed FLX, FIX, FLT, FLXN, FTZ_format into inductive types
  - changed nan_pl into a boolean predicate
  - replaced Z2R with Coq 8.7's IZR
+ - removed Zeven and its theorems in favor of Z.even of the standard library
+ - modified statement of Rcompare_sqr
+ - renamed theorem more uniformly
+    . bpow_plus1 -> bpow_plus_1
+    . mag_lt_pos -> lt_mag
+    . F2R_le_reg -> le_F2R
+    . F2R_le_compat -> F2R_le
+    . F2R_lt_reg -> lt_F2R
+    . F2R_lt_compat -> F2R_lt
+    . F2R_eq_reg -> eq_F2R
+    . F2R_eq_compat -> F2R_eq
+    . F2R_eq_0_reg -> eq_0_F2R
+    . F2R_ge_0_reg -> ge_0_F2R
+    . F2R_le_0_reg -> le_0_F2R
+    . F2R_gt_0_reg -> gt_0_F2R
+    . F2R_lt_0_reg -> lt_0_F2R
+    . F2R_le_0_compat -> F2R_le_0
+    . F2R_ge_0_compat -> F2R_ge_0
+    . F2R_gt_0_compat -> F2R_gt_0
+    . F2R_lt_0_compat -> F2R_lt_0
+    . F2R_neq_0_compat -> F2R_neq_0
+    . Fnum_ge_0_compat -> Fnum_ge_0
+    . Fnum_le_0_compat -> Fnum_le_0
+    . round_ZR_pos -> round_ZR_DN
+    . round_ZR_neg -> round_ZR_UP
+    . round_AW_pos -> round_ZR_UP
+    . round_AW_neg -> round_ZR_DN
+    . Znearest_N -> Znearest_half
+    . Rnd_DN_UP_pt_N -> Rnd_N_pt_DN_UP
+    . Rnd_DN_pt_N -> Rnd_N_pt_DN
+    . Rnd_UP_pt_N -> Rnd_N_pt_UP
+    . Rnd_DN_UP_pt_sym -> Rnd_UP_pt_opp
+    . Rnd_UP_DN_pt_sym -> Rnd_DN_pt_opp
+    . Rnd_DN_UP_sym -> Rnd_DN_opp
+    . Rnd_N_pt_sym -> Rnd_N_pt_opp_inv
+    . Rnd_N_pt_pos -> Rnd_N_pt_ge_0
+    . Rnd_N_pt_neg -> Rnd_N_pt_le_0
+    . Rnd_NG_pt_sym -> Rnd_NG_pt_opp_inv
+    . Rnd_NA_N_pt -> Rnd_NA_pt_N
+
+
+
+
+
 
 Version 2.5.2:
  - ensured compatibility from Coq 8.4 to 8.6
