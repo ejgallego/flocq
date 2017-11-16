@@ -3542,7 +3542,7 @@ assert (Hlx : bpow (mag x - 1) <= x < bpow (mag x)).
   apply Hex.
   now apply Rgt_not_eq. }
 unfold double_round_eq.
-rewrite (round_N_really_small_pos beta fexp1 _ x (mag x)); [|exact Hlx|omega].
+rewrite (round_N_small_pos beta fexp1 _ x (mag x)); [|exact Hlx|omega].
 set (x'' := round beta fexp2 (Znearest choice2) x).
 destruct (Req_dec x'' 0) as [Zx''|Nzx''];
   [now rewrite Zx''; rewrite round_0; [|apply valid_rnd_N]|].
@@ -3550,9 +3550,9 @@ destruct (Zle_or_lt (fexp2 (mag x)) (mag x)).
 - (* fexp2 (mag x) <= mag x *)
   destruct (Rlt_or_le x'' (bpow (mag x))).
   + (* x'' < bpow (mag x) *)
-    rewrite (round_N_really_small_pos beta fexp1 _ _ (mag x));
+    rewrite (round_N_small_pos beta fexp1 _ _ (mag x));
     [reflexivity|split; [|exact H0]|omega].
-    apply round_large_pos_ge_pow; [now apply valid_rnd_N| |now apply Hlx].
+    apply round_large_pos_ge_bpow; [now apply valid_rnd_N| |now apply Hlx].
     fold x''; assert (0 <= x''); [|lra]; unfold x''.
     rewrite <- (round_0 beta fexp2 (Znearest choice2)).
     now apply round_le; [|apply valid_rnd_N|apply Rlt_le].
@@ -3590,7 +3590,7 @@ destruct (Zle_or_lt (fexp2 (mag x)) (mag x)).
       apply Zmult_lt_compat_l; omega.
 - (* mag x < fexp2 (mag x) *)
   casetype False; apply Nzx''.
-  now apply (round_N_really_small_pos beta _ _ _ (mag x)).
+  now apply (round_N_small_pos beta _ _ _ (mag x)).
 Qed.
 
 Lemma double_round_zero :
@@ -3614,14 +3614,14 @@ assert (Hlx : bpow (mag x - 1) <= x < bpow (mag x)).
   rewrite <- (Rabs_right x); [|now apply Rle_ge; apply Rlt_le].
   apply Hex.
   now apply Rgt_not_eq. }
-rewrite (round_N_really_small_pos beta fexp1 choice1 x (mag x));
+rewrite (round_N_small_pos beta fexp1 choice1 x (mag x));
   [|exact Hlx|omega].
 destruct (Req_dec x'' 0) as [Zx''|Nzx''];
   [now rewrite Zx''; rewrite round_0; [reflexivity|apply valid_rnd_N]|].
-rewrite (round_N_really_small_pos beta _ _ x'' (mag x));
+rewrite (round_N_small_pos beta _ _ x'' (mag x));
   [reflexivity| |omega].
 split.
-- apply round_large_pos_ge_pow.
+- apply round_large_pos_ge_bpow.
   + now apply valid_rnd_N.
   + assert (0 <= x''); [|now fold x''; lra].
     rewrite <- (round_0 beta fexp2 (Znearest choice2)).

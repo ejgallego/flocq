@@ -156,7 +156,7 @@ intros F rnd1 rnd2 H1 H2 x.
 now eapply Rnd_UP_pt_unicity.
 Qed.
 
-Theorem Rnd_DN_UP_pt_sym :
+Theorem Rnd_UP_pt_opp :
   forall F : R -> Prop,
   ( forall x, F x -> F (- x) ) ->
   forall x f : R,
@@ -177,7 +177,7 @@ now apply HF.
 now apply Ropp_le_cancel.
 Qed.
 
-Theorem Rnd_UP_DN_pt_sym :
+Theorem Rnd_DN_pt_opp :
   forall F : R -> Prop,
   ( forall x, F x -> F (- x) ) ->
   forall x f : R,
@@ -198,7 +198,7 @@ now apply HF.
 now apply Ropp_le_cancel.
 Qed.
 
-Theorem Rnd_DN_UP_sym :
+Theorem Rnd_DN_opp :
   forall F : R -> Prop,
   ( forall x, F x -> F (- x) ) ->
   forall rnd1 rnd2 : R -> R,
@@ -211,7 +211,7 @@ apply f_equal.
 apply (Rnd_UP_unicity F (fun x => - rnd1 (-x))) ; trivial.
 intros y.
 pattern y at 1 ; rewrite <- Ropp_involutive.
-apply Rnd_DN_UP_pt_sym.
+apply Rnd_UP_pt_opp.
 apply HF.
 apply H1.
 Qed.
@@ -407,7 +407,7 @@ right.
 apply Rnd_UP_pt_unicity with (1 := H) (2 := Hu).
 Qed.
 
-Theorem Rnd_N_pt_sym :
+Theorem Rnd_N_pt_opp_inv :
   forall F : R -> Prop,
   ( forall x, F x -> F (- x) ) ->
   forall x f : R,
@@ -564,7 +564,7 @@ rewrite 2!Rminus_0_r, Rabs_R0.
 apply Rabs_pos.
 Qed.
 
-Theorem Rnd_N_pt_pos :
+Theorem Rnd_N_pt_ge_0 :
   forall F : R -> Prop, F 0 ->
   forall x f, 0 <= x ->
   Rnd_N_pt F x f ->
@@ -580,7 +580,7 @@ now rewrite Hx.
 exact HF.
 Qed.
 
-Theorem Rnd_N_pt_neg :
+Theorem Rnd_N_pt_le_0 :
   forall F : R -> Prop, F 0 ->
   forall x f, x <= 0 ->
   Rnd_N_pt F x f ->
@@ -606,20 +606,20 @@ intros F HF0 HF x f Hxf.
 unfold Rabs at 1.
 destruct (Rcase_abs x) as [Hx|Hx].
 rewrite Rabs_left1.
-apply Rnd_N_pt_sym.
+apply Rnd_N_pt_opp_inv.
 exact HF.
 now rewrite 2!Ropp_involutive.
-apply Rnd_N_pt_neg with (3 := Hxf).
+apply Rnd_N_pt_le_0 with (3 := Hxf).
 exact HF0.
 now apply Rlt_le.
 rewrite Rabs_pos_eq.
 exact Hxf.
-apply Rnd_N_pt_pos with (3 := Hxf).
+apply Rnd_N_pt_ge_0 with (3 := Hxf).
 exact HF0.
 now apply Rge_le.
 Qed.
 
-Theorem Rnd_DN_UP_pt_N :
+Theorem Rnd_N_pt_DN_UP :
   forall F : R -> Prop,
   forall x d u f : R,
   F f ->
@@ -652,7 +652,7 @@ apply Rle_trans with (2 := Hgu).
 apply Hxu.
 Qed.
 
-Theorem Rnd_DN_pt_N :
+Theorem Rnd_N_pt_DN :
   forall F : R -> Prop,
   forall x d u : R,
   Rnd_DN_pt F x d ->
@@ -666,14 +666,14 @@ rewrite Rabs_minus_sym.
 apply Rabs_pos_eq.
 apply Rle_0_minus.
 apply Hd.
-apply Rnd_DN_UP_pt_N with (2 := Hd) (3 := Hu).
+apply Rnd_N_pt_DN_UP with (2 := Hd) (3 := Hu).
 apply Hd.
 rewrite Hdx.
 apply Rle_refl.
 now rewrite Hdx.
 Qed.
 
-Theorem Rnd_UP_pt_N :
+Theorem Rnd_N_pt_UP :
   forall F : R -> Prop,
   forall x d u : R,
   Rnd_DN_pt F x d ->
@@ -686,7 +686,7 @@ assert (Hux: (Rabs (u - x) = u - x)%R).
 apply Rabs_pos_eq.
 apply Rle_0_minus.
 apply Hu.
-apply Rnd_DN_UP_pt_N with (2 := Hd) (3 := Hu).
+apply Rnd_N_pt_DN_UP with (2 := Hd) (3 := Hu).
 apply Hu.
 now rewrite Hux.
 rewrite Hux.
@@ -745,7 +745,7 @@ intros f2 Hf2.
 now apply Rnd_N_pt_idempotent with F.
 Qed.
 
-Theorem Rnd_NG_pt_sym :
+Theorem Rnd_NG_pt_opp_inv :
   forall (F : R -> Prop) (P : R -> R -> Prop),
   ( forall x, F x -> F (-x) ) ->
   ( forall x f, P x f -> P (-x) (-f) ) ->
@@ -754,7 +754,7 @@ Theorem Rnd_NG_pt_sym :
 Proof.
 intros F P HF HP x f (H1,H2).
 split.
-now apply Rnd_N_pt_sym.
+now apply Rnd_N_pt_opp_inv.
 destruct H2 as [H2|H2].
 left.
 rewrite <- (Ropp_involutive x), <- (Ropp_involutive f).
@@ -765,7 +765,7 @@ rewrite <- (Ropp_involutive f).
 rewrite <- H2 with (-f2).
 apply sym_eq.
 apply Ropp_involutive.
-apply Rnd_N_pt_sym.
+apply Rnd_N_pt_opp_inv.
 exact HF.
 now rewrite 2!Ropp_involutive.
 Qed.
@@ -792,7 +792,7 @@ destruct (Rle_or_lt 0 x) as [Hx|Hx].
 (* *)
 split ; intros (H1, H2).
 (* . *)
-assert (Hf := Rnd_N_pt_pos F HF x f Hx H1).
+assert (Hf := Rnd_N_pt_ge_0 F HF x f Hx H1).
 split.
 exact H1.
 destruct (Rnd_N_pt_DN_or_UP _ _ _ H1) as [H3|H3].
@@ -806,7 +806,7 @@ apply Rle_antisym.
 rewrite Rabs_pos_eq with (1 := Hf) in H2.
 rewrite Rabs_pos_eq in H2.
 exact H2.
-now apply Rnd_N_pt_pos with F x.
+now apply Rnd_N_pt_ge_0 with F x.
 apply Rle_trans with x.
 apply H3.
 apply H4.
@@ -820,8 +820,8 @@ split.
 exact H1.
 intros f2 Hxf2.
 destruct H2 as [H2|H2].
-assert (Hf := Rnd_N_pt_pos F HF x f Hx H1).
-assert (Hf2 := Rnd_N_pt_pos F HF x f2 Hx Hxf2).
+assert (Hf := Rnd_N_pt_ge_0 F HF x f Hx H1).
+assert (Hf2 := Rnd_N_pt_ge_0 F HF x f2 Hx Hxf2).
 rewrite 2!Rabs_pos_eq ; trivial.
 rewrite 2!Rabs_pos_eq in H2 ; trivial.
 destruct (Rnd_N_pt_DN_or_UP _ _ _ Hxf2) as [H3|H3].
@@ -837,7 +837,7 @@ assert (Hx' := Rlt_le _ _ Hx).
 clear Hx. rename Hx' into Hx.
 split ; intros (H1, H2).
 (* . *)
-assert (Hf := Rnd_N_pt_neg F HF x f Hx H1).
+assert (Hf := Rnd_N_pt_le_0 F HF x f Hx H1).
 split.
 exact H1.
 destruct (Rnd_N_pt_DN_or_UP _ _ _ H1) as [H3|H3].
@@ -859,15 +859,15 @@ apply H3.
 rewrite Rabs_left1 with (1 := Hf) in H2.
 rewrite Rabs_left1 in H2.
 now apply Ropp_le_cancel.
-now apply Rnd_N_pt_neg with F x.
+now apply Rnd_N_pt_le_0 with F x.
 eapply Rnd_UP_pt_unicity ; eassumption.
 (* . *)
 split.
 exact H1.
 intros f2 Hxf2.
 destruct H2 as [H2|H2].
-assert (Hf := Rnd_N_pt_neg F HF x f Hx H1).
-assert (Hf2 := Rnd_N_pt_neg F HF x f2 Hx Hxf2).
+assert (Hf := Rnd_N_pt_le_0 F HF x f Hx H1).
+assert (Hf2 := Rnd_N_pt_le_0 F HF x f2 Hx Hxf2).
 rewrite 2!Rabs_left1 ; trivial.
 rewrite 2!Rabs_left1 in H2 ; trivial.
 apply Ropp_le_contravar.
@@ -882,7 +882,7 @@ rewrite (H2 _ Hxf2).
 apply Rle_refl.
 Qed.
 
-Theorem Rnd_NA_pt_unicity_prop :
+Lemma Rnd_NA_pt_unicity_prop :
   forall F : R -> Prop,
   F 0 ->
   Rnd_NG_pt_unicity_prop F (fun a b => (Rabs a <= Rabs b)%R).
@@ -922,7 +922,7 @@ now apply -> Rnd_NA_NG_pt.
 now apply -> Rnd_NA_NG_pt.
 Qed.
 
-Theorem Rnd_NA_N_pt :
+Theorem Rnd_NA_pt_N :
   forall F : R -> Prop,
   F 0 ->
   forall x f : R,
@@ -953,7 +953,7 @@ destruct (Rle_lt_dec 0 x) as [Hx|Hx].
 (* . *)
 revert Hxf.
 rewrite Rabs_pos_eq with (1 := Hx).
-rewrite 2!Rabs_pos_eq ; try ( apply (Rnd_N_pt_pos F HF x) ; assumption ).
+rewrite 2!Rabs_pos_eq ; try ( apply (Rnd_N_pt_ge_0 F HF x) ; assumption ).
 intros Hxf.
 rewrite H0.
 apply Rplus_le_reg_r with f.
@@ -964,7 +964,7 @@ now apply IZR_le.
 revert Hxf.
 apply Rlt_le in Hx.
 rewrite Rabs_left1 with (1 := Hx).
-rewrite 2!Rabs_left1 ; try ( apply (Rnd_N_pt_neg F HF x) ; assumption ).
+rewrite 2!Rabs_left1 ; try ( apply (Rnd_N_pt_le_0 F HF x) ; assumption ).
 intros Hxf.
 rewrite H0.
 apply Ropp_le_contravar.
@@ -1182,7 +1182,7 @@ intros x.
 destruct (proj1 (satisfies_any_imp_DN F Hany) (-x)) as (f, Hf).
 exists (-f).
 rewrite <- (Ropp_involutive x).
-apply Rnd_DN_UP_pt_sym.
+apply Rnd_UP_pt_opp.
 apply Hany.
 exact Hf.
 apply Rnd_UP_pt_monotone.

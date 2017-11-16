@@ -1086,7 +1086,7 @@ apply Rle_lt_trans with (-(((IZR z) /2) - IZR (ZnearestE (IZR z / 2)))).
 right; ring.
 apply Rle_lt_trans with (1:= RRle_abs _).
 rewrite Rabs_Ropp.
-apply Rle_lt_trans with (1:=Znearest_N (fun x => negb (Z.even x)) _).
+apply Rle_lt_trans with (1:=Znearest_half (fun x => negb (Z.even x)) _).
 apply Rle_lt_trans with (1*/2);[right; ring|idtac].
 apply Rlt_le_trans with ((IZR z)*/2);[idtac|right; field].
 apply Rmult_lt_compat_r.

@@ -577,11 +577,11 @@ destruct (mag x) as (ex,Hex); simpl.
 specialize (Hex (Rgt_not_eq _ _ Px)).
 intros Hf2f1 Hx H1.
 rewrite Rabs_right in Hex; [|now apply Rle_ge, Rlt_le].
-rewrite (round_N_really_small_pos _ fexp1 _ x ex Hex H1).
+rewrite (round_N_small_pos _ fexp1 _ x ex Hex H1).
 destruct (Zle_or_lt (fexp1 ex) (fexp2 ex)) as [H2|H2].
 - (* fexp1 ex = fexp2 ex *)
   replace (fexp1 ex) with (fexp2 ex) in H1; [|now apply Zle_antisym].
-  rewrite (round_N_really_small_pos _ fexp2 _ x ex Hex H1).
+  rewrite (round_N_small_pos _ fexp2 _ x ex Hex H1).
   now rewrite round_0; [|apply valid_rnd_N].
 - (* fexp2 (mag x) < fexp1 (mag x) *)
   set (r2 := round beta fexp2 (Znearest choice2) x).
@@ -2081,11 +2081,11 @@ destruct (mag x) as (ex,Hex); simpl.
 specialize (Hex (Rgt_not_eq _ _ Px)).
 intros Hf2 H1.
 rewrite Rabs_right in Hex; [|now apply Rle_ge, Rlt_le].
-rewrite (round_N_really_small_pos _ fexp1 _ x ex Hex H1).
+rewrite (round_N_small_pos _ fexp1 _ x ex Hex H1).
 destruct (Zle_or_lt (fexp1 ex) (fexp2 ex)) as [H2|H2].
 - (* fexp1 ex = fexp2 ex *)
   replace (fexp1 ex) with (fexp2 ex) in H1; [|now apply Zle_antisym].
-  rewrite (round_N_really_small_pos _ fexp2 _ x ex Hex H1).
+  rewrite (round_N_small_pos _ fexp2 _ x ex Hex H1).
   now rewrite round_0; [|apply valid_rnd_N].
 - (* fexp2 (mag x) < fexp1 (mag x) *)
   set (r2 := round beta fexp2 ZnearestA x).

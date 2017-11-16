@@ -143,12 +143,12 @@ destruct H2.
 right.
 replace f with (-(-f))%R by ring.
 replace x with (-(-x))%R by ring.
-apply Rnd_DN_UP_pt_sym...
+apply Rnd_UP_pt_opp...
 apply generic_format_opp.
 left.
 replace f with (-(-f))%R by ring.
 replace x with (-(-x))%R by ring.
-apply Rnd_UP_DN_pt_sym...
+apply Rnd_DN_pt_opp...
 apply generic_format_opp.
 exists (Float beta (-Fnum g) (Fexp g)).
 split.

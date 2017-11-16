@@ -461,7 +461,7 @@ intros H.
 apply Rmult_eq_reg_r in H.
 apply Hm.
 apply Rcompare_Eq_inv.
-rewrite Rcompare_floor_ceil_mid.
+rewrite Rcompare_floor_ceil_middle.
 now apply Rcompare_Eq.
 contradict Hxg.
 apply sym_eq.
@@ -520,7 +520,7 @@ Theorem round_NE_pt :
 Proof with auto with typeclass_instances.
 intros x.
 destruct (total_order_T x 0) as [[Hx|Hx]|Hx].
-apply Rnd_NG_pt_sym.
+apply Rnd_NG_pt_opp_inv.
 apply generic_format_opp.
 unfold NE_prop.
 intros _ f ((mg,eg),(H1,(H2,H3))).

@@ -367,7 +367,7 @@ apply Rlt_le_trans with (1 := proj2 Hx).
 now apply bpow_le.
 Qed.
 
-Theorem scaled_mantissa_small :
+Theorem scaled_mantissa_lt_1 :
   forall x ex,
   (Rabs x < bpow ex)%R ->
   (ex <= fexp ex)%Z ->
@@ -392,7 +392,7 @@ now apply Rle_lt_trans with (2 := Ex).
 now rewrite (proj2 (proj2 (valid_exp _) He)).
 Qed.
 
-Theorem abs_scaled_mantissa_lt_bpow :
+Theorem scaled_mantissa_lt_bpow :
   forall x,
   (Rabs (scaled_mantissa x) < bpow (mag beta x - cexp x))%R.
 Proof.
@@ -419,7 +419,7 @@ destruct (mag beta x) as (ex,Ex) ; simpl.
 specialize (Ex Zx).
 intros H.
 apply Zge_le in H.
-generalize (scaled_mantissa_small x ex (proj2 Ex) H).
+generalize (scaled_mantissa_lt_1 x ex (proj2 Ex) H).
 contradict Zx.
 rewrite Gx.
 replace (Ztrunc (scaled_mantissa x)) with Z0.
@@ -431,7 +431,7 @@ rewrite abs_IZR.
 now rewrite <- scaled_mantissa_generic.
 Qed.
 
-Theorem mantissa_DN_small_pos :
+Lemma mantissa_DN_small_pos :
   forall x ex,
   (bpow (ex - 1) <= x < bpow ex)%R ->
   (ex <= fexp ex)%Z ->
@@ -443,7 +443,7 @@ assert (H := mantissa_small_pos x ex Hx He).
 split ; try apply Rlt_le ; apply H.
 Qed.
 
-Theorem mantissa_UP_small_pos :
+Lemma mantissa_UP_small_pos :
   forall x ex,
   (bpow (ex - 1) <= x < bpow ex)%R ->
   (ex <= fexp ex)%Z ->
@@ -698,7 +698,7 @@ refine (let H := _ in conj (proj1 H) (Rlt_le _ _ (proj2 H))).
 now apply mantissa_small_pos.
 Qed.
 
-Theorem round_le_pos :
+Lemma round_le_pos :
   forall x y, (0 < x)%R -> (x <= y)%R -> (round x <= round y)%R.
 Proof.
 intros x y Hx Hxy.
@@ -780,7 +780,7 @@ apply bpow_gt_0.
 apply (round_bounded_large_pos); assumption.
 Qed.
 
-Theorem generic_format_round_pos :
+Lemma generic_format_round_pos :
   forall x,
   (0 < x)%R ->
   generic_format (round x).
@@ -1152,7 +1152,7 @@ apply round_le...
 now apply Rge_le.
 Qed.
 
-Theorem round_ZR_pos :
+Theorem round_ZR_DN :
   forall x,
   (0 <= x)%R ->
   round Ztrunc x = round Zfloor x.
@@ -1168,7 +1168,7 @@ apply bpow_ge_0.
 easy.
 Qed.
 
-Theorem round_ZR_neg :
+Theorem round_ZR_UP :
   forall x,
   (x <= 0)%R ->
   round Ztrunc x = round Zceil x.
@@ -1186,7 +1186,7 @@ rewrite <- H.
 now rewrite Zfloor_IZR, Zceil_IZR.
 Qed.
 
-Theorem round_AW_pos :
+Theorem round_AW_UP :
   forall x,
   (0 <= x)%R ->
   round Zaway x = round Zceil x.
@@ -1202,7 +1202,7 @@ apply bpow_ge_0.
 easy.
 Qed.
 
-Theorem round_AW_neg :
+Theorem round_AW_DN :
   forall x,
   (x <= 0)%R ->
   round Zaway x = round Zfloor x.
@@ -1279,7 +1279,7 @@ Proof.
 intros x.
 rewrite <- (Ropp_involutive x).
 rewrite round_UP_opp.
-apply Rnd_DN_UP_pt_sym.
+apply Rnd_UP_pt_opp.
 apply generic_format_opp.
 apply round_DN_pt.
 Qed.
@@ -1290,13 +1290,13 @@ Theorem round_ZR_pt :
 Proof.
 intros x.
 split ; intros Hx.
-rewrite round_ZR_pos with (1 := Hx).
+rewrite round_ZR_DN with (1 := Hx).
 apply round_DN_pt.
-rewrite round_ZR_neg with (1 := Hx).
+rewrite round_ZR_UP with (1 := Hx).
 apply round_UP_pt.
 Qed.
 
-Theorem round_DN_small_pos :
+Lemma round_DN_small_pos :
   forall x ex,
   (bpow (ex - 1) <= x < bpow ex)%R ->
   (ex <= fexp ex)%Z ->
@@ -1333,7 +1333,7 @@ contradict Fx.
 apply generic_format_round...
 Qed.
 
-Theorem round_UP_small_pos :
+Lemma round_UP_small_pos :
   forall x ex,
   (bpow (ex - 1) <= x < bpow ex)%R ->
   (ex <= fexp ex)%Z ->
@@ -1365,7 +1365,7 @@ Section round_large.
 Variable rnd : R -> Z.
 Context { valid_rnd : Valid_rnd rnd }.
 
-Theorem round_large_pos_ge_pow :
+Lemma round_large_pos_ge_bpow :
   forall x e,
   (0 < round rnd x)%R ->
   (bpow e <= x)%R ->
@@ -1408,12 +1408,12 @@ destruct (mag beta x) as (ex, Ex) ; simpl.
 specialize (Ex Zx).
 rewrite <- round_ZR_abs.
 split.
-apply round_large_pos_ge_pow...
+apply round_large_pos_ge_bpow...
 rewrite round_ZR_abs.
 now apply Rabs_pos_lt.
 apply Ex.
 apply Rle_lt_trans with (2 := proj2 Ex).
-rewrite round_ZR_pos.
+rewrite round_ZR_DN.
 apply round_DN_pt.
 apply Rabs_pos.
 Qed.
@@ -1438,7 +1438,7 @@ rewrite <- round_AW_abs.
 destruct (Zle_or_lt ex (fexp ex)) as [He|He].
 right.
 rewrite Zmax_r with (1 := He).
-rewrite round_AW_pos with (1 := Rabs_pos _).
+rewrite round_AW_UP with (1 := Rabs_pos _).
 now apply round_UP_small_pos.
 destruct (round_bounded_large_pos Zaway _ ex He Ex) as (H1,[H2|H2]).
 left.
@@ -1459,7 +1459,7 @@ assert (0 < x)%R.
 apply Rlt_le_trans with (1 := Hd).
 apply round_DN_pt.
 revert Hd.
-rewrite <- round_ZR_pos.
+rewrite <- round_ZR_DN.
 intros Hd.
 apply mag_round_ZR.
 now apply Rgt_not_eq.
@@ -1594,7 +1594,7 @@ contradict Zr.
 rewrite Zr.
 apply round_0...
 rewrite <- round_AW_abs.
-rewrite round_AW_pos.
+rewrite round_AW_UP.
 apply round_UP_pt.
 apply Rabs_pos.
 Qed.
@@ -1732,66 +1732,6 @@ apply Rinv_0_lt_compat.
 now apply IZR_lt.
 Qed.
 
-Theorem Rcompare_floor_ceil_mid :
-  forall x,
-  IZR (Zfloor x) <> x ->
-  Rcompare (x - IZR (Zfloor x)) (/ 2) = Rcompare (x - IZR (Zfloor x)) (IZR (Zceil x) - x).
-Proof.
-intros x Hx.
-rewrite Zceil_floor_neq with (1 := Hx).
-rewrite plus_IZR.
-destruct (Rcompare_spec (x - IZR (Zfloor x)) (/ 2)) as [H1|H1|H1] ; apply sym_eq.
-(* . *)
-apply Rcompare_Lt.
-apply Rplus_lt_reg_l with (x - IZR (Zfloor x))%R.
-replace (x - IZR (Zfloor x) + (x - IZR (Zfloor x)))%R with ((x - IZR (Zfloor x)) * 2)%R by ring.
-replace (x - IZR (Zfloor x) + (IZR (Zfloor x) + 1 - x))%R with (/2 * 2)%R by field.
-apply Rmult_lt_compat_r with (2 := H1).
-now apply IZR_lt.
-(* . *)
-apply Rcompare_Eq.
-replace (IZR (Zfloor x) + 1 - x)%R with (1 - (x - IZR (Zfloor x)))%R by ring.
-rewrite H1.
-field.
-(* . *)
-apply Rcompare_Gt.
-apply Rplus_lt_reg_l with (x - IZR (Zfloor x))%R.
-replace (x - IZR (Zfloor x) + (x - IZR (Zfloor x)))%R with ((x - IZR (Zfloor x)) * 2)%R by ring.
-replace (x - IZR (Zfloor x) + (IZR (Zfloor x) + 1 - x))%R with (/2 * 2)%R by field.
-apply Rmult_lt_compat_r with (2 := H1).
-now apply IZR_lt.
-Qed.
-
-Theorem Rcompare_ceil_floor_mid :
-  forall x,
-  IZR (Zfloor x) <> x ->
-  Rcompare (IZR (Zceil x) - x) (/ 2) = Rcompare (IZR (Zceil x) - x) (x - IZR (Zfloor x)).
-Proof.
-intros x Hx.
-rewrite Zceil_floor_neq with (1 := Hx).
-rewrite plus_IZR.
-destruct (Rcompare_spec (IZR (Zfloor x) + 1 - x) (/ 2)) as [H1|H1|H1] ; apply sym_eq.
-(* . *)
-apply Rcompare_Lt.
-apply Rplus_lt_reg_l with (IZR (Zfloor x) + 1 - x)%R.
-replace (IZR (Zfloor x) + 1 - x + (IZR (Zfloor x) + 1 - x))%R with ((IZR (Zfloor x) + 1 - x) * 2)%R by ring.
-replace (IZR (Zfloor x) + 1 - x + (x - IZR (Zfloor x)))%R with (/2 * 2)%R by field.
-apply Rmult_lt_compat_r with (2 := H1).
-now apply IZR_lt.
-(* . *)
-apply Rcompare_Eq.
-replace (x - IZR (Zfloor x))%R with (1 - (IZR (Zfloor x) + 1 - x))%R by ring.
-rewrite H1.
-field.
-(* . *)
-apply Rcompare_Gt.
-apply Rplus_lt_reg_l with (IZR (Zfloor x) + 1 - x)%R.
-replace (IZR (Zfloor x) + 1 - x + (IZR (Zfloor x) + 1 - x))%R with ((IZR (Zfloor x) + 1 - x) * 2)%R by ring.
-replace (IZR (Zfloor x) + 1 - x + (x - IZR (Zfloor x)))%R with (/2 * 2)%R by field.
-apply Rmult_lt_compat_r with (2 := H1).
-now apply IZR_lt.
-Qed.
-
 Theorem Znearest_N_strict :
   forall x,
   (x - IZR (Zfloor x) <> /2)%R ->
@@ -1824,7 +1764,7 @@ apply Rle_minus.
 apply Zceil_ub.
 Qed.
 
-Theorem Znearest_N :
+Theorem Znearest_half :
   forall x,
   (Rabs (x - IZR (Znearest x)) <= /2)%R.
 Proof.
@@ -1871,7 +1811,7 @@ simpl.
 replace 1%R with (/2 + /2)%R by field.
 apply Rplus_le_lt_compat with (2 := Hd).
 rewrite Rabs_Ropp.
-apply Znearest_N.
+apply Znearest_half.
 Qed.
 
 Theorem round_N_pt :
@@ -1912,7 +1852,7 @@ apply Zceil_ub.
 apply Rinv_0_lt_compat.
 now apply IZR_lt.
 (* .. *)
-rewrite Rcompare_floor_ceil_mid with (1 := Hm).
+rewrite Rcompare_floor_ceil_middle with (1 := Hm).
 rewrite Rmin_compare.
 assert (H: (Rabs (mx - IZR (Zfloor mx)) <= mx - IZR (Zfloor mx))%R).
 rewrite Rabs_pos_eq.
@@ -1930,7 +1870,7 @@ apply Rle_refl.
 apply Rle_0_minus.
 apply Zceil_ub.
 (* . *)
-apply Rnd_DN_UP_pt_N with d u.
+apply Rnd_N_pt_DN_UP with d u.
 apply generic_format_round.
 auto with typeclass_instances.
 now apply round_DN_pt.
@@ -1958,7 +1898,7 @@ set (m := Zfloor (scaled_mantissa x)).
 now case (Rcompare (IZR m - IZR m) (/ 2)) ; case (choice m).
 (* *)
 intros H.
-rewrite Rcompare_floor_ceil_mid with (1 := Fx).
+rewrite Rcompare_floor_ceil_middle with (1 := Fx).
 rewrite Rcompare_Eq.
 now case choice.
 apply Rmult_eq_reg_r with (bpow (cexp x)).
@@ -1967,7 +1907,7 @@ apply Rgt_not_eq.
 apply bpow_gt_0.
 Qed.
 
-Lemma round_N_really_small_pos :
+Lemma round_N_small_pos :
   forall x,
   forall ex,
   (Raux.bpow beta (ex - 1) <= x < Raux.bpow beta ex)%R ->
@@ -2026,7 +1966,7 @@ set (f := round (Znearest (Zle_bool 0)) x).
 intros Rxf.
 destruct (Req_dec (x - round Zfloor x) (round Zceil x - x)) as [Hm|Hm].
 (* *)
-apply Rnd_NA_N_pt.
+apply Rnd_NA_pt_N.
 exact generic_format_0.
 exact Rxf.
 destruct (Rle_or_lt 0 x) as [Hx|Hx].
@@ -2040,7 +1980,7 @@ apply (round_UP_pt x).
 apply Zfloor_lub.
 apply Rmult_le_pos with (1 := Hx).
 apply bpow_ge_0.
-apply Rnd_N_pt_pos with (2 := Hx) (3 := Rxf).
+apply Rnd_N_pt_ge_0 with (2 := Hx) (3 := Rxf).
 exact generic_format_0.
 (* . *)
 rewrite Rabs_left with (1 := Hx).
@@ -2057,7 +1997,7 @@ simpl.
 rewrite <- (Rmult_0_l (bpow (- cexp x))).
 apply Rmult_lt_compat_r with (2 := Hx).
 apply bpow_gt_0.
-apply Rnd_N_pt_neg with (3 := Rxf).
+apply Rnd_N_pt_le_0 with (3 := Rxf).
 exact generic_format_0.
 now apply Rlt_le.
 (* *)
@@ -2085,8 +2025,8 @@ rewrite <- opp_IZR.
 rewrite 2!Zrnd_IZR...
 unfold Znearest.
 replace (- x - IZR (Zfloor (-x)))%R with (IZR (Zceil x) - x)%R.
-rewrite Rcompare_ceil_floor_mid with (1 := Hx).
-rewrite Rcompare_floor_ceil_mid with (1 := Hx).
+rewrite Rcompare_ceil_floor_middle with (1 := Hx).
+rewrite Rcompare_floor_ceil_middle with (1 := Hx).
 rewrite Rcompare_sym.
 rewrite <- Zceil_floor_neq with (1 := Hx).
 unfold Zceil.

@@ -1169,6 +1169,66 @@ Qed.
 
 End Floor_Ceil.
 
+Theorem Rcompare_floor_ceil_middle :
+  forall x,
+  IZR (Zfloor x) <> x ->
+  Rcompare (x - IZR (Zfloor x)) (/ 2) = Rcompare (x - IZR (Zfloor x)) (IZR (Zceil x) - x).
+Proof.
+intros x Hx.
+rewrite Zceil_floor_neq with (1 := Hx).
+rewrite plus_IZR.
+destruct (Rcompare_spec (x - IZR (Zfloor x)) (/ 2)) as [H1|H1|H1] ; apply sym_eq.
+(* . *)
+apply Rcompare_Lt.
+apply Rplus_lt_reg_l with (x - IZR (Zfloor x))%R.
+replace (x - IZR (Zfloor x) + (x - IZR (Zfloor x)))%R with ((x - IZR (Zfloor x)) * 2)%R by ring.
+replace (x - IZR (Zfloor x) + (IZR (Zfloor x) + 1 - x))%R with (/2 * 2)%R by field.
+apply Rmult_lt_compat_r with (2 := H1).
+now apply IZR_lt.
+(* . *)
+apply Rcompare_Eq.
+replace (IZR (Zfloor x) + 1 - x)%R with (1 - (x - IZR (Zfloor x)))%R by ring.
+rewrite H1.
+field.
+(* . *)
+apply Rcompare_Gt.
+apply Rplus_lt_reg_l with (x - IZR (Zfloor x))%R.
+replace (x - IZR (Zfloor x) + (x - IZR (Zfloor x)))%R with ((x - IZR (Zfloor x)) * 2)%R by ring.
+replace (x - IZR (Zfloor x) + (IZR (Zfloor x) + 1 - x))%R with (/2 * 2)%R by field.
+apply Rmult_lt_compat_r with (2 := H1).
+now apply IZR_lt.
+Qed.
+
+Theorem Rcompare_ceil_floor_middle :
+  forall x,
+  IZR (Zfloor x) <> x ->
+  Rcompare (IZR (Zceil x) - x) (/ 2) = Rcompare (IZR (Zceil x) - x) (x - IZR (Zfloor x)).
+Proof.
+intros x Hx.
+rewrite Zceil_floor_neq with (1 := Hx).
+rewrite plus_IZR.
+destruct (Rcompare_spec (IZR (Zfloor x) + 1 - x) (/ 2)) as [H1|H1|H1] ; apply sym_eq.
+(* . *)
+apply Rcompare_Lt.
+apply Rplus_lt_reg_l with (IZR (Zfloor x) + 1 - x)%R.
+replace (IZR (Zfloor x) + 1 - x + (IZR (Zfloor x) + 1 - x))%R with ((IZR (Zfloor x) + 1 - x) * 2)%R by ring.
+replace (IZR (Zfloor x) + 1 - x + (x - IZR (Zfloor x)))%R with (/2 * 2)%R by field.
+apply Rmult_lt_compat_r with (2 := H1).
+now apply IZR_lt.
+(* . *)
+apply Rcompare_Eq.
+replace (x - IZR (Zfloor x))%R with (1 - (IZR (Zfloor x) + 1 - x))%R by ring.
+rewrite H1.
+field.
+(* . *)
+apply Rcompare_Gt.
+apply Rplus_lt_reg_l with (IZR (Zfloor x) + 1 - x)%R.
+replace (IZR (Zfloor x) + 1 - x + (IZR (Zfloor x) + 1 - x))%R with ((IZR (Zfloor x) + 1 - x) * 2)%R by ring.
+replace (IZR (Zfloor x) + 1 - x + (x - IZR (Zfloor x)))%R with (/2 * 2)%R by field.
+apply Rmult_lt_compat_r with (2 := H1).
+now apply IZR_lt.
+Qed.
+
 Section Zdiv_Rdiv.
 
 Theorem Zfloor_div :
