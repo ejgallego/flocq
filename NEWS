@@ -6,7 +6,7 @@ Version 3.0.0:
  - changed nan_pl into a boolean predicate
  - replaced Z2R with Coq 8.7's IZR
  - removed Zeven and its theorems in favor of Z.even of the standard library
- - modified statement of Rcompare_sqr
+ - modified statement of Rcompare_sqr, ulp_DN
  - renamed theorem more uniformly
     . bpow_plus1 -> bpow_plus_1
     . mag_lt_pos -> lt_mag
@@ -44,10 +44,13 @@ Version 3.0.0:
     . Rnd_N_pt_neg -> Rnd_N_pt_le_0
     . Rnd_NG_pt_sym -> Rnd_NG_pt_opp_inv
     . Rnd_NA_N_pt -> Rnd_NA_pt_N
-
-
-
-
+    . le_pred_lt -> pred_ge_gt
+    . lt_succ_le -> succ_gt_ge
+    . le_round_DN_lt_UP -> round_DN_ge_UP_gt
+    . round_UP_le_gt_DN -> round_UP_le_DN_lt
+    . round_DN_eq_betw -> round_DN_eq
+    . round_UP_eq_betw -> round_UP_eq
+    . round_plus_eq_zero -> round_plus_neq_0 (and modified statement)
 
 
 Version 2.5.2:
