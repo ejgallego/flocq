@@ -209,7 +209,7 @@ destruct (Req_dec x' 0) as [Zx'|Nzx'].
         * rewrite <- (Rabs_right x) at 1; [|now apply Rle_ge; apply Rlt_le].
           apply bpow_mag_gt.
     - exact Vfexp1.
-    - exact Px'. }
+    - now apply Rlt_le. }
   fold (cexp beta fexp2 x); fold (ulp beta fexp2 x).
   assert (/ 2 * ulp beta fexp1 x <= ulp beta fexp1 x).
   rewrite <- (Rmult_1_l (ulp _ _ _)) at 2.
