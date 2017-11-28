@@ -168,7 +168,7 @@ Context { valid_rnd : Valid_rnd rnd }.
 Theorem mult_error_FLT :
   forall x y,
   format x -> format y ->
-  (x*y = 0)%R \/ (bpow (emin + 2*prec - 1) <= Rabs (x * y))%R ->
+  (x * y <> 0 -> bpow (emin + 2*prec - 1) <= Rabs (x * y))%R ->
   format (round beta (FLT_exp emin prec) rnd (x * y) - (x * y))%R.
 Proof with auto with typeclass_instances.
 intros x y Hx Hy Hxy.
@@ -176,12 +176,13 @@ set (f := (round beta (FLT_exp emin prec) rnd (x * y))).
 destruct (Req_dec (f - x * y) 0) as [Hr0|Hr0].
 rewrite Hr0.
 apply generic_format_0.
-destruct Hxy as [Hxy|Hxy].
+destruct (Req_dec (x * y) 0) as [Hxy'|Hxy'].
 unfold f.
-rewrite Hxy.
+rewrite Hxy'.
 rewrite round_0...
 ring_simplify (0 - 0)%R.
 apply generic_format_0.
+specialize (Hxy Hxy').
 destruct (mult_error_FLX_aux beta prec rnd x y) as ((m,e),(H1,(H2,H3))).
 now apply generic_format_FLX_FLT with emin.
 now apply generic_format_FLX_FLT with emin.
