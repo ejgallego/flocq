@@ -11,7 +11,7 @@ Variable beta : radix.
 Notation bpow e := (bpow beta e).
 Notation mag x := (mag beta x).
 
-Definition double_round_eq fexp1 fexp2 choice1 choice2 x :=
+Definition round_round_eq fexp1 fexp2 choice1 choice2 x :=
   round beta fexp1 (Znearest choice1) (round beta fexp2 (Znearest choice2) x)
   = round beta fexp1 (Znearest choice1) x.
 
@@ -48,7 +48,7 @@ Definition midp (fexp : Z -> Z) (x : R) :=
 Definition midp' (fexp : Z -> Z) (x : R) :=
   round beta fexp Zceil x - / 2 * ulp beta fexp x.
 
-Lemma double_round_lt_mid_further_place' :
+Lemma round_round_lt_mid_further_place' :
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
@@ -57,10 +57,10 @@ Lemma double_round_lt_mid_further_place' :
   (fexp2 (mag x) <= fexp1 (mag x) - 1)%Z ->
   x < bpow (mag x) - / 2 * ulp beta fexp2 x ->
   x < midp fexp1 x - / 2 * ulp beta fexp2 x ->
-  double_round_eq fexp1 fexp2 choice1 choice2 x.
+  round_round_eq fexp1 fexp2 choice1 choice2 x.
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 x Px Hf2f1 Hx1.
-unfold double_round_eq.
+unfold round_round_eq.
 set (x' := round beta fexp1 Zfloor x).
 intro Hx2'.
 assert (Hx2 : x - round beta fexp1 Zfloor x
@@ -142,7 +142,7 @@ destruct (Req_dec x'' 0) as [Zx''|Nzx''].
     now bpow_simplify.
 Qed.
 
-Lemma double_round_lt_mid_further_place :
+Lemma round_round_lt_mid_further_place :
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
@@ -151,7 +151,7 @@ Lemma double_round_lt_mid_further_place :
   (fexp2 (mag x) <= fexp1 (mag x) - 1)%Z ->
   (fexp1 (mag x) <= mag x)%Z ->
   x < midp fexp1 x - / 2 * ulp beta fexp2 x ->
-  double_round_eq fexp1 fexp2 choice1 choice2 x.
+  round_round_eq fexp1 fexp2 choice1 choice2 x.
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 x Px Hf2f1 Hf1.
 intro Hx2'.
@@ -159,7 +159,7 @@ assert (Hx2 : x - round beta fexp1 Zfloor x
               < / 2 * (ulp beta fexp1 x - ulp beta fexp2 x)).
 { now apply (Rplus_lt_reg_r (round beta fexp1 Zfloor x)); ring_simplify. }
 revert Hx2.
-unfold double_round_eq.
+unfold round_round_eq.
 set (x' := round beta fexp1 Zfloor x).
 intro Hx2.
 assert (Pxx' : 0 <= x - x').
@@ -167,7 +167,7 @@ assert (Pxx' : 0 <= x - x').
   apply round_DN_pt.
   exact Vfexp1. }
 assert (x < bpow (mag x) - / 2 * bpow (fexp2 (mag x)));
-  [|apply double_round_lt_mid_further_place'; try assumption]...
+  [|apply round_round_lt_mid_further_place'; try assumption]...
 2: rewrite ulp_neq_0;[assumption|now apply Rgt_not_eq].
 destruct (Req_dec x' 0) as [Zx'|Nzx'].
 - (* x' = 0 *)
@@ -221,7 +221,7 @@ destruct (Req_dec x' 0) as [Zx'|Nzx'].
   lra.
 Qed.
 
-Lemma double_round_lt_mid_same_place :
+Lemma round_round_lt_mid_same_place :
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 ->
   forall (choice1 choice2 : Z -> bool),
@@ -229,14 +229,14 @@ Lemma double_round_lt_mid_same_place :
   0 < x ->
   (fexp2 (mag x) = fexp1 (mag x))%Z ->
   x < midp fexp1 x ->
-  double_round_eq fexp1 fexp2 choice1 choice2 x.
+  round_round_eq fexp1 fexp2 choice1 choice2 x.
 Proof.
 intros fexp1 fexp2 Vfexp1 choice1 choice2 x Px Hf2f1.
 intro Hx'.
 assert (Hx : x - round beta fexp1 Zfloor x < / 2 * ulp beta fexp1 x).
 { now apply (Rplus_lt_reg_r (round beta fexp1 Zfloor x)); ring_simplify. }
 revert Hx.
-unfold double_round_eq.
+unfold round_round_eq.
 set (x' := round beta fexp1 Zfloor x).
 intro Hx.
 assert (Pxx' : 0 <= x - x').
@@ -277,7 +277,7 @@ rewrite round_generic.
     now apply valid_rnd_DN.
 Qed.
 
-Lemma double_round_lt_mid :
+Lemma round_round_lt_mid :
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
@@ -288,20 +288,20 @@ Lemma double_round_lt_mid :
   x < midp fexp1 x ->
   ((fexp2 (mag x) <= fexp1 (mag x) - 1)%Z ->
    x < midp fexp1 x - / 2 * ulp beta fexp2 x) ->
-  double_round_eq fexp1 fexp2 choice1 choice2 x.
+  round_round_eq fexp1 fexp2 choice1 choice2 x.
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 x Px Hf2f1 Hf1 Hx Hx'.
 destruct (Zle_or_lt (fexp1 (mag x)) (fexp2 (mag x))) as [Hf2'|Hf2'].
 - (* fexp1 (mag x) <= fexp2 (mag x) *)
   assert (Hf2'' : (fexp2 (mag x) = fexp1 (mag x) :> Z)%Z); [omega|].
-  now apply double_round_lt_mid_same_place.
+  now apply round_round_lt_mid_same_place.
 - (* fexp2 (mag x) < fexp1 (mag x) *)
   assert (Hf2'' : (fexp2 (mag x) <= fexp1 (mag x) - 1)%Z); [omega|].
   generalize (Hx' Hf2''); intro Hx''.
-  now apply double_round_lt_mid_further_place.
+  now apply round_round_lt_mid_further_place.
 Qed.
 
-Lemma double_round_gt_mid_further_place' :
+Lemma round_round_gt_mid_further_place' :
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
@@ -310,7 +310,7 @@ Lemma double_round_gt_mid_further_place' :
   (fexp2 (mag x) <= fexp1 (mag x) - 1)%Z ->
   round beta fexp2 (Znearest choice2) x < bpow (mag x) ->
   midp' fexp1 x + / 2 * ulp beta fexp2 x < x ->
-  double_round_eq fexp1 fexp2 choice1 choice2 x.
+  round_round_eq fexp1 fexp2 choice1 choice2 x.
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 x Px Hf2f1.
 intros Hx1 Hx2'.
@@ -320,7 +320,7 @@ assert (Hx2 : round beta fexp1 Zceil x - x
                          + / 2 * ulp beta fexp2 x)); ring_simplify.
   now unfold midp' in Hx2'. }
 revert Hx1 Hx2.
-unfold double_round_eq.
+unfold round_round_eq.
 set (x' := round beta fexp1 Zceil x).
 set (x'' := round beta fexp2 (Znearest choice2) x).
 intros Hx1 Hx2.
@@ -400,7 +400,7 @@ destruct (Req_dec x'' 0) as [Zx''|Nzx''].
     now bpow_simplify.
 Qed.
 
-Lemma double_round_gt_mid_further_place :
+Lemma round_round_gt_mid_further_place :
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
@@ -409,7 +409,7 @@ Lemma double_round_gt_mid_further_place :
   (fexp2 (mag x) <= fexp1 (mag x) - 1)%Z ->
   (fexp1 (mag x) <= mag x)%Z ->
   midp' fexp1 x + / 2 * ulp beta fexp2 x < x ->
-  double_round_eq fexp1 fexp2 choice1 choice2 x.
+  round_round_eq fexp1 fexp2 choice1 choice2 x.
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 x Px Hf2f1 Hf1 Hx2'.
 assert (Hx2 : round beta fexp1 Zceil x - x
@@ -418,12 +418,12 @@ assert (Hx2 : round beta fexp1 Zceil x - x
                          + / 2 * ulp beta fexp2 x)); ring_simplify.
   now unfold midp' in Hx2'. }
 revert Hx2.
-unfold double_round_eq.
+unfold round_round_eq.
 set (x' := round beta fexp1 Zfloor x).
 intro Hx2.
 set (x'' := round beta fexp2 (Znearest choice2) x).
 destruct (Rlt_or_le x'' (bpow (mag x))) as [Hx''|Hx''];
-  [now apply double_round_gt_mid_further_place'|].
+  [now apply round_round_gt_mid_further_place'|].
 (* bpow (mag x) <= x'' *)
 assert (Hx''pow : x'' = bpow (mag x)).
 { assert (H'x'' : x'' < bpow (mag x) + / 2 * ulp beta fexp2 x).
@@ -500,7 +500,7 @@ rewrite (Znearest_imp _ _ (beta ^ (mag x - fexp1 (mag x'')))%Z).
   apply Rmult_lt_compat_l; [lra|apply bpow_gt_0].
 Qed.
 
-Lemma double_round_gt_mid_same_place :
+Lemma round_round_gt_mid_same_place :
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 ->
   forall (choice1 choice2 : Z -> bool),
@@ -508,7 +508,7 @@ Lemma double_round_gt_mid_same_place :
   0 < x ->
   (fexp2 (mag x) = fexp1 (mag x))%Z ->
   midp' fexp1 x < x ->
-  double_round_eq fexp1 fexp2 choice1 choice2 x.
+  round_round_eq fexp1 fexp2 choice1 choice2 x.
 Proof.
 intros fexp1 fexp2 Vfexp1 choice1 choice2 x Px Hf2f1 Hx'.
 assert (Hx : round beta fexp1 Zceil x - x < / 2 * ulp beta fexp1 x).
@@ -534,7 +534,7 @@ assert (H : Rabs (IZR (Zceil (x * bpow (- fexp1 (mag x))))
       apply round_UP_pt.
       exact Vfexp1.
   -  rewrite ulp_neq_0 in Hx;[exact Hx|now apply Rgt_not_eq]. }
-unfold double_round_eq, round at 2.
+unfold round_round_eq, round at 2.
 unfold F2R, scaled_mantissa, cexp; simpl.
 rewrite Hf2f1.
 rewrite (Znearest_imp _ _ (Zceil (scaled_mantissa beta fexp1 x))).
@@ -551,7 +551,7 @@ rewrite (Znearest_imp _ _ (Zceil (scaled_mantissa beta fexp1 x))).
 - now rewrite Rabs_minus_sym.
 Qed.
 
-Lemma double_round_gt_mid :
+Lemma round_round_gt_mid :
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
@@ -562,17 +562,17 @@ Lemma double_round_gt_mid :
   midp' fexp1 x < x ->
   ((fexp2 (mag x) <= fexp1 (mag x) - 1)%Z ->
    midp' fexp1 x + / 2 * ulp beta fexp2 x < x) ->
-  double_round_eq fexp1 fexp2 choice1 choice2 x.
+  round_round_eq fexp1 fexp2 choice1 choice2 x.
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 x Px Hf2f1 Hf1 Hx Hx'.
 destruct (Zle_or_lt (fexp1 (mag x)) (fexp2 (mag x))) as [Hf2'|Hf2'].
 - (* fexp1 (mag x) <= fexp2 (mag x) *)
   assert (Hf2'' : (fexp2 (mag x) = fexp1 (mag x) :> Z)%Z); [omega|].
-  now apply double_round_gt_mid_same_place.
+  now apply round_round_gt_mid_same_place.
 - (* fexp2 (mag x) < fexp1 (mag x) *)
   assert (Hf2'' : (fexp2 (mag x) <= fexp1 (mag x) - 1)%Z); [omega|].
   generalize (Hx' Hf2''); intro Hx''.
-  now apply double_round_gt_mid_further_place.
+  now apply round_round_gt_mid_further_place.
 Qed.
 
 Section Double_round_mult.
@@ -588,13 +588,13 @@ destruct (mag_mult beta x y Zx Zy).
 omega.
 Qed.
 
-Definition double_round_mult_hyp fexp1 fexp2 :=
+Definition round_round_mult_hyp fexp1 fexp2 :=
   (forall ex ey, (fexp2 (ex + ey) <= fexp1 ex + fexp1 ey)%Z)
   /\ (forall ex ey, (fexp2 (ex + ey - 1) <= fexp1 ex + fexp1 ey)%Z).
 
-Lemma double_round_mult_aux :
+Lemma round_round_mult_aux :
   forall (fexp1 fexp2 : Z -> Z),
-  double_round_mult_hyp fexp1 fexp2 ->
+  round_round_mult_hyp fexp1 fexp2 ->
   forall x y,
   generic_format beta fexp1 x -> generic_format beta fexp1 y ->
   generic_format beta fexp2 (x * y).
@@ -636,9 +636,9 @@ Qed.
 Variable rnd : R -> Z.
 Context { valid_rnd : Valid_rnd rnd }.
 
-Theorem double_round_mult :
+Theorem round_round_mult :
   forall (fexp1 fexp2 : Z -> Z),
-  double_round_mult_hyp fexp1 fexp2 ->
+  round_round_mult_hyp fexp1 fexp2 ->
   forall x y,
   generic_format beta fexp1 x -> generic_format beta fexp1 y ->
   round beta fexp1 rnd (round beta fexp2 rnd (x * y))
@@ -647,7 +647,7 @@ Proof.
 intros fexp1 fexp2 Hfexp x y Fx Fy.
 assert (Hxy : round beta fexp2 rnd (x * y) = x * y).
 { apply round_generic; [assumption|].
-  now apply (double_round_mult_aux fexp1 fexp2). }
+  now apply (round_round_mult_aux fexp1 fexp2). }
 now rewrite Hxy at 1.
 Qed.
 
@@ -659,7 +659,7 @@ Variable prec' : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Context { prec_gt_0_' : Prec_gt_0 prec' }.
 
-Theorem double_round_mult_FLX :
+Theorem round_round_mult_FLX :
   (2 * prec <= prec')%Z ->
   forall x y,
   FLX_format beta prec x -> FLX_format beta prec y ->
@@ -667,9 +667,9 @@ Theorem double_round_mult_FLX :
   = round beta (FLX_exp prec) rnd (x * y).
 Proof.
 intros Hprec x y Fx Fy.
-apply double_round_mult;
+apply round_round_mult;
   [|now apply generic_format_FLX|now apply generic_format_FLX].
-unfold double_round_mult_hyp; split; intros ex ey; unfold FLX_exp;
+unfold round_round_mult_hyp; split; intros ex ey; unfold FLX_exp;
 omega.
 Qed.
 
@@ -683,7 +683,7 @@ Variable emin' prec' : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Context { prec_gt_0_' : Prec_gt_0 prec' }.
 
-Theorem double_round_mult_FLT :
+Theorem round_round_mult_FLT :
   (emin' <= 2 * emin)%Z -> (2 * prec <= prec')%Z ->
   forall x y,
   FLT_format beta emin prec x -> FLT_format beta emin prec y ->
@@ -692,9 +692,9 @@ Theorem double_round_mult_FLT :
   = round beta (FLT_exp emin prec) rnd (x * y).
 Proof.
 intros Hemin Hprec x y Fx Fy.
-apply double_round_mult;
+apply round_round_mult;
   [|now apply generic_format_FLT|now apply generic_format_FLT].
-unfold double_round_mult_hyp; split; intros ex ey;
+unfold round_round_mult_hyp; split; intros ex ey;
 unfold FLT_exp;
 generalize (Zmax_spec (ex + ey - prec') emin');
 generalize (Zmax_spec (ex + ey - 1 - prec') emin');
@@ -713,7 +713,7 @@ Variable emin' prec' : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Context { prec_gt_0_' : Prec_gt_0 prec' }.
 
-Theorem double_round_mult_FTZ :
+Theorem round_round_mult_FTZ :
   (emin' + prec' <= 2 * emin + prec)%Z ->
   (2 * prec <= prec')%Z ->
   forall x y,
@@ -723,9 +723,9 @@ Theorem double_round_mult_FTZ :
   = round beta (FTZ_exp emin prec) rnd (x * y).
 Proof.
 intros Hemin Hprec x y Fx Fy.
-apply double_round_mult;
+apply round_round_mult;
   [|now apply generic_format_FTZ|now apply generic_format_FTZ].
-unfold double_round_mult_hyp; split; intros ex ey;
+unfold round_round_mult_hyp; split; intros ex ey;
 unfold FTZ_exp;
 unfold Prec_gt_0 in *;
 destruct (Z.ltb_spec (ex + ey - prec') emin');
@@ -761,18 +761,12 @@ Lemma mag_plus_separated :
   (mag (x + y) = mag x :> Z).
 Proof.
 intros fexp x y Px Nny Fx Hsep.
-destruct (Req_dec y 0) as [Zy|Nzy].
-- (* y = 0 *)
-  now rewrite Zy; rewrite Rplus_0_r.
-- (* y <> 0 *)
-  apply (mag_plus_eps beta fexp); [assumption|assumption|].
-  split; [assumption|].
-  rewrite ulp_neq_0;[idtac|now apply Rgt_not_eq].
-  unfold cexp.
-  destruct (mag y) as (ey, Hey); simpl in *.
-  apply Rlt_le_trans with (bpow ey).
-  + now rewrite <- (Rabs_right y); [apply Hey|apply Rle_ge].
-  + now apply bpow_le.
+apply mag_plus_eps with (1 := Px) (2 := Fx).
+apply (conj Nny).
+rewrite <- Rabs_pos_eq with (1 := Nny).
+apply Rlt_le_trans with (1 := bpow_mag_gt beta _).
+rewrite ulp_neq_0 by now apply Rgt_not_eq.
+now apply bpow_le.
 Qed.
 
 Lemma mag_minus_disj :
@@ -829,13 +823,13 @@ split.
   + lra.
 Qed.
 
-Definition double_round_plus_hyp fexp1 fexp2 :=
+Definition round_round_plus_hyp fexp1 fexp2 :=
   (forall ex ey, (fexp1 (ex + 1) - 1 <= ey)%Z -> (fexp2 ex <= fexp1 ey)%Z)
   /\ (forall ex ey, (fexp1 (ex - 1) + 1 <= ey)%Z -> (fexp2 ex <= fexp1 ey)%Z)
   /\ (forall ex ey, (fexp1 ex - 1 <= ey)%Z -> (fexp2 ex <= fexp1 ey)%Z)
   /\ (forall ex ey, (ex - 1 <= ey)%Z -> (fexp2 ex <= fexp1 ey)%Z).
 
-Lemma double_round_plus_aux0_aux_aux :
+Lemma round_round_plus_aux0_aux_aux :
   forall (fexp1 fexp2 : Z -> Z),
   forall x y,
   (fexp1 (mag x) <= fexp1 (mag y))%Z ->
@@ -877,7 +871,7 @@ destruct (Req_dec x 0) as [Zx|Nzx].
     now unfold cexp, fxy; simpl.
 Qed.
 
-Lemma double_round_plus_aux0_aux :
+Lemma round_round_plus_aux0_aux :
   forall (fexp1 fexp2 : Z -> Z),
   forall x y,
   (fexp2 (mag (x + y))%Z <= fexp1 (mag x))%Z ->
@@ -887,16 +881,16 @@ Lemma double_round_plus_aux0_aux :
 Proof.
 intros fexp1 fexp2 x y Hlnx Hlny Fx Fy.
 destruct (Z.le_gt_cases (fexp1 (mag x)) (fexp1 (mag y))) as [Hle|Hgt].
-- now apply (double_round_plus_aux0_aux_aux fexp1).
+- now apply (round_round_plus_aux0_aux_aux fexp1).
 - rewrite Rplus_comm in Hlnx, Hlny |- *.
-  now apply (double_round_plus_aux0_aux_aux fexp1); [omega| | | |].
+  now apply (round_round_plus_aux0_aux_aux fexp1); [omega| | | |].
 Qed.
 
 (* fexp1 (mag x) - 1 <= mag y :
  * addition is exact in the largest precision (fexp2). *)
-Lemma double_round_plus_aux0 :
+Lemma round_round_plus_aux0 :
   forall (fexp1 fexp2 : Z -> Z), Valid_exp fexp1 ->
-  double_round_plus_hyp fexp1 fexp2 ->
+  round_round_plus_hyp fexp1 fexp2 ->
   forall x y,
   (0 < x)%R -> (0 < y)%R -> (y <= x)%R ->
   (fexp1 (mag x) - 1 <= mag y)%Z ->
@@ -910,12 +904,12 @@ destruct (Z.le_gt_cases (mag y) (fexp1 (mag x))) as [Hle|Hgt].
 - (* mag y <= fexp1 (mag x) *)
   assert (Lxy : mag (x + y) = mag x :> Z);
   [now apply (mag_plus_separated fexp1)|].
-  apply (double_round_plus_aux0_aux fexp1);
+  apply (round_round_plus_aux0_aux fexp1);
     [| |assumption|assumption]; rewrite Lxy.
   + now apply Hexp4; omega.
   + now apply Hexp3; omega.
 - (* fexp1 (mag x) < mag y *)
-  apply (double_round_plus_aux0_aux fexp1); [| |assumption|assumption].
+  apply (round_round_plus_aux0_aux fexp1); [| |assumption|assumption].
   destruct (mag_plus_disj x y Py Hyx) as [Lxy|Lxy]; rewrite Lxy.
   + now apply Hexp4; omega.
   + apply Hexp2; apply (mag_le beta y x Py) in Hyx.
@@ -928,7 +922,7 @@ destruct (Z.le_gt_cases (mag y) (fexp1 (mag x))) as [Hle|Hgt].
       omega.
 Qed.
 
-Lemma double_round_plus_aux1_aux :
+Lemma round_round_plus_aux1_aux :
   forall k, (0 < k)%Z ->
   forall (fexp : Z -> Z),
   forall x y,
@@ -1002,17 +996,17 @@ split.
   + apply bpow_lt; omega.
 Qed.
 
-(* mag y <= fexp1 (mag x) - 2 : double_round_lt_mid applies. *)
-Lemma double_round_plus_aux1 :
+(* mag y <= fexp1 (mag x) - 2 : round_round_lt_mid applies. *)
+Lemma round_round_plus_aux1 :
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
-  double_round_plus_hyp fexp1 fexp2 ->
+  round_round_plus_hyp fexp1 fexp2 ->
   forall x y,
   0 < x -> 0 < y ->
   (mag y <= fexp1 (mag x) - 2)%Z ->
   generic_format beta fexp1 x ->
-  double_round_eq fexp1 fexp2 choice1 choice2 (x + y).
+  round_round_eq fexp1 fexp2 choice1 choice2 (x + y).
 Proof.
 assert (Hbeta : (2 <= beta)%Z).
 { destruct beta as (beta_val,beta_prop).
@@ -1031,8 +1025,8 @@ assert (Bpow2 : bpow (- 2) <= / 2 * / 2).
   rewrite Zmult_1_r.
   now apply Zmult_le_compat; omega. }
 assert (P2 : (0 < 2)%Z) by omega.
-unfold double_round_eq.
-apply double_round_lt_mid.
+unfold round_round_eq.
+apply round_round_lt_mid.
 - exact Vfexp1.
 - exact Vfexp2.
 - lra.
@@ -1042,7 +1036,7 @@ apply double_round_lt_mid.
   now apply mag_generic_gt; [|apply Rgt_not_eq|].
 - unfold midp.
   apply (Rplus_lt_reg_r (- round beta fexp1 Zfloor (x + y))).
-  apply (Rlt_le_trans _ _ _ (proj2 (double_round_plus_aux1_aux 2 P2 fexp1 x y Px
+  apply (Rlt_le_trans _ _ _ (proj2 (round_round_plus_aux1_aux 2 P2 fexp1 x y Px
                                                                Py Hly Lxy Fx))).
   ring_simplify.
   rewrite ulp_neq_0;[idtac|now apply Rgt_not_eq, Rplus_lt_0_compat].
@@ -1061,7 +1055,7 @@ apply double_round_lt_mid.
   bpow_simplify.
   apply (Rplus_lt_reg_r (- round beta fexp1 Zfloor (x + y))).
   unfold midp; ring_simplify.
-  apply (Rlt_le_trans _ _ _ (proj2 (double_round_plus_aux1_aux 2 P2 fexp1 x y Px
+  apply (Rlt_le_trans _ _ _ (proj2 (round_round_plus_aux1_aux 2 P2 fexp1 x y Px
                                                                Py Hly Lxy Fx))).
   apply (Rmult_le_reg_r (bpow (- fexp1 (mag x)))); [now apply bpow_gt_0|].
   rewrite ulp_neq_0;[idtac|now apply Rgt_not_eq, Rplus_lt_0_compat].
@@ -1079,44 +1073,44 @@ apply double_round_lt_mid.
       apply IZR_le; omega. }
 Qed.
 
-(* double_round_plus_aux{0,1} together *)
-Lemma double_round_plus_aux2 :
+(* round_round_plus_aux{0,1} together *)
+Lemma round_round_plus_aux2 :
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
-  double_round_plus_hyp fexp1 fexp2 ->
+  round_round_plus_hyp fexp1 fexp2 ->
   forall x y,
   0 < x -> 0 < y -> y <= x ->
   generic_format beta fexp1 x ->
   generic_format beta fexp1 y ->
-  double_round_eq fexp1 fexp2 choice1 choice2 (x + y).
+  round_round_eq fexp1 fexp2 choice1 choice2 (x + y).
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 Hexp x y Px Py Hyx Fx Fy.
-unfold double_round_eq.
+unfold round_round_eq.
 destruct (Zle_or_lt (mag y) (fexp1 (mag x) - 2)) as [Hly|Hly].
 - (* mag y <= fexp1 (mag x) - 2 *)
-  now apply double_round_plus_aux1.
+  now apply round_round_plus_aux1.
 - (* fexp1 (mag x) - 2 < mag y *)
   rewrite (round_generic beta fexp2).
   + reflexivity.
   + now apply valid_rnd_N.
   + assert (Hf1 : (fexp1 (mag x) - 1 <= mag y)%Z); [omega|].
-    now apply (double_round_plus_aux0 fexp1).
+    now apply (round_round_plus_aux0 fexp1).
 Qed.
 
-Lemma double_round_plus_aux :
+Lemma round_round_plus_aux :
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
-  double_round_plus_hyp fexp1 fexp2 ->
+  round_round_plus_hyp fexp1 fexp2 ->
   forall x y,
   0 <= x -> 0 <= y ->
   generic_format beta fexp1 x ->
   generic_format beta fexp1 y ->
-  double_round_eq fexp1 fexp2 choice1 choice2 (x + y).
+  round_round_eq fexp1 fexp2 choice1 choice2 (x + y).
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 Hexp x y Nnx Nny Fx Fy.
-unfold double_round_eq.
+unfold round_round_eq.
 destruct (Req_dec x 0) as [Zx|Nzx].
 - (* x = 0 *)
   destruct Hexp as (_,(_,(_,Hexp4))).
@@ -1145,11 +1139,11 @@ destruct (Req_dec x 0) as [Zx|Nzx].
     * (* x < y *)
       apply Rlt_le in H.
       rewrite Rplus_comm.
-      now apply double_round_plus_aux2.
-    * now apply double_round_plus_aux2.
+      now apply round_round_plus_aux2.
+    * now apply round_round_plus_aux2.
 Qed.
 
-Lemma double_round_minus_aux0_aux :
+Lemma round_round_minus_aux0_aux :
   forall (fexp1 fexp2 : Z -> Z),
   forall x y,
   (fexp2 (mag (x - y))%Z <= fexp1 (mag x))%Z ->
@@ -1162,14 +1156,14 @@ replace (x - y)%R with (x + (- y))%R; [|ring].
 intros Hlnx Hlny Fx Fy.
 rewrite <- (mag_opp beta y) in Hlny.
 apply generic_format_opp in Fy.
-now apply (double_round_plus_aux0_aux fexp1).
+now apply (round_round_plus_aux0_aux fexp1).
 Qed.
 
 (* fexp1 (mag x) - 1 <= mag y :
  * substraction is exact in the largest precision (fexp2). *)
-Lemma double_round_minus_aux0 :
+Lemma round_round_minus_aux0 :
   forall (fexp1 fexp2 : Z -> Z),
-  double_round_plus_hyp fexp1 fexp2 ->
+  round_round_plus_hyp fexp1 fexp2 ->
   forall x y,
   0 < y -> y < x ->
   (fexp1 (mag x) - 1 <= mag y)%Z ->
@@ -1187,7 +1181,7 @@ destruct (Z.lt_ge_cases (mag x - 2) (mag y)) as [Hlt|Hge].
                 \/ (mag y = mag x - 1 :> Z)%Z); [omega|].
   destruct Hor as [Heq|Heqm1].
   + (* mag y = mag x *)
-    apply (double_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
+    apply (round_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
     * apply Hexp4.
       apply Zle_trans with (mag (x - y)); [omega|].
       now apply mag_minus.
@@ -1196,7 +1190,7 @@ destruct (Z.lt_ge_cases (mag x - 2) (mag y)) as [Hlt|Hge].
       apply Zle_trans with (mag (x - y)); [omega|].
       now apply mag_minus.
   + (* mag y = mag x - 1 *)
-    apply (double_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
+    apply (round_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
     * apply Hexp4.
       apply Zle_trans with (mag (x - y)); [omega|].
       now apply mag_minus.
@@ -1207,12 +1201,12 @@ destruct (Z.lt_ge_cases (mag x - 2) (mag y)) as [Hlt|Hge].
 - (* mag y <= mag x - 2 *)
   destruct (mag_minus_disj x y Px Py Hge) as [Lxmy|Lxmy].
   + (* mag (x - y) = mag x *)
-    apply (double_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
+    apply (round_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
     * apply Hexp4.
       omega.
     * now rewrite Lxmy; apply Hexp3.
   + (* mag (x - y) = mag x - 1 *)
-    apply (double_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy];
+    apply (round_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy];
     rewrite Lxmy.
     * apply Hexp1.
       replace (_ + _)%Z with (mag x : Z); [|ring].
@@ -1224,10 +1218,10 @@ Qed.
 (* mag y <= fexp1 (mag x) - 2,
  * fexp1 (mag (x - y)) - 1 <= mag y :
  * substraction is exact in the largest precision (fexp2). *)
-Lemma double_round_minus_aux1 :
+Lemma round_round_minus_aux1 :
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
-  double_round_plus_hyp fexp1 fexp2 ->
+  round_round_plus_hyp fexp1 fexp2 ->
   forall x y,
   0 < y -> y < x ->
   (mag y <= fexp1 (mag x) - 2)%Z ->
@@ -1244,14 +1238,14 @@ assert (Hfx : (fexp1 (mag x) < mag x)%Z);
   [now apply mag_generic_gt; [|apply Rgt_not_eq|]|].
 assert (Hfy : (fexp1 (mag y) < mag y)%Z);
   [now apply mag_generic_gt; [|apply Rgt_not_eq|]|].
-apply (double_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
+apply (round_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
 - apply Zle_trans with (fexp1 (mag (x - y))).
   + apply Hexp4; omega.
   + omega.
 - now apply Hexp3.
 Qed.
 
-Lemma double_round_minus_aux2_aux :
+Lemma round_round_minus_aux2_aux :
   forall (fexp : Z -> Z),
   Valid_exp fexp ->
   forall x y,
@@ -1347,19 +1341,19 @@ Qed.
 
 (* mag y <= fexp1 (mag x) - 2 :
  * mag y <= fexp1 (mag (x - y)) - 2 :
- * double_round_gt_mid applies. *)
-Lemma double_round_minus_aux2 :
+ * round_round_gt_mid applies. *)
+Lemma round_round_minus_aux2 :
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
-  double_round_plus_hyp fexp1 fexp2 ->
+  round_round_plus_hyp fexp1 fexp2 ->
   forall x y,
   0 < y -> y < x ->
   (mag y <= fexp1 (mag x) - 2)%Z ->
   (mag y <= fexp1 (mag (x - y)) - 2)%Z ->
   generic_format beta fexp1 x ->
   generic_format beta fexp1 y ->
-  double_round_eq fexp1 fexp2 choice1 choice2 (x - y).
+  round_round_eq fexp1 fexp2 choice1 choice2 (x - y).
 Proof.
 assert (Hbeta : (2 <= beta)%Z).
 { destruct beta as (beta_val,beta_prop).
@@ -1381,8 +1375,8 @@ assert (Bpow2 : bpow (- 2) <= / 2 * / 2).
 assert (Ly : y < bpow (mag y)).
 { apply Rabs_lt_inv.
   apply bpow_mag_gt. }
-unfold double_round_eq.
-apply double_round_gt_mid.
+unfold round_round_eq.
+apply round_round_gt_mid.
 - exact Vfexp1.
 - exact Vfexp2.
 - lra.
@@ -1398,7 +1392,7 @@ apply double_round_gt_mid.
   replace (_ + _) with (round beta fexp1 Zceil (x - y) - (x - y)) by ring.
   apply Rlt_le_trans with (bpow (fexp1 (mag (x - y)) - 2)).
   + apply Rle_lt_trans with y;
-    [now apply double_round_minus_aux2_aux; try assumption; omega|].
+    [now apply round_round_minus_aux2_aux; try assumption; omega|].
     apply (Rlt_le_trans _ _ _ Ly).
     now apply bpow_le.
   + rewrite ulp_neq_0;[idtac|now apply sym_not_eq, Rlt_not_eq, Rgt_minus].
@@ -1421,7 +1415,7 @@ apply double_round_gt_mid.
   ring_simplify.
   replace (_ + _) with (round beta fexp1 Zceil (x - y) - (x - y)) by ring.
   apply Rle_lt_trans with y;
-    [now apply double_round_minus_aux2_aux; try assumption; omega|].
+    [now apply round_round_minus_aux2_aux; try assumption; omega|].
   apply (Rlt_le_trans _ _ _ Ly).
   apply Rle_trans with (bpow (fexp1 (mag (x - y)) - 2));
     [now apply bpow_le|].
@@ -1453,21 +1447,21 @@ apply double_round_gt_mid.
       apply Rlt_0_2.
 Qed.
 
-(* double_round_minus_aux{0,1,2} together *)
-Lemma double_round_minus_aux3 :
+(* round_round_minus_aux{0,1,2} together *)
+Lemma round_round_minus_aux3 :
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
-  double_round_plus_hyp fexp1 fexp2 ->
+  round_round_plus_hyp fexp1 fexp2 ->
   forall x y,
   0 < y -> y <= x ->
   generic_format beta fexp1 x ->
   generic_format beta fexp1 y ->
-  double_round_eq fexp1 fexp2 choice1 choice2 (x - y).
+  round_round_eq fexp1 fexp2 choice1 choice2 (x - y).
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 Hexp x y Py Hyx Fx Fy.
 assert (Px := Rlt_le_trans 0 y x Py Hyx).
-unfold double_round_eq.
+unfold round_round_eq.
 destruct (Req_dec y x) as [Hy|Hy].
 - (* y = x *)
   rewrite Hy; replace (x - x) with 0 by ring.
@@ -1481,33 +1475,33 @@ destruct (Req_dec y x) as [Hy|Hy].
     destruct (Zle_or_lt (mag y) (fexp1 (mag (x - y)) - 2))
       as [Hly'|Hly'].
     * (* mag y <= fexp1 (mag (x - y)) - 2 *)
-      now apply double_round_minus_aux2.
+      now apply round_round_minus_aux2.
     * (* fexp1 (mag (x - y)) - 2 < mag y *)
       { rewrite (round_generic beta fexp2).
         - reflexivity.
         - now apply valid_rnd_N.
         - assert (Hf1 : (fexp1 (mag (x - y)) - 1 <= mag y)%Z); [omega|].
-          now apply (double_round_minus_aux1 fexp1). }
+          now apply (round_round_minus_aux1 fexp1). }
   + rewrite (round_generic beta fexp2).
     * reflexivity.
     * now apply valid_rnd_N.
     * assert (Hf1 : (fexp1 (mag x) - 1 <= mag y)%Z); [omega|].
-      now apply (double_round_minus_aux0 fexp1).
+      now apply (round_round_minus_aux0 fexp1).
 Qed.
 
-Lemma double_round_minus_aux :
+Lemma round_round_minus_aux :
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
-  double_round_plus_hyp fexp1 fexp2 ->
+  round_round_plus_hyp fexp1 fexp2 ->
   forall x y,
   0 <= x -> 0 <= y ->
   generic_format beta fexp1 x ->
   generic_format beta fexp1 y ->
-  double_round_eq fexp1 fexp2 choice1 choice2 (x - y).
+  round_round_eq fexp1 fexp2 choice1 choice2 (x - y).
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 Hexp x y Nnx Nny Fx Fy.
-unfold double_round_eq.
+unfold round_round_eq.
 destruct (Req_dec x 0) as [Zx|Nzx].
 - (* x = 0 *)
   rewrite Zx; unfold Rminus; rewrite Rplus_0_l.
@@ -1539,23 +1533,23 @@ destruct (Req_dec x 0) as [Zx|Nzx].
       replace (x - y) with (- (y - x)) by ring.
       do 3 rewrite round_N_opp.
       apply Ropp_eq_compat.
-      now apply double_round_minus_aux3.
+      now apply round_round_minus_aux3.
     * (* y <= x *)
-      now apply double_round_minus_aux3.
+      now apply round_round_minus_aux3.
 Qed.
 
-Lemma double_round_plus :
+Lemma round_round_plus :
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
-  double_round_plus_hyp fexp1 fexp2 ->
+  round_round_plus_hyp fexp1 fexp2 ->
   forall x y,
   generic_format beta fexp1 x ->
   generic_format beta fexp1 y ->
-  double_round_eq fexp1 fexp2 choice1 choice2 (x + y).
+  round_round_eq fexp1 fexp2 choice1 choice2 (x + y).
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 Hexp x y Fx Fy.
-unfold double_round_eq.
+unfold round_round_eq.
 destruct (Rlt_or_le x 0) as [Sx|Sx]; destruct (Rlt_or_le y 0) as [Sy|Sy].
 - (* x < 0, y < 0 *)
   replace (x + y) with (- (- x - y)); [|ring].
@@ -1565,35 +1559,35 @@ destruct (Rlt_or_le x 0) as [Sx|Sx]; destruct (Rlt_or_le y 0) as [Sy|Sy].
   assert (Py : 0 <= - y); [lra|].
   apply generic_format_opp in Fx.
   apply generic_format_opp in Fy.
-  now apply double_round_plus_aux.
+  now apply round_round_plus_aux.
 - (* x < 0, 0 <= y *)
   replace (x + y) with (y - (- x)); [|ring].
   assert (Px : 0 <= - x); [lra|].
   apply generic_format_opp in Fx.
-  now apply double_round_minus_aux.
+  now apply round_round_minus_aux.
 - (* 0 <= x, y < 0 *)
   replace (x + y) with (x - (- y)); [|ring].
   assert (Py : 0 <= - y); [lra|].
   apply generic_format_opp in Fy.
-  now apply double_round_minus_aux.
+  now apply round_round_minus_aux.
 - (* 0 <= x, 0 <= y *)
-  now apply double_round_plus_aux.
+  now apply round_round_plus_aux.
 Qed.
 
-Lemma double_round_minus :
+Lemma round_round_minus :
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
-  double_round_plus_hyp fexp1 fexp2 ->
+  round_round_plus_hyp fexp1 fexp2 ->
   forall x y,
   generic_format beta fexp1 x ->
   generic_format beta fexp1 y ->
-  double_round_eq fexp1 fexp2 choice1 choice2 (x - y).
+  round_round_eq fexp1 fexp2 choice1 choice2 (x - y).
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 Hexp x y Fx Fy.
 unfold Rminus.
 apply generic_format_opp in Fy.
-now apply double_round_plus.
+now apply round_round_plus.
 Qed.
 
 Section Double_round_plus_FLX.
@@ -1604,46 +1598,46 @@ Variable prec' : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Context { prec_gt_0_' : Prec_gt_0 prec' }.
 
-Lemma FLX_double_round_plus_hyp :
+Lemma FLX_round_round_plus_hyp :
   (2 * prec + 1 <= prec')%Z ->
-  double_round_plus_hyp (FLX_exp prec) (FLX_exp prec').
+  round_round_plus_hyp (FLX_exp prec) (FLX_exp prec').
 Proof.
 intros Hprec.
 unfold FLX_exp.
-unfold double_round_plus_hyp; split; [|split; [|split]];
+unfold round_round_plus_hyp; split; [|split; [|split]];
 intros ex ey; try omega.
 unfold Prec_gt_0 in prec_gt_0_.
 omega.
 Qed.
 
-Theorem double_round_plus_FLX :
+Theorem round_round_plus_FLX :
   forall choice1 choice2,
   (2 * prec + 1 <= prec')%Z ->
   forall x y,
   FLX_format beta prec x -> FLX_format beta prec y ->
-  double_round_eq (FLX_exp prec) (FLX_exp prec') choice1 choice2 (x + y).
+  round_round_eq (FLX_exp prec) (FLX_exp prec') choice1 choice2 (x + y).
 Proof.
 intros choice1 choice2 Hprec x y Fx Fy.
-apply double_round_plus.
+apply round_round_plus.
 - now apply FLX_exp_valid.
 - now apply FLX_exp_valid.
-- now apply FLX_double_round_plus_hyp.
+- now apply FLX_round_round_plus_hyp.
 - now apply generic_format_FLX.
 - now apply generic_format_FLX.
 Qed.
 
-Theorem double_round_minus_FLX :
+Theorem round_round_minus_FLX :
   forall choice1 choice2,
   (2 * prec + 1 <= prec')%Z ->
   forall x y,
   FLX_format beta prec x -> FLX_format beta prec y ->
-  double_round_eq (FLX_exp prec) (FLX_exp prec') choice1 choice2 (x - y).
+  round_round_eq (FLX_exp prec) (FLX_exp prec') choice1 choice2 (x - y).
 Proof.
 intros choice1 choice2 Hprec x y Fx Fy.
-apply double_round_minus.
+apply round_round_minus.
 - now apply FLX_exp_valid.
 - now apply FLX_exp_valid.
-- now apply FLX_double_round_plus_hyp.
+- now apply FLX_round_round_plus_hyp.
 - now apply generic_format_FLX.
 - now apply generic_format_FLX.
 Qed.
@@ -1658,13 +1652,13 @@ Variable emin' prec' : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Context { prec_gt_0_' : Prec_gt_0 prec' }.
 
-Lemma FLT_double_round_plus_hyp :
+Lemma FLT_round_round_plus_hyp :
   (emin' <= emin)%Z -> (2 * prec + 1 <= prec')%Z ->
-  double_round_plus_hyp (FLT_exp emin prec) (FLT_exp emin' prec').
+  round_round_plus_hyp (FLT_exp emin prec) (FLT_exp emin' prec').
 Proof.
 intros Hemin Hprec.
 unfold FLT_exp.
-unfold double_round_plus_hyp; split; [|split; [|split]]; intros ex ey.
+unfold round_round_plus_hyp; split; [|split; [|split]]; intros ex ey.
 - generalize (Zmax_spec (ex + 1 - prec) emin).
   generalize (Zmax_spec (ex - prec') emin').
   generalize (Zmax_spec (ey - prec) emin).
@@ -1683,36 +1677,36 @@ unfold double_round_plus_hyp; split; [|split; [|split]]; intros ex ey.
   omega.
 Qed.
 
-Theorem double_round_plus_FLT :
+Theorem round_round_plus_FLT :
   forall choice1 choice2,
   (emin' <= emin)%Z -> (2 * prec + 1 <= prec')%Z ->
   forall x y,
   FLT_format beta emin prec x -> FLT_format beta emin prec y ->
-  double_round_eq (FLT_exp emin prec) (FLT_exp emin' prec')
+  round_round_eq (FLT_exp emin prec) (FLT_exp emin' prec')
                   choice1 choice2 (x + y).
 Proof.
 intros choice1 choice2 Hemin Hprec x y Fx Fy.
-apply double_round_plus.
+apply round_round_plus.
 - now apply FLT_exp_valid.
 - now apply FLT_exp_valid.
-- now apply FLT_double_round_plus_hyp.
+- now apply FLT_round_round_plus_hyp.
 - now apply generic_format_FLT.
 - now apply generic_format_FLT.
 Qed.
 
-Theorem double_round_minus_FLT :
+Theorem round_round_minus_FLT :
   forall choice1 choice2,
   (emin' <= emin)%Z -> (2 * prec + 1 <= prec')%Z ->
   forall x y,
   FLT_format beta emin prec x -> FLT_format beta emin prec y ->
-  double_round_eq (FLT_exp emin prec) (FLT_exp emin' prec')
+  round_round_eq (FLT_exp emin prec) (FLT_exp emin' prec')
                   choice1 choice2 (x - y).
 Proof.
 intros choice1 choice2 Hemin Hprec x y Fx Fy.
-apply double_round_minus.
+apply round_round_minus.
 - now apply FLT_exp_valid.
 - now apply FLT_exp_valid.
-- now apply FLT_double_round_plus_hyp.
+- now apply FLT_round_round_plus_hyp.
 - now apply generic_format_FLT.
 - now apply generic_format_FLT.
 Qed.
@@ -1727,14 +1721,14 @@ Variable emin' prec' : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Context { prec_gt_0_' : Prec_gt_0 prec' }.
 
-Lemma FTZ_double_round_plus_hyp :
+Lemma FTZ_round_round_plus_hyp :
   (emin' + prec' <= emin + 1)%Z -> (2 * prec + 1 <= prec')%Z ->
-  double_round_plus_hyp (FTZ_exp emin prec) (FTZ_exp emin' prec').
+  round_round_plus_hyp (FTZ_exp emin prec) (FTZ_exp emin' prec').
 Proof.
 intros Hemin Hprec.
 unfold FTZ_exp.
 unfold Prec_gt_0 in *.
-unfold double_round_plus_hyp; split; [|split; [|split]]; intros ex ey.
+unfold round_round_plus_hyp; split; [|split; [|split]]; intros ex ey.
 - destruct (Z.ltb_spec (ex + 1 - prec) emin);
   destruct (Z.ltb_spec (ex - prec') emin');
   destruct (Z.ltb_spec (ey - prec) emin);
@@ -1752,45 +1746,45 @@ unfold double_round_plus_hyp; split; [|split; [|split]]; intros ex ey.
   omega.
 Qed.
 
-Theorem double_round_plus_FTZ :
+Theorem round_round_plus_FTZ :
   forall choice1 choice2,
   (emin' + prec' <= emin + 1)%Z -> (2 * prec + 1 <= prec')%Z ->
   forall x y,
   FTZ_format beta emin prec x -> FTZ_format beta emin prec y ->
-  double_round_eq (FTZ_exp emin prec) (FTZ_exp emin' prec')
+  round_round_eq (FTZ_exp emin prec) (FTZ_exp emin' prec')
                   choice1 choice2 (x + y).
 Proof.
 intros choice1 choice2 Hemin Hprec x y Fx Fy.
-apply double_round_plus.
+apply round_round_plus.
 - now apply FTZ_exp_valid.
 - now apply FTZ_exp_valid.
-- now apply FTZ_double_round_plus_hyp.
+- now apply FTZ_round_round_plus_hyp.
 - now apply generic_format_FTZ.
 - now apply generic_format_FTZ.
 Qed.
 
-Theorem double_round_minus_FTZ :
+Theorem round_round_minus_FTZ :
   forall choice1 choice2,
   (emin' + prec' <= emin + 1)%Z -> (2 * prec + 1 <= prec')%Z ->
   forall x y,
   FTZ_format beta emin prec x -> FTZ_format beta emin prec y ->
-  double_round_eq (FTZ_exp emin prec) (FTZ_exp emin' prec')
+  round_round_eq (FTZ_exp emin prec) (FTZ_exp emin' prec')
                   choice1 choice2 (x - y).
 Proof.
 intros choice1 choice2 Hemin Hprec x y Fx Fy.
-apply double_round_minus.
+apply round_round_minus.
 - now apply FTZ_exp_valid.
 - now apply FTZ_exp_valid.
-- now apply FTZ_double_round_plus_hyp.
+- now apply FTZ_round_round_plus_hyp.
 - now apply generic_format_FTZ.
 - now apply generic_format_FTZ.
 Qed.
 
 End Double_round_plus_FTZ.
 
-Section Double_round_plus_beta_ge_3.
+Section Double_round_plus_radix_ge_3.
 
-Definition double_round_plus_beta_ge_3_hyp fexp1 fexp2 :=
+Definition round_round_plus_radix_ge_3_hyp fexp1 fexp2 :=
   (forall ex ey, (fexp1 (ex + 1) <= ey)%Z -> (fexp2 ex <= fexp1 ey)%Z)
   /\ (forall ex ey, (fexp1 (ex - 1) + 1 <= ey)%Z -> (fexp2 ex <= fexp1 ey)%Z)
   /\ (forall ex ey, (fexp1 ex <= ey)%Z -> (fexp2 ex <= fexp1 ey)%Z)
@@ -1798,9 +1792,9 @@ Definition double_round_plus_beta_ge_3_hyp fexp1 fexp2 :=
 
 (* fexp1 (mag x) <= mag y :
  * addition is exact in the largest precision (fexp2). *)
-Lemma double_round_plus_beta_ge_3_aux0 :
+Lemma round_round_plus_radix_ge_3_aux0 :
   forall (fexp1 fexp2 : Z -> Z), Valid_exp fexp1 ->
-  double_round_plus_beta_ge_3_hyp fexp1 fexp2 ->
+  round_round_plus_radix_ge_3_hyp fexp1 fexp2 ->
   forall x y,
   (0 < y)%R -> (y <= x)%R ->
   (fexp1 (mag x) <= mag y)%Z ->
@@ -1815,12 +1809,12 @@ destruct (Z.le_gt_cases (mag y) (fexp1 (mag x))) as [Hle|Hgt].
 - (* mag y <= fexp1 (mag x) *)
   assert (Lxy : mag (x + y) = mag x :> Z);
   [now apply (mag_plus_separated fexp1)|].
-  apply (double_round_plus_aux0_aux fexp1);
+  apply (round_round_plus_aux0_aux fexp1);
     [| |assumption|assumption]; rewrite Lxy.
   + now apply Hexp4; omega.
   + now apply Hexp3; omega.
 - (* fexp1 (mag x) < mag y *)
-  apply (double_round_plus_aux0_aux fexp1); [| |assumption|assumption].
+  apply (round_round_plus_aux0_aux fexp1); [| |assumption|assumption].
   destruct (mag_plus_disj x y Py Hyx) as [Lxy|Lxy]; rewrite Lxy.
   + now apply Hexp4; omega.
   + apply Hexp2; apply (mag_le beta y x Py) in Hyx.
@@ -1833,18 +1827,18 @@ destruct (Z.le_gt_cases (mag y) (fexp1 (mag x))) as [Hle|Hgt].
       omega.
 Qed.
 
-(* mag y <= fexp1 (mag x) - 1 : double_round_lt_mid applies. *)
-Lemma double_round_plus_beta_ge_3_aux1 :
+(* mag y <= fexp1 (mag x) - 1 : round_round_lt_mid applies. *)
+Lemma round_round_plus_radix_ge_3_aux1 :
   (3 <= beta)%Z ->
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
-  double_round_plus_beta_ge_3_hyp fexp1 fexp2 ->
+  round_round_plus_radix_ge_3_hyp fexp1 fexp2 ->
   forall x y,
   0 < x -> 0 < y ->
   (mag y <= fexp1 (mag x) - 1)%Z ->
   generic_format beta fexp1 x ->
-  double_round_eq fexp1 fexp2 choice1 choice2 (x + y).
+  round_round_eq fexp1 fexp2 choice1 choice2 (x + y).
 Proof.
 intros Hbeta fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 Hexp x y Px Py Hly Fx.
 assert (Lxy : mag (x + y) = mag x :> Z);
@@ -1858,8 +1852,8 @@ assert (Bpow3 : bpow (- 1) <= / 3).
   apply Rinv_le; [lra|].
   now apply IZR_le. }
 assert (P1 : (0 < 1)%Z) by omega.
-unfold double_round_eq.
-apply double_round_lt_mid.
+unfold round_round_eq.
+apply round_round_lt_mid.
 - exact Vfexp1.
 - exact Vfexp2.
 - lra.
@@ -1869,7 +1863,7 @@ apply double_round_lt_mid.
   now apply mag_generic_gt; [|apply Rgt_not_eq|].
 - unfold midp.
   apply (Rplus_lt_reg_r (- round beta fexp1 Zfloor (x + y))).
-  apply (Rlt_le_trans _ _ _ (proj2 (double_round_plus_aux1_aux 1 P1 fexp1 x y Px
+  apply (Rlt_le_trans _ _ _ (proj2 (round_round_plus_aux1_aux 1 P1 fexp1 x y Px
                                                                Py Hly Lxy Fx))).
   ring_simplify.
   rewrite ulp_neq_0;[idtac|now apply Rgt_not_eq, Rplus_lt_0_compat].
@@ -1884,7 +1878,7 @@ apply double_round_lt_mid.
   unfold midp.
   apply (Rplus_lt_reg_r (- round beta fexp1 Zfloor (x + y))); ring_simplify.
   rewrite <- Rmult_minus_distr_l.
-  apply (Rlt_le_trans _ _ _ (proj2 (double_round_plus_aux1_aux 1 P1 fexp1 x y Px
+  apply (Rlt_le_trans _ _ _ (proj2 (round_round_plus_aux1_aux 1 P1 fexp1 x y Px
                                                                Py Hly Lxy Fx))).
   rewrite ulp_neq_0;[idtac|now apply Rgt_not_eq, Rplus_lt_0_compat].
   unfold cexp; rewrite Lxy.
@@ -1902,47 +1896,47 @@ apply double_round_lt_mid.
   now apply Rle_trans with (bpow (- 1)); [apply bpow_le; omega|].
 Qed.
 
-(* double_round_plus_beta_ge_3_aux{0,1} together *)
-Lemma double_round_plus_beta_ge_3_aux2 :
+(* round_round_plus_radix_ge_3_aux{0,1} together *)
+Lemma round_round_plus_radix_ge_3_aux2 :
   (3 <= beta)%Z ->
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
-  double_round_plus_beta_ge_3_hyp fexp1 fexp2 ->
+  round_round_plus_radix_ge_3_hyp fexp1 fexp2 ->
   forall x y,
   0 < y -> y <= x ->
   generic_format beta fexp1 x ->
   generic_format beta fexp1 y ->
-  double_round_eq fexp1 fexp2 choice1 choice2 (x + y).
+  round_round_eq fexp1 fexp2 choice1 choice2 (x + y).
 Proof.
 intros Hbeta fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 Hexp x y Py Hyx Fx Fy.
 assert (Px := Rlt_le_trans 0 y x Py Hyx).
-unfold double_round_eq.
+unfold round_round_eq.
 destruct (Zle_or_lt (mag y) (fexp1 (mag x) - 1)) as [Hly|Hly].
 - (* mag y <= fexp1 (mag x) - 1 *)
-  now apply double_round_plus_beta_ge_3_aux1.
+  now apply round_round_plus_radix_ge_3_aux1.
 - (* fexp1 (mag x) - 1 < mag y *)
   rewrite (round_generic beta fexp2).
   + reflexivity.
   + now apply valid_rnd_N.
   + assert (Hf1 : (fexp1 (mag x) <= mag y)%Z); [omega|].
-    now apply (double_round_plus_beta_ge_3_aux0 fexp1).
+    now apply (round_round_plus_radix_ge_3_aux0 fexp1).
 Qed.
 
-Lemma double_round_plus_beta_ge_3_aux :
+Lemma round_round_plus_radix_ge_3_aux :
   (3 <= beta)%Z ->
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
-  double_round_plus_beta_ge_3_hyp fexp1 fexp2 ->
+  round_round_plus_radix_ge_3_hyp fexp1 fexp2 ->
   forall x y,
   0 <= x -> 0 <= y ->
   generic_format beta fexp1 x ->
   generic_format beta fexp1 y ->
-  double_round_eq fexp1 fexp2 choice1 choice2 (x + y).
+  round_round_eq fexp1 fexp2 choice1 choice2 (x + y).
 Proof.
 intros Hbeta fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 Hexp x y Nnx Nny Fx Fy.
-unfold double_round_eq.
+unfold round_round_eq.
 destruct (Req_dec x 0) as [Zx|Nzx].
 - (* x = 0 *)
   destruct Hexp as (_,(_,(_,Hexp4))).
@@ -1971,15 +1965,15 @@ destruct (Req_dec x 0) as [Zx|Nzx].
     * (* x < y *)
       apply Rlt_le in H.
       rewrite Rplus_comm.
-      now apply double_round_plus_beta_ge_3_aux2.
-    * now apply double_round_plus_beta_ge_3_aux2.
+      now apply round_round_plus_radix_ge_3_aux2.
+    * now apply round_round_plus_radix_ge_3_aux2.
 Qed.
 
 (* fexp1 (mag x) <= mag y :
  * substraction is exact in the largest precision (fexp2). *)
-Lemma double_round_minus_beta_ge_3_aux0 :
+Lemma round_round_minus_radix_ge_3_aux0 :
   forall (fexp1 fexp2 : Z -> Z),
-  double_round_plus_beta_ge_3_hyp fexp1 fexp2 ->
+  round_round_plus_radix_ge_3_hyp fexp1 fexp2 ->
   forall x y,
   0 < y -> y < x ->
   (fexp1 (mag x) <= mag y)%Z ->
@@ -1997,7 +1991,7 @@ destruct (Z.lt_ge_cases (mag x - 2) (mag y)) as [Hlt|Hge].
                 \/ (mag y = mag x - 1 :> Z)%Z); [omega|].
   destruct Hor as [Heq|Heqm1].
   + (* mag y = mag x *)
-    apply (double_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
+    apply (round_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
     * apply Hexp4.
       apply Zle_trans with (mag (x - y)); [omega|].
       now apply mag_minus.
@@ -2006,7 +2000,7 @@ destruct (Z.lt_ge_cases (mag x - 2) (mag y)) as [Hlt|Hge].
       apply Zle_trans with (mag (x - y)); [omega|].
       now apply mag_minus.
   + (* mag y = mag x - 1 *)
-    apply (double_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
+    apply (round_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
     * apply Hexp4.
       apply Zle_trans with (mag (x - y)); [omega|].
       now apply mag_minus.
@@ -2017,12 +2011,12 @@ destruct (Z.lt_ge_cases (mag x - 2) (mag y)) as [Hlt|Hge].
 - (* mag y <= mag x - 2 *)
   destruct (mag_minus_disj x y Px Py Hge) as [Lxmy|Lxmy].
   + (* mag (x - y) = mag x *)
-    apply (double_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
+    apply (round_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
     * apply Hexp4.
       omega.
     * now rewrite Lxmy; apply Hexp3.
   + (* mag (x - y) = mag x - 1 *)
-    apply (double_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy];
+    apply (round_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy];
     rewrite Lxmy.
     * apply Hexp1.
       replace (_ + _)%Z with (mag x : Z); [|ring].
@@ -2034,10 +2028,10 @@ Qed.
 (* mag y <= fexp1 (mag x) - 1,
  * fexp1 (mag (x - y)) <= mag y :
  * substraction is exact in the largest precision (fexp2). *)
-Lemma double_round_minus_beta_ge_3_aux1 :
+Lemma round_round_minus_radix_ge_3_aux1 :
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
-  double_round_plus_beta_ge_3_hyp fexp1 fexp2 ->
+  round_round_plus_radix_ge_3_hyp fexp1 fexp2 ->
   forall x y,
   0 < y -> y < x ->
   (mag y <= fexp1 (mag x) - 1)%Z ->
@@ -2054,7 +2048,7 @@ assert (Hfx : (fexp1 (mag x) < mag x)%Z);
   [now apply mag_generic_gt; [|apply Rgt_not_eq|]|].
 assert (Hfy : (fexp1 (mag y) < mag y)%Z);
   [now apply mag_generic_gt; [|apply Rgt_not_eq|]|].
-apply (double_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
+apply (round_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
 - apply Zle_trans with (fexp1 (mag (x - y))).
   + apply Hexp4; omega.
   + omega.
@@ -2063,20 +2057,20 @@ Qed.
 
 (* mag y <= fexp1 (mag x) - 1 :
  * mag y <= fexp1 (mag (x - y)) - 1 :
- * double_round_gt_mid applies. *)
-Lemma double_round_minus_beta_ge_3_aux2 :
+ * round_round_gt_mid applies. *)
+Lemma round_round_minus_radix_ge_3_aux2 :
   (3 <= beta)%Z ->
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
-  double_round_plus_beta_ge_3_hyp fexp1 fexp2 ->
+  round_round_plus_radix_ge_3_hyp fexp1 fexp2 ->
   forall x y,
   0 < y -> y < x ->
   (mag y <= fexp1 (mag x) - 1)%Z ->
   (mag y <= fexp1 (mag (x - y)) - 1)%Z ->
   generic_format beta fexp1 x ->
   generic_format beta fexp1 y ->
-  double_round_eq fexp1 fexp2 choice1 choice2 (x - y).
+  round_round_eq fexp1 fexp2 choice1 choice2 (x - y).
 Proof.
 intros Hbeta fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 Hexp x y Py Hxy Hly Hly' Fx Fy.
 assert (Px := Rlt_trans 0 y x Py Hxy).
@@ -2093,8 +2087,8 @@ assert (Bpow3 : bpow (- 1) <= / 3).
 assert (Ly : y < bpow (mag y)).
 { apply Rabs_lt_inv.
   apply bpow_mag_gt. }
-unfold double_round_eq.
-apply double_round_gt_mid.
+unfold round_round_eq.
+apply round_round_gt_mid.
 - exact Vfexp1.
 - exact Vfexp2.
 - lra.
@@ -2110,7 +2104,7 @@ apply double_round_gt_mid.
   replace (_ + _) with (round beta fexp1 Zceil (x - y) - (x - y)) by ring.
   apply Rlt_le_trans with (bpow (fexp1 (mag (x - y)) - 1)).
   + apply Rle_lt_trans with y;
-    [now apply double_round_minus_aux2_aux|].
+    [now apply round_round_minus_aux2_aux|].
     apply (Rlt_le_trans _ _ _ Ly).
     now apply bpow_le.
   + rewrite ulp_neq_0;[idtac|now apply Rgt_not_eq, Rgt_minus].
@@ -2128,7 +2122,7 @@ apply double_round_gt_mid.
   ring_simplify; rewrite <- Rmult_minus_distr_l.
   replace (_ + _) with (round beta fexp1 Zceil (x - y) - (x - y)) by ring.
   apply Rle_lt_trans with y;
-    [now apply double_round_minus_aux2_aux|].
+    [now apply round_round_minus_aux2_aux|].
   apply (Rlt_le_trans _ _ _ Ly).
   apply Rle_trans with (bpow (fexp1 (mag (x - y)) - 1));
     [now apply bpow_le|].
@@ -2155,22 +2149,22 @@ apply double_round_gt_mid.
       now apply IZR_le.
 Qed.
 
-(* double_round_minus_aux{0,1,2} together *)
-Lemma double_round_minus_beta_ge_3_aux3 :
+(* round_round_minus_aux{0,1,2} together *)
+Lemma round_round_minus_radix_ge_3_aux3 :
   (3 <= beta)%Z ->
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
-  double_round_plus_beta_ge_3_hyp fexp1 fexp2 ->
+  round_round_plus_radix_ge_3_hyp fexp1 fexp2 ->
   forall x y,
   0 < y -> y <= x ->
   generic_format beta fexp1 x ->
   generic_format beta fexp1 y ->
-  double_round_eq fexp1 fexp2 choice1 choice2 (x - y).
+  round_round_eq fexp1 fexp2 choice1 choice2 (x - y).
 Proof.
 intros Hbeta fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 Hexp x y Py Hyx Fx Fy.
 assert (Px := Rlt_le_trans 0 y x Py Hyx).
-unfold double_round_eq.
+unfold round_round_eq.
 destruct (Req_dec y x) as [Hy|Hy].
 - (* y = x *)
   rewrite Hy; replace (x - x) with 0 by ring.
@@ -2184,34 +2178,34 @@ destruct (Req_dec y x) as [Hy|Hy].
     destruct (Zle_or_lt (mag y) (fexp1 (mag (x - y)) - 1))
       as [Hly'|Hly'].
     * (* mag y <= fexp1 (mag (x - y)) - 1 *)
-      now apply double_round_minus_beta_ge_3_aux2.
+      now apply round_round_minus_radix_ge_3_aux2.
     * (* fexp1 (mag (x - y)) - 1 < mag y *)
       { rewrite (round_generic beta fexp2).
         - reflexivity.
         - now apply valid_rnd_N.
         - assert (Hf1 : (fexp1 (mag (x - y)) <= mag y)%Z); [omega|].
-          now apply (double_round_minus_beta_ge_3_aux1 fexp1). }
+          now apply (round_round_minus_radix_ge_3_aux1 fexp1). }
   + rewrite (round_generic beta fexp2).
     * reflexivity.
     * now apply valid_rnd_N.
     * assert (Hf1 : (fexp1 (mag x) <= mag y)%Z); [omega|].
-      now apply (double_round_minus_beta_ge_3_aux0 fexp1).
+      now apply (round_round_minus_radix_ge_3_aux0 fexp1).
 Qed.
 
-Lemma double_round_minus_beta_ge_3_aux :
+Lemma round_round_minus_radix_ge_3_aux :
   (3 <= beta)%Z ->
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
-  double_round_plus_beta_ge_3_hyp fexp1 fexp2 ->
+  round_round_plus_radix_ge_3_hyp fexp1 fexp2 ->
   forall x y,
   0 <= x -> 0 <= y ->
   generic_format beta fexp1 x ->
   generic_format beta fexp1 y ->
-  double_round_eq fexp1 fexp2 choice1 choice2 (x - y).
+  round_round_eq fexp1 fexp2 choice1 choice2 (x - y).
 Proof.
 intros Hbeta fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 Hexp x y Nnx Nny Fx Fy.
-unfold double_round_eq.
+unfold round_round_eq.
 destruct (Req_dec x 0) as [Zx|Nzx].
 - (* x = 0 *)
   rewrite Zx; unfold Rminus; rewrite Rplus_0_l.
@@ -2243,24 +2237,24 @@ destruct (Req_dec x 0) as [Zx|Nzx].
       replace (x - y) with (- (y - x)) by ring.
       do 3 rewrite round_N_opp.
       apply Ropp_eq_compat.
-      now apply double_round_minus_beta_ge_3_aux3.
+      now apply round_round_minus_radix_ge_3_aux3.
     * (* y <= x *)
-      now apply double_round_minus_beta_ge_3_aux3.
+      now apply round_round_minus_radix_ge_3_aux3.
 Qed.
 
-Lemma double_round_plus_beta_ge_3 :
+Lemma round_round_plus_radix_ge_3 :
   (3 <= beta)%Z ->
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
-  double_round_plus_beta_ge_3_hyp fexp1 fexp2 ->
+  round_round_plus_radix_ge_3_hyp fexp1 fexp2 ->
   forall x y,
   generic_format beta fexp1 x ->
   generic_format beta fexp1 y ->
-  double_round_eq fexp1 fexp2 choice1 choice2 (x + y).
+  round_round_eq fexp1 fexp2 choice1 choice2 (x + y).
 Proof.
 intros Hbeta fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 Hexp x y Fx Fy.
-unfold double_round_eq.
+unfold round_round_eq.
 destruct (Rlt_or_le x 0) as [Sx|Sx]; destruct (Rlt_or_le y 0) as [Sy|Sy].
 - (* x < 0, y < 0 *)
   replace (x + y) with (- (- x - y)); [|ring].
@@ -2270,39 +2264,39 @@ destruct (Rlt_or_le x 0) as [Sx|Sx]; destruct (Rlt_or_le y 0) as [Sy|Sy].
   assert (Py : 0 <= - y); [lra|].
   apply generic_format_opp in Fx.
   apply generic_format_opp in Fy.
-  now apply double_round_plus_beta_ge_3_aux.
+  now apply round_round_plus_radix_ge_3_aux.
 - (* x < 0, 0 <= y *)
   replace (x + y) with (y - (- x)); [|ring].
   assert (Px : 0 <= - x); [lra|].
   apply generic_format_opp in Fx.
-  now apply double_round_minus_beta_ge_3_aux.
+  now apply round_round_minus_radix_ge_3_aux.
 - (* 0 <= x, y < 0 *)
   replace (x + y) with (x - (- y)); [|ring].
   assert (Py : 0 <= - y); [lra|].
   apply generic_format_opp in Fy.
-  now apply double_round_minus_beta_ge_3_aux.
+  now apply round_round_minus_radix_ge_3_aux.
 - (* 0 <= x, 0 <= y *)
-  now apply double_round_plus_beta_ge_3_aux.
+  now apply round_round_plus_radix_ge_3_aux.
 Qed.
 
-Lemma double_round_minus_beta_ge_3 :
+Lemma round_round_minus_radix_ge_3 :
   (3 <= beta)%Z ->
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
-  double_round_plus_beta_ge_3_hyp fexp1 fexp2 ->
+  round_round_plus_radix_ge_3_hyp fexp1 fexp2 ->
   forall x y,
   generic_format beta fexp1 x ->
   generic_format beta fexp1 y ->
-  double_round_eq fexp1 fexp2 choice1 choice2 (x - y).
+  round_round_eq fexp1 fexp2 choice1 choice2 (x - y).
 Proof.
 intros Hbeta fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 Hexp x y Fx Fy.
 unfold Rminus.
 apply generic_format_opp in Fy.
-now apply double_round_plus_beta_ge_3.
+now apply round_round_plus_radix_ge_3.
 Qed.
 
-Section Double_round_plus_beta_ge_3_FLX.
+Section Double_round_plus_radix_ge_3_FLX.
 
 Variable prec : Z.
 Variable prec' : Z.
@@ -2310,57 +2304,57 @@ Variable prec' : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Context { prec_gt_0_' : Prec_gt_0 prec' }.
 
-Lemma FLX_double_round_plus_beta_ge_3_hyp :
+Lemma FLX_round_round_plus_radix_ge_3_hyp :
   (2 * prec <= prec')%Z ->
-  double_round_plus_beta_ge_3_hyp (FLX_exp prec) (FLX_exp prec').
+  round_round_plus_radix_ge_3_hyp (FLX_exp prec) (FLX_exp prec').
 Proof.
 intros Hprec.
 unfold FLX_exp.
-unfold double_round_plus_beta_ge_3_hyp; split; [|split; [|split]];
+unfold round_round_plus_radix_ge_3_hyp; split; [|split; [|split]];
 intros ex ey; try omega.
 unfold Prec_gt_0 in prec_gt_0_.
 omega.
 Qed.
 
-Theorem double_round_plus_beta_ge_3_FLX :
+Theorem round_round_plus_radix_ge_3_FLX :
   (3 <= beta)%Z ->
   forall choice1 choice2,
   (2 * prec <= prec')%Z ->
   forall x y,
   FLX_format beta prec x -> FLX_format beta prec y ->
-  double_round_eq (FLX_exp prec) (FLX_exp prec') choice1 choice2 (x + y).
+  round_round_eq (FLX_exp prec) (FLX_exp prec') choice1 choice2 (x + y).
 Proof.
 intros Hbeta choice1 choice2 Hprec x y Fx Fy.
-apply double_round_plus_beta_ge_3.
+apply round_round_plus_radix_ge_3.
 - exact Hbeta.
 - now apply FLX_exp_valid.
 - now apply FLX_exp_valid.
-- now apply FLX_double_round_plus_beta_ge_3_hyp.
+- now apply FLX_round_round_plus_radix_ge_3_hyp.
 - now apply generic_format_FLX.
 - now apply generic_format_FLX.
 Qed.
 
-Theorem double_round_minus_beta_ge_3_FLX :
+Theorem round_round_minus_radix_ge_3_FLX :
   (3 <= beta)%Z ->
   forall choice1 choice2,
   (2 * prec <= prec')%Z ->
   forall x y,
   FLX_format beta prec x -> FLX_format beta prec y ->
-  double_round_eq (FLX_exp prec) (FLX_exp prec') choice1 choice2 (x - y).
+  round_round_eq (FLX_exp prec) (FLX_exp prec') choice1 choice2 (x - y).
 Proof.
 intros Hbeta choice1 choice2 Hprec x y Fx Fy.
-apply double_round_minus_beta_ge_3.
+apply round_round_minus_radix_ge_3.
 - exact Hbeta.
 - now apply FLX_exp_valid.
 - now apply FLX_exp_valid.
-- now apply FLX_double_round_plus_beta_ge_3_hyp.
+- now apply FLX_round_round_plus_radix_ge_3_hyp.
 - now apply generic_format_FLX.
 - now apply generic_format_FLX.
 Qed.
 
-End Double_round_plus_beta_ge_3_FLX.
+End Double_round_plus_radix_ge_3_FLX.
 
-Section Double_round_plus_beta_ge_3_FLT.
+Section Double_round_plus_radix_ge_3_FLT.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -2368,13 +2362,13 @@ Variable emin' prec' : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Context { prec_gt_0_' : Prec_gt_0 prec' }.
 
-Lemma FLT_double_round_plus_beta_ge_3_hyp :
+Lemma FLT_round_round_plus_radix_ge_3_hyp :
   (emin' <= emin)%Z -> (2 * prec <= prec')%Z ->
-  double_round_plus_beta_ge_3_hyp (FLT_exp emin prec) (FLT_exp emin' prec').
+  round_round_plus_radix_ge_3_hyp (FLT_exp emin prec) (FLT_exp emin' prec').
 Proof.
 intros Hemin Hprec.
 unfold FLT_exp.
-unfold double_round_plus_beta_ge_3_hyp; split; [|split; [|split]]; intros ex ey.
+unfold round_round_plus_radix_ge_3_hyp; split; [|split; [|split]]; intros ex ey.
 - generalize (Zmax_spec (ex + 1 - prec) emin).
   generalize (Zmax_spec (ex - prec') emin').
   generalize (Zmax_spec (ey - prec) emin).
@@ -2393,47 +2387,47 @@ unfold double_round_plus_beta_ge_3_hyp; split; [|split; [|split]]; intros ex ey.
   omega.
 Qed.
 
-Theorem double_round_plus_beta_ge_3_FLT :
+Theorem round_round_plus_radix_ge_3_FLT :
   (3 <= beta)%Z ->
   forall choice1 choice2,
   (emin' <= emin)%Z -> (2 * prec <= prec')%Z ->
   forall x y,
   FLT_format beta emin prec x -> FLT_format beta emin prec y ->
-  double_round_eq (FLT_exp emin prec) (FLT_exp emin' prec')
+  round_round_eq (FLT_exp emin prec) (FLT_exp emin' prec')
                   choice1 choice2 (x + y).
 Proof.
 intros Hbeta choice1 choice2 Hemin Hprec x y Fx Fy.
-apply double_round_plus_beta_ge_3.
+apply round_round_plus_radix_ge_3.
 - exact Hbeta.
 - now apply FLT_exp_valid.
 - now apply FLT_exp_valid.
-- now apply FLT_double_round_plus_beta_ge_3_hyp.
+- now apply FLT_round_round_plus_radix_ge_3_hyp.
 - now apply generic_format_FLT.
 - now apply generic_format_FLT.
 Qed.
 
-Theorem double_round_minus_beta_ge_3_FLT :
+Theorem round_round_minus_radix_ge_3_FLT :
   (3 <= beta)%Z ->
   forall choice1 choice2,
   (emin' <= emin)%Z -> (2 * prec <= prec')%Z ->
   forall x y,
   FLT_format beta emin prec x -> FLT_format beta emin prec y ->
-  double_round_eq (FLT_exp emin prec) (FLT_exp emin' prec')
+  round_round_eq (FLT_exp emin prec) (FLT_exp emin' prec')
                   choice1 choice2 (x - y).
 Proof.
 intros Hbeta choice1 choice2 Hemin Hprec x y Fx Fy.
-apply double_round_minus_beta_ge_3.
+apply round_round_minus_radix_ge_3.
 - exact Hbeta.
 - now apply FLT_exp_valid.
 - now apply FLT_exp_valid.
-- now apply FLT_double_round_plus_beta_ge_3_hyp.
+- now apply FLT_round_round_plus_radix_ge_3_hyp.
 - now apply generic_format_FLT.
 - now apply generic_format_FLT.
 Qed.
 
-End Double_round_plus_beta_ge_3_FLT.
+End Double_round_plus_radix_ge_3_FLT.
 
-Section Double_round_plus_beta_ge_3_FTZ.
+Section Double_round_plus_radix_ge_3_FTZ.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -2441,14 +2435,14 @@ Variable emin' prec' : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Context { prec_gt_0_' : Prec_gt_0 prec' }.
 
-Lemma FTZ_double_round_plus_beta_ge_3_hyp :
+Lemma FTZ_round_round_plus_radix_ge_3_hyp :
   (emin' + prec' <= emin + 1)%Z -> (2 * prec <= prec')%Z ->
-  double_round_plus_beta_ge_3_hyp (FTZ_exp emin prec) (FTZ_exp emin' prec').
+  round_round_plus_radix_ge_3_hyp (FTZ_exp emin prec) (FTZ_exp emin' prec').
 Proof.
 intros Hemin Hprec.
 unfold FTZ_exp.
 unfold Prec_gt_0 in *.
-unfold double_round_plus_beta_ge_3_hyp; split; [|split; [|split]]; intros ex ey.
+unfold round_round_plus_radix_ge_3_hyp; split; [|split; [|split]]; intros ex ey.
 - destruct (Z.ltb_spec (ex + 1 - prec) emin);
   destruct (Z.ltb_spec (ex - prec') emin');
   destruct (Z.ltb_spec (ey - prec) emin);
@@ -2466,51 +2460,51 @@ unfold double_round_plus_beta_ge_3_hyp; split; [|split; [|split]]; intros ex ey.
   omega.
 Qed.
 
-Theorem double_round_plus_beta_ge_3_FTZ :
+Theorem round_round_plus_radix_ge_3_FTZ :
   (3 <= beta)%Z ->
   forall choice1 choice2,
   (emin' + prec' <= emin + 1)%Z -> (2 * prec <= prec')%Z ->
   forall x y,
   FTZ_format beta emin prec x -> FTZ_format beta emin prec y ->
-  double_round_eq (FTZ_exp emin prec) (FTZ_exp emin' prec')
+  round_round_eq (FTZ_exp emin prec) (FTZ_exp emin' prec')
                   choice1 choice2 (x + y).
 Proof.
 intros Hbeta choice1 choice2 Hemin Hprec x y Fx Fy.
-apply double_round_plus_beta_ge_3.
+apply round_round_plus_radix_ge_3.
 - exact Hbeta.
 - now apply FTZ_exp_valid.
 - now apply FTZ_exp_valid.
-- now apply FTZ_double_round_plus_beta_ge_3_hyp.
+- now apply FTZ_round_round_plus_radix_ge_3_hyp.
 - now apply generic_format_FTZ.
 - now apply generic_format_FTZ.
 Qed.
 
-Theorem double_round_minus_beta_ge_3_FTZ :
+Theorem round_round_minus_radix_ge_3_FTZ :
   (3 <= beta)%Z ->
   forall choice1 choice2,
   (emin' + prec' <= emin + 1)%Z -> (2 * prec <= prec')%Z ->
   forall x y,
   FTZ_format beta emin prec x -> FTZ_format beta emin prec y ->
-  double_round_eq (FTZ_exp emin prec) (FTZ_exp emin' prec')
+  round_round_eq (FTZ_exp emin prec) (FTZ_exp emin' prec')
                   choice1 choice2 (x - y).
 Proof.
 intros Hbeta choice1 choice2 Hemin Hprec x y Fx Fy.
-apply double_round_minus_beta_ge_3.
+apply round_round_minus_radix_ge_3.
 - exact Hbeta.
 - now apply FTZ_exp_valid.
 - now apply FTZ_exp_valid.
-- now apply FTZ_double_round_plus_beta_ge_3_hyp.
+- now apply FTZ_round_round_plus_radix_ge_3_hyp.
 - now apply generic_format_FTZ.
 - now apply generic_format_FTZ.
 Qed.
 
-End Double_round_plus_beta_ge_3_FTZ.
+End Double_round_plus_radix_ge_3_FTZ.
 
-End Double_round_plus_beta_ge_3.
+End Double_round_plus_radix_ge_3.
 
 End Double_round_plus.
 
-Lemma double_round_mid_cases :
+Lemma round_round_mid_cases :
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
@@ -2519,11 +2513,11 @@ Lemma double_round_mid_cases :
   (fexp2 (mag x) <= fexp1 (mag x) - 1)%Z ->
   (fexp1 (mag x) <= mag x)%Z ->
   (Rabs (x - midp fexp1 x) <= / 2 * (ulp beta fexp2 x) ->
-   double_round_eq fexp1 fexp2 choice1 choice2 x) ->
-  double_round_eq fexp1 fexp2 choice1 choice2 x.
+   round_round_eq fexp1 fexp2 choice1 choice2 x) ->
+  round_round_eq fexp1 fexp2 choice1 choice2 x.
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 x Px Hf2f1 Hf1.
-unfold double_round_eq, midp.
+unfold round_round_eq, midp.
 set (rd := round beta fexp1 Zfloor x).
 set (u1 := ulp beta fexp1 x).
 set (u2 := ulp beta fexp2 x).
@@ -2538,7 +2532,7 @@ destruct (generic_format_EM beta fexp1 x) as [Fx|Nfx].
   assert (Hf2' : (fexp2 (mag x) <= fexp1 (mag x) - 1)%Z); [omega|].
   destruct (Rlt_or_le (x - rd) (/ 2 * (u1 - u2))).
   + (* x - rd < / 2 * (u1 - u2) *)
-    apply double_round_lt_mid_further_place; try assumption.
+    apply round_round_lt_mid_further_place; try assumption.
     unfold midp. fold rd; fold u1; fold u2.
     apply (Rplus_lt_reg_r (- rd)); ring_simplify.
     now rewrite <- Rmult_minus_distr_l.
@@ -2549,7 +2543,7 @@ destruct (generic_format_EM beta fexp1 x) as [Fx|Nfx].
                 < / 2 * (ulp beta fexp1 x - ulp beta fexp2 x)).
         { rewrite Hceil; fold u1; fold u2.
           lra. }
-        apply double_round_gt_mid_further_place; try assumption.
+        apply round_round_gt_mid_further_place; try assumption.
         unfold midp'; lra.
       - (* x - rd <= / 2 * (u1 + u2) *)
         apply Cmid, Rabs_le; split; lra. }
@@ -2557,7 +2551,7 @@ Qed.
 
 Section Double_round_sqrt.
 
-Definition double_round_sqrt_hyp fexp1 fexp2 :=
+Definition round_round_sqrt_hyp fexp1 fexp2 :=
   (forall ex, (2 * fexp1 ex <= fexp1 (2 * ex))%Z)
   /\ (forall ex, (2 * fexp1 ex <= fexp1 (2 * ex - 1))%Z)
   /\ (forall ex, (fexp1 (2 * ex) < 2 * ex)%Z ->
@@ -2575,10 +2569,10 @@ intro H.
 omega.
 Qed.
 
-Lemma double_round_sqrt_aux :
+Lemma round_round_sqrt_aux :
   forall fexp1 fexp2 : Z -> Z,
   Valid_exp fexp1 -> Valid_exp fexp2 ->
-  double_round_sqrt_hyp fexp1 fexp2 ->
+  round_round_sqrt_hyp fexp1 fexp2 ->
   forall x,
   0 < x ->
   (fexp2 (mag (sqrt x)) <= fexp1 (mag (sqrt x)) - 1)%Z ->
@@ -2787,17 +2781,17 @@ destruct (Req_dec a 0) as [Za|Nza].
 Qed.
 
 
-Lemma double_round_sqrt :
+Lemma round_round_sqrt :
   forall fexp1 fexp2 : Z -> Z,
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
-  double_round_sqrt_hyp fexp1 fexp2 ->
+  round_round_sqrt_hyp fexp1 fexp2 ->
   forall x,
   generic_format beta fexp1 x ->
-  double_round_eq fexp1 fexp2 choice1 choice2 (sqrt x).
+  round_round_eq fexp1 fexp2 choice1 choice2 (sqrt x).
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 Hexp x Fx.
-unfold double_round_eq.
+unfold round_round_eq.
 destruct (Rle_or_lt x 0) as [Npx|Px].
 - (* x <= 0 *)
   rewrite (sqrt_neg _ Npx).
@@ -2838,14 +2832,14 @@ destruct (Rle_or_lt x 0) as [Npx|Px].
         now apply mag_generic_gt; [|apply Rgt_not_eq|]. }
     generalize ((proj2 (proj2 Hexp)) (mag (sqrt x)) H).
     omega. }
-  apply double_round_mid_cases.
+  apply round_round_mid_cases.
   + exact Vfexp1.
   + exact Vfexp2.
   + now apply sqrt_lt_R0.
   + omega.
   + omega.
   + intros Hmid; casetype False; apply (Rle_not_lt _ _ Hmid).
-    apply (double_round_sqrt_aux fexp1 fexp2 Vfexp1 Vfexp2 Hexp x Px Hf2 Fx).
+    apply (round_round_sqrt_aux fexp1 fexp2 Vfexp1 Vfexp2 Hexp x Px Hf2 Fx).
 Qed.
 
 Section Double_round_sqrt_FLX.
@@ -2856,28 +2850,28 @@ Variable prec' : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Context { prec_gt_0_' : Prec_gt_0 prec' }.
 
-Lemma FLX_double_round_sqrt_hyp :
+Lemma FLX_round_round_sqrt_hyp :
   (2 * prec + 2 <= prec')%Z ->
-  double_round_sqrt_hyp (FLX_exp prec) (FLX_exp prec').
+  round_round_sqrt_hyp (FLX_exp prec) (FLX_exp prec').
 Proof.
 intros Hprec.
 unfold FLX_exp.
 unfold Prec_gt_0 in prec_gt_0_.
-unfold double_round_sqrt_hyp; split; [|split]; intro ex; omega.
+unfold round_round_sqrt_hyp; split; [|split]; intro ex; omega.
 Qed.
 
-Theorem double_round_sqrt_FLX :
+Theorem round_round_sqrt_FLX :
   forall choice1 choice2,
   (2 * prec + 2 <= prec')%Z ->
   forall x,
   FLX_format beta prec x ->
-  double_round_eq (FLX_exp prec) (FLX_exp prec') choice1 choice2 (sqrt x).
+  round_round_eq (FLX_exp prec) (FLX_exp prec') choice1 choice2 (sqrt x).
 Proof.
 intros choice1 choice2 Hprec x Fx.
-apply double_round_sqrt.
+apply round_round_sqrt.
 - now apply FLX_exp_valid.
 - now apply FLX_exp_valid.
-- now apply FLX_double_round_sqrt_hyp.
+- now apply FLX_round_round_sqrt_hyp.
 - now apply generic_format_FLX.
 Qed.
 
@@ -2891,17 +2885,17 @@ Variable emin' prec' : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Context { prec_gt_0_' : Prec_gt_0 prec' }.
 
-Lemma FLT_double_round_sqrt_hyp :
+Lemma FLT_round_round_sqrt_hyp :
   (emin <= 0)%Z ->
   ((emin' <= emin - prec - 2)%Z
    \/ (2 * emin' <= emin - 4 * prec - 2)%Z) ->
   (2 * prec + 2 <= prec')%Z ->
-  double_round_sqrt_hyp (FLT_exp emin prec) (FLT_exp emin' prec').
+  round_round_sqrt_hyp (FLT_exp emin prec) (FLT_exp emin' prec').
 Proof.
 intros Hemin Heminprec Hprec.
 unfold FLT_exp.
 unfold Prec_gt_0 in prec_gt_0_.
-unfold double_round_sqrt_hyp; split; [|split]; intros ex.
+unfold round_round_sqrt_hyp; split; [|split]; intros ex.
 - generalize (Zmax_spec (ex - prec) emin).
   generalize (Zmax_spec (2 * ex - prec) emin).
   omega.
@@ -2914,7 +2908,7 @@ unfold double_round_sqrt_hyp; split; [|split]; intros ex.
   omega.
 Qed.
 
-Theorem double_round_sqrt_FLT :
+Theorem round_round_sqrt_FLT :
   forall choice1 choice2,
   (emin <= 0)%Z ->
   ((emin' <= emin - prec - 2)%Z
@@ -2922,14 +2916,14 @@ Theorem double_round_sqrt_FLT :
   (2 * prec + 2 <= prec')%Z ->
   forall x,
   FLT_format beta emin prec x ->
-  double_round_eq (FLT_exp emin prec) (FLT_exp emin' prec')
+  round_round_eq (FLT_exp emin prec) (FLT_exp emin' prec')
                   choice1 choice2 (sqrt x).
 Proof.
 intros choice1 choice2 Hemin Heminprec Hprec x Fx.
-apply double_round_sqrt.
+apply round_round_sqrt.
 - now apply FLT_exp_valid.
 - now apply FLT_exp_valid.
-- now apply FLT_double_round_sqrt_hyp.
+- now apply FLT_round_round_sqrt_hyp.
 - now apply generic_format_FLT.
 Qed.
 
@@ -2943,15 +2937,15 @@ Variable emin' prec' : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Context { prec_gt_0_' : Prec_gt_0 prec' }.
 
-Lemma FTZ_double_round_sqrt_hyp :
+Lemma FTZ_round_round_sqrt_hyp :
   (2 * (emin' + prec') <= emin + prec <= 1)%Z ->
   (2 * prec + 2 <= prec')%Z ->
-  double_round_sqrt_hyp (FTZ_exp emin prec) (FTZ_exp emin' prec').
+  round_round_sqrt_hyp (FTZ_exp emin prec) (FTZ_exp emin' prec').
 Proof.
 intros Hemin Hprec.
 unfold FTZ_exp.
 unfold Prec_gt_0 in *.
-unfold double_round_sqrt_hyp; split; [|split]; intros ex.
+unfold round_round_sqrt_hyp; split; [|split]; intros ex.
 - destruct (Z.ltb_spec (ex - prec) emin);
   destruct (Z.ltb_spec (2 * ex - prec) emin);
   omega.
@@ -2968,39 +2962,39 @@ unfold double_round_sqrt_hyp; split; [|split]; intros ex.
     omega.
 Qed.
 
-Theorem double_round_sqrt_FTZ :
+Theorem round_round_sqrt_FTZ :
   (4 <= beta)%Z ->
   forall choice1 choice2,
   (2 * (emin' + prec') <= emin + prec <= 1)%Z ->
   (2 * prec + 2 <= prec')%Z ->
   forall x,
   FTZ_format beta emin prec x ->
-  double_round_eq (FTZ_exp emin prec) (FTZ_exp emin' prec')
+  round_round_eq (FTZ_exp emin prec) (FTZ_exp emin' prec')
                   choice1 choice2 (sqrt x).
 Proof.
 intros Hbeta choice1 choice2 Hemin Hprec x Fx.
-apply double_round_sqrt.
+apply round_round_sqrt.
 - now apply FTZ_exp_valid.
 - now apply FTZ_exp_valid.
-- now apply FTZ_double_round_sqrt_hyp.
+- now apply FTZ_round_round_sqrt_hyp.
 - now apply generic_format_FTZ.
 Qed.
 
 End Double_round_sqrt_FTZ.
 
-Section Double_round_sqrt_beta_ge_4.
+Section Double_round_sqrt_radix_ge_4.
 
-Definition double_round_sqrt_beta_ge_4_hyp fexp1 fexp2 :=
+Definition round_round_sqrt_radix_ge_4_hyp fexp1 fexp2 :=
   (forall ex, (2 * fexp1 ex <= fexp1 (2 * ex))%Z)
   /\ (forall ex, (2 * fexp1 ex <= fexp1 (2 * ex - 1))%Z)
   /\ (forall ex, (fexp1 (2 * ex) < 2 * ex)%Z ->
                  (fexp2 ex + ex <= 2 * fexp1 ex - 1)%Z).
 
-Lemma double_round_sqrt_beta_ge_4_aux :
+Lemma round_round_sqrt_radix_ge_4_aux :
   (4 <= beta)%Z ->
   forall fexp1 fexp2 : Z -> Z,
   Valid_exp fexp1 -> Valid_exp fexp2 ->
-  double_round_sqrt_beta_ge_4_hyp fexp1 fexp2 ->
+  round_round_sqrt_radix_ge_4_hyp fexp1 fexp2 ->
   forall x,
   0 < x ->
   (fexp2 (mag (sqrt x)) <= fexp1 (mag (sqrt x)) - 1)%Z ->
@@ -3202,18 +3196,18 @@ destruct (Req_dec a 0) as [Za|Nza].
   + now apply Rle_trans with x.
 Qed.
 
-Lemma double_round_sqrt_beta_ge_4 :
+Lemma round_round_sqrt_radix_ge_4 :
   (4 <= beta)%Z ->
   forall fexp1 fexp2 : Z -> Z,
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
-  double_round_sqrt_beta_ge_4_hyp fexp1 fexp2 ->
+  round_round_sqrt_radix_ge_4_hyp fexp1 fexp2 ->
   forall x,
   generic_format beta fexp1 x ->
-  double_round_eq fexp1 fexp2 choice1 choice2 (sqrt x).
+  round_round_eq fexp1 fexp2 choice1 choice2 (sqrt x).
 Proof.
 intros Hbeta fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 Hexp x Fx.
-unfold double_round_eq.
+unfold round_round_eq.
 destruct (Rle_or_lt x 0) as [Npx|Px].
 - (* x <= 0 *)
   assert (Hs : sqrt x = 0).
@@ -3266,18 +3260,18 @@ destruct (Rle_or_lt x 0) as [Npx|Px].
         now apply mag_generic_gt; [|apply Rgt_not_eq|]. }
     generalize ((proj2 (proj2 Hexp)) (mag (sqrt x)) H).
     omega. }
-  apply double_round_mid_cases.
+  apply round_round_mid_cases.
   + exact Vfexp1.
   + exact Vfexp2.
   + now apply sqrt_lt_R0.
   + omega.
   + omega.
   + intros Hmid; casetype False; apply (Rle_not_lt _ _ Hmid).
-    apply (double_round_sqrt_beta_ge_4_aux Hbeta fexp1 fexp2 Vfexp1 Vfexp2
+    apply (round_round_sqrt_radix_ge_4_aux Hbeta fexp1 fexp2 Vfexp1 Vfexp2
                                            Hexp x Px Hf2 Fx).
 Qed.
 
-Section Double_round_sqrt_beta_ge_4_FLX.
+Section Double_round_sqrt_radix_ge_4_FLX.
 
 Variable prec : Z.
 Variable prec' : Z.
@@ -3285,36 +3279,36 @@ Variable prec' : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Context { prec_gt_0_' : Prec_gt_0 prec' }.
 
-Lemma FLX_double_round_sqrt_beta_ge_4_hyp :
+Lemma FLX_round_round_sqrt_radix_ge_4_hyp :
   (2 * prec + 1 <= prec')%Z ->
-  double_round_sqrt_beta_ge_4_hyp (FLX_exp prec) (FLX_exp prec').
+  round_round_sqrt_radix_ge_4_hyp (FLX_exp prec) (FLX_exp prec').
 Proof.
 intros Hprec.
 unfold FLX_exp.
 unfold Prec_gt_0 in prec_gt_0_.
-unfold double_round_sqrt_beta_ge_4_hyp; split; [|split]; intro ex; omega.
+unfold round_round_sqrt_radix_ge_4_hyp; split; [|split]; intro ex; omega.
 Qed.
 
-Theorem double_round_sqrt_beta_ge_4_FLX :
+Theorem round_round_sqrt_radix_ge_4_FLX :
   (4 <= beta)%Z ->
   forall choice1 choice2,
   (2 * prec + 1 <= prec')%Z ->
   forall x,
   FLX_format beta prec x ->
-  double_round_eq (FLX_exp prec) (FLX_exp prec') choice1 choice2 (sqrt x).
+  round_round_eq (FLX_exp prec) (FLX_exp prec') choice1 choice2 (sqrt x).
 Proof.
 intros Hbeta choice1 choice2 Hprec x Fx.
-apply double_round_sqrt_beta_ge_4.
+apply round_round_sqrt_radix_ge_4.
 - exact Hbeta.
 - now apply FLX_exp_valid.
 - now apply FLX_exp_valid.
-- now apply FLX_double_round_sqrt_beta_ge_4_hyp.
+- now apply FLX_round_round_sqrt_radix_ge_4_hyp.
 - now apply generic_format_FLX.
 Qed.
 
-End Double_round_sqrt_beta_ge_4_FLX.
+End Double_round_sqrt_radix_ge_4_FLX.
 
-Section Double_round_sqrt_beta_ge_4_FLT.
+Section Double_round_sqrt_radix_ge_4_FLT.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -3322,17 +3316,17 @@ Variable emin' prec' : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Context { prec_gt_0_' : Prec_gt_0 prec' }.
 
-Lemma FLT_double_round_sqrt_beta_ge_4_hyp :
+Lemma FLT_round_round_sqrt_radix_ge_4_hyp :
   (emin <= 0)%Z ->
   ((emin' <= emin - prec - 1)%Z
    \/ (2 * emin' <= emin - 4 * prec)%Z) ->
   (2 * prec + 1 <= prec')%Z ->
-  double_round_sqrt_beta_ge_4_hyp (FLT_exp emin prec) (FLT_exp emin' prec').
+  round_round_sqrt_radix_ge_4_hyp (FLT_exp emin prec) (FLT_exp emin' prec').
 Proof.
 intros Hemin Heminprec Hprec.
 unfold FLT_exp.
 unfold Prec_gt_0 in prec_gt_0_.
-unfold double_round_sqrt_beta_ge_4_hyp; split; [|split]; intros ex.
+unfold round_round_sqrt_radix_ge_4_hyp; split; [|split]; intros ex.
 - generalize (Zmax_spec (ex - prec) emin).
   generalize (Zmax_spec (2 * ex - prec) emin).
   omega.
@@ -3345,7 +3339,7 @@ unfold double_round_sqrt_beta_ge_4_hyp; split; [|split]; intros ex.
   omega.
 Qed.
 
-Theorem double_round_sqrt_beta_ge_4_FLT :
+Theorem round_round_sqrt_radix_ge_4_FLT :
   (4 <= beta)%Z ->
   forall choice1 choice2,
   (emin <= 0)%Z ->
@@ -3354,21 +3348,21 @@ Theorem double_round_sqrt_beta_ge_4_FLT :
   (2 * prec + 1 <= prec')%Z ->
   forall x,
   FLT_format beta emin prec x ->
-  double_round_eq (FLT_exp emin prec) (FLT_exp emin' prec')
+  round_round_eq (FLT_exp emin prec) (FLT_exp emin' prec')
                   choice1 choice2 (sqrt x).
 Proof.
 intros Hbeta choice1 choice2 Hemin Heminprec Hprec x Fx.
-apply double_round_sqrt_beta_ge_4.
+apply round_round_sqrt_radix_ge_4.
 - exact Hbeta.
 - now apply FLT_exp_valid.
 - now apply FLT_exp_valid.
-- now apply FLT_double_round_sqrt_beta_ge_4_hyp.
+- now apply FLT_round_round_sqrt_radix_ge_4_hyp.
 - now apply generic_format_FLT.
 Qed.
 
-End Double_round_sqrt_beta_ge_4_FLT.
+End Double_round_sqrt_radix_ge_4_FLT.
 
-Section Double_round_sqrt_beta_ge_4_FTZ.
+Section Double_round_sqrt_radix_ge_4_FTZ.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -3376,15 +3370,15 @@ Variable emin' prec' : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Context { prec_gt_0_' : Prec_gt_0 prec' }.
 
-Lemma FTZ_double_round_sqrt_beta_ge_4_hyp :
+Lemma FTZ_round_round_sqrt_radix_ge_4_hyp :
   (2 * (emin' + prec') <= emin + prec <= 1)%Z ->
   (2 * prec + 1 <= prec')%Z ->
-  double_round_sqrt_beta_ge_4_hyp (FTZ_exp emin prec) (FTZ_exp emin' prec').
+  round_round_sqrt_radix_ge_4_hyp (FTZ_exp emin prec) (FTZ_exp emin' prec').
 Proof.
 intros Hemin Hprec.
 unfold FTZ_exp.
 unfold Prec_gt_0 in *.
-unfold double_round_sqrt_beta_ge_4_hyp; split; [|split]; intros ex.
+unfold round_round_sqrt_radix_ge_4_hyp; split; [|split]; intros ex.
 - destruct (Z.ltb_spec (ex - prec) emin);
   destruct (Z.ltb_spec (2 * ex - prec) emin);
   omega.
@@ -3401,34 +3395,34 @@ unfold double_round_sqrt_beta_ge_4_hyp; split; [|split]; intros ex.
     omega.
 Qed.
 
-Theorem double_round_sqrt_beta_ge_4_FTZ :
+Theorem round_round_sqrt_radix_ge_4_FTZ :
   (4 <= beta)%Z ->
   forall choice1 choice2,
   (2 * (emin' + prec') <= emin + prec <= 1)%Z ->
   (2 * prec + 1 <= prec')%Z ->
   forall x,
   FTZ_format beta emin prec x ->
-  double_round_eq (FTZ_exp emin prec) (FTZ_exp emin' prec')
+  round_round_eq (FTZ_exp emin prec) (FTZ_exp emin' prec')
                   choice1 choice2 (sqrt x).
 Proof.
 intros Hbeta choice1 choice2 Hemin Hprec x Fx.
-apply double_round_sqrt_beta_ge_4.
+apply round_round_sqrt_radix_ge_4.
 - exact Hbeta.
 - now apply FTZ_exp_valid.
 - now apply FTZ_exp_valid.
-- now apply FTZ_double_round_sqrt_beta_ge_4_hyp.
+- now apply FTZ_round_round_sqrt_radix_ge_4_hyp.
 - now apply generic_format_FTZ.
 Qed.
 
-End Double_round_sqrt_beta_ge_4_FTZ.
+End Double_round_sqrt_radix_ge_4_FTZ.
 
-End Double_round_sqrt_beta_ge_4.
+End Double_round_sqrt_radix_ge_4.
 
 End Double_round_sqrt.
 
 Section Double_round_div.
 
-Lemma double_round_eq_mid_beta_even :
+Lemma round_round_eq_mid_beta_even :
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
@@ -3438,10 +3432,10 @@ Lemma double_round_eq_mid_beta_even :
   (fexp2 (mag x) <= fexp1 (mag x) - 1)%Z ->
   (fexp1 (mag x) <= mag x)%Z ->
   x = midp fexp1 x ->
-  double_round_eq fexp1 fexp2 choice1 choice2 x.
+  round_round_eq fexp1 fexp2 choice1 choice2 x.
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 Ebeta x Px Hf2 Hf1.
-unfold double_round_eq.
+unfold round_round_eq.
 unfold midp.
 set (rd := round beta fexp1 Zfloor x).
 set (u := ulp beta fexp1 x).
@@ -3526,14 +3520,14 @@ intros _.
 apply Zle_refl.
 Qed.
 
-Lemma double_round_really_zero :
+Lemma round_round_really_zero :
   forall (fexp1 fexp2 : Z -> Z),
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
   forall x,
   0 < x ->
   (mag x <= fexp1 (mag x) - 2)%Z ->
-  double_round_eq fexp1 fexp2 choice1 choice2 x.
+  round_round_eq fexp1 fexp2 choice1 choice2 x.
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 x Px Hf1.
 assert (Hlx : bpow (mag x - 1) <= x < bpow (mag x)).
@@ -3541,7 +3535,7 @@ assert (Hlx : bpow (mag x - 1) <= x < bpow (mag x)).
   rewrite <- (Rabs_right x); [|now apply Rle_ge; apply Rlt_le].
   apply Hex.
   now apply Rgt_not_eq. }
-unfold double_round_eq.
+unfold round_round_eq.
 rewrite (round_N_small_pos beta fexp1 _ x (mag x)); [|exact Hlx|omega].
 set (x'' := round beta fexp2 (Znearest choice2) x).
 destruct (Req_dec x'' 0) as [Zx''|Nzx''];
@@ -3593,7 +3587,7 @@ destruct (Zle_or_lt (fexp2 (mag x)) (mag x)).
   now apply (round_N_small_pos beta _ _ _ (mag x)).
 Qed.
 
-Lemma double_round_zero :
+Lemma round_round_zero :
   forall fexp1 fexp2 : Z -> Z,
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
@@ -3601,10 +3595,10 @@ Lemma double_round_zero :
   0 < x ->
   (fexp1 (mag x) = mag x + 1 :> Z)%Z ->
   x < bpow (mag x) - / 2 * ulp beta fexp2 x ->
-  double_round_eq fexp1 fexp2 choice1 choice2 x.
+  round_round_eq fexp1 fexp2 choice1 choice2 x.
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 x Px Hf1.
-unfold double_round_eq.
+unfold round_round_eq.
 set (x'' := round beta fexp2 (Znearest choice2) x).
 set (u1 := ulp beta fexp1 x).
 set (u2 := ulp beta fexp2 x).
@@ -3637,7 +3631,7 @@ split.
   now apply error_le_half_ulp.
 Qed.
 
-Lemma double_round_all_mid_cases :
+Lemma round_round_all_mid_cases :
   forall fexp1 fexp2 : Z -> Z,
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
@@ -3646,17 +3640,17 @@ Lemma double_round_all_mid_cases :
   (fexp2 (mag x) <= fexp1 (mag x) - 1)%Z ->
   ((fexp1 (mag x) = mag x + 1 :> Z)%Z ->
    bpow (mag x) - / 2 * ulp beta fexp2 x <= x ->
-   double_round_eq fexp1 fexp2 choice1 choice2 x) ->
+   round_round_eq fexp1 fexp2 choice1 choice2 x) ->
   ((fexp1 (mag x) <= mag x)%Z ->
    midp fexp1 x - / 2 * ulp beta fexp2 x <= x < midp fexp1 x ->
-   double_round_eq fexp1 fexp2 choice1 choice2 x) ->
+   round_round_eq fexp1 fexp2 choice1 choice2 x) ->
   ((fexp1 (mag x) <= mag x)%Z ->
    x = midp fexp1 x ->
-   double_round_eq fexp1 fexp2 choice1 choice2 x) ->
+   round_round_eq fexp1 fexp2 choice1 choice2 x) ->
   ((fexp1 (mag x) <= mag x)%Z ->
    midp fexp1 x < x <= midp fexp1 x + / 2 * ulp beta fexp2 x ->
-   double_round_eq fexp1 fexp2 choice1 choice2 x) ->
-  double_round_eq fexp1 fexp2 choice1 choice2 x.
+   round_round_eq fexp1 fexp2 choice1 choice2 x) ->
+  round_round_eq fexp1 fexp2 choice1 choice2 x.
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 x Px Hf2.
 set (x' := round beta fexp1 Zfloor x).
@@ -3666,18 +3660,18 @@ intros Cz Clt Ceq Cgt.
 destruct (Ztrichotomy (mag x) (fexp1 (mag x) - 1)) as [Hlt|[Heq|Hgt]].
 - (* mag x < fexp1 (mag x) - 1 *)
   assert (H : (mag x <= fexp1 (mag x) - 2)%Z) by omega.
-  now apply double_round_really_zero.
+  now apply round_round_really_zero.
 - (* mag x = fexp1 (mag x) - 1 *)
   assert (H : (fexp1 (mag x) = (mag x + 1))%Z) by omega.
   destruct (Rlt_or_le x (bpow (mag x) - / 2 * u2)) as [Hlt'|Hge'].
-  + now apply double_round_zero.
+  + now apply round_round_zero.
   + now apply Cz.
 - (* mag x > fexp1 (mag x) - 1 *)
   assert (H : (fexp1 (mag x) <= mag x)%Z) by omega.
   destruct (Rtotal_order x (midp fexp1 x)) as [Hlt'|[Heq'|Hgt']].
   + (* x < midp fexp1 x *)
     destruct (Rlt_or_le x (midp fexp1 x - / 2 * u2)) as [Hlt''|Hle''].
-    * now apply double_round_lt_mid_further_place; [| | |omega| |].
+    * now apply round_round_lt_mid_further_place; [| | |omega| |].
     * now apply Clt; [|split].
   + (* x = midp fexp1 x *)
     now apply Ceq.
@@ -3686,7 +3680,7 @@ destruct (Ztrichotomy (mag x) (fexp1 (mag x) - 1)) as [Hlt|[Heq|Hgt]].
     * now apply Cgt; [|split].
     * { destruct (generic_format_EM beta fexp1 x) as [Fx|Nfx].
         - (* generic_format beta fexp1 x *)
-          unfold double_round_eq; rewrite (round_generic beta fexp2);
+          unfold round_round_eq; rewrite (round_generic beta fexp2);
           [reflexivity|now apply valid_rnd_N|].
           now apply (generic_inclusion_mag beta fexp1); [omega|].
         - (* ~ generic_format beta fexp1 x *)
@@ -3695,7 +3689,7 @@ destruct (Ztrichotomy (mag x) (fexp1 (mag x) - 1)) as [Hlt|[Heq|Hgt]].
           assert (Hf2' : (fexp2 (mag x) <= fexp1 (mag x) - 1)%Z);
             [omega|].
           assert (midp' fexp1 x + / 2 * ulp beta fexp2 x < x);
-            [|now apply double_round_gt_mid_further_place].
+            [|now apply round_round_gt_mid_further_place].
           revert Hle''; unfold midp, midp'; fold x'.
           rewrite Hceil; fold u1; fold u2.
           lra. }
@@ -3712,7 +3706,7 @@ generalize (mag_div beta x y Px Py).
 omega.
 Qed.
 
-Definition double_round_div_hyp fexp1 fexp2 :=
+Definition round_round_div_hyp fexp1 fexp2 :=
   (forall ex, (fexp2 ex <= fexp1 ex - 1)%Z)
   /\ (forall ex ey, (fexp1 ex < ex)%Z -> (fexp1 ey < ey)%Z ->
                     (fexp1 (ex - ey) <= ex - ey + 1)%Z ->
@@ -3728,11 +3722,11 @@ Definition double_round_div_hyp fexp1 fexp2 :=
                     (fexp1 (ex - ey) = ex - ey + 1)%Z ->
                     (fexp2 (ex - ey) <= ex - ey - ey + fexp1 ey)%Z).
 
-Lemma double_round_div_aux0 :
+Lemma round_round_div_aux0 :
   forall fexp1 fexp2 : Z -> Z,
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
-  double_round_div_hyp fexp1 fexp2 ->
+  round_round_div_hyp fexp1 fexp2 ->
   forall x y,
   0 < x -> 0 < y ->
   generic_format beta fexp1 x ->
@@ -3864,11 +3858,11 @@ destruct (Zle_or_lt Z0 (fexp1 (mag x) - mag (x / y)
       apply Hexp; try assumption; rewrite <- Hxy; rewrite Hf1; apply Zle_refl.
 Qed.
 
-Lemma double_round_div_aux1 :
+Lemma round_round_div_aux1 :
   forall fexp1 fexp2 : Z -> Z,
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
-  double_round_div_hyp fexp1 fexp2 ->
+  round_round_div_hyp fexp1 fexp2 ->
   forall x y,
   0 < x -> 0 < y ->
   generic_format beta fexp1 x ->
@@ -4051,11 +4045,11 @@ destruct (Zle_or_lt Z0 (fexp1 (mag x) - fexp1 (mag (x / y))
       apply Hexp; try assumption; rewrite <- Hxy; omega.
 Qed.
 
-Lemma double_round_div_aux2 :
+Lemma round_round_div_aux2 :
   forall fexp1 fexp2 : Z -> Z,
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
-  double_round_div_hyp fexp1 fexp2 ->
+  round_round_div_hyp fexp1 fexp2 ->
   forall x y,
   0 < x -> 0 < y ->
   generic_format beta fexp1 x ->
@@ -4249,55 +4243,55 @@ destruct (Zle_or_lt Z0 (fexp1 (mag x) - fexp1 (mag (x / y))
     now rewrite (Rplus_comm (- x')).
 Qed.
 
-Lemma double_round_div_aux :
+Lemma round_round_div_aux :
   forall fexp1 fexp2 : Z -> Z,
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
   (exists n, (beta = 2 * n :> Z)%Z) ->
-  double_round_div_hyp fexp1 fexp2 ->
+  round_round_div_hyp fexp1 fexp2 ->
   forall x y,
   0 < x -> 0 < y ->
   generic_format beta fexp1 x ->
   generic_format beta fexp1 y ->
-  double_round_eq fexp1 fexp2 choice1 choice2 (x / y).
+  round_round_eq fexp1 fexp2 choice1 choice2 (x / y).
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 Ebeta Hexp x y Px Py Fx Fy.
 assert (Pxy : 0 < x / y).
 { apply Rmult_lt_0_compat; [exact Px|].
   now apply Rinv_0_lt_compat. }
-apply double_round_all_mid_cases.
+apply round_round_all_mid_cases.
 - exact Vfexp1.
 - exact Vfexp2.
 - exact Pxy.
 - apply Hexp.
 - intros Hf1 Hlxy.
   casetype False.
-  now apply (double_round_div_aux0 fexp1 fexp2 _ _ choice1 choice2 Hexp x y).
+  now apply (round_round_div_aux0 fexp1 fexp2 _ _ choice1 choice2 Hexp x y).
 - intros Hf1 Hlxy.
   casetype False.
-  now apply (double_round_div_aux1 fexp1 fexp2 _ _ choice1 choice2 Hexp x y).
+  now apply (round_round_div_aux1 fexp1 fexp2 _ _ choice1 choice2 Hexp x y).
 - intro H.
-  apply double_round_eq_mid_beta_even; try assumption.
+  apply round_round_eq_mid_beta_even; try assumption.
   apply Hexp.
 - intros Hf1 Hlxy.
   casetype False.
-  now apply (double_round_div_aux2 fexp1 fexp2 _ _ choice1 choice2 Hexp x y).
+  now apply (round_round_div_aux2 fexp1 fexp2 _ _ choice1 choice2 Hexp x y).
 Qed.
 
-Lemma double_round_div :
+Lemma round_round_div :
   forall fexp1 fexp2 : Z -> Z,
   Valid_exp fexp1 -> Valid_exp fexp2 ->
   forall (choice1 choice2 : Z -> bool),
   (exists n, (beta = 2 * n :> Z)%Z) ->
-  double_round_div_hyp fexp1 fexp2 ->
+  round_round_div_hyp fexp1 fexp2 ->
   forall x y,
   y <> 0 ->
   generic_format beta fexp1 x ->
   generic_format beta fexp1 y ->
-  double_round_eq fexp1 fexp2 choice1 choice2 (x / y).
+  round_round_eq fexp1 fexp2 choice1 choice2 (x / y).
 Proof.
 intros fexp1 fexp2 Vfexp1 Vfexp2 choice1 choice2 Ebeta Hexp x y Nzy Fx Fy.
-unfold double_round_eq.
+unfold round_round_eq.
 destruct (Rtotal_order x 0) as [Nx|[Zx|Px]].
 - (* x < 0 *)
   destruct (Rtotal_order y 0) as [Ny|[Zy|Py]].
@@ -4314,7 +4308,7 @@ destruct (Rtotal_order x 0) as [Nx|[Zx|Px]].
     rewrite Ropp_0 in Nx, Ny.
     apply generic_format_opp in Fx.
     apply generic_format_opp in Fy.
-    now apply double_round_div_aux.
+    now apply round_round_div_aux.
   + (* y = 0 *)
     now casetype False; apply Nzy.
   + (* y > 0 *)
@@ -4325,7 +4319,7 @@ destruct (Rtotal_order x 0) as [Nx|[Zx|Px]].
     apply Ropp_lt_contravar in Nx.
     rewrite Ropp_0 in Nx.
     apply generic_format_opp in Fx.
-    now apply double_round_div_aux.
+    now apply round_round_div_aux.
 - (* x = 0 *)
   rewrite Zx.
   unfold Rdiv; rewrite Rmult_0_l.
@@ -4341,11 +4335,11 @@ destruct (Rtotal_order x 0) as [Nx|[Zx|Px]].
     apply Ropp_lt_contravar in Ny.
     rewrite Ropp_0 in Ny.
     apply generic_format_opp in Fy.
-    now apply double_round_div_aux.
+    now apply round_round_div_aux.
   + (* y = 0 *)
     now casetype False; apply Nzy.
   + (* y > 0 *)
-    now apply double_round_div_aux.
+    now apply round_round_div_aux.
 Qed.
 
 Section Double_round_div_FLX.
@@ -4356,33 +4350,33 @@ Variable prec' : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Context { prec_gt_0_' : Prec_gt_0 prec' }.
 
-Lemma FLX_double_round_div_hyp :
+Lemma FLX_round_round_div_hyp :
   (2 * prec <= prec')%Z ->
-  double_round_div_hyp (FLX_exp prec) (FLX_exp prec').
+  round_round_div_hyp (FLX_exp prec) (FLX_exp prec').
 Proof.
 intros Hprec.
 unfold Prec_gt_0 in prec_gt_0_.
 unfold FLX_exp.
-unfold double_round_div_hyp.
+unfold round_round_div_hyp.
 split; [now intro ex; omega|].
 split; [|split; [|split]]; intros ex ey; omega.
 Qed.
 
-Theorem double_round_div_FLX :
+Theorem round_round_div_FLX :
   forall choice1 choice2,
   (exists n, (beta = 2 * n :> Z)%Z) ->
   (2 * prec <= prec')%Z ->
   forall x y,
   y <> 0 ->
   FLX_format beta prec x -> FLX_format beta prec y ->
-  double_round_eq (FLX_exp prec) (FLX_exp prec') choice1 choice2 (x / y).
+  round_round_eq (FLX_exp prec) (FLX_exp prec') choice1 choice2 (x / y).
 Proof.
 intros choice1 choice2 Ebeta Hprec x y Nzy Fx Fy.
-apply double_round_div.
+apply round_round_div.
 - now apply FLX_exp_valid.
 - now apply FLX_exp_valid.
 - exact Ebeta.
-- now apply FLX_double_round_div_hyp.
+- now apply FLX_round_round_div_hyp.
 - exact Nzy.
 - now apply generic_format_FLX.
 - now apply generic_format_FLX.
@@ -4398,15 +4392,15 @@ Variable emin' prec' : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Context { prec_gt_0_' : Prec_gt_0 prec' }.
 
-Lemma FLT_double_round_div_hyp :
+Lemma FLT_round_round_div_hyp :
   (emin' <= emin - prec - 2)%Z ->
   (2 * prec <= prec')%Z ->
-  double_round_div_hyp (FLT_exp emin prec) (FLT_exp emin' prec').
+  round_round_div_hyp (FLT_exp emin prec) (FLT_exp emin' prec').
 Proof.
 intros Hemin Hprec.
 unfold FLT_exp.
 unfold Prec_gt_0 in prec_gt_0_.
-unfold double_round_div_hyp.
+unfold round_round_div_hyp.
 split; [intro ex|split; [|split; [|split]]; intros ex ey].
 - generalize (Zmax_spec (ex - prec') emin').
   generalize (Zmax_spec (ex - prec) emin).
@@ -4433,7 +4427,7 @@ split; [intro ex|split; [|split; [|split]]; intros ex ey].
   omega.
 Qed.
 
-Theorem double_round_div_FLT :
+Theorem round_round_div_FLT :
   forall choice1 choice2,
   (exists n, (beta = 2 * n :> Z)%Z) ->
   (emin' <= emin - prec - 2)%Z ->
@@ -4441,15 +4435,15 @@ Theorem double_round_div_FLT :
   forall x y,
   y <> 0 ->
   FLT_format beta emin prec x -> FLT_format beta emin prec y ->
-  double_round_eq (FLT_exp emin prec) (FLT_exp emin' prec')
+  round_round_eq (FLT_exp emin prec) (FLT_exp emin' prec')
                   choice1 choice2 (x / y).
 Proof.
 intros choice1 choice2 Ebeta Hemin Hprec x y Nzy Fx Fy.
-apply double_round_div.
+apply round_round_div.
 - now apply FLT_exp_valid.
 - now apply FLT_exp_valid.
 - exact Ebeta.
-- now apply FLT_double_round_div_hyp.
+- now apply FLT_round_round_div_hyp.
 - exact Nzy.
 - now apply generic_format_FLT.
 - now apply generic_format_FLT.
@@ -4465,16 +4459,16 @@ Variable emin' prec' : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 Context { prec_gt_0_' : Prec_gt_0 prec' }.
 
-Lemma FTZ_double_round_div_hyp :
+Lemma FTZ_round_round_div_hyp :
   (emin' + prec' <= emin - 1)%Z ->
   (2 * prec <= prec')%Z ->
-  double_round_div_hyp (FTZ_exp emin prec) (FTZ_exp emin' prec').
+  round_round_div_hyp (FTZ_exp emin prec) (FTZ_exp emin' prec').
 Proof.
 intros Hemin Hprec.
 unfold FTZ_exp.
 unfold Prec_gt_0 in prec_gt_0_.
 unfold Prec_gt_0 in prec_gt_0_.
-unfold double_round_div_hyp.
+unfold round_round_div_hyp.
 split; [intro ex|split; [|split; [|split]]; intros ex ey].
 - destruct (Z.ltb_spec (ex - prec') emin');
   destruct (Z.ltb_spec (ex - prec) emin);
@@ -4501,7 +4495,7 @@ split; [intro ex|split; [|split; [|split]]; intros ex ey].
   omega.
 Qed.
 
-Theorem double_round_div_FTZ :
+Theorem round_round_div_FTZ :
   forall choice1 choice2,
   (exists n, (beta = 2 * n :> Z)%Z) ->
   (emin' + prec' <= emin - 1)%Z ->
@@ -4509,15 +4503,15 @@ Theorem double_round_div_FTZ :
   forall x y,
   y <> 0 ->
   FTZ_format beta emin prec x -> FTZ_format beta emin prec y ->
-  double_round_eq (FTZ_exp emin prec) (FTZ_exp emin' prec')
+  round_round_eq (FTZ_exp emin prec) (FTZ_exp emin' prec')
                   choice1 choice2 (x / y).
 Proof.
 intros choice1 choice2 Ebeta Hemin Hprec x y Nzy Fx Fy.
-apply double_round_div.
+apply round_round_div.
 - now apply FTZ_exp_valid.
 - now apply FTZ_exp_valid.
 - exact Ebeta.
-- now apply FTZ_double_round_div_hyp.
+- now apply FTZ_round_round_div_hyp.
 - exact Nzy.
 - now apply generic_format_FTZ.
 - now apply generic_format_FTZ.
