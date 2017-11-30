@@ -124,8 +124,7 @@ Definition Rnd_odd_pt (x f : R) :=
 Definition Rnd_odd (rnd : R -> R) :=
   forall x : R, Rnd_odd_pt x (rnd x).
 
-
-Theorem Rnd_odd_pt_sym :   forall x f : R,
+Theorem Rnd_odd_pt_opp_inv :   forall x f : R,
   Rnd_odd_pt (-x) (-f) -> Rnd_odd_pt x f.
 Proof with auto with typeclass_instances.
 intros x f (H1,H2).
@@ -164,7 +163,7 @@ Qed.
 
 Theorem round_odd_opp :
   forall x,
-  (round beta fexp Zrnd_odd  (-x) = (- round beta fexp Zrnd_odd x))%R.
+  round beta fexp Zrnd_odd (-x) = (- round beta fexp Zrnd_odd x)%R.
 Proof.
 intros x; unfold round.
 rewrite <- F2R_Zopp.
@@ -220,7 +219,7 @@ rewrite round_0...
 split.
 apply generic_format_0.
 now left.
-intros Hx; apply Rnd_odd_pt_sym.
+intros Hx; apply Rnd_odd_pt_opp_inv.
 rewrite <- round_odd_opp.
 apply H.
 auto with real.
@@ -850,7 +849,7 @@ apply Hz1.
 Qed.
 
 
-Theorem round_odd_prop_pos:
+Lemma round_N_odd_pos :
   round beta fexp (Znearest choice) (round beta fexpe Zrnd_odd x) =
                round beta fexp (Znearest choice) x.
 Proof with auto with typeclass_instances.
@@ -961,7 +960,8 @@ Context { exists_NE_e : Exists_NE beta fexpe }. (* for defining rounding to odd 
 
 Hypothesis fexpe_fexp: forall e, (fexpe e <= fexp e -2)%Z.
 
-Theorem round_odd_prop: forall x,
+Theorem round_N_odd :
+  forall x,
   round beta fexp (Znearest choice) (round beta fexpe Zrnd_odd x) =
                round beta fexp (Znearest choice) x.
 Proof with auto with typeclass_instances.
@@ -975,7 +975,7 @@ destruct (canonical_generic_format beta fexp (round beta fexp Zfloor (-x))) as (
 apply generic_format_round...
 destruct (canonical_generic_format beta fexp (round beta fexp Zceil (-x))) as (u,(Hu1,Hu2)).
 apply generic_format_round...
-apply round_odd_prop_pos with d u...
+apply round_N_odd_pos with d u...
 rewrite <- Hd1; apply round_DN_pt...
 rewrite <- Hu1; apply round_UP_pt...
 auto with real.
@@ -986,7 +986,7 @@ destruct (canonical_generic_format beta fexp (round beta fexp Zfloor x)) as (d,(
 apply generic_format_round...
 destruct (canonical_generic_format beta fexp (round beta fexp Zceil x)) as (u,(Hu1,Hu2)).
 apply generic_format_round...
-apply round_odd_prop_pos with d u...
+apply round_N_odd_pos with d u...
 rewrite <- Hd1; apply round_DN_pt...
 rewrite <- Hu1; apply round_UP_pt...
 Qed.

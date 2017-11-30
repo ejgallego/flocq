@@ -623,7 +623,7 @@ Qed.
 
 End Fprop_relative_FLT.
 
-Lemma error_N_FLT :
+Theorem error_N_FLT :
   forall (emin prec : Z), (0 < prec)%Z ->
   forall (choice : Z -> bool),
   forall (x : R),
