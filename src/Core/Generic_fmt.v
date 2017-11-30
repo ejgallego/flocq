@@ -218,7 +218,7 @@ unfold canonical; simpl ; unfold cexp.
 now rewrite F2R_0.
 Qed.
 
-Theorem canonical_unicity :
+Theorem canonical_unique :
   forall f1 f2,
   canonical f1 ->
   canonical f2 ->
@@ -1496,10 +1496,10 @@ Proof.
 intros x f Hxf.
 destruct (Rnd_N_pt_DN_or_UP _ _ _ Hxf).
 left.
-apply Rnd_DN_pt_unicity with (1 := H).
+apply Rnd_DN_pt_unique with (1 := H).
 apply round_DN_pt.
 right.
-apply Rnd_UP_pt_unicity with (1 := H).
+apply Rnd_UP_pt_unique with (1 := H).
 apply round_UP_pt.
 Qed.
 
@@ -2004,7 +2004,7 @@ now apply Rlt_le.
 split.
 apply Rxf.
 intros g Rxg.
-rewrite Rnd_N_pt_unicity with (3 := Hm) (4 := Rxf) (5 := Rxg).
+rewrite Rnd_N_pt_unique with (3 := Hm) (4 := Rxf) (5 := Rxg).
 apply Rle_refl.
 apply round_DN_pt.
 apply round_UP_pt.

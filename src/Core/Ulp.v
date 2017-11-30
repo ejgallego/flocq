@@ -2190,12 +2190,12 @@ Lemma round_N_eq_DN_pt: forall choice x d u,
 Proof with auto with typeclass_instances.
 intros choice x d u Hd Hu H.
 assert (H0:(d = round beta fexp Zfloor x)%R).
-apply Rnd_DN_pt_unicity with (1:=Hd).
+apply Rnd_DN_pt_unique with (1:=Hd).
 apply round_DN_pt...
 rewrite H0.
 apply round_N_eq_DN.
 rewrite <- H0.
-rewrite Rnd_UP_pt_unicity with F x (round beta fexp Zceil x) u; try assumption.
+rewrite Rnd_UP_pt_unique with F x (round beta fexp Zceil x) u; try assumption.
 apply round_UP_pt...
 Qed.
 
@@ -2225,12 +2225,12 @@ Lemma round_N_eq_UP_pt: forall choice x d u,
 Proof with auto with typeclass_instances.
 intros choice x d u Hd Hu H.
 assert (H0:(u = round beta fexp Zceil x)%R).
-apply Rnd_UP_pt_unicity with (1:=Hu).
+apply Rnd_UP_pt_unique with (1:=Hu).
 apply round_UP_pt...
 rewrite H0.
 apply round_N_eq_UP.
 rewrite <- H0.
-rewrite Rnd_DN_pt_unicity with F x (round beta fexp Zfloor x) d; try assumption.
+rewrite Rnd_DN_pt_unique with F x (round beta fexp Zfloor x) d; try assumption.
 apply round_DN_pt...
 Qed.
 

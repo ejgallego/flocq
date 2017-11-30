@@ -263,7 +263,7 @@ now apply F2R_gt_0.
 now apply F2R_lt_0.
 assert (mx = my /\ ex = ey).
 (* *)
-refine (_ (canonical_unicity _ fexp _ _ _ _ Heq)).
+refine (_ (canonical_unique _ fexp _ _ _ _ Heq)).
 rewrite Hs.
 now case sy ; intro H ; injection H ; split.
 apply canonical_canonical_mantissa.
@@ -1510,7 +1510,7 @@ destruct (Rcompare_spec (F2R (beta:=radix2) {| Fnum := mz; Fexp := ez |}) 0); tr
 rewrite H1 in Hp.
 apply Rplus_opp_r_uniq in Hp.
 rewrite <- F2R_Zopp in Hp.
-eapply canonical_unicity in Hp.
+eapply canonical_unique in Hp.
 inversion Hp. destruct sy, sx, m; try discriminate H3; easy.
 apply canonical_canonical_mantissa.
 apply Bool.andb_true_iff in Hy. easy.

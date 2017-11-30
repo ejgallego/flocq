@@ -452,7 +452,7 @@ apply equiv_RNDs_aux.
 replace (Float.Fnum (Fnormalize beta b (Zabs_nat p) f)) with (Fnum g); try assumption.
 replace g with (Float beta (Float.Fnum (Fnormalize beta b (Zabs_nat p) f)) (Float.Fexp (Fnormalize beta b (Zabs_nat p) f))).
 easy.
-apply canonical_unicity with (FLT_exp (- dExp b) p).
+apply canonical_unique with (FLT_exp (- dExp b) p).
 2: assumption.
 apply pff_canonic_is_canonic.
 apply FnormalizeCanonic; auto with zarith real.

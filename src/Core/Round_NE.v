@@ -118,7 +118,7 @@ change (F2R xd = R0).
 rewrite Hxd.
 apply round_DN_small_pos with (1 := Hex) (2 := Hxe).
 assert (Hu3 : xu = Float beta (1 * Zpower beta (fexp ex - fexp (fexp ex + 1))) (fexp (fexp ex + 1))).
-apply canonical_unicity with (1 := Hu).
+apply canonical_unique with (1 := Hu).
 apply (f_equal fexp).
 rewrite <- F2R_change_exp.
 now rewrite F2R_bpow, mag_bpow.
@@ -167,7 +167,7 @@ rewrite Hxu.
 apply round_bounded_large_pos...
 (* - xu = bpow ex *)
 assert (Hu3: xu = Float beta (1 * Zpower beta (ex - fexp (ex + 1))) (fexp (ex + 1))).
-apply canonical_unicity with (1 := Hu).
+apply canonical_unique with (1 := Hu).
 apply (f_equal fexp).
 rewrite <- F2R_change_exp.
 now rewrite F2R_bpow, mag_bpow.
@@ -196,7 +196,7 @@ exact Hex.
 now apply Rlt_le.
 apply Zle_minus_le_0.
 now apply Zlt_le_weak.
-apply canonical_unicity with (1 := Hd) (3 := H).
+apply canonical_unique with (1 := Hd) (3 := H).
 apply (f_equal fexp).
 rewrite <- H.
 apply sym_eq.
@@ -293,10 +293,10 @@ now rewrite <- Hd1.
 unfold Generic_fmt.canonical.
 now rewrite <- Hu1.
 rewrite <- Hd1.
-apply Rnd_DN_pt_unicity with (1 := Hd).
+apply Rnd_DN_pt_unique with (1 := Hd).
 now apply round_DN_pt.
 rewrite <- Hu1.
-apply Rnd_UP_pt_unicity with (1 := Hu).
+apply Rnd_UP_pt_unique with (1 := Hu).
 now apply round_UP_pt.
 Qed.
 
@@ -318,10 +318,10 @@ apply Hx.
 apply sym_eq.
 now apply Rnd_DN_pt_idempotent with (1 := Hd).
 rewrite <- Hd1.
-apply Rnd_DN_pt_unicity with (1 := Hd).
+apply Rnd_DN_pt_unique with (1 := Hd).
 now apply round_DN_pt.
 rewrite <- Hu1.
-apply Rnd_UP_pt_unicity with (1 := Hu).
+apply Rnd_UP_pt_unique with (1 := Hu).
 now apply round_UP_pt.
 Qed.
 
@@ -451,7 +451,7 @@ rewrite Hxg.
 apply Hg.
 set (d := round beta fexp Zfloor x).
 set (u := round beta fexp Zceil x).
-apply Rnd_N_pt_unicity with (d := d) (u := u) (4 := Hg).
+apply Rnd_N_pt_unique with (d := d) (u := u) (4 := Hg).
 now apply round_DN_pt.
 now apply round_UP_pt.
 2: now apply round_N_pt.
