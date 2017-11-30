@@ -1,12 +1,15 @@
 Version 3.0.0:
  - stripped prefix from all the file names, renamed some files
    . Definitions -> Defs
+   . Appli -> IEEE754
  - renamed canonic_exp into cexp, canonic into canonical
+ - renamed all theorems ending with unicity by unique
  - changed FLX, FIX, FLT, FLXN, FTZ_format into inductive types
  - changed nan_pl into a boolean predicate
  - replaced Z2R with Coq 8.7's IZR
  - removed Zeven and its theorems in favor of Z.even of the standard library
- - modified statement of Rcompare_sqr, ulp_DN
+ - modified statement of Rcompare_sqr, ulp_DN, mult_error_FLT
+ - added theorems about the remainder being in the format (in Div_sqrt_error)
  - renamed theorem more uniformly
     . bpow_plus1 -> bpow_plus_1
     . mag_lt_pos -> lt_mag
@@ -44,6 +47,7 @@ Version 3.0.0:
     . Rnd_N_pt_neg -> Rnd_N_pt_le_0
     . Rnd_NG_pt_sym -> Rnd_NG_pt_opp_inv
     . Rnd_NA_N_pt -> Rnd_NA_pt_N
+    . Rnd_odd_pt_sym -> Rnd_odd_pt_opp_inv
     . le_pred_lt -> pred_ge_gt
     . lt_succ_le -> succ_gt_ge
     . le_round_DN_lt_UP -> round_DN_ge_UP_gt
@@ -51,6 +55,10 @@ Version 3.0.0:
     . round_DN_eq_betw -> round_DN_eq
     . round_UP_eq_betw -> round_UP_eq
     . round_plus_eq_zero -> round_plus_neq_0 (and modified statement)
+    . round_odd_prop -> round_N_odd
+    . double_round_*_beta_ge_* -> round_round_*_radix_ge_*
+    . double_round_* -> round_round_*
+
 
 
 Version 2.5.2:
