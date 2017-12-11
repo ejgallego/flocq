@@ -1027,6 +1027,7 @@ apply plus_error...
 replace (u2) with (-(u1-(a*x))) by (unfold u2; ring).
 apply generic_format_opp.
 apply mult_error_FLT...
+intros L; case V1_Und1; easy.
 Qed.
 
 
@@ -1359,7 +1360,7 @@ intros Zax.
 unfold beta1; case U1; intros H.
 now contradict H.
 replace (emin+prec+1)%Z with ((emin+2*prec+1)-prec)%Z by ring.
-apply rnd_0_or_ge_FLT; try assumption...
+apply round_FLT_plus_eq_0_or_ge; try assumption...
 apply generic_format_round...
 apply generic_format_round...
 apply abs_round_ge_generic...
@@ -1377,11 +1378,11 @@ assert (Fu2: format u2).
 replace (u2) with (-(u1-(a*x))) by (unfold u2; ring).
 apply generic_format_opp.
 apply mult_error_FLT...
-case U1; intros H; [now left|right].
+intros L; case U1; intros H; try easy.
 apply Rle_trans with (2:=H); apply bpow_le.
 omega.
 replace (emin+prec)%Z with ((emin+2*prec)-prec)%Z by ring.
-apply rnd_0_or_ge_FLT...
+apply round_FLT_plus_eq_0_or_ge...
 case U2; try easy.
 Qed.
 
@@ -1404,7 +1405,7 @@ unfold r1; replace (a*x)%R with (u1+u2)%R.
 2: unfold u2, u1; ring.
 case (Req_dec u2 0); intros Zu2.
 rewrite Zu2, Rplus_0_r.
-case (rnd_0_or_ge_FLT beta ZnearestE emin prec y u1 (emin + 2*prec))...
+case (round_FLT_plus_eq_0_or_ge beta ZnearestE emin prec y u1 (emin + 2*prec))...
 apply generic_format_round...
 intros Z; contradict Zr1.
 unfold r1; replace (a*x)%R with (u1+u2)%R.
@@ -1413,7 +1414,7 @@ now rewrite Zu2, Rplus_0_r, Rplus_comm.
 intros H1; rewrite Rplus_comm; apply Rle_trans with (2:=H1).
 apply bpow_le; omega.
 (* *)
-case (rnd_0_or_ge_FLT beta ZnearestE emin prec u1 y (emin + 3 * prec - 2))...
+case (round_FLT_plus_eq_0_or_ge beta ZnearestE emin prec u1 y (emin + 3 * prec - 2))...
 apply generic_format_round...
 apply abs_round_ge_generic...
 apply FLT_format_bpow...
@@ -1421,16 +1422,18 @@ omega.
 apply Rle_trans with (2:=H).
 apply bpow_le; omega.
 intros H1.
-apply round_plus_eq_zero in H1...
-2: apply generic_format_round...
+assert (H1': u1+y=0).
+case (Req_dec (u1+y) 0); try easy.
+intros K; contradict H1; apply round_plus_neq_0...
+apply generic_format_round...
 unfold r1; replace (u1+u2+y) with (u1+y+u2) by ring.
-rewrite H1, Rplus_0_l.
+rewrite H1', Rplus_0_l.
 case (mult_error_FLT_ge a x (emin + 4 * prec - 3)); try assumption.
 intros H2; contradict Zr1.
 unfold r1; replace (a*x)%R with (u1+u2)%R.
 2: unfold u2, u1; ring.
 replace (u1+u2+y) with (u1+y+u2) by ring.
-rewrite H1, Rplus_0_l.
+rewrite H1', Rplus_0_l.
 unfold u2, u1; rewrite H2, round_0...
 fold u1 u2; intros H2.
 apply abs_round_ge_generic...
@@ -1447,7 +1450,7 @@ assert (Fu2: format u2).
 replace (u2) with (-(u1-(a*x))) by (unfold u2; ring).
 apply generic_format_opp.
 apply mult_error_FLT...
-case U1; intros J; [now left|right].
+intros L; case U1; intros J; try easy.
 apply Rle_trans with (2:=J); apply bpow_le.
 omega.
 intros K; apply abs_round_ge_generic...
@@ -1537,7 +1540,7 @@ assert (Fu2: format u2).
 replace (u2) with (-(u1-(a*x))) by (unfold u2; ring).
 apply generic_format_opp.
 apply mult_error_FLT...
-case U1; intros H; [now left|right].
+intros L; case U1; intros H; try easy.
 apply Rle_trans with (2:=H); apply bpow_le.
 omega.
 unfold r3, r2, gamma, alpha2, beta2, beta1, r1, alpha1, alpha2.
@@ -1615,6 +1618,7 @@ assert (J1: format u2).
 replace (u2) with (-(u1-(a*x))) by (unfold u2; ring).
 apply generic_format_opp.
 apply mult_error_FLT...
+intros L; case Und1; easy.
 assert (J2: format v2).
 replace (v2) with (-(v1-(y+u1))) by (unfold v2; ring).
 apply generic_format_opp.
@@ -1647,9 +1651,8 @@ apply Rmult_le_pos; try apply bpow_ge_0.
 apply Rplus_le_le_0_compat.
 apply Rmult_le_pos.
 apply Rmult_le_pos.
-left; rewrite Rplus_comm; apply Rle_lt_0_plus_1; left; apply Rlt_0_2.
-left.
-apply IZR_lt; apply radix_gt_0.
+auto with real.
+left; apply IZR_lt; apply radix_gt_0.
 left; apply pos_half_prf.
 left; apply pos_half_prf.
 (* values *)

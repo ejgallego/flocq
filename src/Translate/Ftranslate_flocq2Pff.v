@@ -343,7 +343,7 @@ apply bpow_ge_0.
 apply Rmult_le_reg_l with (IZR beta).
 apply IZR_lt.
 apply radix_gt_0.
-rewrite <- bpow_plus1.
+rewrite <- bpow_plus_1.
 replace (p-1+1)%Z with (Z_of_nat (Zabs_nat p)).
 rewrite <- IZR_Zpower_nat.
 simpl; rewrite <- pGivesBound.
@@ -746,7 +746,7 @@ rewrite <- (Zabs_eq beta).
 now rewrite <- Zabs_Zmult.
 apply Zlt_le_weak, radix_gt_0.
 rewrite pGivesBound.
-rewrite <- IZR_Zpower_nat.
+rewrite IZR_Zpower_nat.
 rewrite <- bpow_1.
 rewrite <- bpow_plus.
 apply bpow_le.
