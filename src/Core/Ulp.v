@@ -2046,6 +2046,16 @@ apply generic_format_pred...
 now apply round_UP_pt.
 Qed.
 
+Theorem UP_le_succ_DN :
+  forall x, (round beta fexp Zceil x <= succ (round beta fexp Zfloor x))%R.
+Proof.
+intros x.
+rewrite <- (Ropp_involutive x).
+rewrite round_DN_opp, round_UP_opp, succ_opp.
+apply Ropp_le_contravar.
+apply pred_UP_le_DN.
+Qed.
+
 Theorem pred_UP_eq_DN :
   forall x,  ~ F x ->
   (pred (round beta fexp Zceil x) = round beta fexp Zfloor x)%R.
