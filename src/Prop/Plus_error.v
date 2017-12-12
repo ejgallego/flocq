@@ -284,28 +284,14 @@ rewrite IZR_Zpower.
 rewrite <- bpow_plus; f_equal; ring.
 Qed.
 
-Lemma mag_minus1:
-   forall z, (z<>0)%R -> (mag beta z -1 = mag beta (z / IZR beta))%Z.
+Lemma mag_minus1 :
+  forall z, z <> 0%R ->
+  (mag beta z - 1)%Z = mag beta (z / IZR beta).
 Proof with auto with typeclass_instances.
-intros z Hz; apply sym_eq, mag_unique.
-destruct (mag beta z) as (e,He); simpl.
-replace (z / IZR beta)%R with (z*bpow (-1))%R.
-rewrite Rabs_mult, (Rabs_right (bpow _)); try split.
-apply Rmult_le_reg_r with (bpow 1).
-apply bpow_gt_0.
-rewrite Rmult_assoc, <- 2!bpow_plus.
-rewrite Rmult_1_r.
-apply Rle_trans with (2:=proj1 (He Hz)).
-apply bpow_le; omega.
-apply Rmult_lt_reg_r with (bpow 1).
-apply bpow_gt_0.
-rewrite Rmult_assoc, <- 2!bpow_plus.
-rewrite Rmult_1_r.
-apply Rlt_le_trans with (1:=proj2 (He Hz)).
-apply bpow_le; omega.
-apply Rle_ge, bpow_ge_0.
-simpl; unfold Rdiv; f_equal; f_equal; f_equal.
-unfold Z.pow_pos; simpl; ring.
+intros z Hz.
+unfold Zminus.
+rewrite <- mag_mult_bpow by easy.
+now rewrite bpow_opp, bpow_1.
 Qed.
 
 Theorem round_plus_F2R :
