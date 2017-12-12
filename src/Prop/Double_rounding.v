@@ -3702,7 +3702,7 @@ Lemma mag_div_disj :
    \/ (mag (x / y) = mag x - mag y + 1 :> Z)%Z).
 Proof.
 intros x y Px Py.
-generalize (mag_div beta x y Px Py).
+generalize (mag_div beta x y (Rgt_not_eq _ _ Px) (Rgt_not_eq _ _ Py)).
 omega.
 Qed.
 

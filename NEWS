@@ -8,7 +8,7 @@ Version 3.0.0:
  - changed nan_pl into a boolean predicate
  - replaced Z2R with Coq 8.7's IZR
  - removed Zeven and its theorems in favor of Z.even of the standard library
- - modified statement of Rcompare_sqr, ulp_DN, mult_error_FLT
+ - modified statements of Rcompare_sqr, ulp_DN, mult_error_FLT, mag_div
  - added theorems about the remainder being in the format (in Div_sqrt_error)
  - renamed theorem more uniformly
     . bpow_plus1 -> bpow_plus_1

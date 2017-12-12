@@ -1983,7 +1983,7 @@ Qed.
 
 Lemma mag_div :
   forall x y : R,
-  (0 < x)%R -> (0 < y)%R ->
+  x <> 0%R -> y <> 0%R ->
   (mag x - mag y <= mag (x / y) <= mag x - mag y + 1)%Z.
 Proof.
 intros x y Px Py.
@@ -1991,44 +1991,41 @@ destruct (mag x) as (ex,Hex).
 destruct (mag y) as (ey,Hey).
 simpl.
 unfold Rdiv.
-rewrite Rabs_right in Hex; [|now apply Rle_ge; apply Rlt_le].
-rewrite Rabs_right in Hey; [|now apply Rle_ge; apply Rlt_le].
-assert (Heiy : (bpow (- ey) < / y <= bpow (- ey + 1))%R).
-{ split.
+assert (Heiy : (bpow (- ey) < Rabs (/ y) <= bpow (- ey + 1))%R).
+{ rewrite Rabs_Rinv by easy.
+  split.
   - rewrite bpow_opp.
     apply Rinv_lt_contravar.
-    + apply Rmult_lt_0_compat; [exact Py|].
+    + apply Rmult_lt_0_compat.
+      now apply Rabs_pos_lt.
       now apply bpow_gt_0.
-    + apply Hey.
-      now apply Rgt_not_eq.
+    + now apply Hey.
   - replace (_ + _)%Z with (- (ey - 1))%Z by ring.
     rewrite bpow_opp.
     apply Rinv_le; [now apply bpow_gt_0|].
-    apply Hey.
-    now apply Rgt_not_eq. }
+    now apply Hey. }
 split.
 - apply mag_ge_bpow.
-  apply Rabs_ge; right.
   replace (_ - _)%Z with (ex - 1 - ey)%Z by ring.
   unfold Zminus at 1; rewrite bpow_plus.
+  rewrite Rabs_mult.
   apply Rmult_le_compat.
   + now apply bpow_ge_0.
   + now apply bpow_ge_0.
-  + apply Hex.
-    now apply Rgt_not_eq.
-  + apply Rlt_le; apply Heiy.
-- assert (Pxy : (0 < x * / y)%R).
-  { apply Rmult_lt_0_compat; [exact Px|].
-    now apply Rinv_0_lt_compat. }
-  apply mag_le_bpow.
-  + now apply Rgt_not_eq.
-  + rewrite Rabs_right; [|now apply Rle_ge; apply Rlt_le].
-    replace (_ + 1)%Z with (ex + (- ey + 1))%Z by ring.
+  + now apply Hex.
+  + now apply Rlt_le; apply Heiy.
+- apply mag_le_bpow.
+  + apply Rmult_integral_contrapositive_currified.
+    exact Px.
+    now apply Rinv_neq_0_compat.
+  + replace (_ + 1)%Z with (ex + (- ey + 1))%Z by ring.
     rewrite bpow_plus.
-    apply Rlt_le_trans with (bpow ex * / y)%R.
-    * apply Rmult_lt_compat_r; [now apply Rinv_0_lt_compat|].
-      apply Hex.
-      now apply Rgt_not_eq.
+    apply Rlt_le_trans with (bpow ex * Rabs (/ y))%R.
+    * rewrite Rabs_mult.
+      apply Rmult_lt_compat_r.
+      apply Rabs_pos_lt.
+      now apply Rinv_neq_0_compat.
+      now apply Hex.
     * apply Rmult_le_compat_l; [now apply bpow_ge_0|].
       apply Heiy.
 Qed.
