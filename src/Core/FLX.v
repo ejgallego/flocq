@@ -205,14 +205,45 @@ now apply FLXN_format_generic.
 now apply generic_format_FLXN.
 Qed.
 
-Theorem ulp_FLX_0: (ulp beta FLX_exp 0 = 0)%R.
+Lemma negligible_exp_FLX :
+   negligible_exp FLX_exp = None.
 Proof.
-unfold ulp; rewrite Req_bool_true; trivial.
 case (negligible_exp_spec FLX_exp).
 intros _; reflexivity.
 intros n H2; contradict H2.
 unfold FLX_exp; unfold Prec_gt_0 in prec_gt_0_; omega.
 Qed.
+
+Theorem ulp_FLX_0: (ulp beta FLX_exp 0 = 0)%R.
+Proof.
+unfold ulp; rewrite Req_bool_true; trivial.
+rewrite negligible_exp_FLX; easy.
+Qed.
+
+Theorem eq_0_round_0_FLX :
+   forall rnd {Vr: Valid_rnd rnd} x,
+     round beta FLX_exp rnd x = 0%R -> x = 0%R.
+Proof.
+intros rnd Hr x.
+apply eq_0_round_0_negligible_exp; try assumption.
+apply FLX_exp_valid.
+apply negligible_exp_FLX.
+Qed.
+
+Theorem gt_0_round_gt_0_FLX :
+   forall rnd {Vr: Valid_rnd rnd} x,
+     (0 < x)%R -> (0 < round beta FLX_exp rnd x)%R.
+Proof with auto with typeclass_instances.
+intros rnd Hr x Hx.
+assert (K: (0 <= round beta FLX_exp rnd x)%R).
+rewrite <- (round_0 beta FLX_exp rnd).
+apply round_le... now apply Rlt_le.
+destruct K; try easy.
+absurd (x = 0)%R.
+now apply Rgt_not_eq.
+apply eq_0_round_0_FLX with rnd...
+Qed.
+
 
 Theorem ulp_FLX_le :
   forall x, (ulp beta FLX_exp x <= Rabs x * bpow (1-prec))%R.

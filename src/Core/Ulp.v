@@ -352,6 +352,30 @@ apply ulp_le_pos; trivial.
 apply Rabs_pos.
 Qed.
 
+(** Properties when there is no minimal exponent *)
+Theorem eq_0_round_0_negligible_exp :
+   negligible_exp = None -> forall rnd {Vr: Valid_rnd rnd} x,
+     round beta fexp rnd x = 0%R -> x = 0%R.
+Proof.
+intros H rnd Vr x Hx.
+case (Req_dec x 0); try easy; intros Hx2.
+absurd (Rabs (round beta fexp rnd x) = 0%R).
+2: rewrite Hx, Rabs_R0; easy.
+apply Rgt_not_eq.
+apply Rlt_le_trans with (bpow (mag beta x - 1)).
+apply bpow_gt_0.
+apply abs_round_ge_generic; try assumption.
+apply generic_format_bpow.
+case negligible_exp_spec'; [intros (K1,K2)|idtac].
+ring_simplify (mag beta x-1+1)%Z.
+specialize (K2 (mag beta x)); now auto with zarith.
+intros (n,(Hn1,Hn2)).
+rewrite Hn1 in H; discriminate.
+now apply bpow_mag_le.
+Qed.
+
+
+
 (** Definition and properties of pred and succ *)
 
 Definition pred_pos x :=
