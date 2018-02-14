@@ -18,6 +18,8 @@ COPYING file for more details.
 *)
 
 (** * Remainder of the division and square root are in the FLX format *)
+
+Require Import Psatz.
 Require Import Core Operations Relative Sterbenz.
 
 Section Fprop_divsqrt_error.
@@ -303,10 +305,10 @@ Context { valid_rnd : Valid_rnd rnd }.
 Notation format := (generic_format beta fexp).
 
 Lemma format_REM_aux:
- forall (x y : R),
-  (format x) -> (format y) -> (0 <= x)%R -> (0 < y)%R ->
-    ~ (rnd (x/y) = 1%Z /\ (0 < x/y < /2)%R) ->
-    format (x- IZR (rnd (x/y))*y).
+  forall x y : R,
+  format x -> format y -> (0 <= x)%R -> (0 < y)%R ->
+  ((0 < x/y < /2)%R -> rnd (x/y) = 0%Z) ->
+  format (x - IZR (rnd (x/y))*y).
 Proof with auto with typeclass_instances.
 intros x y Fx Fy Hx Hy rnd_small.
 pose (n:=rnd (x / y)).
@@ -405,8 +407,10 @@ rewrite Rinv_l.
 2: now apply Rgt_not_eq.
 rewrite Rmult_1_l, Rmult_comm; fold (x/y)%R.
 case (Rle_or_lt (/2) (x/y)); try easy.
-intros K; contradict rnd_small; split.
-fold n; rewrite <- Hn'; easy.
+intros K.
+elim Zlt_not_le with (1 := H).
+apply Zeq_le.
+apply rnd_small.
 now split.
 apply Ropp_le_cancel; apply Rplus_le_reg_l with 1%R.
 apply Rle_trans with (1-x/y)%R.
@@ -437,64 +441,65 @@ Notation format := (generic_format beta fexp).
 Theorem format_REM :
   forall rnd : R -> Z, Valid_rnd rnd ->
   forall x y : R,
-  ~ (Zabs (rnd (x/y)%R) = 1%Z /\ (Rabs (x/y) < /2)%R) ->
+  ((Rabs (x/y) < /2)%R -> rnd (x/y)%R = 0%Z) ->
   format x -> format y ->
   format (x - IZR (rnd (x/y)%R) * y).
 Proof with auto with typeclass_instances.
 (* assume 0 < y *)
 assert (H: forall rnd : R -> Z, Valid_rnd rnd ->
-  forall (x y : R),
-     ~ (Zabs (rnd (x/y)%R) = 1%Z /\ (Rabs (x/y) < /2)%R) ->
-  (format x) -> (format y) -> (0 < y)%R ->
-    format (x-IZR (rnd (x/y)%R)*y)).
+  forall x y : R,
+  ((Rabs (x/y) < /2)%R -> rnd (x/y)%R = 0%Z) ->
+  format x -> format y -> (0 < y)%R ->
+  format (x - IZR (rnd (x/y)%R) * y)).
 intros rnd valid_rnd x y Hrnd Fx Fy Hy.
 case (Rle_or_lt 0 x); intros Hx.
 apply format_REM_aux; try easy.
-intros (K1,K2); apply Hrnd; split.
-rewrite K1; easy.
-rewrite Rabs_right; try easy.
-apply Rle_ge; left; apply K2.
-replace (x-(IZR (rnd (x/y)))*y)%R with
-   (-((-x)-(IZR ((Zrnd_opp rnd)
-            ((-x)/y)))*y))%R.
+intros K.
+apply Hrnd.
+rewrite Rabs_pos_eq.
+apply K.
+apply Rlt_le, K.
+replace (x - IZR (rnd (x/y)) * y)%R with
+   (- (-x - IZR (Zrnd_opp rnd (-x/y)) * y))%R.
 apply generic_format_opp.
 apply format_REM_aux; try easy...
 now apply generic_format_opp.
 apply Ropp_le_cancel; rewrite Ropp_0, Ropp_involutive; now left.
-intros (K1,K2); apply Hrnd; split.
-unfold Zrnd_opp in K1.
-replace (- (- x / y))%R with (x/y)%R in K1 by (unfold Rdiv; ring).
-rewrite <- (Zopp_involutive (rnd _)), K1, Zabs_Zopp; easy.
-replace (x/y)%R with (-(-x/y))%R by (unfold Rdiv; ring).
-rewrite Rabs_Ropp, Rabs_right; try easy.
-apply Rle_ge; left; apply K2.
-apply trans_eq with (x-((-IZR ((Zrnd_opp rnd) (- x / y)))*y))%R.
+replace (- x / y)%R with (- (x/y))%R by (unfold Rdiv; ring).
+intros K.
+unfold Zrnd_opp.
+rewrite Ropp_involutive, Hrnd.
+easy.
+rewrite Rabs_left.
+apply K.
+apply Ropp_lt_cancel.
+now rewrite Ropp_0.
+unfold Zrnd_opp.
+replace (- (- x / y))%R with (x / y)%R by (unfold Rdiv; ring).
+rewrite opp_IZR.
 ring.
-apply Rplus_eq_compat_l; f_equal; f_equal.
-unfold Zrnd_opp; rewrite opp_IZR, Ropp_involutive.
-f_equal; f_equal; unfold Rdiv; ring.
 (* *)
 intros rnd valid_rnd x y Hrnd Fx Fy.
 case (Rle_or_lt 0 y); intros Hy.
 destruct Hy as [Hy|Hy].
 now apply H.
 now rewrite <- Hy, Rmult_0_r, Rminus_0_r.
-replace (IZR (rnd (x/y))*y)%R with
-  (IZR ((Zrnd_opp rnd) ((x/(-y))))*(-y))%R.
+replace (IZR (rnd (x/y)) * y)%R with
+  (IZR ((Zrnd_opp rnd) ((x / -y))) * -y)%R.
 apply H; try easy...
-intros (K1,K2); apply Hrnd; split.
-unfold Zrnd_opp in K1.
-replace (- ( x / - y))%R with (x/y)%R in K1.
-rewrite <- (Zopp_involutive (rnd _)), Zabs_Zopp, K1; easy.
-field; apply Rlt_not_eq; assumption.
-replace (x/y)%R with (-(x/-y))%R.
-now rewrite Rabs_Ropp.
-field; apply Rlt_not_eq; assumption.
+replace (x / - y)%R with (- (x/y))%R.
+intros K.
+unfold Zrnd_opp.
+rewrite Ropp_involutive, Hrnd.
+easy.
+now rewrite <- Rabs_Ropp.
+field; now apply Rlt_not_eq.
 now apply generic_format_opp.
 apply Ropp_lt_cancel; now rewrite Ropp_0, Ropp_involutive.
-rewrite Ropp_mult_distr_r_reverse, Ropp_mult_distr_l.
-unfold Zrnd_opp; rewrite opp_IZR, Ropp_involutive.
-f_equal; f_equal; f_equal.
+unfold Zrnd_opp.
+replace (- (x / - y))%R with (x/y)%R.
+rewrite opp_IZR.
+ring.
 field; now apply Rlt_not_eq.
 Qed.
 
@@ -505,29 +510,18 @@ Theorem format_REM_ZR:
 Proof with auto with typeclass_instances.
 intros x y Fx Fy.
 apply format_REM; try easy...
-intros (K1,K2).
-assert (forall z, (0 <= z < /2)%R -> Ztrunc z = 0)%Z.
-intros l Hl; rewrite Ztrunc_floor; try apply Hl.
+intros K.
+apply Z.abs_0_iff.
+rewrite <- Ztrunc_abs.
+rewrite Ztrunc_floor by apply Rabs_pos.
+apply Zle_antisym.
+replace 0%Z with (Zfloor (/2)).
+apply Zfloor_le.
+now apply Rlt_le.
 apply Zfloor_imp.
-simpl; split; try easy.
-apply Rlt_trans with (1:=proj2 Hl).
-apply Rmult_lt_reg_l with 2%R; try apply Rlt_0_2.
-apply Rplus_lt_reg_l with (-1)%R.
-apply Rle_lt_trans with 0%R.
-right; field.
-apply Rlt_le_trans with (1:=Rlt_0_1).
-right; simpl; ring.
-absurd (Ztrunc (x / y) = 0)%Z.
-intros K3; contradict K1.
-rewrite K3; easy.
-case (Rle_or_lt 0 (x/y)); intros H1.
-apply H; split; try apply H1.
-rewrite Rabs_right in K2; try apply Rle_ge; easy.
-rewrite <- (Ropp_involutive (x/y)), <- Zopp_0.
-rewrite Ztrunc_opp; f_equal.
-apply H; split.
-apply Ropp_le_cancel; rewrite Ropp_involutive, Ropp_0; now left.
-rewrite Rabs_left in K2; easy.
+simpl ; lra.
+apply Zfloor_lub.
+apply Rabs_pos.
 Qed.
 
 Theorem format_REM_N :
@@ -538,9 +532,7 @@ Theorem format_REM_N :
 Proof with auto with typeclass_instances.
 intros choice x y Fx Fy.
 apply format_REM; try easy...
-intros (K1,K2).
-absurd (Znearest choice (x / y) = 0)%Z.
-intros K3; contradict K1; rewrite K3; easy.
+intros K.
 apply Znearest_imp.
 now rewrite Rminus_0_r.
 Qed.
