@@ -2138,6 +2138,136 @@ rewrite succ_opp.
 now apply Ropp_lt_contravar.
 Qed.
 
+Lemma ulp_ulp_0 : forall {H : Exp_not_FTZ fexp},
+  ulp (ulp 0) = ulp 0.
+Proof.
+intros H; case (negligible_exp_spec').
+intros (K1,K2).
+replace (ulp 0) with 0%R at 1; try easy.
+apply sym_eq; unfold ulp; rewrite Req_bool_true; try easy.
+now rewrite K1.
+intros (n,(Hn1,Hn2)).
+apply Rle_antisym.
+replace (ulp 0) with (bpow (fexp n)).
+rewrite ulp_bpow.
+apply bpow_le.
+now apply valid_exp.
+unfold ulp; rewrite Req_bool_true; try easy.
+rewrite Hn1; easy.
+now apply ulp_ge_ulp_0.
+Qed.
+
+
+Lemma ulp_succ_pos : forall x, F x -> (0 < x)%R ->
+   ulp (succ x) = ulp x \/ succ x = bpow (mag beta x).
+Proof with auto with typeclass_instances.
+intros x Fx Hx.
+generalize (Rlt_le _ _ Hx); intros Hx'.
+rewrite succ_eq_pos;[idtac|now left].
+destruct (mag beta x) as (e,He); simpl.
+rewrite Rabs_pos_eq in He; try easy.
+specialize (He (Rgt_not_eq _ _ Hx)).
+assert (H:(x+ulp x <= bpow e)%R).
+apply id_p_ulp_le_bpow; try assumption.
+apply He.
+destruct H;[left|now right].
+rewrite ulp_neq_0 at 1.
+2: apply Rgt_not_eq, Rgt_lt, Rlt_le_trans with x...
+2: rewrite <- (Rplus_0_r x) at 1; apply Rplus_le_compat_l.
+2: apply ulp_ge_0.
+rewrite ulp_neq_0 at 2.
+2: now apply Rgt_not_eq.
+f_equal; unfold cexp; f_equal.
+apply trans_eq with e.
+apply mag_unique_pos; split; try assumption.
+apply Rle_trans with (1:=proj1 He).
+rewrite <- (Rplus_0_r x) at 1; apply Rplus_le_compat_l.
+apply ulp_ge_0.
+now apply sym_eq, mag_unique_pos.
+Qed.
+
+
+Lemma ulp_round_pos :
+  forall { Not_FTZ_ : Exp_not_FTZ fexp},
+   forall rnd { Zrnd : Valid_rnd rnd } x,
+  (0 < x)%R -> ulp (round beta fexp rnd x) = ulp x
+     \/ round beta fexp rnd x = bpow (mag beta x).
+Proof with auto with typeclass_instances.
+intros Not_FTZ_ rnd Zrnd x Hx.
+case (generic_format_EM beta fexp x); intros Fx.
+rewrite round_generic...
+case (round_DN_or_UP beta fexp rnd x); intros Hr; rewrite Hr.
+left.
+apply ulp_DN; now left...
+assert (M:(0 <= round beta fexp Zfloor x)%R).
+apply round_ge_generic...
+apply generic_format_0...
+apply Rlt_le...
+destruct M as [M|M].
+rewrite <- (succ_DN_eq_UP x)...
+case (ulp_succ_pos (round beta fexp Zfloor x)); try intros Y.
+apply generic_format_round...
+assumption.
+rewrite ulp_DN in Y...
+now apply Rlt_le.
+right; rewrite Y.
+apply f_equal, mag_DN...
+left; rewrite <- (succ_DN_eq_UP x)...
+rewrite <- M, succ_0.
+rewrite ulp_ulp_0...
+case (negligible_exp_spec').
+intros (K1,K2).
+absurd (x = 0)%R.
+now apply Rgt_not_eq.
+apply eq_0_round_0_negligible_exp with Zfloor...
+intros (n,(Hn1,Hn2)).
+replace (ulp 0) with (bpow (fexp n)).
+2: unfold ulp; rewrite Req_bool_true; try easy.
+2: now rewrite Hn1.
+rewrite ulp_neq_0.
+2: apply Rgt_not_eq...
+unfold cexp; f_equal.
+destruct (mag beta x) as (e,He); simpl.
+apply sym_eq, valid_exp...
+assert (e <= fexp e)%Z.
+apply exp_small_round_0_pos with beta Zfloor x...
+rewrite <- (Rabs_pos_eq x).
+apply He, Rgt_not_eq...
+apply Rlt_le...
+replace (fexp n) with (fexp e); try assumption.
+now apply fexp_negligible_exp_eq.
+Qed.
+
+
+Theorem ulp_round : forall { Not_FTZ_ : Exp_not_FTZ fexp},
+   forall rnd { Zrnd : Valid_rnd rnd } x,
+     ulp (round beta fexp rnd x) = ulp x
+         \/ Rabs (round beta fexp rnd x) = bpow (mag beta x).
+Proof with auto with typeclass_instances.
+intros Not_FTZ_ rnd Zrnd x.
+case (Rtotal_order x 0); intros Zx.
+case (ulp_round_pos (Zrnd_opp rnd) (-x)).
+now apply Ropp_0_gt_lt_contravar.
+rewrite ulp_opp, <- ulp_opp.
+rewrite <- round_opp, Ropp_involutive.
+intros Y;now left.
+rewrite mag_opp.
+intros Y; right.
+rewrite <- (Ropp_involutive x) at 1.
+rewrite round_opp, Y.
+rewrite Rabs_Ropp, Rabs_right...
+apply Rle_ge, bpow_ge_0.
+destruct Zx as [Zx|Zx].
+left; rewrite Zx; rewrite round_0...
+rewrite Rabs_right.
+apply ulp_round_pos...
+apply Rle_ge, round_ge_generic...
+apply generic_format_0...
+now apply Rlt_le.
+Qed.
+
+
+
 (** Properties of rounding to nearest and ulp *)
 
 Theorem round_N_le_midp: forall choice u v,
