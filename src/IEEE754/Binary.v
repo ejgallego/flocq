@@ -615,6 +615,34 @@ clear -H H2. clearbody emin.
 omega.
 Qed.
 
+Theorem bounded_ge_emin :
+  forall mx ex,
+  bounded mx ex = true ->
+  (bpow radix2 emin <= F2R (Float radix2 (Zpos mx) ex))%R.
+Proof.
+intros mx ex Hx.
+destruct (andb_prop _ _ Hx) as [H1 _].
+apply Zeq_bool_eq in H1.
+generalize (mag_F2R_Zdigits radix2 (Zpos mx) ex).
+destruct (mag radix2 (F2R (Float radix2 (Zpos mx) ex))) as [e' Ex].
+unfold mag_val.
+intros H.
+assert (H0 : Zpos mx <> 0%Z) by easy.
+rewrite Rabs_pos_eq in Ex by now apply F2R_ge_0.
+refine (Rle_trans _ _ _ _ (proj1 (Ex _))).
+2: now apply F2R_neq_0.
+apply bpow_le.
+rewrite H by easy.
+revert H1.
+rewrite Zpos_digits2_pos.
+generalize (Zdigits radix2 (Zpos mx)) (Zdigits_gt_0 radix2 (Zpos mx) H0).
+unfold fexp, FLT_exp.
+clear -prec_gt_0_.
+unfold Prec_gt_0 in prec_gt_0_.
+clearbody emin.
+intros ; zify ; omega.
+Qed.
+
 Theorem abs_B2R_lt_emax :
   forall x,
   (Rabs (B2R x) < bpow radix2 emax)%R.
@@ -1921,19 +1949,19 @@ Qed.
 
 Definition Fsqrt_core_binary m e :=
   let d := Zdigits2 m in
-  let s := Zmax (2 * prec - d) 0 in
-  let e' := (e - s)%Z in
-  let (s', e'') := if Z.even e' then (s, e') else (s + 1, e' - 1)%Z in
+  let e' := Zmin (fexp (Z.div2 (d + e + 1))) (Z.div2 e) in
+  let s := (e - 2 * e')%Z in
   let m' :=
-    match s' with
-    | Zpos p => Z.shiftl m (Zpos p)
-    | _ => m
+    match s with
+    | Zpos p => Z.shiftl m s
+    | Z0 => m
+    | Zneg _ => Z0
     end in
   let (q, r) := Z.sqrtrem m' in
   let l :=
     if Zeq_bool r 0 then loc_Exact
     else loc_Inexact (if Zle_bool r q then Lt else Gt) in
-  (q, Zdiv2 e'', l).
+  (q, e', l).
 
 Lemma Bsqrt_correct_aux :
   forall m mx ex (Hx : bounded mx ex = true),
@@ -1949,21 +1977,54 @@ Lemma Bsqrt_correct_aux :
   is_finite_FF z = true /\ sign_FF z = false.
 Proof with auto with typeclass_instances.
 intros m mx ex Hx.
-replace (Fsqrt_core_binary (Zpos mx) ex) with (Fsqrt_core radix2 prec (Zpos mx) ex).
+assert (Fsqrt_core_binary (Zpos mx) ex = Fsqrt_core radix2 fexp (Zpos mx) ex) as ->.
+  unfold Fsqrt_core, Fsqrt_core_binary.
+  rewrite Zdigits2_Zdigits.
+  set (e' := Zmin (fexp (Z.div2 (Zdigits radix2 (Zpos mx) + ex + 1))) (Z.div2 ex)).
+  destruct (ex - 2 * e')%Z as [|s|s].
+  now rewrite Zmult_1_r.
+  now rewrite Z.shiftl_mul_pow2.
+  easy.
 simpl.
-refine (_ (Fsqrt_core_correct radix2 prec (Zpos mx) ex _)) ; try easy.
-destruct (Fsqrt_core radix2 prec (Zpos mx) ex) as ((mz, ez), lz).
+refine (_ (Fsqrt_core_correct radix2 fexp (Zpos mx) ex _)) ; try easy.
+destruct (Fsqrt_core radix2 fexp (Zpos mx) ex) as ((mz, ez), lz).
 intros (Pz, Bz).
 destruct mz as [|mz|mz].
-(* . mz = 0 *)
-elim (Zlt_irrefl prec).
-now apply Zle_lt_trans with Z0.
-(* . mz > 0 *)
-refine (_ (binary_round_aux_correct m (sqrt (F2R (Float radix2 (Zpos mx) ex))) mz ez lz _ _)).
-rewrite Rlt_bool_false. 2: apply sqrt_ge_0.
+- apply inbetween_float_bounds in Bz.
+  elim (Zlt_irrefl ez).
+  apply Zle_lt_trans with (1 := Pz).
+  apply lt_bpow with radix2.
+  rewrite <- (F2R_bpow radix2 ez).
+  apply Rle_lt_trans with (2 := proj2 Bz).
+  clear -Hx prec_gt_0_ Hmax.
+  apply bounded_ge_emin in Hx.
+  unfold cexp.
+  destruct mag as [e He].
+  simpl.
+  refine (_ (He _)).
+  2: now apply Rgt_not_eq, sqrt_lt_R0, F2R_gt_0.
+  clear He.
+  rewrite Rabs_pos_eq by apply sqrt_ge_0.
+  intros He.
+  apply Rle_trans with (2 := proj1 He).
+  apply bpow_le.
+  apply sqrt_le_1_alt in Hx.
+  apply (fun H => Rle_lt_trans _ _ _ H (proj2 He)) in Hx.
+  rewrite <- (sqrt_Rsqr (bpow radix2 e)) in Hx by apply bpow_ge_0.
+  apply sqrt_lt_0_alt in Hx.
+  unfold Rsqr in Hx.
+  rewrite <- bpow_plus in Hx.
+  apply lt_bpow in Hx.
+  unfold fexp, FLT_exp.
+  unfold Prec_gt_0 in prec_gt_0_.
+  revert Hx.
+  unfold emin.
+  intros ; zify ; omega.
+- refine (_ (binary_round_aux_correct' m (sqrt (F2R (Float radix2 (Zpos mx) ex))) mz ez lz _ _)).
+rewrite Rlt_bool_false.
+2: apply sqrt_ge_0.
 rewrite Rlt_bool_true.
 easy.
-(* .. *)
 rewrite Rabs_pos_eq.
 refine (_ (relative_error_FLT_ex radix2 emin prec (prec_gt_0 prec) (round_mode m) (sqrt (F2R (Float radix2 (Zpos mx) ex))) _)).
 fold fexp.
@@ -2038,17 +2099,11 @@ unfold fexp, FLT_exp.
 clear.
 intros ; zify ; subst.
 omega.
-(* . mz < 0 *)
-elim Rlt_not_le  with (1 := proj2 (inbetween_float_bounds _ _ _ _ _ Bz)).
+- elim Rlt_not_le  with (1 := proj2 (inbetween_float_bounds _ _ _ _ _ Bz)).
 apply Rle_trans with R0.
 apply F2R_le_0.
 now case mz.
 apply sqrt_ge_0.
-(* *)
-unfold Fsqrt_core, Fsqrt_core_binary.
-rewrite Zdigits2_Zdigits.
-destruct (if Z.even _ then _ else _) as [[|s'|s'] e''] ; try easy.
-now rewrite Z.shiftl_mul_pow2.
 Qed.
 
 Definition Bsqrt sqrt_nan m x :=

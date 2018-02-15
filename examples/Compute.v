@@ -82,7 +82,7 @@ Qed.
 Definition sqrt (x : float beta) :=
   let (m, e) := x in
   if Zlt_bool 0 m then
-    let '(m', e', l) := truncate beta fexp (Fsqrt_core beta prec m e) in
+    let '(m', e', l) := truncate beta fexp (Fsqrt_core beta fexp m e) in
     Float beta (choice false m' l) e'
   else Float beta 0 0.
 
@@ -93,16 +93,14 @@ Proof.
 intros [m e].
 unfold sqrt.
 case Zlt_bool_spec ; intros Hm.
-generalize (Fsqrt_core_correct beta prec m e Hm).
+generalize (Fsqrt_core_correct beta fexp m e Hm).
 destruct Fsqrt_core as [[m' e'] l].
 intros [Hs1 Hs2].
-rewrite (round_trunc_sign_any_correct beta fexp rnd choice rnd_choice _ m' e' l).
+rewrite (round_trunc_sign_any_correct' beta fexp rnd choice rnd_choice _ m' e' l).
 destruct truncate as [[m'' e''] l'].
 now rewrite Rlt_bool_false by apply sqrt_ge_0.
 now rewrite Rabs_pos_eq by apply sqrt_ge_0.
-left.
-apply Zle_trans with (2 := fexp_prec _).
-clear -Hs1 ; omega.
+now left.
 destruct (Req_dec (F2R (Float beta m e)) 0) as [Hz|Hz].
 rewrite Hz, sqrt_0, F2R_0.
 now apply round_0.
