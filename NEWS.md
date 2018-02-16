@@ -1,7 +1,7 @@
 Version 3.0.0
 -------------
 
-* stripped prefix from all the file names, renamed some files
+* stripped the `F*_` prefix from all the file names, renamed some files:
   - `Definitions -> Defs`
   - `Appli -> IEEE754`
 * renamed `canonic_exp` into `cexp`, `canonic` into `canonical`
@@ -12,7 +12,8 @@ Version 3.0.0
 * removed `Zeven` and its theorems in favor of `Z.even` of the standard library
 * modified statements of `Rcompare_sqr`, `ulp_DN`, `mult_error_FLT`, `mag_div`
 * added theorems about the remainder being in the format (in `Div_sqrt_error.v`)
-* renamed theorem more uniformly
+* made `Fdiv_core` and `Fsqrt_core` generic with respect to the format
+* renamed theorems more uniformly:
   - `bpow_plus1 -> bpow_plus_1`
   - `mag_lt_pos -> lt_mag`
   - `F2R_le_reg -> le_F2R`
@@ -79,7 +80,7 @@ Version 2.5.0
 * redefined `ulp`, so that `ulp 0` is meaningful
 * renamed, generalized, and added lemmas in `Fcore_ulp`
 * extended predecessor and successor to nonpositive values
-  (the previous definition of pred has been renamed `pred_pos`)
+  (the previous definition of `pred` has been renamed `pred_pos`)
 * removed some hypotheses on lemmas of `Fprop_relative.v`
 * added more examples
   - `Average`: proof on Sterbenz's average and correctly-rounded average
