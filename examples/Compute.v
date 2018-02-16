@@ -116,7 +116,7 @@ Qed.
 
 Lemma Rsgn_div :
   forall x y : R,
-  x <> R0 -> y <> R0 ->
+  x <> 0%R -> y <> 0%R ->
   Rlt_bool (x / y) 0 = xorb (Rlt_bool x 0) (Rlt_bool y 0).
 Proof.
 intros x y Hx0 Hy0.
@@ -163,13 +163,13 @@ Definition div (x y : float beta) :=
   let (my, ey) := y in
   if Zeq_bool mx 0 then Float beta 0 0
   else
-    let '(m, e, l) := truncate beta fexp (Fdiv_core beta prec (Zabs mx) ex (Zabs my) ey) in
+    let '(m, e, l) := truncate beta fexp (Fdiv_core beta fexp (Zabs mx) ex (Zabs my) ey) in
     let s := xorb (Zlt_bool mx 0) (Zlt_bool my 0) in
     Float beta (cond_Zopp s (choice s m l)) e.
 
 Theorem div_correct :
   forall x y : float beta,
-  F2R y <> R0 ->
+  F2R y <> 0%R ->
   round beta fexp rnd (F2R x / F2R y) = F2R (div x y).
 Proof.
 intros [mx ex] [my ey] Hy.
@@ -185,10 +185,10 @@ assert (Hy': (0 < Zabs my)%Z).
   contradict Hy.
   rewrite Hy.
   apply F2R_0.
-generalize (Fdiv_core_correct beta prec (Zabs mx) ex (Zabs my) ey Hprec Hx Hy').
+generalize (Fdiv_core_correct beta fexp (Zabs mx) ex (Zabs my) ey Hx Hy').
 destruct Fdiv_core as [[m e] l].
 intros [Hs1 Hs2].
-rewrite (round_trunc_sign_any_correct beta fexp rnd choice rnd_choice _ m e l).
+rewrite (round_trunc_sign_any_correct' beta fexp rnd choice rnd_choice _ m e l).
 destruct truncate as [[m' e'] l'].
 apply (f_equal (fun s => F2R (Float beta (cond_Zopp s (choice s _ _)) _))).
 rewrite Rsgn_div.
@@ -202,8 +202,11 @@ rewrite <- 2!F2R_Zabs.
 exact Hs2.
 exact Hy.
 left.
-apply Zle_trans with (2 := fexp_prec _).
-clear -Hs1 ; omega.
+rewrite <- cexp_abs.
+unfold Rdiv.
+rewrite Rabs_mult, Rabs_Rinv.
+now rewrite <- 2!F2R_Zabs.
+exact Hy.
 Qed.
 
 End Compute.

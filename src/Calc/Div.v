@@ -19,12 +19,14 @@ COPYING file for more details.
 
 (** * Helper function and theorem for computing the rounded quotient of two floating-point numbers. *)
 
-Require Import Raux Defs Float_prop Digits Bracket.
+Require Import Raux Defs Generic_fmt Float_prop Digits Bracket.
 
 Section Fcalc_div.
 
 Variable beta : radix.
 Notation bpow e := (bpow beta e).
+
+Variable fexp : Z -> Z.
 
 (** Computes a mantissa of precision p, the corresponding exponent,
     and the position with respect to the real quotient of the
@@ -38,98 +40,97 @@ The algorithm performs the following steps:
 Complexity is fine as long as p1 <= 2p and p2 <= p.
 *)
 
-Definition Fdiv_core prec m1 e1 m2 e2 :=
+Definition Fdiv_core m1 e1 m2 e2 :=
   let d1 := Zdigits beta m1 in
   let d2 := Zdigits beta m2 in
-  let e := (e1 - e2)%Z in
-  let (m, e') :=
-    match (d2 + prec - d1)%Z with
-    | Zpos p => (m1 * Zpower_pos beta p, e + Zneg p)%Z
-    | _ => (m1, e)
-    end in
+  let e' := (d1 + e1 - (d2 + e2))%Z in
+  let e := Zmin (Zmin (fexp e') (fexp (e' + 1))) (e1 - e2) in
+  let m := (m1 * Zpower beta (e1 - e2 - e))%Z in
   let '(q, r) :=  Zdiv_eucl m m2 in
-  (q, e', new_location m2 r loc_Exact).
+  (q, e, new_location m2 r loc_Exact).
 
 Theorem Fdiv_core_correct :
-  forall prec m1 e1 m2 e2,
-  (0 < prec)%Z ->
+  forall m1 e1 m2 e2,
   (0 < m1)%Z -> (0 < m2)%Z ->
-  let '(m, e, l) := Fdiv_core prec m1 e1 m2 e2 in
-  (prec <= Zdigits beta m)%Z /\
+  let '(m, e, l) := Fdiv_core m1 e1 m2 e2 in
+  (e <= cexp beta fexp (F2R (Float beta m1 e1) / F2R (Float beta m2 e2)))%Z /\
   inbetween_float beta m e (F2R (Float beta m1 e1) / F2R (Float beta m2 e2)) l.
 Proof.
-intros prec m1 e1 m2 e2 Hprec Hm1 Hm2.
+intros m1 e1 m2 e2 Hm1 Hm2.
 unfold Fdiv_core.
 set (d1 := Zdigits beta m1).
 set (d2 := Zdigits beta m2).
-case_eq
- (match (d2 + prec - d1)%Z with
-  | Zpos p => ((m1 * Zpower_pos beta p)%Z, (e1 - e2 + Zneg p)%Z)
-  | _ => (m1, (e1 - e2)%Z)
-  end).
-intros m' e' Hme.
-(* . the shifted mantissa m' has enough digits *)
-assert (Hs: F2R (Float beta m' (e' + e2)) = F2R (Float beta m1 e1) /\ (0 < m')%Z /\ (d2 + prec <= Zdigits beta m')%Z).
-replace (d2 + prec)%Z with (d2 + prec - d1 + d1)%Z by ring.
-destruct (d2 + prec - d1)%Z as [|p|p] ;
-  unfold d1 ;
-  inversion Hme.
-ring_simplify (e1 - e2 + e2)%Z.
-repeat split.
-now rewrite <- H0.
-apply Zle_refl.
-replace (e1 - e2 + Zneg p + e2)%Z with (e1 - Zpos p)%Z by (unfold Zminus ; simpl ; ring).
-fold (Zpower beta (Zpos p)).
-split.
-pattern (Zpos p) at 1 ; replace (Zpos p) with (e1 - (e1 - Zpos p))%Z by ring.
-apply sym_eq.
-apply F2R_change_exp.
-assert (0 < Zpos p)%Z by easy.
-omega.
-split.
-apply Zmult_lt_0_compat.
-exact Hm1.
-now apply Zpower_gt_0.
-rewrite Zdigits_mult_Zpower.
-rewrite Zplus_comm.
-apply Zle_refl.
-apply sym_not_eq.
-now apply Zlt_not_eq.
-easy.
-split.
-now ring_simplify (e1 - e2 + e2)%Z.
-assert (Zneg p < 0)%Z by easy.
-omega.
-(* . *)
-destruct Hs as (Hs1, (Hs2, Hs3)).
-rewrite <- Hs1.
+set (e := (d1 + e1 - (d2 + e2))%Z).
+set (e' := Zmin (Zmin (fexp e) (fexp (e + 1))) (e1 - e2)).
+set (m' := (m1 * Zpower beta (e1 - e2 - e'))%Z).
+assert (bpow (e - 1) < F2R (Float beta m1 e1) / F2R (Float beta m2 e2) < bpow (e + 1))%R as Hd.
+{ unfold e, d1, d2.
+  rewrite <- (mag_F2R_Zdigits beta m1 e1) by now apply Zgt_not_eq.
+  rewrite <- (mag_F2R_Zdigits beta m2 e2) by now apply Zgt_not_eq.
+  destruct mag as [e1' He1].
+  destruct mag as [e2' He2].
+  simpl.
+  assert (bpow (e1' - 1) <= F2R (Float beta m1 e1) < bpow e1')%R as H1.
+  { rewrite Rabs_pos_eq in He1.
+    now apply He1, F2R_neq_0, Zgt_not_eq.
+    now apply Rlt_le, F2R_gt_0. }
+  assert (bpow (e2' - 1) <= F2R (Float beta m2 e2) < bpow e2')%R as H2.
+  { rewrite Rabs_pos_eq in He2.
+    now apply He2, F2R_neq_0, Zgt_not_eq.
+    now apply Rlt_le, F2R_gt_0. }
+  split.
+  - replace (e1' - e2' - 1)%Z with (e1' - 1 + -e2')%Z by ring.
+    rewrite bpow_plus, bpow_opp.
+    apply Rle_lt_trans with (F2R (Float beta m1 e1) * / bpow e2')%R.
+    apply Rmult_le_compat_r with (2 := proj1 H1).
+    apply Rlt_le, Rinv_0_lt_compat, bpow_gt_0.
+    apply Rmult_lt_compat_l.
+    now apply F2R_gt_0.
+    apply Rinv_lt with (2 := proj2 H2).
+    now apply F2R_gt_0.
+  - replace (e1' - e2' + 1)%Z with (e1' + -(e2' - 1))%Z by ring.
+    rewrite bpow_plus, bpow_opp.
+    apply Rle_lt_trans with (F2R (Float beta m1 e1) * / bpow (e2' - 1))%R.
+    apply Rmult_le_compat_l.
+    now apply F2R_ge_0, Zlt_le_weak.
+    apply Rinv_le with (2 := proj1 H2).
+    apply bpow_gt_0.
+    apply Rmult_lt_compat_r with (2 := proj2 H1).
+    apply Rinv_0_lt_compat, bpow_gt_0. }
+assert (F2R (Float beta m1 e1) = F2R (Float beta m' (e' + e2))) as Hf1.
+  unfold m'.
+  replace (e1 - e2 - e')%Z with (e1 - (e' + e2))%Z by ring.
+  apply F2R_change_exp.
+  cut (e' <= e1 - e2)%Z. clear ; omega.
+  apply Z.le_min_r.
 generalize (Z_div_mod m' m2 (Zlt_gt _ _ Hm2)).
 destruct (Zdiv_eucl m' m2) as (q, r).
 intros (Hq, Hr).
 split.
-(* . the result mantissa q has enough digits *)
-cut (Zdigits beta m' <= d2 + Zdigits beta q)%Z. omega.
-unfold d2.
-rewrite Hq.
-assert (Hq': (0 < q)%Z).
-apply Zmult_lt_reg_r with (1 := Hm2).
-assert (m2 < m')%Z.
-apply lt_Zdigits with beta.
-now apply Zlt_le_weak.
-unfold d2 in Hs3.
-clear -Hprec Hs3 ; omega.
-cut (q * m2 = m' - r)%Z. clear -Hr H ; omega.
-rewrite Hq.
-ring.
-apply Zle_trans with (Zdigits beta (m2 + q + m2 * q)).
-apply Zdigits_le.
-rewrite <- Hq.
-now apply Zlt_le_weak.
-clear -Hr Hq'. omega.
-apply Zdigits_mult_strong ; apply Zlt_le_weak.
-now apply Zle_lt_trans with r.
-exact Hq'.
-(* . the location is correctly computed *)
+- apply Zle_trans with (1 := Zle_min_l _ _).
+  unfold cexp.
+  assert (e <= mag beta (F2R (Float beta m1 e1) / F2R (Float beta m2 e2)) <= e + 1)%Z as [H1 H2].
+  { destruct Hd as [Hd1 Hd2].
+    assert (0 < F2R (Float beta m1 e1) / F2R (Float beta m2 e2))%R as H.
+      apply Rmult_lt_0_compat.
+      now apply F2R_gt_0.
+      now apply Rinv_0_lt_compat, F2R_gt_0.
+    split.
+    - apply mag_ge_bpow.
+      rewrite Rabs_pos_eq ; now apply Rlt_le.
+    - apply mag_le_bpow.
+      now apply Rgt_not_eq.
+      rewrite Rabs_pos_eq.
+      exact Hd2.
+      now apply Rlt_le. }
+  destruct (Zle_lt_or_eq _ _ H1) as [H|H].
+  + replace (fexp (mag _ _)) with (fexp (e + 1)).
+    apply Zle_min_r.
+    clear -H1 H2 H ; apply f_equal ; omega.
+  + replace (fexp (mag _ _)) with (fexp e).
+    apply Zle_min_l.
+    clear -H1 H2 H ; apply f_equal ; omega.
+- rewrite Hf1.
 unfold inbetween_float, F2R. simpl.
 rewrite bpow_plus, plus_IZR.
 rewrite Hq, plus_IZR, mult_IZR.
