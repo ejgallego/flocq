@@ -490,6 +490,18 @@ apply sym_eq.
 now apply Zdigits_mag.
 Qed.
 
+Theorem mag_F2R_bounds_Zdigits :
+  forall x m e, (0 < m)%Z ->
+  (F2R (Float beta m e) <= x < F2R (Float beta (m + 1) e))%R ->
+  mag beta x = (Zdigits beta m + e)%Z :> Z.
+Proof.
+intros x m e Hm Bx.
+apply mag_F2R_bounds with (1 := Hm) in Bx.
+rewrite Bx.
+apply mag_F2R_Zdigits.
+now apply Zgt_not_eq.
+Qed.
+
 Theorem float_distribution_pos :
   forall m1 e1 m2 e2 : Z,
   (0 < m1)%Z ->

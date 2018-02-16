@@ -19,7 +19,7 @@ COPYING file for more details.
 
 (** * Helper function for computing the rounded value of a real number. *)
 
-Require Import Core Digits Bracket.
+Require Import Core Digits Float_prop Bracket.
 
 Section Fcalc_round.
 
@@ -31,6 +31,61 @@ Section Fcalc_round_fexp.
 Variable fexp : Z -> Z.
 Context { valid_exp : Valid_exp fexp }.
 Notation format := (generic_format beta fexp).
+
+Theorem cexp_inbetween_float :
+  forall x m e l,
+  (0 < x)%R ->
+  inbetween_float beta m e x l ->
+  (e <= cexp beta fexp x <-> e <= fexp (Zdigits beta m + e))%Z.
+Proof.
+intros x m e l Px Bx.
+unfold cexp.
+apply inbetween_float_bounds in Bx.
+assert (0 <= m)%Z as Hm.
+{ apply Zlt_succ_le.
+  eapply F2R_gt_0_reg.
+  apply Rlt_trans with (1 := Px).
+  apply Bx. }
+destruct (Zle_lt_or_eq _ _ Hm) as [Hm'|<-].
+  now erewrite <- mag_F2R_bounds_Zdigits with (1 := Hm').
+assert (mag beta x <= e)%Z as Hx.
+{ apply mag_le_bpow.
+  now apply Rgt_not_eq.
+  rewrite Rabs_pos_eq.
+  now rewrite <- F2R_bpow.
+  now apply Rlt_le. }
+split ; intros He.
+- assert (H := Zle_trans _ _ _ Hx He).
+  apply valid_exp in H.
+  now rewrite (proj2 H).
+- simpl in He.
+  assert (H := He).
+  apply valid_exp in H.
+  rewrite (proj2 H).
+  exact He.
+  now apply Zle_trans with e.
+Qed.
+
+Theorem cexp_inbetween_float' :
+  forall x m e l,
+  (0 <= x)%R ->
+  inbetween_float beta m e x l ->
+  (e <= cexp beta fexp x \/ l = loc_Exact <->
+   e <= fexp (Zdigits beta m + e) \/ l = loc_Exact)%Z.
+Proof.
+intros x m e l Px Bx.
+destruct Px as [Px|Px].
+- split ; (intros [H|H] ; [left|now right]) ;
+  eapply cexp_inbetween_float ; eassumption.
+- assert (H := Bx).
+  destruct Bx as [|c Bx _].
+  now split ; right.
+  rewrite <- Px in Bx.
+  destruct Bx as [Bx1 Bx2].
+  apply lt_0_F2R in Bx1.
+  apply F2R_gt_0_reg in Bx2.
+  omega.
+Qed.
 
 (** Relates location and rounding. *)
 
