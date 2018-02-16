@@ -502,7 +502,7 @@ rewrite Fx.
 apply Rle_trans with (bpow (fexp (mag beta x))).
 now apply bpow_le.
 apply bpow_le_F2R.
-apply F2R_gt_0_reg with beta (cexp x).
+apply gt_0_F2R with beta (cexp x).
 now rewrite <- Fx.
 Qed.
 

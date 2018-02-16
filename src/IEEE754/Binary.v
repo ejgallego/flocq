@@ -958,7 +958,7 @@ now apply f_equal.
 apply abs_cond_Zopp.
 apply Zle_trans with (2 := Hm).
 apply Zlt_succ_le.
-apply F2R_gt_0_reg with radix2 e1.
+apply gt_0_F2R with radix2 e1.
 apply Rle_lt_trans with (1 := Rabs_pos x).
 exact (proj2 (inbetween_float_bounds _ _ _ _ _ H1a)).
 (* . *)
@@ -1094,7 +1094,7 @@ exact inbetween_int_NA_sign.
 (* *)
 apply inbetween_float_bounds in Bx.
 apply Zlt_succ_le.
-eapply F2R_gt_0_reg.
+eapply gt_0_F2R.
 apply Rle_lt_trans with (2 := proj2 Bx).
 apply Rabs_pos.
 Qed.
@@ -1138,7 +1138,7 @@ now apply f_equal.
 apply abs_cond_Zopp.
 apply Zle_trans with (2 := Hm).
 apply Zlt_succ_le.
-apply F2R_gt_0_reg with radix2 e1.
+apply gt_0_F2R with radix2 e1.
 apply Rle_lt_trans with (1 := Rabs_pos x).
 exact (proj2 (inbetween_float_bounds _ _ _ _ _ H1a)).
 (* . *)

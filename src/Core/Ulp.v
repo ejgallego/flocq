@@ -158,7 +158,7 @@ unfold F2R; simpl.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 apply IZR_le, (Zlt_le_succ 0).
-apply F2R_gt_0_reg with beta (cexp beta fexp x).
+apply gt_0_F2R with beta (cexp beta fexp x).
 now rewrite <- Fx.
 Qed.
 
@@ -446,7 +446,7 @@ intros x e Fx Hx' Hx.
 (* *)
 assert (1 <= Ztrunc (scaled_mantissa beta fexp x))%Z.
 assert (0 <  Ztrunc (scaled_mantissa beta fexp x))%Z.
-apply F2R_gt_0_reg with beta (cexp beta fexp x).
+apply gt_0_F2R with beta (cexp beta fexp x).
 rewrite <- Fx.
 apply Rle_lt_trans with (2:=Hx).
 apply bpow_ge_0.
@@ -489,7 +489,7 @@ pattern (bpow (cexp beta fexp x)) at 2 ; rewrite <- Rmult_1_l.
 rewrite <- Rmult_plus_distr_r.
 rewrite <- plus_IZR.
 apply F2R_p1_le_bpow.
-apply F2R_gt_0_reg with beta (cexp beta fexp x).
+apply gt_0_F2R with beta (cexp beta fexp x).
 now rewrite <- Fx.
 now rewrite <- Fx.
 now apply Rgt_not_eq.
@@ -551,7 +551,7 @@ apply Rmult_le_compat_r.
 apply bpow_ge_0.
 apply IZR_le.
 assert (0 <  Ztrunc (scaled_mantissa beta fexp x))%Z.
-apply F2R_gt_0_reg with beta (cexp beta fexp x).
+apply gt_0_F2R with beta (cexp beta fexp x).
 rewrite <- Fx.
 apply Rle_lt_trans with (2:=proj1 Ex').
 apply bpow_ge_0.
@@ -879,7 +879,7 @@ pattern (bpow (fexp ex)) at 1; rewrite <- Rmult_1_l.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 apply IZR_le, (Zlt_le_succ 0).
-apply F2R_gt_0_reg with beta (cexp beta fexp x).
+apply gt_0_F2R with beta (cexp beta fexp x).
 now rewrite <- Fx.
 Qed.
 
@@ -1015,7 +1015,7 @@ pattern (bpow (cexp beta fexp x)) at 2 ; rewrite <- Rmult_1_l.
 rewrite <- Rmult_plus_distr_r.
 rewrite <- plus_IZR.
 apply F2R_p1_le_bpow.
-apply F2R_gt_0_reg with beta (cexp beta fexp x).
+apply gt_0_F2R with beta (cexp beta fexp x).
 now rewrite <- Fx.
 now rewrite <- Fx.
 now apply Rgt_not_eq.
@@ -1344,7 +1344,7 @@ omega.
 absurd (0 < Ztrunc (scaled_mantissa beta fexp x) < 1)%Z.
 omega.
 split.
-apply F2R_gt_0_reg with beta (cexp beta fexp x).
+apply gt_0_F2R with beta (cexp beta fexp x).
 now rewrite <- Fx.
 apply lt_IZR.
 apply Rmult_lt_reg_r with (bpow (cexp beta fexp x)).

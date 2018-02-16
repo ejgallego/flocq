@@ -180,7 +180,7 @@ apply le_F2R with e.
 now rewrite F2R_0.
 Qed.
 
-Theorem F2R_gt_0_reg :
+Theorem gt_0_F2R :
   forall m e : Z,
   (0 < F2R (Float beta m e))%R ->
   (0 < m)%Z.
@@ -526,7 +526,7 @@ split.
 exact He.
 rewrite (Zplus_comm e1), (Zplus_comm e2).
 assert (Hp2: (0 < m2)%Z).
-apply (F2R_gt_0_reg m2 e2).
+apply (gt_0_F2R m2 e2).
 apply Rlt_trans with (2 := H12).
 now apply F2R_gt_0.
 rewrite <- 2!mag_F2R.

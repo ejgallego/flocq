@@ -43,7 +43,7 @@ unfold cexp.
 apply inbetween_float_bounds in Bx.
 assert (0 <= m)%Z as Hm.
 { apply Zlt_succ_le.
-  eapply F2R_gt_0_reg.
+  eapply gt_0_F2R.
   apply Rlt_trans with (1 := Px).
   apply Bx. }
 destruct (Zle_lt_or_eq _ _ Hm) as [Hm'|<-].
@@ -83,7 +83,7 @@ destruct Px as [Px|Px].
   rewrite <- Px in Bx.
   destruct Bx as [Bx1 Bx2].
   apply lt_0_F2R in Bx1.
-  apply F2R_gt_0_reg in Bx2.
+  apply gt_0_F2R in Bx2.
   omega.
 Qed.
 
@@ -893,7 +893,7 @@ apply inbetween_float_bounds with (1 := H1).
 rewrite <- Hx in Hx'.
 split.
 apply le_0_F2R with (1 := proj1 Hx').
-apply F2R_gt_0_reg with (1 := proj2 Hx').
+apply gt_0_F2R with (1 := proj2 Hx').
 rewrite Hm, <- Hx in H1 |- *.
 clear -H1.
 case H1.
@@ -970,7 +970,7 @@ intros x m e l [Hx|Hx] H1 H2.
     rewrite <- Hx in Hx'.
     split.
     apply le_0_F2R with (1 := proj1 Hx').
-    apply F2R_gt_0_reg with (1 := proj2 Hx').
+    apply gt_0_F2R with (1 := proj2 Hx').
   rewrite Hm, <- Hx in H1 |- *.
   clear -H1.
   destruct H1 as [_ | l' [H _] _].
@@ -1107,7 +1107,7 @@ assert (IZR (-m) < 0)%R.
 rewrite opp_IZR.
 apply Ropp_lt_gt_0_contravar.
 apply IZR_lt.
-apply F2R_gt_0_reg with beta e.
+apply gt_0_F2R with beta e.
 rewrite <- H.
 apply Rabs_pos_lt.
 now apply Rlt_not_eq.
