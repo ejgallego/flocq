@@ -36,9 +36,10 @@ Theorem cexp_inbetween_float :
   forall x m e l,
   (0 < x)%R ->
   inbetween_float beta m e x l ->
-  (e <= cexp beta fexp x <-> e <= fexp (Zdigits beta m + e))%Z.
+  (e <= cexp beta fexp x \/ e <= fexp (Zdigits beta m + e))%Z ->
+  cexp beta fexp x = fexp (Zdigits beta m + e).
 Proof.
-intros x m e l Px Bx.
+intros x m e l Px Bx He.
 unfold cexp.
 apply inbetween_float_bounds in Bx.
 assert (0 <= m)%Z as Hm.
@@ -48,25 +49,23 @@ assert (0 <= m)%Z as Hm.
   apply Bx. }
 destruct (Zle_lt_or_eq _ _ Hm) as [Hm'|<-].
   now erewrite <- mag_F2R_bounds_Zdigits with (1 := Hm').
+clear Hm.
 assert (mag beta x <= e)%Z as Hx.
 { apply mag_le_bpow.
   now apply Rgt_not_eq.
   rewrite Rabs_pos_eq.
   now rewrite <- F2R_bpow.
   now apply Rlt_le. }
-split ; intros He.
-- assert (H := Zle_trans _ _ _ Hx He).
-  apply valid_exp in H.
-  now rewrite (proj2 H).
-- simpl in He.
-  assert (H := He).
-  apply valid_exp in H.
-  rewrite (proj2 H).
-  exact He.
+simpl in He |- *.
+clear Bx.
+destruct He as [He|He].
+- apply eq_sym, valid_exp with (2 := He).
+  now apply Zle_trans with e.
+- apply valid_exp with (1 := He).
   now apply Zle_trans with e.
 Qed.
 
-Theorem cexp_inbetween_float' :
+Theorem cexp_inbetween_float_loc_Exact :
   forall x m e l,
   (0 <= x)%R ->
   inbetween_float beta m e x l ->
@@ -75,8 +74,13 @@ Theorem cexp_inbetween_float' :
 Proof.
 intros x m e l Px Bx.
 destruct Px as [Px|Px].
-- split ; (intros [H|H] ; [left|now right]) ;
-  eapply cexp_inbetween_float ; eassumption.
+- split ; (intros [H|H] ; [left|now right]).
+  rewrite <- cexp_inbetween_float with (1 := Px) (2 := Bx).
+  exact H.
+  now left.
+  rewrite cexp_inbetween_float with (1 := Px) (2 := Bx).
+  exact H.
+  now right.
 - assert (H := Bx).
   destruct Bx as [|c Bx _].
   now split ; right.
@@ -783,7 +787,9 @@ Theorem truncate_correct_partial :
 Proof.
 intros x m e l Hx H1 H2.
 apply truncate_correct_partial' with (1 := Hx) (2 := H1).
-now apply cexp_inbetween_float with (2 := H1).
+rewrite cexp_inbetween_float with (1 := Hx) (2 := H1).
+exact H2.
+now right.
 Qed.
 
 Theorem truncate_correct' :
@@ -869,7 +875,7 @@ Theorem truncate_correct :
 Proof.
 intros x m e l Hx H1 H2.
 apply truncate_correct' with (1 := Hx) (2 := H1).
-now apply cexp_inbetween_float' with (2 := H1).
+now apply cexp_inbetween_float_loc_Exact with (2 := H1).
 Qed.
 
 Section round_dir.
@@ -1040,7 +1046,7 @@ Proof.
 intros x m e l Hl He.
 apply round_trunc_sign_any_correct' with (1 := Hl).
 rewrite <- cexp_abs.
-apply cexp_inbetween_float' with (2 := Hl) (3 := He).
+apply cexp_inbetween_float_loc_Exact with (2 := Hl) (3 := He).
 apply Rabs_pos.
 Qed.
 
