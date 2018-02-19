@@ -737,44 +737,14 @@ Theorem truncate_correct_partial' :
 Proof.
 intros x m e l Hx H1 H2.
 unfold truncate.
-set (k := (fexp (Zdigits beta m + e) - e)%Z).
-set (p := Zpower beta k).
-assert (F2R (Float beta m e) <= x < F2R (Float beta (m + 1) e))%R as Hx'.
-  apply inbetween_float_bounds with (1 := H1).
-assert (0 <= m)%Z as Hm.
-  cut (0 < m + 1)%Z. omega.
-  apply lt_F2R with beta e.
-  rewrite F2R_0.
-  apply Rlt_trans with (1 := Hx).
-  apply Hx'.
-assert (e + k = cexp beta fexp x)%Z as He.
-  unfold cexp.
-  destruct (Zle_lt_or_eq _ _ Hm) as [Hm'|Hm'].
-    rewrite mag_F2R_bounds with (1 := Hm') (2 := Hx').
-    assert (H: m <> 0%Z) by now apply Zgt_not_eq.
-    rewrite mag_F2R with (1 := H).
-    rewrite <- Zdigits_mag with (1 := H).
-    unfold k.
-    ring.
-  unfold k.
-  ring_simplify.
-  rewrite <- Hm', Zplus_0_l.
-  apply valid_exp with (2 := H2).
-  apply Zle_trans with (2 := H2).
-  apply mag_le_bpow.
-  now apply Rgt_not_eq.
-  rewrite Rabs_pos_eq by now apply Rlt_le.
-  rewrite <- F2R_bpow.
-  rewrite <- Hm' in Hx'.
-  apply Hx'.
-generalize (Zlt_cases 0 k).
-case (Zlt_bool 0 k) ; intros Hk.
-split.
-now apply inbetween_float_new_location.
-exact He.
-split.
-exact H1.
-omega.
+rewrite <- cexp_inbetween_float with (1 := Hx) (2 := H1) by now left.
+generalize (Zlt_cases 0 (cexp beta fexp x - e)).
+destruct Zlt_bool ; intros Hk.
+- split.
+  now apply inbetween_float_new_location.
+  ring.
+- apply (conj H1).
+  omega.
 Qed.
 
 Theorem truncate_correct_partial :
