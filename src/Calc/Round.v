@@ -723,75 +723,6 @@ unfold k in Hk.
 omega.
 Qed.
 
-Theorem truncate_correct_partial :
-  forall x m e l,
-  (0 < x)%R ->
-  inbetween_float beta m e x l ->
-  (e <= fexp (Zdigits beta m + e))%Z ->
-  let '(m', e', l') := truncate (m, e, l) in
-  inbetween_float beta m' e' x l' /\ e' = cexp beta fexp x.
-Proof.
-intros x m e l Hx H1 H2.
-unfold truncate.
-set (k := (fexp (Zdigits beta m + e) - e)%Z).
-set (p := Zpower beta k).
-(* *)
-assert (Hx': (F2R (Float beta m e) <= x < F2R (Float beta (m + 1) e))%R).
-apply inbetween_float_bounds with (1 := H1).
-(* *)
-assert (Hm: (0 <= m)%Z).
-cut (0 < m + 1)%Z. omega.
-apply lt_F2R with beta e.
-rewrite F2R_0.
-apply Rlt_trans with  (1 := Hx).
-apply Hx'.
-assert (He: (e + k = cexp beta fexp x)%Z).
-(* . *)
-unfold cexp.
-destruct (Zle_lt_or_eq _ _ Hm) as [Hm'|Hm'].
-(* .. 0 < m *)
-rewrite mag_F2R_bounds with (1 := Hm') (2 := Hx').
-assert (H: m <> Z0).
-apply sym_not_eq.
-now apply Zlt_not_eq.
-rewrite mag_F2R with (1 := H).
-rewrite <- Zdigits_mag with (1 := H).
-unfold k.
-ring.
-(* .. m = 0 *)
-rewrite <- Hm' in H2.
-destruct (mag beta x) as (ex, Hex).
-simpl.
-specialize (Hex (Rgt_not_eq _ _ Hx)).
-unfold k.
-ring_simplify.
-rewrite <- Hm'.
-simpl.
-apply sym_eq.
-apply valid_exp.
-exact H2.
-apply Zle_trans with e.
-eapply bpow_lt_bpow.
-apply Rle_lt_trans with (1 := proj1 Hex).
-rewrite Rabs_pos_eq.
-rewrite <- F2R_bpow.
-rewrite <- Hm' in Hx'.
-apply Hx'.
-now apply Rlt_le.
-exact H2.
-(* . *)
-generalize (Zlt_cases 0 k).
-case (Zlt_bool 0 k) ; intros Hk ; unfold k in Hk.
-split.
-now apply inbetween_float_new_location.
-exact He.
-split.
-exact H1.
-rewrite <- He.
-unfold k.
-omega.
-Qed.
-
 Theorem truncate_correct_partial' :
   forall x m e l,
   (0 < x)%R ->
@@ -842,85 +773,17 @@ exact H1.
 omega.
 Qed.
 
-Theorem truncate_correct :
+Theorem truncate_correct_partial :
   forall x m e l,
-  (0 <= x)%R ->
+  (0 < x)%R ->
   inbetween_float beta m e x l ->
-  (e <= fexp (Zdigits beta m + e))%Z \/ l = loc_Exact ->
+  (e <= fexp (Zdigits beta m + e))%Z ->
   let '(m', e', l') := truncate (m, e, l) in
-  inbetween_float beta m' e' x l' /\
-  (e' = cexp beta fexp x \/ (l' = loc_Exact /\ format x)).
+  inbetween_float beta m' e' x l' /\ e' = cexp beta fexp x.
 Proof.
-intros x m e l [Hx|Hx] H1 H2.
-(* 0 < x *)
-destruct (Zle_or_lt e (fexp (Zdigits beta m + e))) as [H3|H3].
-(* . enough digits *)
-generalize (truncate_correct_partial x m e l Hx H1 H3).
-destruct (truncate (m, e, l)) as ((m', e'), l').
-intros (H4, H5).
-split.
-exact H4.
-now left.
-(* . not enough digits but loc_Exact *)
-destruct H2 as [H2|H2].
-elim (Zlt_irrefl e).
-now apply Zle_lt_trans with (1 := H2).
-rewrite H2 in H1 |- *.
-unfold truncate.
-generalize (Zlt_cases 0 (fexp (Zdigits beta m + e) - e)).
-case Zlt_bool.
-intros H.
-apply False_ind.
-omega.
-intros _.
-split.
-exact H1.
-right.
-split.
-apply refl_equal.
-inversion_clear H1.
-rewrite H.
-apply generic_format_F2R.
-intros Zm.
-unfold cexp.
-rewrite mag_F2R_Zdigits with (1 := Zm).
-now apply Zlt_le_weak.
-(* x = 0 *)
-assert (Hm: m = Z0).
-cut (m <= 0 < m + 1)%Z. omega.
-assert (Hx': (F2R (Float beta m e) <= x < F2R (Float beta (m + 1) e))%R).
-apply inbetween_float_bounds with (1 := H1).
-rewrite <- Hx in Hx'.
-split.
-apply le_0_F2R with (1 := proj1 Hx').
-apply gt_0_F2R with (1 := proj2 Hx').
-rewrite Hm, <- Hx in H1 |- *.
-clear -H1.
-case H1.
-(* . *)
-intros _.
-assert (exists e', truncate (Z0, e, loc_Exact) = (Z0, e', loc_Exact)).
-unfold truncate, truncate_aux.
-case Zlt_bool.
-rewrite Zdiv_0_l, Zmod_0_l.
-eexists.
-apply f_equal.
-unfold new_location.
-now case Z.even.
-now eexists.
-destruct H as (e', H).
-rewrite H.
-split.
-constructor.
-apply sym_eq.
-apply F2R_0.
-right.
-repeat split.
-apply generic_format_0.
-(* . *)
-intros l' (H, _) _.
-rewrite F2R_0 in H.
-elim Rlt_irrefl with (1 := H).
+intros x m e l Hx H1 H2.
+apply truncate_correct_partial' with (1 := Hx) (2 := H1).
+now apply cexp_inbetween_float with (2 := H1).
 Qed.
 
 Theorem truncate_correct' :
@@ -993,6 +856,20 @@ intros x m e l [Hx|Hx] H1 H2.
       apply generic_format_0.
   + rewrite F2R_0 in H.
     elim Rlt_irrefl with (1 := H).
+Qed.
+
+Theorem truncate_correct :
+  forall x m e l,
+  (0 <= x)%R ->
+  inbetween_float beta m e x l ->
+  (e <= fexp (Zdigits beta m + e))%Z \/ l = loc_Exact ->
+  let '(m', e', l') := truncate (m, e, l) in
+  inbetween_float beta m' e' x l' /\
+  (e' = cexp beta fexp x \/ (l' = loc_Exact /\ format x)).
+Proof.
+intros x m e l Hx H1 H2.
+apply truncate_correct' with (1 := Hx) (2 := H1).
+now apply cexp_inbetween_float' with (2 := H1).
 Qed.
 
 Section round_dir.
@@ -1133,31 +1010,6 @@ Qed.
 
 (** Truncating a triple is sufficient to round a real number. *)
 
-Theorem round_trunc_sign_any_correct :
-  forall x m e l,
-  inbetween_float beta m e (Rabs x) l ->
-  (e <= fexp (Zdigits beta m + e))%Z \/ l = loc_Exact ->
-  round beta fexp rnd x = let '(m', e', l') := truncate (m, e, l) in F2R (Float beta (cond_Zopp (Rlt_bool x 0) (choice (Rlt_bool x 0) m' l')) e').
-Proof.
-intros x m e l Hl He.
-generalize (truncate_correct (Rabs x) m e l (Rabs_pos _) Hl He).
-destruct (truncate (m, e, l)) as ((m', e'), l').
-intros (H1, H2).
-apply round_sign_any_correct.
-exact H1.
-destruct H2 as [H2|(H2,H3)].
-left.
-now rewrite <- cexp_abs.
-right.
-split.
-exact H2.
-unfold Rabs in H3.
-destruct (Rcase_abs x) in H3.
-rewrite <- Ropp_involutive.
-now apply generic_format_opp.
-exact H3.
-Qed.
-
 Theorem round_trunc_sign_any_correct' :
   forall x m e l,
   inbetween_float beta m e (Rabs x) l ->
@@ -1177,6 +1029,19 @@ now rewrite <- cexp_abs.
 right.
 apply (conj H2).
 now apply generic_format_abs_inv.
+Qed.
+
+Theorem round_trunc_sign_any_correct :
+  forall x m e l,
+  inbetween_float beta m e (Rabs x) l ->
+  (e <= fexp (Zdigits beta m + e))%Z \/ l = loc_Exact ->
+  round beta fexp rnd x = let '(m', e', l') := truncate (m, e, l) in F2R (Float beta (cond_Zopp (Rlt_bool x 0) (choice (Rlt_bool x 0) m' l')) e').
+Proof.
+intros x m e l Hl He.
+apply round_trunc_sign_any_correct' with (1 := Hl).
+rewrite <- cexp_abs.
+apply cexp_inbetween_float' with (2 := Hl) (3 := He).
+apply Rabs_pos.
 Qed.
 
 End round_dir_sign.
