@@ -396,25 +396,26 @@ apply round_plus_neq_0...
 now exists n.
 Qed.
 
-Lemma round_plus_eq_0_or_ge :
+Lemma round_plus_ge :
   Exp_not_FTZ fexp -> forall x y, format x -> format y ->
-  (round beta fexp rnd (x+y) = 0)%R \/
+  (round beta fexp rnd (x+y) <> 0)%R ->
   (ulp beta fexp (x/IZR beta) <= Rabs (round beta fexp rnd (x+y)))%R.
 Proof with auto with typeclass_instances.
-intros exp_not_FTZ x y Fx Fy.
+intros exp_not_FTZ x y Fx Fy KK.
 case (Req_dec x 0); intros Zx.
 (* *)
 rewrite Zx, Rplus_0_l.
 rewrite round_generic...
 unfold Rdiv; rewrite Rmult_0_l.
-rewrite Fy at 2.
+rewrite Fy.
 unfold F2R; simpl; rewrite Rabs_mult.
 rewrite (Rabs_right (bpow _)).
 2: apply Rle_ge, bpow_ge_0.
 case (Z.eq_dec (Ztrunc (scaled_mantissa beta fexp y)) 0); intros Hm.
-left.
-rewrite Fy, Hm; unfold F2R; simpl; ring.
-right.
+contradict KK.
+rewrite Zx, Fy, Hm; unfold F2R; simpl.
+rewrite Rplus_0_l, Rmult_0_l.
+apply round_0...
 apply Rle_trans with (1*bpow (cexp y))%R.
 rewrite Rmult_1_l.
 rewrite <- ulp_neq_0.
@@ -431,10 +432,9 @@ now apply Z.abs_pos.
 (* *)
 destruct (round_plus_F2R x y Fx Fy Zx) as (m,Hm).
 case (Z.eq_dec m 0); intros Zm.
-left.
+contradict KK.
 rewrite Hm, Zm.
 apply F2R_0.
-right.
 rewrite Hm, <- F2R_Zabs.
 rewrite ulp_neq_0.
 rewrite <- (Rmult_1_l (bpow _)).
@@ -460,21 +460,20 @@ Context { valid_rnd : Valid_rnd rnd }.
 Variable emin prec : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 
-Lemma round_FLT_plus_eq_0_or_ge :
+Lemma round_FLT_plus_ge :
   forall x y e,
   generic_format beta (FLT_exp emin prec) x -> generic_format beta (FLT_exp emin prec) y ->
   (bpow e <= Rabs x)%R ->
-  (round beta (FLT_exp emin prec) rnd (x+y) = 0)%R \/
+  (round beta (FLT_exp emin prec) rnd (x+y) <> 0)%R ->
   (bpow (e - prec) <= Rabs (round beta (FLT_exp emin prec) rnd (x+y)))%R.
 Proof with auto with typeclass_instances.
-intros x y e Fx Fy He.
+intros x y e Fx Fy He KK.
 assert (Zx:(x <> 0)%R).
 intros K; contradict He.
 apply Rlt_not_le; rewrite K, Rabs_R0.
 apply bpow_gt_0.
-case round_plus_eq_0_or_ge with beta (FLT_exp emin prec) rnd x y...
-intros H; right.
-apply Rle_trans with (2:=H).
+apply Rle_trans with (ulp beta (FLT_exp emin prec) (x/IZR beta)).
+2: apply round_plus_ge...
 rewrite ulp_neq_0.
 unfold cexp.
 rewrite <- mag_minus1; try assumption.
@@ -491,36 +490,39 @@ apply Rgt_not_eq.
 apply radix_pos.
 Qed.
 
-Lemma round_FLT_plus_eq_0_or_ge_0 :
+Lemma round_FLT_plus_ge' :
   forall x y e,
   generic_format beta (FLT_exp emin prec) x -> generic_format beta (FLT_exp emin prec) y ->
-  x = 0%R \/ (bpow e <= Rabs x)%R ->
-  (x = 0%R -> (y = 0 \/ bpow (e - prec) <= Rabs y)%R) ->
-  (round beta (FLT_exp emin prec) rnd (x+y) = 0)%R \/
+  (x <> 0%R -> (bpow e <= Rabs x)%R) ->
+  (x = 0%R -> y <> 0%R -> (bpow (e - prec) <= Rabs y)%R) ->
+  (round beta (FLT_exp emin prec) rnd (x+y) <> 0)%R ->
   (bpow (e - prec) <= Rabs (round beta (FLT_exp emin prec) rnd (x+y)))%R.
 Proof with auto with typeclass_instances.
-intros x y e Fx Fy H1 H2; case H1.
-intros H3; rewrite H3, Rplus_0_l.
+intros x y e Fx Fy H1 H2 H3.
+case (Req_dec x 0); intros H4.
+case (Req_dec y 0); intros H5.
+contradict H3.
+rewrite H4, H5, Rplus_0_l; apply round_0...
+rewrite H4, Rplus_0_l.
 rewrite round_generic...
-intros H3.
-now apply round_FLT_plus_eq_0_or_ge.
+apply round_FLT_plus_ge; try easy.
+now apply H1.
 Qed.
 
-Lemma round_FLX_plus_eq_0_or_ge :
+Lemma round_FLX_plus_ge :
   forall x y e,
   generic_format beta (FLX_exp prec) x -> generic_format beta (FLX_exp prec) y ->
   (bpow e <= Rabs x)%R ->
-  (round beta (FLX_exp prec) rnd (x+y) = 0)%R \/
+  (round beta (FLX_exp prec) rnd (x+y) <> 0)%R ->
   (bpow (e - prec) <= Rabs (round beta (FLX_exp prec) rnd (x+y)))%R.
 Proof with auto with typeclass_instances.
-intros x y e Fx Fy He.
+intros x y e Fx Fy He KK.
 assert (Zx:(x <> 0)%R).
 intros K; contradict He.
 apply Rlt_not_le; rewrite K, Rabs_R0.
 apply bpow_gt_0.
-case round_plus_eq_0_or_ge with beta (FLX_exp prec) rnd x y...
-intros H; right.
-apply Rle_trans with (2:=H).
+apply Rle_trans with (ulp beta (FLX_exp prec) (x/IZR beta)).
+2: apply round_plus_ge...
 rewrite ulp_neq_0.
 unfold cexp.
 rewrite <- mag_minus1; try assumption.
