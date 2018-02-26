@@ -1816,23 +1816,23 @@ Lemma Bdiv_correct_aux :
     z = binary_overflow m (xorb sx sy).
 Proof.
 intros m sx mx ex sy my ey.
-assert (Fdiv_core_binary (Zpos mx) ex (Zpos my) ey = Fdiv_core radix2 fexp (Zpos mx) ex (Zpos my) ey) as ->.
-{ unfold Fdiv_core, Fdiv_core_binary.
-  rewrite 2!Zdigits2_Zdigits.
-  rewrite (Z.min_l _ (fexp _)).
-  change 2%Z with (radix_val radix2).
-  set (e' := Zmin _ _).
+unfold Fdiv_core_binary.
+rewrite 2!Zdigits2_Zdigits.
+match goal with |- context [Zmin ?m1 ?m2] => set (e' := Zmin m1 m2) end.
+generalize (Fdiv_core_correct radix2 (Zpos mx) ex (Zpos my) ey e' eq_refl eq_refl).
+unfold Fdiv_core.
+rewrite Zle_bool_true by apply Zle_min_r.
+match goal with |- context [Zfast_div_eucl ?m _] => set (mx' := m) end.
+assert (mx' = Zpos mx * Zpower radix2 (ex - ey - e'))%Z as <-.
+{ unfold mx'.
   destruct (ex - ey - e')%Z as [|p|p].
-  rewrite Zmult_1_r.
-  now rewrite Zfast_div_eucl_correct.
-  rewrite Z.shiftl_mul_pow2 by easy.
-  now rewrite Zfast_div_eucl_correct.
-  now rewrite Zfast_div_eucl_correct.
-  apply FLT_exp_monotone, Z.le_succ_diag_r. }
-refine (_ (Fdiv_core_correct radix2 fexp (Zpos mx) ex (Zpos my) ey _ _)) ; try easy.
-destruct (Fdiv_core radix2 fexp (Zpos mx) ex (Zpos my) ey) as ((mz, ez), lz).
-intros (Pz, Bz).
-simpl.
+  now rewrite Zmult_1_r.
+  now rewrite Z.shiftl_mul_pow2.
+  easy. }
+clearbody mx'.
+rewrite Zfast_div_eucl_correct.
+destruct Zdiv_eucl as [q r].
+intros Bz.
 assert (xorb sx sy = Rlt_bool (F2R (Float radix2 (cond_Zopp sx (Zpos mx)) ex) *
   / F2R (Float radix2 (cond_Zopp sy (Zpos my)) ey)) 0) as ->.
 { apply eq_sym.
@@ -1886,7 +1886,10 @@ apply binary_round_aux_correct'.
   now apply F2R_neq_0 ; case sy.
 - rewrite <- cexp_abs, Rabs_mult, Rabs_Rinv.
   rewrite 2!F2R_cond_Zopp, 2!abs_cond_Ropp, <- Rabs_Rinv.
-  now rewrite <- Rabs_mult, cexp_abs.
+  rewrite <- Rabs_mult, cexp_abs.
+  apply Zle_trans with (1 := Zle_min_l _ _).
+  apply FLT_exp_monotone.
+  now apply mag_div_F2R.
   now apply F2R_neq_0.
   now apply F2R_neq_0 ; case sy.
 Qed.

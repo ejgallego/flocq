@@ -163,7 +163,7 @@ Definition div (x y : float beta) :=
   let (my, ey) := y in
   if Zeq_bool mx 0 then Float beta 0 0
   else
-    let '(m, e, l) := truncate beta fexp (Fdiv_core beta fexp (Zabs mx) ex (Zabs my) ey) in
+    let '(m, e, l) := truncate beta fexp (Fdiv beta fexp (Zabs mx) ex (Zabs my) ey) in
     let s := xorb (Zlt_bool mx 0) (Zlt_bool my 0) in
     Float beta (cond_Zopp s (choice s m l)) e.
 
@@ -185,8 +185,8 @@ assert (Hy': (0 < Zabs my)%Z).
   contradict Hy.
   rewrite Hy.
   apply F2R_0.
-generalize (Fdiv_core_correct beta fexp (Zabs mx) ex (Zabs my) ey Hx Hy').
-destruct Fdiv_core as [[m e] l].
+generalize (Fdiv_correct beta fexp (Zabs mx) ex (Zabs my) ey Hx Hy').
+destruct Fdiv as [[m e] l].
 intros [Hs1 Hs2].
 rewrite (round_trunc_sign_any_correct' beta fexp rnd choice rnd_choice _ m e l).
 destruct truncate as [[m' e'] l'].
