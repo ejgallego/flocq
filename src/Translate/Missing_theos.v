@@ -6,6 +6,7 @@ Require Import Float.FmaErr.
 Require Import Float.Dekker.
 Require Import Float.FmaErrApprox.
 Require Import Float.Axpy.
+Require Import Float.discriminant.
 
 From Flocq Require Import Core Plus_error Mult_error Operations.
 Require Import Ftranslate_flocq2Pff.
@@ -1894,5 +1895,175 @@ Qed.
 
 End Axpy.
 
+Section Discri1.
+Variable emin prec : Z.
+Hypothesis precisionGt : (1 < prec)%Z.
+Context { prec_gt_0_ : Prec_gt_0 prec }.
+Hypothesis emin_neg: (emin <= 0)%Z.
 
+Notation format := (generic_format radix2 (FLT_exp emin prec)).
+Notation round_flt :=(round radix2 (FLT_exp emin prec) ZnearestE).
+Notation ulp_flt :=(ulp radix2 (FLT_exp emin prec)).
+Notation bpow e := (bpow radix2 e).
+
+(** inputs *)
+Variable a b c:R.
+Hypothesis Fa: format a.
+Hypothesis Fb: format b.
+Hypothesis Fc: format c.
+
+(** algorithm *)
+Let p:=round_flt (b*b).
+Let q:=round_flt (a*c).
+Let dp:= b*b-p.
+Let dq:= a*c-q.
+Let d:= if (Rle_bool (p+q) (3*Rabs (p-q)))
+            then round_flt (p-q)
+            else round_flt (round_flt (p-q) + round_flt(dp-dq)).
+
+(** No-underflow hypotheses *)
+Hypothesis U1 : b * b <> 0 ->
+    bpow (emin + 2 * prec - 1) <= Rabs (b * b). (* for dp in format *)
+Hypothesis U2 : a * c <> 0 ->
+    bpow (emin + 2 * prec - 1) <= Rabs (a * c). (* for dq in format *)
+Hypothesis U3 : bpow (emin + prec) <= Rabs d.
+
+Lemma format_dp : format dp.
+Proof with auto with typeclass_instances.
+replace (dp) with (-(p-(b*b))) by (unfold dp; ring).
+apply generic_format_opp.
+apply mult_error_FLT...
+Qed.
+
+Lemma format_dq : format dq.
+Proof with auto with typeclass_instances.
+replace (dq) with (-(q-(a*c))) by (unfold dq; ring).
+apply generic_format_opp.
+apply mult_error_FLT...
+Qed.
+
+Lemma format_d : format d.
+Proof with auto with typeclass_instances.
+unfold d; case (Rle_bool _ _).
+apply generic_format_round...
+apply generic_format_round...
+Qed.
+
+
+(** Correctness of d *)
+Theorem discri :
+ Rabs (d-(b*b-a*c)) <= 2* ulp_flt d.
+Proof with auto with typeclass_instances.
+assert (precisionNotZero : (1 < prec)%Z) by omega.
+(* variables *)
+destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero a)
+  as (fa,(Hfa,Hfa')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega; assumption.
+destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero b)
+  as (fb,(Hfb,Hfb')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega; assumption.
+destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero c)
+  as (fc,(Hfc,Hfc')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega; assumption.
+(* algo *)
+destruct (round_NE_is_pff_round radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero
+  (b*b))  as (fp,(Hfp, (Hfp',Hfp''))).
+rewrite make_bound_Emin in Hfp''; try assumption.
+replace (--emin)%Z with emin in Hfp'' by omega.
+destruct (round_NE_is_pff_round radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero
+  (a*c))  as (fq,(Hfq, (Hfq',Hfq''))).
+rewrite make_bound_Emin in Hfq''; try assumption.
+replace (--emin)%Z with emin in Hfq'' by omega.
+destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero dp)
+  as (fdp,(Hfdp,Hfdp')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega.
+apply format_dp.
+destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero dq)
+  as (fdq,(Hfdq,Hfdq')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega.
+apply format_dq.
+destruct (round_NE_is_pff_round radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero
+  (p-q))  as (ft,(Hft, (Hft',Hft''))).
+rewrite make_bound_Emin in Hft''; try assumption.
+replace (--emin)%Z with emin in Hft'' by omega.
+destruct (round_NE_is_pff_round radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero
+  (dp-dq))  as (fs,(Hfs, (Hfs',Hfs''))).
+rewrite make_bound_Emin in Hfs''; try assumption.
+replace (--emin)%Z with emin in Hfs'' by omega.
+destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero d)
+  as (fd,(Hfd,Hfd')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega.
+apply format_d.
+(* application of theo *)
+rewrite <- Hfd, <- Hfb, <- Hfa, <- Hfc.
+apply Rle_trans with (2 * Fulp (make_bound radix2 prec emin) 2 (Z.abs_nat prec) fd)%R.
+apply discri with fp fq ft fdp fdq fs; try assumption.
+replace 1%nat with (Zabs_nat 1) by easy.
+apply Zabs_nat_lt; omega.
+apply make_bound_p; omega.
+apply FcanonicBound with radix2; try assumption.
+apply FcanonicBound with radix2; try assumption.
+apply FcanonicBound with radix2; try assumption.
+apply FcanonicBound with radix2; try assumption.
+(* underflow *)
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega.
+assert (emin < Float.Fexp fd)%Z; try omega.
+apply FloatFexp_gt with radix2 (make_bound radix2 prec emin) prec; try assumption.
+apply make_bound_p; omega.
+rewrite Hfd; assumption.
+admit.
+admit.
+admit.
+admit.
+admit.
+admit.
+admit.
+admit.
+admit.
+(* *)
+rewrite <- Hfb in Hfp'; assumption.
+rewrite <- Hfa, <- Hfc in Hfq'; assumption.
+
+
+generalize Hfp'.
+
+
+apply FcanonicBound with radix2; try assumption.
+
+
+apply Nat2Z.inj_le.
+rewrite inj_abs; try omega.
+rewrite inj_minus, Zmax_r; rewrite inj_abs; simpl; omega.
+rewrite Hfx; rewrite inj_abs; try omega.
+rewrite bpow_powerRZ in Hfp'; exact Hfp'.
+rewrite Hfx, Hfp'', <- Hchoice; assumption.
+
+
+apply Zabs_nat_lt; omega.
+now unfold Z.abs_nat, Pos.to_nat.
+
+
+
+SearchAbout Fulp ulp.
+
+Admitted.
+
+End Discri1.
 
