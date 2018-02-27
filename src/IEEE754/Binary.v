@@ -1818,7 +1818,7 @@ Proof.
 intros m sx mx ex sy my ey.
 unfold Fdiv_core_binary.
 rewrite 2!Zdigits2_Zdigits.
-match goal with |- context [Zmin ?m1 ?m2] => set (e' := Zmin m1 m2) end.
+set (e' := Zmin _ _).
 generalize (Fdiv_core_correct radix2 (Zpos mx) ex (Zpos my) ey e' eq_refl eq_refl).
 unfold Fdiv_core.
 rewrite Zle_bool_true by apply Zle_min_r.
@@ -1969,23 +1969,36 @@ Lemma Bsqrt_correct_aux :
   is_finite_FF z = true /\ sign_FF z = false.
 Proof with auto with typeclass_instances.
 intros m mx ex Hx.
-assert (Fsqrt_core_binary (Zpos mx) ex = Fsqrt_core radix2 fexp (Zpos mx) ex) as ->.
-{ unfold Fsqrt_core, Fsqrt_core_binary.
-  rewrite Zdigits2_Zdigits.
-  set (e' := Zmin (fexp (Z.div2 (Zdigits radix2 (Zpos mx) + ex + 1))) (Z.div2 ex)).
-  destruct (ex - 2 * e')%Z as [|s|s].
+unfold Fsqrt_core_binary.
+rewrite Zdigits2_Zdigits.
+set (e' := Zmin _ _).
+assert (2 * e' <= ex)%Z as He.
+{ assert (e' <= Zdiv2 ex)%Z by apply Zle_min_r.
+  rewrite (Zdiv2_odd_eqn ex).
+  destruct Z.odd ; omega. }
+generalize (Fsqrt_core_correct radix2 (Zpos mx) ex e' eq_refl He).
+unfold Fsqrt_core.
+set (mx' := match (ex - 2 * e')%Z with Z0 => _ | _ => _ end).
+assert (mx' = Zpos mx * Zpower radix2 (ex - 2 * e'))%Z as <-.
+{ unfold mx'.
+  destruct (ex - 2 * e')%Z as [|p|p].
   now rewrite Zmult_1_r.
   now rewrite Z.shiftl_mul_pow2.
   easy. }
-simpl.
-refine (_ (Fsqrt_core_correct radix2 fexp (Zpos mx) ex _)) ; try easy.
-destruct (Fsqrt_core radix2 fexp (Zpos mx) ex) as ((mz, ez), lz).
-intros (Pz, Bz).
-refine (_ (binary_round_aux_correct' m (sqrt (F2R (Float radix2 (Zpos mx) ex))) mz ez lz _ _ Pz)) ; cycle 1.
+clearbody mx'.
+destruct Z.sqrtrem as [mz r].
+set (lz := if Zeq_bool r 0 then _ else _).
+clearbody lz.
+intros Bz.
+refine (_ (binary_round_aux_correct' m (sqrt (F2R (Float radix2 (Zpos mx) ex))) mz e' lz _ _ _)) ; cycle 1.
   now apply Rgt_not_eq, sqrt_lt_R0, F2R_gt_0.
   rewrite Rabs_pos_eq.
   exact Bz.
   apply sqrt_ge_0.
+  apply Zle_trans with (1 := Zle_min_l _ _).
+  apply FLT_exp_monotone.
+  rewrite mag_sqrt_F2R by easy.
+  apply Zle_refl.
 rewrite Rlt_bool_false by apply sqrt_ge_0.
 rewrite Rlt_bool_true.
 easy.
