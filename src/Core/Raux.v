@@ -2033,38 +2033,31 @@ Qed.
 Lemma mag_sqrt :
   forall x,
   (0 < x)%R ->
-  (2 * mag (sqrt x) - 1 <= mag x <= 2 * mag (sqrt x))%Z.
+  mag (sqrt x) = Zdiv2 (mag x + 1) :> Z.
 Proof.
 intros x Px.
-assert (H : (bpow (2 * mag (sqrt x) - 1 - 1) <= Rabs x
-            < bpow (2 * mag (sqrt x)))%R).
-{ split.
-  - apply Rge_le; rewrite <- (sqrt_def x) at 1;
-    [|now apply Rlt_le]; apply Rle_ge.
-    rewrite Rabs_mult.
-    replace (_ - _)%Z with (mag (sqrt x) - 1
-                            + (mag (sqrt x) - 1))%Z by ring.
-    rewrite bpow_plus.
-    assert (H : (bpow (mag (sqrt x) - 1) <= Rabs (sqrt x))%R).
-    { destruct (mag (sqrt x)) as (esx,Hesx); simpl.
-      apply Hesx.
-      apply Rgt_not_eq; apply Rlt_gt.
-      now apply sqrt_lt_R0. }
-    now apply Rmult_le_compat; [now apply bpow_ge_0|now apply bpow_ge_0| |].
-  - rewrite <- (sqrt_def x) at 1; [|now apply Rlt_le].
-    rewrite Rabs_mult.
-    change 2%Z with (1 + 1)%Z; rewrite Zmult_plus_distr_l;
-    rewrite Zmult_1_l.
-    rewrite bpow_plus.
-    assert (H : (Rabs (sqrt x) < bpow (mag (sqrt x)))%R).
-    { destruct (mag (sqrt x)) as (esx,Hesx); simpl.
-      apply Hesx.
-      apply Rgt_not_eq; apply Rlt_gt.
-      now apply sqrt_lt_R0. }
-    now apply Rmult_lt_compat; [now apply Rabs_pos|now apply Rabs_pos| |]. }
+apply mag_unique.
+destruct mag as [e He].
+simpl.
+specialize (He (Rgt_not_eq _ _ Px)).
+rewrite Rabs_pos_eq in He by now apply Rlt_le.
 split.
-- now apply mag_ge_bpow.
-- now apply mag_le_bpow; [now apply Rgt_not_eq|].
+- rewrite <- (Rabs_pos_eq (bpow _)) by apply bpow_ge_0.
+  apply Rsqr_le_abs_0.
+  rewrite Rsqr_sqrt by now apply Rlt_le.
+  apply Rle_trans with (2 := proj1 He).
+  unfold Rsqr ; rewrite <- bpow_plus.
+  apply bpow_le.
+  generalize (Zdiv2_odd_eqn (e + 1)).
+  destruct Z.odd ; intros ; omega.
+- rewrite <- (Rabs_pos_eq (bpow _)) by apply bpow_ge_0.
+  apply Rsqr_lt_abs_0.
+  rewrite Rsqr_sqrt by now apply Rlt_le.
+  apply Rlt_le_trans with (1 := proj2 He).
+  unfold Rsqr ; rewrite <- bpow_plus.
+  apply bpow_le.
+  generalize (Zdiv2_odd_eqn (e + 1)).
+  destruct Z.odd ; intros ; omega.
 Qed.
 
 End pow.

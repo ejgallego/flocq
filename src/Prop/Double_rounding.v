@@ -2564,9 +2564,9 @@ Lemma mag_sqrt_disj :
   \/ (mag x = 2 * mag (sqrt x) :> Z)%Z.
 Proof.
 intros x Px.
-generalize (mag_sqrt beta x Px).
-intro H.
-omega.
+rewrite (mag_sqrt beta x Px).
+generalize (Zdiv2_odd_eqn (mag x + 1)).
+destruct Z.odd ; intros ; omega.
 Qed.
 
 Lemma round_round_sqrt_aux :
