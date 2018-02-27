@@ -1,5 +1,5 @@
 Require Import Reals Psatz.
-Require Import Fcore Gappa.Gappa_tactic.
+Require Import Flocq.Core.Core Gappa.Gappa_tactic.
 
 Open Scope R_scope.
 
@@ -21,7 +21,6 @@ Lemma FIX_format_IZR :
 Proof.
 intros beta x.
 exists (Float beta x 0).
-split.
 apply sym_eq, Rmult_1_r.
 apply eq_refl.
 Qed.
@@ -106,10 +105,8 @@ cut (0 <= b * q1 - a < 1).
   generalize (Z_mod_lt a b).
   lia.
 assert (Ba': 1 <= a <= 65535).
-  change (1%Z <= a <= 65535%Z).
   now split ; apply IZR_le.
 assert (Bb': 1 <= b <= 65535).
-  change (1%Z <= b <= 65535%Z).
   now split ; apply IZR_le.
 refine (let '(conj H1 H2) := _ in conj H1 (Rnot_le_lt _ _ H2)).
 set (err := (q1 - a / b) / (a / b)).

@@ -1,4 +1,5 @@
-Require Import Flocq.Core.Fcore.
+Require Import Reals Psatz.
+Require Import Flocq.Core.Core.
 Require Import Interval.Interval_tactic.
 
 Section Sec1.
@@ -117,7 +118,7 @@ right; field.
 rewrite 2!ulp_neq_0.
 2: now apply Rgt_not_eq.
 2: now apply Rgt_not_eq.
-unfold canonic_exp, FLX_exp.
+unfold cexp, FLX_exp.
 destruct (mag beta x) as (e,He).
 simpl.
 assert (bpow (e - 1) <= x < bpow e).
@@ -232,7 +233,7 @@ rewrite ulp_neq_0.
 2: apply Rmult_integral_contrapositive_currified; apply Rgt_not_eq.
 2: apply Rlt_0_2.
 2: apply bpow_gt_0.
-unfold canonic_exp, FLX_exp.
+unfold cexp, FLX_exp.
 right; apply f_equal.
 apply f_equal2; try reflexivity.
 apply sym_eq, mag_unique.
@@ -255,7 +256,6 @@ rewrite <- succ_eq_pos.
 apply succ_le_lt...
 apply generic_format_FLX.
 exists (Float beta 2 (e-1)).
-simpl; split.
 unfold F2R; now simpl.
 apply Zlt_le_trans with (4^1)%Z.
 simpl; unfold Z.pow_pos; simpl; omega.
@@ -302,7 +302,7 @@ intros u Hu.
 rewrite 2!ulp_neq_0.
 2: now apply Rgt_not_eq.
 2: now apply Rgt_not_eq, Rmult_lt_0_compat.
-unfold canonic_exp, FLX_exp.
+unfold cexp, FLX_exp.
 (* *)
 destruct (mag beta u) as (e,He); simpl.
 intros Cu.
@@ -342,6 +342,7 @@ generalize (radix_gt_0 beta); intros.
 left; now apply IZR_lt.
 rewrite H.
 apply Rlt_le_trans with (2 * bpow (e-1) * bpow (e - prec)).
+change 2%R with (1 + 1)%R.
 rewrite Rmult_assoc, Rmult_plus_distr_r, Rmult_1_l.
 rewrite <- 2!bpow_plus.
 replace (e - 1 + (e - prec))%Z with (2 * e - 1 - prec)%Z by ring.
@@ -388,8 +389,7 @@ apply Rle_trans with (ulp_flx x).
 right; field; auto with real.
 apply Rle_trans with x.
 apply ulp_le_id; auto.
-rewrite Rmult_1_r, <- (Rplus_0_l x) at 1.
-rewrite Rmult_plus_distr_l, Rmult_1_r; auto with real.
+lra.
 assert (0 <= 1 - ulp_flx (x * x) / 2 / (x * x)).
 apply Rplus_le_reg_l with (ulp_flx (x*x) / 2 / (x*x)); ring_simplify.
 apply Rmult_le_reg_l with 2; auto with real.
@@ -398,15 +398,14 @@ apply Rle_trans with (ulp_flx (x*x)).
 right; field; auto with real.
 apply Rle_trans with (x*x).
 rewrite ulp_neq_0; try now apply Rgt_not_eq.
-unfold canonic_exp, FLX_exp.
+unfold cexp, FLX_exp.
 destruct (mag beta (x*x)) as (e,He); simpl.
 apply Rle_trans with (bpow (e-1)).
 apply bpow_le; auto with zarith.
 rewrite <- (Rabs_right (x*x)).
 apply He; auto with real.
 apply Rle_ge; auto with real.
-rewrite Rmult_1_r, <- (Rplus_0_l (x*x)) at 1.
-rewrite Rmult_plus_distr_l, Rmult_1_r; auto with real.
+lra.
 assert (0 <= 1 + ulp_flx x / 2 / x).
 rewrite <- (Rplus_0_l 0).
 apply Rplus_le_compat; auto with real.
@@ -604,7 +603,7 @@ intros Hb.
 apply Rle_lt_trans with (sqrt (IZR beta) * bpow (mag beta x - 1)
     - IZR k * ulp_flx x).
 rewrite ulp_neq_0; try now apply Rgt_not_eq.
-unfold canonic_exp, FLX_exp.
+unfold cexp, FLX_exp.
 apply Rle_trans with (bpow (mag beta x - 1)
    *(sqrt (IZR beta) -IZR k * bpow (1-prec))).
 rewrite <- (Rmult_1_r (bpow (mag beta x - 1))) at 1.
@@ -705,8 +704,7 @@ Proof with auto with typeclass_instances.
 apply generic_format_FLX.
 unfold generic_format in Fx.
 exists  (Float beta (Ztrunc (scaled_mantissa beta (FLX_exp prec) x) - k)
-                    (canonic_exp beta (FLX_exp prec) x)).
-split.
+                    (cexp beta (FLX_exp prec) x)).
 unfold xk; rewrite Fx at 1; unfold F2R; simpl.
 rewrite minus_IZR; ring_simplify.
 apply f_equal.
@@ -719,14 +717,14 @@ apply Zplus_le_compat_l.
 omega.
 rewrite Zminus_0_r.
 apply lt_IZR.
-apply Rmult_lt_reg_r with (bpow (canonic_exp beta (FLX_exp prec) x)).
+apply Rmult_lt_reg_r with (bpow (cexp beta (FLX_exp prec) x)).
 apply bpow_gt_0.
 apply Rle_lt_trans with x.
 rewrite Fx at 3.
 right; unfold F2R; reflexivity.
 rewrite IZR_Zpower.
 rewrite <- bpow_plus.
-unfold canonic_exp, FLX_exp.
+unfold cexp, FLX_exp.
 replace  (prec + (mag beta x - prec))%Z with (mag beta x+0)%Z by ring.
 rewrite Zplus_0_r.
 apply Rle_lt_trans with (Rabs x).
@@ -734,7 +732,7 @@ apply RRle_abs.
 apply bpow_mag_gt...
 omega.
 apply le_IZR.
-apply Rmult_le_reg_r with (bpow (canonic_exp beta (FLX_exp prec) x)).
+apply Rmult_le_reg_r with (bpow (cexp beta (FLX_exp prec) x)).
 apply bpow_gt_0.
 rewrite Rmult_0_l.
 apply Rle_trans with xk.
@@ -770,7 +768,7 @@ unfold pred_pos; rewrite Req_bool_false.
 replace (ulp_flx xk) with (ulp_flx x).
 unfold xk; right; field.
 rewrite 2!ulp_neq_0; try apply Rgt_not_eq; try assumption.
-unfold canonic_exp; now rewrite Z.
+unfold cexp; now rewrite Z.
 apply xkpos.
 apply Rle_lt_trans with (x-(IZR k+/2)*ulp_flx x).
 right; unfold Rdiv; ring.
@@ -784,7 +782,7 @@ auto with real.
 apply ulp_ge_0.
 interval.
 rewrite ulp_neq_0; try now apply Rgt_not_eq.
-unfold canonic_exp, FLX_exp.
+unfold cexp, FLX_exp.
 apply bpow_le; omega.
 rewrite Rmult_1_l.
 left; apply xkgt.
@@ -796,7 +794,7 @@ split.
 apply Rmult_le_pos; assumption.
 apply Rlt_le_trans with (x*x - /2*bpow (2 * mag beta x  - prec)).
 rewrite ulp_neq_0; try now apply Rgt_not_eq.
-unfold canonic_exp, FLX_exp.
+unfold cexp, FLX_exp.
 apply Rplus_lt_reg_r with (-x*x).
 apply Rle_lt_trans with
   (- (bpow (mag beta x - prec)*((2*IZR k +1)*x -
@@ -828,7 +826,7 @@ apply Rmult_le_compat_l.
 left; auto with real.
 rewrite ulp_neq_0.
 2: apply Rmult_integral_contrapositive_currified; now apply Rgt_not_eq.
-unfold canonic_exp, FLX_exp.
+unfold cexp, FLX_exp.
 apply bpow_le.
 apply Zplus_le_compat_r.
 apply mag_le_bpow.
@@ -970,7 +968,7 @@ auto with real.
 apply bpow_gt_0.
 assert (bpow (mag beta x - prec)=ulp_flx (2 * bpow (mag beta x - 1))).
 rewrite ulp_neq_0; try now apply Rgt_not_eq.
-unfold canonic_exp, FLX_exp.
+unfold cexp, FLX_exp.
 apply f_equal.
 apply f_equal2; try reflexivity.
 apply sym_eq, mag_unique.
@@ -993,8 +991,7 @@ rewrite <- succ_eq_pos;[idtac|now left].
 apply succ_le_lt...
 apply generic_format_FLX.
 exists (Float beta 2 (mag beta x -1)).
-simpl; split.
-unfold F2R; simpl; ring.
+easy.
 rewrite H; apply Zlt_le_trans with (4^1)%Z.
 simpl; unfold Z.pow_pos; simpl; omega.
 apply (Zpower_le (Build_radix 4 eq_refl)).
@@ -1035,8 +1032,9 @@ apply Fourier_util.Rlt_mult_inv_pos.
 apply Rmult_lt_0_compat.
 assumption.
 apply bpow_gt_0.
-rewrite Rplus_comm, <-Rplus_assoc; apply Rle_lt_0_plus_1, Rlt_le, Rle_lt_0_plus_1.
-apply bpow_ge_0.
+apply Rplus_lt_0_compat.
+now apply IZR_lt.
+apply bpow_gt_0.
 assert (0 < Zceil (x * bpow (1 - mag beta x) / (2+bpow (1-prec))))%Z.
 apply lt_IZR.
 apply Rlt_le_trans with (1:=H).
@@ -1053,8 +1051,9 @@ apply Rle_trans with (bpow 1 / 1).
 unfold Rdiv; apply Rmult_le_compat.
 apply Rmult_le_pos; try apply bpow_ge_0; now left.
 apply Rlt_le, Rinv_0_lt_compat.
-rewrite Rplus_comm, <-Rplus_assoc; apply Rle_lt_0_plus_1, Rlt_le, Rle_lt_0_plus_1.
-apply bpow_ge_0.
+apply Rplus_lt_0_compat.
+now apply IZR_lt.
+apply bpow_gt_0.
 apply Rle_trans with (bpow (mag beta x)*bpow (1 - mag beta x)).
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
@@ -1081,8 +1080,9 @@ apply Rmult_le_pos.
 now left.
 apply bpow_ge_0.
 apply Rlt_le, Rinv_0_lt_compat.
-rewrite Rplus_comm, <-Rplus_assoc.
-apply Rle_lt_0_plus_1, Rlt_le, Rle_lt_0_plus_1, bpow_ge_0.
+apply Rplus_lt_0_compat.
+now apply IZR_lt.
+apply bpow_gt_0.
 apply Rle_trans with (bpow (mag beta x)*bpow (1 - mag beta x)).
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
@@ -1137,8 +1137,9 @@ rewrite <- mult_IZR; apply f_equal; ring.
 apply Rinv_le.
 apply Rmult_lt_0_compat.
 apply Rle_lt_0_plus_1, Rlt_le, Rlt_0_1.
-rewrite Rplus_comm, <- Rplus_assoc.
-apply Rle_lt_0_plus_1, Rlt_le,Rle_lt_0_plus_1, bpow_ge_0.
+apply Rplus_lt_0_compat.
+now apply IZR_lt.
+apply bpow_gt_0.
 apply Rmult_le_compat_l.
 apply Rlt_le,Rle_lt_0_plus_1, Rlt_le, Rlt_0_1.
 apply Rplus_le_compat_l.

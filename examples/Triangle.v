@@ -1,8 +1,5 @@
-Require Import Reals.
-Require Import Flocq.Core.Fcore.
-Require Import Flocq.Prop.Fprop_relative.
-Require Import Flocq.Prop.Fprop_Sterbenz.
-Require Import Flocq.Calc.Fcalc_ops.
+Require Import Reals Psatz.
+From Flocq Require Import Core Relative Sterbenz Operations.
 Require Import Interval.Interval_tactic.
 
 Section Delta_FLX.
@@ -12,6 +9,7 @@ Variables a b c:R.
 
 Lemma Triangle_equiv_expressions: let s:=((a+b+c)/2) in
   sqrt (s*(s-a)*(s-b)*(s-c)) = /4*sqrt ((a+(b+c))*(a+(b-c))*(c+(a-b))*(c-(a-b))).
+Proof.
 intros s.
 assert (0 <= /4).
 assert (0 < 2).
@@ -195,18 +193,7 @@ Lemma ab_exact: round_flx (a-b)=a-b.
 Proof with auto with typeclass_instances.
 apply round_generic...
 apply sterbenz_aux...
-split.
-exact bLea.
-case (Rle_or_lt a (2*b)).
-intros H; exact H.
-intros H.
-absurd (a <= b + c).
-apply Rlt_not_le.
-apply Rle_lt_trans with (2:=H).
-rewrite Rmult_plus_distr_r, Rmult_1_l.
-apply Rplus_le_compat_l.
-exact cLeb.
-exact isaTriangle1.
+lra.
 Qed.
 
 Lemma t4_exact_aux: forall (f:float beta) g,
@@ -218,7 +205,6 @@ Proof with auto with typeclass_instances.
 intros f g Hf (Hg1,Hg2) (n,Hg3).
 apply generic_format_FLX.
 exists (Float beta n (Fexp f)).
-split; simpl.
 exact Hg3.
 apply lt_IZR.
 rewrite IZR_Zpower.
@@ -252,8 +238,8 @@ Proof with auto with typeclass_instances.
 unfold t4; rewrite ab_exact.
 case cPos; intros K.
 apply round_generic...
-apply FLXN_format_generic  in Fc...
-destruct Fc as (fc, (Hfc1,Hfc2)).
+apply FLXN_format_generic in Fc...
+destruct Fc as [fc Hfc1 Hfc2].
 apply t4_exact_aux with fc.
 apply Hfc2.
 now apply Rgt_not_eq.
@@ -264,12 +250,12 @@ exact isaTriangle1.
 rewrite <-Hfc1.
 apply Rplus_le_reg_l with (-c+a); ring_simplify.
 exact bLea.
-apply FLXN_format_generic  in Fa...
-destruct Fa as (fa, (Hfa1,Hfa2)).
-apply FLXN_format_generic  in Fb...
-destruct Fb as (fb, (Hfb1,Hfb2)).
+apply FLXN_format_generic in Fa...
+destruct Fa as [fa Hfa1 Hfa2].
+apply FLXN_format_generic in Fb...
+destruct Fb as [fb Hfb1 Hfb2].
 exists (Fnum fc -(Fnum fa*Zpower beta (Fexp fa-Fexp fc) 
--Fnum fb*Zpower beta (Fexp fb-Fexp fc)))%Z. 
+-Fnum fb*Zpower beta (Fexp fb-Fexp fc)))%Z.
 rewrite Hfa1, Hfb1, Hfc1; unfold F2R; simpl.
 rewrite 2!minus_IZR.
 rewrite 2!mult_IZR.
@@ -316,12 +302,14 @@ Notation eps :=(/2*bpow (1-prec)).
 
 
 Lemma epsPos: 0 <= eps.
+Proof.
 apply Rmult_le_pos.
 auto with real.
 apply bpow_ge_0.
 Qed.
 
 Lemma err_aux: forall x y e1 e2, err x y e1 -> e1 <= e2 -> err x y e2.
+Proof.
 intros x y e1 e2 H1 H2.
 apply Rle_trans with (e1*Rabs y).
 exact H1.
@@ -332,12 +320,14 @@ Qed.
 
 
 Lemma err_0: forall x, err x x 0.
+Proof.
 intros x.
 replace (x-x) with 0%R by ring.
 rewrite Rabs_R0; right; ring.
 Qed.
 
 Lemma err_opp: forall x y e, err x y e -> err (-x) (-y) e.
+Proof.
 intros x y e H.
 replace (-x - (-y)) with (-(x-y)) by ring.
 now rewrite 2!Rabs_Ropp.
@@ -429,13 +419,10 @@ apply H.
 apply Rmult_le_reg_l with 2; auto with real.
 rewrite <- Rmult_assoc, Rinv_r.
 2:apply Rgt_not_eq, Rlt_gt; auto with real.
-rewrite 2!Rabs_right.
-rewrite Rmult_1_l, Rmult_plus_distr_r, Rmult_1_l.
-apply Rplus_le_compat_r; assumption.
-apply Rle_ge, Rplus_le_le_0_compat.
-apply Rle_trans with y2; assumption.
-assumption.
-apply Rle_ge; assumption.
+rewrite 2!Rabs_pos_eq.
+lra.
+lra.
+easy.
 Qed.
 
 
@@ -488,6 +475,7 @@ rewrite Rabs_mult; right; ring.
 Qed.
 
 Lemma err_mult_exact: forall x y e r, 0 < r -> err x y e -> err (/r*x) (/r*y) e.
+Proof.
 intros x y e r Hr H.
 assert (r <> 0).
 now apply Rgt_not_eq.
@@ -510,48 +498,32 @@ Qed.
 
 Lemma sqrt_var_maj_2: forall h : R, Rabs h <= /2 -> 
   Rabs (sqrt (1 + h) - 1) <= Rabs h / 2 + (Rabs h) * (Rabs h) / 4.
+Proof.
 intros h H1.
 case (Rle_or_lt 0 h); intros Sh.
 assert (0 <= h <= 1).
-split;[exact Sh|idtac].
-apply Rle_trans with (1:=RRle_abs _).
-apply Rle_trans with (1:=H1).
-apply Rle_trans with (/1);[idtac|right; apply Rinv_1].
-apply Interval_missing.Rle_Rinv_pos; auto with real.
-rewrite 2!Rabs_right.
+apply Rabs_le_inv in H1.
+lra.
+rewrite 2!Rabs_pos_eq.
 interval with (i_bisect_diff h).
-apply Rle_ge, Sh.
-apply Rle_ge, Rle_0_minus.
-rewrite <- sqrt_1 at 1.
-apply sqrt_le_1_alt.
-rewrite <- (Rplus_0_r 1) at 1.
-now apply Rplus_le_compat_l.
+apply Sh.
+interval.
 assert (-1/2 <= h <= 0).
-split;[idtac|left;exact Sh].
-rewrite <- (Ropp_involutive h).
-unfold Rdiv.
-rewrite Ropp_mult_distr_l_reverse, Rmult_1_l.
-apply Ropp_le_contravar.
-apply Rle_trans with (1:=RRle_abs _).
-rewrite Rabs_Ropp.
-exact H1.
+apply Rabs_le_inv in H1.
+lra.
 rewrite 2!Rabs_left.
 apply Rplus_le_reg_l with (h / 2 - h * h / 4).
 replace (h / 2 - h * h / 4 + - (sqrt (1 + h) - 1)) with ((-h/2) * (-1 + h / 2 + 2 / (sqrt(1 + h) + 1))).
-apply Rle_trans with (-h/2 * R0).
+apply Rle_trans with (-h/2 * 0%R).
 2: right ; field.
 apply Rmult_le_compat_l.
-unfold Rdiv; apply Rmult_le_pos.
-apply Ropp_0_ge_le_contravar, Rle_ge, H.
-auto with real.
+lra.
 interval with (i_bisect_diff h).
 assert (0 < (sqrt (1 + h) + 1)).
-apply Rlt_le_trans with (0+1).
-rewrite Rplus_0_l; apply Rlt_0_1.
-apply Rplus_le_compat_r, sqrt_pos.
+interval.
 replace (sqrt (1 + h) - 1) with (h / (sqrt (1 + h) + 1)).
 field.
-apply Rgt_not_eq; assumption.
+interval.
 apply Rmult_eq_reg_l with (sqrt (1 + h) + 1).
 2:apply Rgt_not_eq; assumption.
 apply trans_eq with h.
@@ -560,24 +532,13 @@ apply Rgt_not_eq; assumption.
 apply trans_eq with (Rsqr (sqrt (1 + h)) -1).
 rewrite Rsqr_sqrt.
 ring.
-apply Rle_trans with (1+(-1/2)).
-apply Rle_trans with (/2).
-auto with real.
-right; field.
-apply Rplus_le_compat_l; apply H.
+lra.
 unfold Rsqr; ring.
 exact Sh.
 apply Rlt_minus.
 rewrite <- sqrt_1 at 2.
 apply sqrt_lt_1_alt.
-split.
-apply Rle_trans with (1+-1 / 2).
-apply Rle_trans with (/2);[idtac|right; field].
-left; intuition.
-apply Rplus_le_compat_l.
-apply H.
-rewrite <- (Rplus_0_r 1) at 2.
-now apply Rplus_lt_compat_l.
+lra.
 Qed.
 
 
@@ -681,6 +642,7 @@ Qed.
 Lemma M_correct_aux: forall r, 0 <= r <= /100 ->
   2 * r ^ 8 + 15 * r ^ 7 + 50 * r ^ 6 + 97 * r ^ 5 + 120 * r ^ 4 +
    97 * r ^ 3 + 50 * r ^ 2 + 15 * r <= 52 * r ^ 2 + 15 * r.
+Proof.
 intros r (H1,H2).
 case H1; intros K.
 apply Rplus_le_reg_l with (-15*r - 51*r*r); ring_simplify.
@@ -706,6 +668,7 @@ Qed.
 (* Note: order of multiplications does not matter *)
 
 Lemma M_correct: err M E_M (15/2*eps+26*eps*eps).
+Proof.
 eapply err_aux.
 apply err_mult.
 apply err_mult.
@@ -938,9 +901,8 @@ apply generic_format_FLX.
 assert (format (round_flx (sqrt M))).
 apply generic_format_round...
 apply FLX_format_generic in H...
-destruct H as (f&Hf1&Hf2).
+destruct H as [f Hf1 Hf2].
 exists (Float beta (Fnum f) (Fexp f -2)).
-split.
 rewrite Hf1; unfold F2R; simpl.
 unfold Zminus;rewrite bpow_plus.
 replace (bpow (-(2))) with (/4).
@@ -959,7 +921,6 @@ End Delta_FLX.
 
 Section Hyp_ok.
 
-Definition radix2 := Build_radix 2 (refl_equal true).
 Definition radix10 := Build_radix 10 (refl_equal true).
 
 Lemma prec_suff_2: forall prec:Z, (7 <= prec)%Z -> (/2*bpow radix2 (1-prec) <= /100)%R.
@@ -967,18 +928,11 @@ Proof.
 intros p Hp.
 apply Rle_trans with (/2* bpow radix2 (-6))%R.
 apply Rmult_le_compat_l.
-intuition.
+lra.
 apply bpow_le.
 omega.
-simpl; rewrite <- Rinv_mult_distr.
-apply Rle_Rinv.
-apply IZR_lt; auto with zarith.
-apply IZR_lt; auto with zarith.
-apply IZR_le; auto with zarith.
-apply Rgt_not_eq, Rlt_gt.
-apply Rle_lt_0_plus_1; apply Rlt_le; exact Rlt_0_1.
-apply Rgt_not_eq, Rlt_gt.
-apply IZR_lt; auto with zarith.
+rewrite <- (Rmult_1_l (bpow _ _)).
+interval.
 Qed.
 
 
@@ -988,42 +942,34 @@ Proof.
 intros p Hp.
 apply Rle_trans with (/2* bpow radix10 (-2))%R.
 apply Rmult_le_compat_l.
-intuition.
+lra.
 apply bpow_le.
 omega.
-simpl; rewrite <- Rinv_mult_distr.
-apply Rle_Rinv.
-apply IZR_lt; auto with zarith.
-apply IZR_lt; auto with zarith.
-apply IZR_le; auto with zarith.
-apply Rgt_not_eq, Rlt_gt.
-apply Rle_lt_0_plus_1; apply Rlt_le; exact Rlt_0_1.
-apply Rgt_not_eq, Rlt_gt.
-apply IZR_lt; auto with zarith.
+rewrite bpow_exp.
+change (IZR radix10) with 10%R.
+interval.
 Qed.
 
 Lemma fourth_format_2: forall prec:Z, (0 < prec)%Z -> generic_format radix2 (FLX_exp prec) (/4).
 Proof with auto with typeclass_instances.
 intros prec Hprec.
-replace (/4)%R with (bpow radix2 (-2)).
+change (/4)%R with (bpow radix2 (-2)).
 apply generic_format_bpow'...
 unfold FLX_exp.
 omega.
-reflexivity.
 Qed.
 
 Lemma fourth_format_10: forall prec:Z, (2 <= prec)%Z -> generic_format radix10 (FLX_exp prec) (/4).
 Proof with auto with typeclass_instances.
 intros prec Hprec.
 apply generic_format_FLX.
-unfold FLX_format.
-exists (Float radix10 25 (-2)); split.
-unfold F2R; simpl.
+exists (Float radix10 25 (-2)).
+change (F2R (Float radix10 25 (-2))) with (25 / 100)%R.
 field.
 simpl.
 apply Zlt_le_trans with (10^2)%Z.
 unfold Zpower, Zpower_pos; simpl; omega.
-replace 10%Z with (radix_val radix10) by reflexivity.
+change 10%Z with (radix_val radix10).
 now apply Zpower_le.
 Qed.
 
@@ -1054,6 +1000,7 @@ Hypothesis prec_suff: (/2*bpow (1-prec) <= /100).
 Hypothesis fourth_format_gen: forall e, (emin +2 <= e)%Z -> format (/4* bpow e).
 
 Lemma fourth_format: format (/4).
+Proof.
 replace (/4) with (/4*bpow 0).
 apply fourth_format_gen.
 omega.
@@ -1155,18 +1102,7 @@ Lemma ab_exact_: round_flt (a-b)=a-b.
 Proof with auto with typeclass_instances.
 apply round_generic...
 apply sterbenz_aux...
-split.
-exact bLea.
-case (Rle_or_lt a (2*b)).
-intros H; exact H.
-intros H.
-absurd (a <= b + c).
-apply Rlt_not_le.
-apply Rle_lt_trans with (2:=H).
-rewrite Rmult_plus_distr_r, Rmult_1_l.
-apply Rplus_le_compat_l.
-exact cLeb.
-exact isaTriangle1.
+lra.
 Qed.
 
 
@@ -1180,9 +1116,7 @@ Proof with auto with typeclass_instances.
 intros f g Hf (Hg1,Hg2) (n,Hg3) Y.
 apply generic_format_FLT.
 exists (Float beta n (Fexp f)).
-split; simpl.
 exact Hg3.
-split.
 apply lt_IZR.
 rewrite IZR_Zpower.
 2: omega.
@@ -1218,8 +1152,8 @@ case cPos; intros K.
 apply round_generic...
 assert (H:(generic_format beta (FLX_exp prec) c)).
 now apply generic_format_FLX_FLT with emin.
-apply FLXN_format_generic  in H...
-destruct H as (fc, (Hfc1,Hfc2)).
+apply FLXN_format_generic in H...
+destruct H as [fc Hfc1 Hfc2].
 case (Zle_or_lt emin (Fexp fc)); intros Y.
 (* normal *)
 apply t4_exact_aux_ with fc.
@@ -1233,11 +1167,11 @@ rewrite <-Hfc1.
 apply Rplus_le_reg_l with (-c+a); ring_simplify.
 exact bLea.
 apply generic_format_FLX_FLT in Fa.
-apply FLXN_format_generic  in Fa...
-destruct Fa as (fa, (Hfa1,Hfa2)).
+apply FLXN_format_generic in Fa...
+destruct Fa as [fa Hfa1 Hfa2].
 apply generic_format_FLX_FLT in Fb.
-apply FLXN_format_generic  in Fb...
-destruct Fb as (fb, (Hfb1,Hfb2)).
+apply FLXN_format_generic in Fb...
+destruct Fb as [fb Hfb1 Hfb2].
 exists (Fnum fc -(Fnum fa*Zpower beta (Fexp fa-Fexp fc) 
 -Fnum fb*Zpower beta (Fexp fb-Fexp fc)))%Z. 
 rewrite Hfa1, Hfb1, Hfc1; unfold F2R; simpl.
@@ -1274,8 +1208,8 @@ omega.
 assumption.
 (* subnormal *)
 assert (exists f:float beta, c = F2R f /\ Fexp f = emin /\ (Z.abs (Fnum f) < beta ^ prec)%Z).
-apply FLT_format_generic  in Fc...
-destruct Fc as (ffc, (Hffc1,(Hffc2,Hffc3))).
+apply FLT_format_generic in Fc...
+destruct Fc as [ffc Hffc1 Hffc2 Hffc3].
 exists (Float beta (Fnum ffc*Zpower beta (Fexp ffc-emin)) emin).
 split.
 rewrite Hffc1; unfold F2R; simpl.
@@ -1319,10 +1253,10 @@ exact isaTriangle1.
 rewrite <-Hgc1.
 apply Rplus_le_reg_l with (-c+a); ring_simplify.
 exact bLea.
-apply FLT_format_generic  in Fa...
-destruct Fa as (fa, (Hfa1,(Hfa2,Hfa3))).
-apply FLT_format_generic  in Fb...
-destruct Fb as (fb, (Hfb1,(Hfb2,Hfb3))).
+apply FLT_format_generic in Fa...
+destruct Fa as [fa Hfa1 Hfa2 Hfa3].
+apply FLT_format_generic in Fb...
+destruct Fb as [fb Hfb1 Hfb2 Hfb3].
 rewrite Hgc2.
 exists (Fnum gc -(Fnum fa*Zpower beta (Fexp fa-emin) 
 -Fnum fb*Zpower beta (Fexp fb -emin)))%Z.
@@ -1393,7 +1327,7 @@ Proof with auto with typeclass_instances.
 intros x1 x2 Fx1 Fx2.
 case (Rle_or_lt (bpow (emin+prec-1)) (Rabs (x1+x2))); intros Y.
 (* . *)
-replace eps with  (/ 2 * Fcore_Raux.bpow beta (- prec + 1)).
+replace eps with (/ 2 * Raux.bpow beta (- prec + 1)).
 apply relative_error_N_FLT...
 apply f_equal; apply f_equal; ring.
 (* . *)
@@ -1404,12 +1338,10 @@ apply epsPos.
 apply sym_eq, round_generic...
 apply generic_format_FLT.
 apply FLT_format_generic in Fx1; apply FLT_format_generic in Fx2...
-destruct Fx1 as (f&Hf1&Hf2&Hf3).
-destruct Fx2 as (g&Hg1&Hg2&Hg3).
+destruct Fx1 as [f Hf1 Hf2 Hf3].
+destruct Fx2 as [g Hg1 Hg2 Hg3].
 exists (Fplus beta f g).
-split.
 now rewrite F2R_plus, Hf1, Hg1.
-split.
 apply lt_IZR.
 rewrite abs_IZR.
 rewrite IZR_Zpower.
@@ -1510,14 +1442,8 @@ apply Rmult_le_compat_l.
 apply H.
 apply Rmult_le_reg_l with 2; auto with real.
 rewrite <- Rmult_assoc, Rinv_r.
-2:apply Rgt_not_eq, Rlt_gt; auto with real.
-rewrite 2!Rabs_right.
-rewrite Rmult_1_l, Rmult_plus_distr_r, Rmult_1_l.
-apply Rplus_le_compat_r; assumption.
-apply Rle_ge, Rplus_le_le_0_compat.
-apply Rle_trans with y2; assumption.
-assumption.
-apply Rle_ge; assumption.
+2: now apply IZR_neq.
+rewrite 2!Rabs_pos_eq ; lra.
 Qed.
 
 Lemma err_mult_aux: forall x1 y1 e1 x2 y2 e2, format x1 -> format x2 -> err x1 y1 e1 -> err x2 y2 e2 
@@ -1541,7 +1467,7 @@ replace (round_flt (x1 * x2) - y1*y2) with ((round_flt (x1 * x2) - x1*x2)+(x1*x2
 apply Rle_trans with (1:=Rabs_triang _ _).
 apply Rle_trans with (eps*Rabs (x1*x2)+Rabs (x1 * x2 - y1 * y2)).
 apply Rplus_le_compat_r.
-replace eps with  (/ 2 * Fcore_Raux.bpow beta (- prec + 1)).
+replace eps with (/ 2 * Raux.bpow beta (- prec + 1)).
 apply relative_error_N_FLT...
 left; exact Y.
 apply f_equal; apply f_equal; ring.
@@ -1585,6 +1511,7 @@ Qed.
 Lemma err_mult_: forall x1 y1 e1 x2 y2 e2, format x1 -> format x2 -> err x1 y1 e1 -> err x2 y2 e2 
   -> (bpow (emin+prec-1) < Rabs (round_flt (x1*x2)))
   -> err (round_flt (x1*x2)) (y1*y2) (eps+(1+eps)*(e1+e2+e1*e2)).
+Proof.
 intros.
 case (err_mult_aux x1  y1 e1 x2 y2 e2); try assumption.
 easy.
@@ -1645,7 +1572,7 @@ replace (round_flt (sqrt x) - sqrt y) with ((round_flt (sqrt x) - sqrt x)+(sqrt 
 apply Rle_trans with (1:=Rabs_triang _ _).
 apply Rle_trans with (eps*Rabs (sqrt x)+Rabs (sqrt x - sqrt y)).
 apply Rplus_le_compat_r.
-replace eps with  (/ 2 * Fcore_Raux.bpow beta (- prec + 1)).
+replace eps with (/ 2 * Raux.bpow beta (- prec + 1)).
 apply relative_error_N_FLT...
 rewrite Rabs_right.
 2: apply Rle_ge, sqrt_pos.
@@ -2013,10 +1940,8 @@ rewrite bpow_plus.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 apply Rle_trans with (IZR (radix_val beta)*IZR (radix_val beta)).
-apply Rmult_le_compat;[intuition|intuition|idtac|idtac]; clear.
-apply IZR_le.
+apply (Rmult_le_compat 2 _ 2); try apply IZR_le; try easy; clear.
 apply Zle_bool_imp_le; now destruct beta.
-apply IZR_le.
 apply Zle_bool_imp_le; now destruct beta.
 right; simpl.
 unfold Zpower_pos; simpl.
@@ -2199,9 +2124,8 @@ apply generic_format_FLT.
 assert (format (round_flt (sqrt M))).
 apply generic_format_round...
 apply FLT_format_generic in H0...
-destruct H0 as (f&Hf1&Hf2&Hf3).
+destruct H0 as [f Hf1 Hf2 Hf3].
 exists (Float beta (Fnum f) (Fexp f -2)).
-split.
 rewrite Hf1; unfold F2R; simpl.
 unfold Zminus;rewrite bpow_plus.
 replace (bpow (-(2))) with (/4).
@@ -2209,7 +2133,6 @@ ring.
 simpl; unfold Zpower_pos;simpl.
 rewrite Hradix; apply f_equal.
 simpl; ring.
-split.
 now simpl.
 simpl.
 assert (emin+1+prec < prec+Fexp f)%Z;[idtac|omega].
@@ -2273,16 +2196,15 @@ Lemma fourth_format_gen_10: forall prec emin e:Z, (2 <= prec)%Z -> (emin +2 <= e
 Proof with auto with typeclass_instances.
 intros prec emin e Hprec H.
 apply generic_format_FLT.
-unfold FLT_format.
-exists (Float radix10 25 (e-2)); split.
+exists (Float radix10 25 (e-2)).
 unfold F2R; simpl.
 unfold Zminus; rewrite bpow_plus.
-simpl; field.
-split.
+change (bpow radix10 (-(2))) with (/100)%R.
+field.
 simpl.
 apply Zlt_le_trans with (10^2)%Z.
 unfold Zpower, Zpower_pos; simpl; omega.
-replace 10%Z with (radix_val radix10) by reflexivity.
+change 10%Z with (radix_val radix10).
 now apply Zpower_le.
 simpl.
 omega.
