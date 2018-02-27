@@ -2010,12 +2010,13 @@ destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega.
 apply format_d.
+assert (K: (1 < Z.abs_nat prec)%nat).
+replace 1%nat with (Zabs_nat 1) by easy.
+apply Zabs_nat_lt; omega.
 (* application of theo *)
 rewrite <- Hfd, <- Hfb, <- Hfa, <- Hfc.
 apply Rle_trans with (2 * Fulp (make_bound radix2 prec emin) 2 (Z.abs_nat prec) fd)%R.
 apply discri with fp fq ft fdp fdq fs; try assumption.
-replace 1%nat with (Zabs_nat 1) by easy.
-apply Zabs_nat_lt; omega.
 apply make_bound_p; omega.
 apply FcanonicBound with radix2; try assumption.
 apply FcanonicBound with radix2; try assumption.
@@ -2040,30 +2041,56 @@ admit.
 (* *)
 rewrite <- Hfb in Hfp'; assumption.
 rewrite <- Hfa, <- Hfc in Hfq'; assumption.
-
-
-generalize Hfp'.
-
-
-apply FcanonicBound with radix2; try assumption.
-
-
-apply Nat2Z.inj_le.
-rewrite inj_abs; try omega.
-rewrite inj_minus, Zmax_r; rewrite inj_abs; simpl; omega.
-rewrite Hfx; rewrite inj_abs; try omega.
-rewrite bpow_powerRZ in Hfp'; exact Hfp'.
-rewrite Hfx, Hfp'', <- Hchoice; assumption.
-
-
-apply Zabs_nat_lt; omega.
-now unfold Z.abs_nat, Pos.to_nat.
-
-
-
-SearchAbout Fulp ulp.
-
+intros Y.
+assert (Y' : d = round_flt (p - q)).
+unfold d; rewrite Rle_bool_true; try easy.
+unfold p; rewrite <- Hfp''; unfold q; rewrite <- Hfq''.
+easy.
+apply EvenClosestCompatible with (p-q)
+   (RND_EvenClosest (make_bound radix2 prec emin) radix2 (Zabs_nat prec) (p-q)); try easy.
+apply make_bound_p; omega.
+apply RND_EvenClosest_correct; try easy.
+apply make_bound_p; omega.
+unfold p; rewrite <- Hfp''; unfold q; now rewrite <- Hfq''.
+replace 2%Z with (radix_val radix2) by easy.
+rewrite Hfd, Y'.
+rewrite pff_round_NE_is_round; try easy.
+2: apply make_bound_p; omega.
+rewrite make_bound_Emin; try assumption.
+now replace (--emin)%Z with emin by omega.
+intros _; generalize Hft'.
+unfold p; rewrite <- Hfp''; unfold q; now rewrite <- Hfq''.
+intros _; replace 2%Z with (radix_val radix2) by easy.
+rewrite Hfdp; unfold dp; now rewrite <- Hfb, Hfp''.
+intros _; replace 2%Z with (radix_val radix2) by easy.
+rewrite Hfdq; unfold dq; now rewrite <- Hfa, <- Hfc, Hfq''.
+intros _; generalize Hfs'.
+now rewrite <- Hfdp, <- Hfdq.
+intros Y.
+assert (Y' : d = round_flt (round_flt (p - q) + round_flt (dp - dq))).
+unfold d; rewrite Rle_bool_false; try easy.
+unfold p; rewrite <- Hfp''; unfold q; rewrite <- Hfq''.
+easy.
+apply EvenClosestCompatible with (FtoR radix2 ft+FtoR radix2 fs)
+   (RND_EvenClosest (make_bound radix2 prec emin) radix2 (Zabs_nat prec) (FtoR radix2 ft+FtoR radix2 fs)); try easy.
+apply make_bound_p; omega.
+apply RND_EvenClosest_correct; try easy.
+apply make_bound_p; omega.
+replace 2%Z with (radix_val radix2) by easy.
+rewrite Hfd, Y'.
+rewrite pff_round_NE_is_round; try easy.
+2: apply make_bound_p; omega.
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega.
+now rewrite Hfs'', Hft''.
+right; f_equal.
+replace 2%Z with (radix_val radix2) by easy.
+rewrite Fulp_ulp; try easy.
+2: apply make_bound_p; omega.
+rewrite make_bound_Emin; try assumption.
+now replace (--emin)%Z with emin by omega.
 Admitted.
+
 
 End Discri1.
 

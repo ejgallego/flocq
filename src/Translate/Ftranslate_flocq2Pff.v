@@ -753,6 +753,17 @@ apply bpow_le.
 rewrite inj_abs; omega.
 Qed.
 
+
+Lemma Fulp_ulp:  forall f, Fbounded b f ->
+   Fulp b beta (Z.abs_nat p) f
+    = ulp beta (FLT_exp (-dExp b) p) (FtoR beta f).
+Proof.
+Admitted.
+
+
+
+
+
 End Equiv.
 
 Section Equiv_instanc.
