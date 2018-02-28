@@ -233,4 +233,63 @@ apply Ex.
 apply Ey.
 Qed.
 
+
+
+
+Theorem mult_error_FLT_ge_bpow :
+  forall x y e,
+  format x -> format y ->
+  (emin <= e + prec)%Z ->
+  (bpow (e+2*prec-1) <= Rabs (x * y))%R ->
+  (round beta (FLT_exp emin prec) rnd (x * y) - (x * y) <> 0)%R ->
+  (bpow e <= Rabs (round beta (FLT_exp emin prec) rnd (x * y) - (x * y)))%R.
+Proof with auto with typeclass_instances.
+intros x y e.
+set (f := (round beta (FLT_exp emin prec) rnd (x * y))).
+intros Hx Hy He Hxy Hr0.
+destruct (Req_dec (x * y) 0) as [Hxy'|Hxy'].
+contradict Hr0.
+unfold f.
+rewrite Hxy'.
+rewrite round_0...
+ring.
+assert (Y:(bpow (emin + prec - 1) <= Rabs (x * y))%R).
+apply Rle_trans with (2:=Hxy); apply bpow_le.
+omega.
+(* *)
+destruct (mult_error_FLX_aux beta prec rnd x y) as ((m,i),(H1,(H2,H3))).
+now apply generic_format_FLX_FLT with emin.
+now apply generic_format_FLX_FLT with emin.
+rewrite <- (round_FLT_FLX beta emin); assumption.
+rewrite <- (round_FLT_FLX beta emin) in H1; try assumption.
+fold f in H1.
+rewrite <- H1.
+rewrite <- F2R_abs.
+apply Rle_trans with (bpow i).
+apply bpow_le; simpl in H3; rewrite H3.
+unfold Generic_fmt.cexp, FLX_exp.
+destruct (mag beta x) as (ex,Hex).
+destruct (mag beta y) as (ey,Hey); simpl.
+assert (e+2*prec-1 < ex+ey)%Z; try omega.
+apply lt_bpow with beta.
+apply Rle_lt_trans with (1:=Hxy).
+rewrite Rabs_mult, bpow_plus.
+apply Rmult_lt_compat.
+apply Rabs_pos.
+apply Rabs_pos.
+apply Hex.
+contradict Hxy'; rewrite Hxy'; ring.
+apply Hey.
+contradict Hxy'; rewrite Hxy'; ring.
+apply bpow_le_F2R.
+apply gt_0_F2R with beta i.
+fold (Fabs beta (Float beta m i)).
+rewrite F2R_abs, H1.
+now apply Rabs_pos_lt.
+Qed.
+
+
 End Fprop_mult_error_FLT.
+
+
+

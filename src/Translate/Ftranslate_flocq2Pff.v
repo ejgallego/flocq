@@ -754,14 +754,52 @@ rewrite inj_abs; omega.
 Qed.
 
 
-Lemma Fulp_ulp:  forall f, Fbounded b f ->
+Lemma Fulp_ulp_aux:  forall f, Fcanonic beta b f ->
    Fulp b beta (Z.abs_nat p) f
     = ulp beta (FLT_exp (-dExp b) p) (FtoR beta f).
 Proof.
-Admitted.
+intros f H.
+case (Req_dec (FtoR beta f) 0); intros Zf.
+(* f = 0 *)
+rewrite Zf, ulp_FLT_small.
+2: unfold Prec_gt_0; omega.
+2: rewrite Rabs_R0; apply bpow_gt_0.
+rewrite Fulp_zero.
+apply sym_eq, bpow_powerRZ.
+apply is_Fzero_rep2 with beta; try assumption.
+apply radix_gt_1.
+(* f <> 0 *)
+rewrite ulp_neq_0; try assumption.
+replace (FtoR beta f) with (F2R (Float beta (Float.Fnum f) (Float.Fexp f))).
+rewrite <- pff_canonic_is_canonic; try assumption.
+simpl; rewrite CanonicFulp; try assumption.
+unfold FtoR; simpl; rewrite bpow_powerRZ; ring.
+apply radix_gt_1.
+replace 1 with (Z.abs_nat 1) by easy.
+apply Zabs_nat_lt; omega.
+unfold F2R, FtoR; simpl.
+rewrite bpow_powerRZ; easy.
+Qed.
 
 
-
+Lemma Fulp_ulp:  forall f, Fbounded b f ->
+   Fulp b beta (Z.abs_nat p) f
+    = ulp beta (FLT_exp (-dExp b) p) (FtoR beta f).
+intros f H.
+assert (Y1: (1 < beta)%Z) by apply radix_gt_1.
+assert (Y2:Z.abs_nat p <> 0).
+apply notEqLt.
+replace 0 with (Z.abs_nat 0) by easy.
+apply Zabs_nat_lt; omega.
+rewrite FulpComp with (q:=Fnormalize beta b (Z.abs_nat p) f); try assumption.
+rewrite <- FnormalizeCorrect with beta b (Z.abs_nat p) f; try assumption.
+apply Fulp_ulp_aux.
+apply FnormalizeCanonic; try assumption.
+replace 1 with (Z.abs_nat 1) by easy.
+apply Zabs_nat_lt; omega.
+apply FnormalizeBounded; try assumption.
+apply sym_eq, FnormalizeCorrect; try assumption.
+Qed.
 
 
 End Equiv.
