@@ -8,8 +8,9 @@ Require Import Float.Dekker.
 Require Import Float.FmaErrApprox.
 Require Import Float.Axpy.
 Require Import Float.discriminant.
+Require Import Float.discriminant3.
 
-From Flocq Require Import Core Plus_error Mult_error Operations.
+From Flocq Require Import Core Plus_error Mult_error Operations Sterbenz.
 Require Import Ftranslate_flocq2Pff.
 
 Open Scope R_scope.
@@ -1938,13 +1939,13 @@ Let d:= if (Rle_bool (p+q) (3*Rabs (p-q)))
 
 (** No-underflow hypotheses *)
 Hypothesis U1 : b * b <> 0 ->
-    bpow (emin + 4 * prec - 2) <= Rabs (b * b).
+    bpow (emin + 3 * prec) <= Rabs (b * b).
 Hypothesis U2 : a * c <> 0 ->
-    bpow (emin + 4 * prec - 2) <= Rabs (a * c).
+    bpow (emin + 3 * prec) <= Rabs (a * c).
 Hypothesis Zd : d <> 0.
 
 
-Lemma U3 : b * b <> 0 -> a * c <> 0 -> p - q <> 0 ->
+Lemma U3_discri1 : b * b <> 0 -> a * c <> 0 -> p - q <> 0 ->
    bpow (emin + 2*prec) <= Rabs (round_flt (p-q)).
 Proof with auto with typeclass_instances.
 intros Z1 Z2 Z3.
@@ -1955,25 +1956,25 @@ apply generic_format_opp, generic_format_round...
 apply abs_round_ge_generic...
 apply FLT_format_bpow...
 omega.
-apply Rle_trans with (2:=U1 Z1).
-apply bpow_le; omega.
+(*apply Rle_trans with (2:=U1 Z1).
+apply bpow_le; omega.*)
 apply round_plus_neq_0...
 apply generic_format_round...
 apply generic_format_opp, generic_format_round...
 Qed.
 
-Lemma U4 : b * b <> 0 -> a * c <> 0 -> p - q <> 0 ->
+Lemma U4_discri1 : b * b <> 0 -> a * c <> 0 -> p - q <> 0 ->
     bpow (emin + prec) <= Rabs d.
 Proof with auto with typeclass_instances.
 intros Z1 Z2 Z3; generalize Zd; unfold d.
 case (Rle_bool_spec _ _); intros H Z4.
-apply Rle_trans with (2:=U3 Z1 Z2 Z3).
+apply Rle_trans with (2:=U3_discri1 Z1 Z2 Z3).
 apply bpow_le; omega.
 replace (emin+prec)%Z with ((emin+2*prec)-prec)%Z by ring.
 apply round_FLT_plus_ge...
 apply generic_format_round...
 apply generic_format_round...
-apply U3; easy.
+apply U3_discri1; easy.
 Qed.
 
 Lemma format_dp : format dp.
@@ -1994,45 +1995,52 @@ intros Zac; apply Rle_trans with (2:=U2 Zac).
 apply bpow_le; omega.
 Qed.
 
-Lemma format_d : format d.
+Lemma format_d_discri1 : format d.
 Proof with auto with typeclass_instances.
 unfold d; case (Rle_bool _ _).
 apply generic_format_round...
 apply generic_format_round...
 Qed.
 
+Lemma U5_discri1_aux : forall x y e, format x -> format y
+   -> (emin <= e)%Z -> bpow e <= Rabs x -> bpow e <= Rabs y
+   -> round_flt (x+y) <> x+y
+   -> bpow e <= Rabs (round_flt (x+y)).
+Proof with auto with typeclass_instances.
+intros x y e Fx Fy He Hex Hey H.
+apply abs_round_ge_generic...
+apply FLT_format_bpow...
+case (Rle_or_lt (bpow e) (Rabs (x+y))); intros H1; try easy.
+absurd (round_flt (x + y) = x + y); try assumption.
+apply round_generic...
+apply generic_format_plus...
+apply Rlt_le; apply Rlt_le_trans with (1:=H1).
+destruct (mag radix2 x) as (ex,Y1).
+destruct (mag radix2 y) as (ey,Y2); simpl.
+apply bpow_le.
+apply Z.min_glb.
+apply le_bpow with radix2.
+apply Rle_trans with (1:=Hex).
+apply Rlt_le, Y1.
+intros Zx; contradict H.
+rewrite Zx, Rplus_0_l, round_generic...
+apply le_bpow with radix2.
+apply Rle_trans with (1:=Hey).
+apply Rlt_le, Y2.
+intros Zy; contradict H.
+rewrite Zy, Rplus_0_r, round_generic...
+Qed.
 
-Lemma U5 : b * b <> 0 -> a*c <> 0 -> dp - dq <> 0 ->
+
+Lemma U5_discri1 : b * b <> 0 -> a*c <> 0 ->
+  round_flt (dp - dq) <> dp - dq ->
   bpow (emin + prec - 1) <= Rabs (round_flt (dp - dq)).
 Proof with auto with typeclass_instances.
 intros Z1 Z2 Z3.
-replace (emin+prec-1)%Z with ((emin+2*prec-1)-prec)%Z by ring.
-case (Req_dec dp 0); intros Zdp.
-(* *)
-case (Req_dec dq 0); intros Zdq.
-contradict Z3.
-rewrite Zdp, Zdq; ring.
-unfold Rminus; rewrite Rplus_comm; apply round_FLT_plus_ge...
-apply generic_format_opp, format_dq...
+apply U5_discri1_aux.
 apply format_dp...
-rewrite Rabs_Ropp.
-unfold dq; replace (a * c - q) with (-(q-a*c)) by ring.
-rewrite Rabs_Ropp; unfold q.
-apply mult_error_FLT_ge_bpow...
+apply generic_format_opp, format_dq...
 omega.
-apply Rle_trans with (2:=U2 Z2).
-apply bpow_le; omega.
-replace (round_flt (a * c) - a * c) with (-dq).
-now apply Ropp_neq_0_compat.
-unfold dq, q; ring.
-apply round_plus_neq_0...
-apply generic_format_opp, format_dq.
-apply format_dp.
-now rewrite Rplus_comm.
-(* *)
-unfold Rminus; apply round_FLT_plus_ge...
-apply format_dp...
-apply generic_format_opp, format_dq...
 unfold dp; replace (b * b - p) with (-(p-b*b)) by ring.
 rewrite Rabs_Ropp; unfold p.
 apply mult_error_FLT_ge_bpow...
@@ -2040,11 +2048,23 @@ omega.
 apply Rle_trans with (2:=U1 Z1).
 apply bpow_le; omega.
 replace (round_flt (b * b) - b * b) with (-dp).
-now apply Ropp_neq_0_compat.
+apply Ropp_neq_0_compat.
+intros Z4; contradict Z3.
+rewrite Z4, Rminus_0_l, round_generic...
+apply generic_format_opp, format_dq...
 unfold dp, p; ring.
-apply round_plus_neq_0...
-apply format_dp.
-apply generic_format_opp, format_dq.
+unfold dq; replace (-(a * c - q)) with (q-a*c) by ring.
+unfold q; apply mult_error_FLT_ge_bpow...
+omega.
+apply Rle_trans with (2:=U2 Z2).
+apply bpow_le; omega.
+replace (round_flt (a * c) - a * c) with (-dq).
+apply Ropp_neq_0_compat.
+intros Z4; contradict Z3.
+rewrite Z4, Rminus_0_r, round_generic...
+apply format_dp...
+unfold dq, q; ring.
+easy.
 Qed.
 
 (** Correctness of d *)
@@ -2106,6 +2126,47 @@ rewrite H; f_equal.
 unfold dp, dq; apply trans_eq with (b * b - a * c - (p-q)).
 rewrite Zpq; ring.
 ring.
+(* round_flt (dp - dq) <> dp - dq when Sterbenz *)
+assert (G: (3 * Rabs (p - q) < p + q /\ round_flt (dp - dq) = dp-dq) \/
+    ((3 * Rabs (p - q) < p + q) -> round_flt (dp - dq) <> dp-dq)).
+case (Req_dec (round_flt (dp - dq)) (dp-dq)); intros G1;
+  case (Rlt_or_le (3 * Rabs (p - q)) (p+q)); intros G2.
+left; now split.
+right; intros G3; contradict G2; apply Rlt_not_le; easy.
+now right.
+now right.
+destruct G as [(G1,G2)|G].
+unfold d; rewrite Rle_bool_false...
+rewrite G2.
+replace (round_flt (p - q)) with (p-q).
+replace ((p - q + (dp - dq))) with (b * b - a * c).
+2: unfold dp, p, dq, q; ring.
+apply Rle_trans with (1:=error_le_half_ulp_round _ _ _ _).
+apply Rmult_le_compat_r.
+apply ulp_ge_0.
+lra.
+apply sym_eq, round_generic...
+apply sterbenz...
+apply generic_format_round...
+apply generic_format_round...
+split.
+apply Rmult_le_reg_l with 4%R.
+lra.
+apply Rplus_le_reg_l with (q-3*p).
+apply Rle_trans with (p+q);[idtac|right; ring].
+apply Rlt_le, Rle_lt_trans with (2:=G1).
+rewrite <- Rabs_Ropp.
+apply Rle_trans with (3*(-(p-q))).
+right; field.
+apply Rmult_le_compat_l; [lra|apply RRle_abs].
+apply Rmult_le_reg_l with 2%R.
+lra.
+apply Rplus_le_reg_l with (p-3*q).
+apply Rle_trans with (p+q);[idtac|right; ring].
+apply Rlt_le, Rle_lt_trans with (2:=G1).
+apply Rle_trans with (3*(p-q)).
+right; field.
+apply Rmult_le_compat_l; [lra|apply RRle_abs].
 assert (precisionNotZero : (1 < prec)%Z) by omega.
 (* variables *)
 destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
@@ -2161,7 +2222,7 @@ destruct (format_is_pff_format_can radix2 (make_bound radix2 prec emin)
   as (fd,(Hfd,Hfd')).
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega.
-apply format_d.
+apply format_d_discri1.
 assert (K: (1 < Z.abs_nat prec)%nat).
 replace 1%nat with (Zabs_nat 1) by easy.
 apply Zabs_nat_lt; omega.
@@ -2183,7 +2244,7 @@ apply FloatFexp_gt with radix2 (make_bound radix2 prec emin) prec; try assumptio
 apply make_bound_p; omega.
 apply FcanonicBound with radix2; try assumption.
 rewrite Hfd.
-apply U4; assumption.
+apply U4_discri1; assumption.
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega.
 assert (emin < Float.Fexp ft)%Z; try omega.
@@ -2191,7 +2252,7 @@ apply FloatFexp_gt with radix2 (make_bound radix2 prec emin) prec; try assumptio
 apply make_bound_p; omega.
 now apply FcanonicBound with radix2.
 rewrite Hft''.
-apply Rle_trans with (2:=U3 Zbb Zac Zpq).
+apply Rle_trans with (2:=U3_discri1 Zbb Zac Zpq).
 apply bpow_le; omega.
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega.
@@ -2259,24 +2320,23 @@ apply FLT_format_bpow...
 omega.
 apply Rle_trans with (2:=U2 Zac).
 apply bpow_le; omega.
-case (Req_dec (dp-dq) 0); intros Zdpdq.
-left; apply trans_eq with (round_flt (dp - dq)).
-now rewrite <- Hfs''.
-rewrite Zdpdq, round_0...
+intros C; right.
 replace 2%Z with (radix_val radix2) by easy.
-right; apply CanonicGeNormal with prec; try assumption.
+apply CanonicGeNormal with prec; try assumption.
 apply make_bound_p; omega.
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega.
 rewrite Hfs''.
-apply U5; try assumption.
+apply U5_discri1; try assumption.
+apply G.
+unfold p, q; rewrite <- Hfp'', <- Hfq''; easy.
 replace 2%Z with (radix_val radix2) by easy.
 apply CanonicGeNormal with prec; try assumption.
 apply make_bound_p; omega.
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega.
 rewrite Hfd.
-apply Rle_trans with (2:=U4 Zbb Zac Zpq).
+apply Rle_trans with (2:=U4_discri1 Zbb Zac Zpq).
 apply bpow_le; omega.
 (* *)
 rewrite <- Hfb in Hfp'; assumption.
@@ -2336,4 +2396,216 @@ Qed.
 
 
 End Discri1.
+
+Section Discri2.
+Variable emin prec : Z.
+Hypothesis precisionGt : (4 <= prec)%Z.
+Context { prec_gt_0_ : Prec_gt_0 prec }.
+Hypothesis emin_neg: (emin <= 0)%Z.
+
+Notation format := (generic_format radix2 (FLT_exp emin prec)).
+Notation round_flt :=(round radix2 (FLT_exp emin prec) ZnearestE).
+Notation ulp_flt :=(ulp radix2 (FLT_exp emin prec)).
+Notation bpow e := (bpow radix2 e).
+
+(** inputs *)
+Variable a b c:R.
+Hypothesis Fa: format a.
+Hypothesis Fb: format b.
+Hypothesis Fc: format c.
+
+(** algorithm *)
+Let p:=round_flt (b*b).
+Let q:=round_flt (a*c).
+Let dp:= b*b-p.
+Let dq:= a*c-q.
+Let d:= if (Rle_bool (round_flt (p+q)) (round_flt (3*Rabs (round_flt (p-q)))))
+            then round_flt (p-q)
+            else round_flt (round_flt (p-q) + round_flt(dp-dq)).
+
+(** No-underflow hypotheses *)
+Hypothesis U1 : b * b <> 0 ->
+    bpow (emin + 3 * prec) <= Rabs (b * b).
+Hypothesis U2 : a * c <> 0 ->
+    bpow (emin + 3 * prec) <= Rabs (a * c).
+Hypothesis Zd : d <> 0.
+
+
+Lemma format_d_discri2 : format d.
+Proof with auto with typeclass_instances.
+unfold d; case (Rle_bool _ _).
+apply generic_format_round...
+apply generic_format_round...
+Qed.
+
+
+(** Correctness of d *)
+Theorem discri_fp_test :
+ Rabs (d-(b*b-a*c)) <= 2* ulp_flt d.
+Proof with auto with typeclass_instances.
+assert (precisionNotZero : (1 < prec)%Z) by omega.
+(* variables *)
+destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero a)
+  as (fa,(Hfa,Hfa')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega; assumption.
+destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero b)
+  as (fb,(Hfb,Hfb')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega; assumption.
+destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero c)
+  as (fc,(Hfc,Hfc')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega; assumption.
+(* algo *)
+destruct (round_NE_is_pff_round radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero
+  (b*b))  as (fp,(Hfp, (Hfp',Hfp''))).
+rewrite make_bound_Emin in Hfp''; try assumption.
+replace (--emin)%Z with emin in Hfp'' by omega.
+destruct (round_NE_is_pff_round radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero
+  (a*c))  as (fq,(Hfq, (Hfq',Hfq''))).
+rewrite make_bound_Emin in Hfq''; try assumption.
+replace (--emin)%Z with emin in Hfq'' by omega.
+destruct (format_is_pff_format_can radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero dp)
+  as (fdp,(Hfdp,Hfdp')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega.
+now apply format_dp.
+destruct (format_is_pff_format_can radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero dq)
+  as (fdq,(Hfdq,Hfdq')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega.
+now apply format_dq.
+destruct (round_NE_is_pff_round radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero
+  (p-q))  as (ft,(Hft, (Hft',Hft''))).
+rewrite make_bound_Emin in Hft''; try assumption.
+replace (--emin)%Z with emin in Hft'' by omega.
+destruct (round_NE_is_pff_round radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero
+  (dp-dq))  as (fs,(Hfs, (Hfs',Hfs''))).
+rewrite make_bound_Emin in Hfs''; try assumption.
+replace (--emin)%Z with emin in Hfs'' by omega.
+destruct (round_NE_is_pff_round radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero
+  (p+q))  as (fv,(Hfv, (Hfv',Hfv''))).
+rewrite make_bound_Emin in Hfv''; try assumption.
+replace (--emin)%Z with emin in Hfv'' by omega.
+destruct (round_NE_is_pff_round radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero
+  (3*Rabs (FtoR radix2 ft)))  as (fu,(Hfu, (Hfu',Hfu''))).
+rewrite make_bound_Emin in Hfu''; try assumption.
+replace (--emin)%Z with emin in Hfu'' by omega.
+destruct (format_is_pff_format_can radix2 (make_bound radix2 prec emin)
+   prec (make_bound_p radix2 prec emin precisionNotZero) precisionNotZero d)
+  as (fd,(Hfd,Hfd')).
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega.
+apply format_d_discri2.
+assert (K: (1 < Z.abs_nat prec)%nat).
+replace 1%nat with (Zabs_nat 1) by easy.
+apply Zabs_nat_lt; omega.
+(* application of theo *)
+rewrite <- Hfd, <- Hfb, <- Hfa, <- Hfc.
+apply Rle_trans with (2 * Fulp (make_bound radix2 prec emin) 2 (Z.abs_nat prec) fd)%R.
+cut ((FtoR radix2 fd = 0 \/ (Rabs  (FtoR radix2 fd -
+   (FtoR radix2 fb * FtoR radix2 fb -
+    FtoR radix2 fa * FtoR radix2 fc)) <=
+    2 * Fulp (make_bound radix2 prec emin) 2 (Z.abs_nat prec) fd))).
+intros M; case M; try easy.
+intros KK; contradict Zd; rewrite <- Hfd; easy.
+apply discri16 with fp fq ft fdp fdq fs fu fv; try assumption.
+apply make_bound_p; omega.
+change 4%nat with (Z.abs_nat 4).
+apply Zabs_nat_le; omega.
+intros _; apply FcanonicBound with radix2; try assumption.
+intros _; apply FcanonicBound with radix2; try assumption.
+(* underflow *)
+unfold radix2 in Hfb; simpl in Hfb; rewrite Hfb.
+case (Req_dec b 0); intros Zb.
+now left.
+right; apply Rle_trans with (bpow (emin + 3 * prec-1)).
+rewrite bpow_powerRZ; right; f_equal.
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega.
+rewrite inj_abs; omega.
+apply Rle_trans with (bpow (emin + 3 * prec)).
+apply bpow_le; omega.
+apply U1; auto with real.
+unfold radix2 in Hfa, Hfc; simpl in Hfa, Hfc; rewrite Hfa, Hfc.
+case (Req_dec (a*c) 0); intros Zac.
+now left.
+right; apply Rle_trans with (bpow (emin + 3 * prec - 1)).
+rewrite bpow_powerRZ; right; f_equal.
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega.
+rewrite inj_abs; omega.
+apply Rle_trans with (2:=U2 Zac); auto with real.
+apply bpow_le; omega.
+(* *)
+rewrite <- Hfb in Hfp'; assumption.
+rewrite <- Hfa, <- Hfc in Hfq'; assumption.
+generalize Hft'.
+unfold p; rewrite <- Hfp''; unfold q; now rewrite <- Hfq''.
+generalize Hfv'.
+unfold p; rewrite <- Hfp''; unfold q; now rewrite <- Hfq''.
+intros Y.
+assert (Y' : d = round_flt (p - q)).
+unfold d; rewrite Rle_bool_true; try easy.
+now rewrite <- Hfv'', <- Hft'', <- Hfu''.
+apply EvenClosestCompatible with (p-q)
+   (RND_EvenClosest (make_bound radix2 prec emin) radix2 (Zabs_nat prec) (p-q)); try easy.
+apply make_bound_p; omega.
+apply RND_EvenClosest_correct; try easy.
+apply make_bound_p; omega.
+unfold p; rewrite <- Hfp''; unfold q; now rewrite <- Hfq''.
+replace 2%Z with (radix_val radix2) by easy.
+rewrite Hfd, Y'.
+rewrite pff_round_NE_is_round; try easy.
+2: apply make_bound_p; omega.
+2: apply FcanonicBound with radix2; try assumption.
+rewrite make_bound_Emin; try assumption.
+now replace (--emin)%Z with emin by omega.
+replace 2%Z with (radix_val radix2) by easy.
+rewrite Hfdp; unfold dp; now rewrite <- Hfb, Hfp''.
+replace 2%Z with (radix_val radix2) by easy.
+rewrite Hfdq; unfold dq; now rewrite <- Hfa, <- Hfc, Hfq''.
+intros _; generalize Hfs'.
+now rewrite <- Hfdp, <- Hfdq.
+intros Y.
+assert (Y' : d = round_flt (round_flt (p - q) + round_flt (dp - dq))).
+unfold d; rewrite Rle_bool_false; try easy.
+now rewrite <- Hfv'', <- Hft'', <- Hfu''.
+apply EvenClosestCompatible with (FtoR radix2 ft+FtoR radix2 fs)
+   (RND_EvenClosest (make_bound radix2 prec emin) radix2 (Zabs_nat prec) (FtoR radix2 ft+FtoR radix2 fs)); try easy.
+apply make_bound_p; omega.
+apply RND_EvenClosest_correct; try easy.
+apply make_bound_p; omega.
+replace 2%Z with (radix_val radix2) by easy.
+rewrite Hfd, Y'.
+rewrite pff_round_NE_is_round; try easy.
+2: apply make_bound_p; omega.
+rewrite make_bound_Emin; try assumption.
+replace (--emin)%Z with emin by omega.
+now rewrite Hfs'', Hft''.
+apply FcanonicBound with radix2; try assumption.
+right; f_equal.
+replace 2%Z with (radix_val radix2) by easy.
+rewrite Fulp_ulp; try easy.
+2: apply make_bound_p; omega.
+rewrite make_bound_Emin; try assumption.
+now replace (--emin)%Z with emin by omega.
+apply FcanonicBound with radix2; try assumption.
+Qed.
+
+
+End Discri2.
+
 
