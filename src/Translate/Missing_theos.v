@@ -2002,11 +2002,34 @@ apply generic_format_round...
 Qed.
 
 
-Lemma U5 : b * b <> 0 -> dp <> 0 -> dp - dq <> 0 ->
+Lemma U5 : b * b <> 0 -> a*c <> 0 -> dp - dq <> 0 ->
   bpow (emin + prec - 1) <= Rabs (round_flt (dp - dq)).
 Proof with auto with typeclass_instances.
 intros Z1 Z2 Z3.
 replace (emin+prec-1)%Z with ((emin+2*prec-1)-prec)%Z by ring.
+case (Req_dec dp 0); intros Zdp.
+(* *)
+case (Req_dec dq 0); intros Zdq.
+contradict Z3.
+rewrite Zdp, Zdq; ring.
+unfold Rminus; rewrite Rplus_comm; apply round_FLT_plus_ge...
+apply generic_format_opp, format_dq...
+apply format_dp...
+rewrite Rabs_Ropp.
+unfold dq; replace (a * c - q) with (-(q-a*c)) by ring.
+rewrite Rabs_Ropp; unfold q.
+apply mult_error_FLT_ge_bpow...
+omega.
+apply Rle_trans with (2:=U2 Z2).
+apply bpow_le; omega.
+replace (round_flt (a * c) - a * c) with (-dq).
+now apply Ropp_neq_0_compat.
+unfold dq, q; ring.
+apply round_plus_neq_0...
+apply generic_format_opp, format_dq.
+apply format_dp.
+now rewrite Rplus_comm.
+(* *)
 unfold Rminus; apply round_FLT_plus_ge...
 apply format_dp...
 apply generic_format_opp, format_dq...
@@ -2025,7 +2048,7 @@ apply generic_format_opp, format_dq.
 Qed.
 
 (** Correctness of d *)
-Theorem discri_r :
+Theorem discri_correct_test :
  Rabs (d-(b*b-a*c)) <= 2* ulp_flt d.
 Proof with auto with typeclass_instances.
 (* b*b=0 or a*c=0 *)
@@ -2083,17 +2106,6 @@ rewrite H; f_equal.
 unfold dp, dq; apply trans_eq with (b * b - a * c - (p-q)).
 rewrite Zpq; ring.
 ring.
-(* dp = 0 *)
-case (Req_dec dp 0); intros Zdp.
-
-admit.
-
-(* dp - dq = 0 *)
-case (Req_dec (dp-dq) 0); intros Zdpdq.
-
-admit.
-
-
 assert (precisionNotZero : (1 < prec)%Z) by omega.
 (* variables *)
 destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
@@ -2247,13 +2259,17 @@ apply FLT_format_bpow...
 omega.
 apply Rle_trans with (2:=U2 Zac).
 apply bpow_le; omega.
+case (Req_dec (dp-dq) 0); intros Zdpdq.
+left; apply trans_eq with (round_flt (dp - dq)).
+now rewrite <- Hfs''.
+rewrite Zdpdq, round_0...
 replace 2%Z with (radix_val radix2) by easy.
 right; apply CanonicGeNormal with prec; try assumption.
 apply make_bound_p; omega.
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega.
 rewrite Hfs''.
-apply U5; assumption.
+apply U5; try assumption.
 replace 2%Z with (radix_val radix2) by easy.
 apply CanonicGeNormal with prec; try assumption.
 apply make_bound_p; omega.
@@ -2316,7 +2332,7 @@ rewrite Fulp_ulp; try easy.
 rewrite make_bound_Emin; try assumption.
 now replace (--emin)%Z with emin by omega.
 apply FcanonicBound with radix2; try assumption.
-Admitted.
+Qed.
 
 
 End Discri1.
