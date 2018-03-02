@@ -1270,74 +1270,25 @@ Notation round_flt :=(round beta (FLT_exp emin prec) ZnearestE).
 Notation ulp_flt :=(ulp beta (FLT_exp emin prec)).
 
 
-Lemma F2R_ge: forall (y:float beta), 
-   (F2R y <> 0)%R -> (bpow beta (Fexp y) <= Rabs (F2R y))%R.
-Proof.
-intros (ny,ey).
-rewrite <- F2R_Zabs; unfold F2R; simpl.
-case (Zle_lt_or_eq 0 (Z.abs ny)).
-apply Z.abs_nonneg.
-intros Hy _.
-rewrite <- (Rmult_1_l (bpow _ _)) at 1.
-apply Rmult_le_compat_r.
-apply bpow_ge_0.
-apply IZR_le; omega.
-intros H1 H2; contradict H2.
-replace ny with 0%Z.
-simpl; ring.
-now apply sym_eq, Z.abs_0_iff, sym_eq.
-Qed.
 
 
-
-Lemma mult_error_FLT_ge: forall a b e, format a -> format b -> 
+Lemma mult_error_FLT_ge_bpow': forall a b e, format a -> format b ->
    a*b = 0 \/ bpow beta e <= Rabs (a*b) ->
    a*b-round_flt (a*b) = 0 \/
      bpow beta (e+1-2*prec) <= Rabs (a*b-round_flt (a*b)).
 Proof with auto with typeclass_instances.
 intros a b e Fa Fb H.
-pose (x:=a * b - round_flt (a * b)); fold x.
-case (Req_dec x 0); intros Zx.
-now left.
-case (Req_dec (a * b) 0); intros Zab.
-contradict Zx.
-unfold x; rewrite Zab, round_0...
+case (Req_dec (a * b - round_flt (a * b)) 0); intros Z1;[now left|right].
+rewrite <- Rabs_Ropp.
+replace (- (a * b - round_flt (a * b))) with (round_flt (a * b) - a*b) by ring.
+case H; intros H'.
+contradict Z1.
+rewrite H', round_0...
 ring.
-case H; clear H; intros H.
-now contradict H.
-right; generalize Zx.
-unfold x; rewrite Fa, Fb, <- F2R_mult.
-simpl (Fmult _ _ _).
-destruct (round_repr_same_exp beta (FLT_exp emin prec) 
- ZnearestE (Ztrunc (scaled_mantissa beta (FLT_exp emin prec) a) *
-             Ztrunc (scaled_mantissa beta (FLT_exp emin prec) b))
-      (cexp beta (FLT_exp emin prec) a +
-             cexp beta (FLT_exp emin prec) b)) as (n,Hn).
-rewrite Hn; clear Hn.
-rewrite <- F2R_minus, Fminus_same_exp.
-intros K.
-eapply Rle_trans with (2:=F2R_ge _ K).
-simpl (Fexp _).
-apply bpow_le.
-unfold cexp, FLT_exp.
-destruct (mag beta a) as (ea,Ha).
-destruct (mag beta b) as (eb,Hb).
-apply Zle_trans with ((ea-prec)+(eb-prec))%Z.
-replace ((ea-prec)+(eb-prec))%Z with ((-1+(ea+eb))+(1-2*prec))%Z by ring.
-rewrite <- Z.add_sub_assoc.
-apply Zplus_le_compat_r.
-assert (e < ea+eb)%Z;[idtac|omega].
-apply lt_bpow with beta.
-apply Rle_lt_trans with (1:=H).
-rewrite Rabs_mult, bpow_plus.
-apply Rmult_lt_compat.
-apply Rabs_pos.
-apply Rabs_pos.
-apply Ha.
-intros K'; apply Zab; rewrite K'; ring.
-apply Hb.
-intros K'; apply Zab; rewrite K'; ring.
-apply Zplus_le_compat; apply Z.le_max_l.
+apply mult_error_FLT_ge_bpow...
+apply Rle_trans with (2:=H'); apply bpow_le; omega.
+replace (round_flt (a * b) - a*b) with (- (a * b - round_flt (a * b))) by ring.
+now apply Ropp_neq_0_compat.
 Qed.
 
 
@@ -1377,7 +1328,6 @@ Proof with auto with typeclass_instances.
 intros Zax.
 unfold beta1; case U1; intros H.
 now contradict H.
-replace (emin+prec+1)%Z with ((emin+2*prec+1)-prec)%Z by ring.
 case (Req_dec (round_flt (u1 + alpha1)) 0%R); intros L;[now left|right].
 apply round_FLT_plus_ge; try assumption...
 apply generic_format_round...
@@ -1400,10 +1350,10 @@ apply mult_error_FLT...
 intros L; case U1; intros H; try easy.
 apply Rle_trans with (2:=H); apply bpow_le.
 omega.
-replace (emin+prec)%Z with ((emin+2*prec)-prec)%Z by ring.
 case (Req_dec (round_flt (y + u2)) 0%R); intros L;[now left|right].
 apply round_FLT_plus_ge...
-case U2; try easy.
+case U2; try easy; intros M.
+apply Rle_trans with (2:=M); apply bpow_le; omega.
 Qed.
 
 Lemma V2_Und5: a*x <> 0 -> r1 = 0 \/ bpow beta (emin + prec-1) <= Rabs r1.
@@ -1430,7 +1380,6 @@ contradict Zr1.
 unfold r1; replace (a*x)%R with (u1+u2)%R.
 2: unfold u2, u1; ring.
 now rewrite Zu2, Rplus_0_r.
-replace (emin+prec-1)%Z with ((emin +2*prec-1)-prec)%Z by ring.
 rewrite Rplus_comm; apply round_FLT_plus_ge...
 apply generic_format_round...
 apply Rle_trans with (2:=Hy).
@@ -1449,7 +1398,7 @@ apply bpow_le; omega.
 case (Req_dec (u1+y) 0); intros H1.
 replace (u1+u2+y) with (u1+y+u2) by ring.
 rewrite H1, Rplus_0_l.
-case (mult_error_FLT_ge a x (emin + 4 * prec - 3)); try assumption.
+case (mult_error_FLT_ge_bpow' a x (emin + 4 * prec - 3)); try assumption.
 intros H2; contradict Zr1.
 unfold r1; replace (a*x)%R with (u1+u2)%R.
 2: unfold u2, u1; ring.
@@ -1484,7 +1433,7 @@ unfold u1; unfold round.
 rewrite Fy, Fu2.
 rewrite <- F2R_plus, <- F2R_plus.
 intros L.
-apply Rle_trans with (2:=F2R_ge _ L).
+apply Rle_trans with (2:=F2R_ge _ _ L).
 rewrite 2!Fexp_Fplus.
 apply bpow_le.
 apply Z.min_glb.
@@ -1508,7 +1457,7 @@ apply Zle_trans with (FLT_exp emin prec (emin +2*prec-1)).
 unfold FLT_exp.
 rewrite Z.max_l; omega.
 apply cexp_ge_bpow...
-case (mult_error_FLT_ge a x (emin+4*prec-3)); try assumption.
+case (mult_error_FLT_ge_bpow' a x (emin+4*prec-3)); try assumption.
 intros Z; contradict Zu2.
 unfold u2, u1; easy.
 intros H2.
@@ -1949,15 +1898,13 @@ Lemma U3_discri1 : b * b <> 0 -> a * c <> 0 -> p - q <> 0 ->
    bpow (emin + 2*prec) <= Rabs (round_flt (p-q)).
 Proof with auto with typeclass_instances.
 intros Z1 Z2 Z3.
-replace (emin+2*prec)%Z with ((emin+3*prec)-prec)%Z by ring.
 unfold Rminus; apply round_FLT_plus_ge...
 apply generic_format_round...
 apply generic_format_opp, generic_format_round...
 apply abs_round_ge_generic...
 apply FLT_format_bpow...
 omega.
-(*apply Rle_trans with (2:=U1 Z1).
-apply bpow_le; omega.*)
+apply Rle_trans with (2:=U1 Z1); apply bpow_le; omega.
 apply round_plus_neq_0...
 apply generic_format_round...
 apply generic_format_opp, generic_format_round...
@@ -1970,10 +1917,10 @@ intros Z1 Z2 Z3; generalize Zd; unfold d.
 case (Rle_bool_spec _ _); intros H Z4.
 apply Rle_trans with (2:=U3_discri1 Z1 Z2 Z3).
 apply bpow_le; omega.
-replace (emin+prec)%Z with ((emin+2*prec)-prec)%Z by ring.
 apply round_FLT_plus_ge...
 apply generic_format_round...
 apply generic_format_round...
+replace (emin + prec + prec)%Z with (emin+2*prec)%Z by ring.
 apply U3_discri1; easy.
 Qed.
 
@@ -2044,7 +1991,6 @@ omega.
 unfold dp; replace (b * b - p) with (-(p-b*b)) by ring.
 rewrite Rabs_Ropp; unfold p.
 apply mult_error_FLT_ge_bpow...
-omega.
 apply Rle_trans with (2:=U1 Z1).
 apply bpow_le; omega.
 replace (round_flt (b * b) - b * b) with (-dp).
@@ -2055,7 +2001,6 @@ apply generic_format_opp, format_dq...
 unfold dp, p; ring.
 unfold dq; replace (-(a * c - q)) with (q-a*c) by ring.
 unfold q; apply mult_error_FLT_ge_bpow...
-omega.
 apply Rle_trans with (2:=U2 Z2).
 apply bpow_le; omega.
 replace (round_flt (a * c) - a * c) with (-dq).

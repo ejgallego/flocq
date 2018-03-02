@@ -18,7 +18,7 @@ COPYING file for more details.
 *)
 
 (** * Error of the multiplication is in the FLX/FLT format *)
-Require Import Core Operations.
+Require Import Core Operations Plus_error.
 
 Section Fprop_mult_error.
 
@@ -233,59 +233,65 @@ apply Ex.
 apply Ey.
 Qed.
 
-
+Lemma F2R_ge: forall (y:float beta),
+   (F2R y <> 0)%R -> (bpow (Fexp y) <= Rabs (F2R y))%R.
+Proof.
+intros (ny,ey).
+rewrite <- F2R_Zabs; unfold F2R; simpl.
+case (Zle_lt_or_eq 0 (Z.abs ny)).
+apply Z.abs_nonneg.
+intros Hy _.
+rewrite <- (Rmult_1_l (bpow _)) at 1.
+apply Rmult_le_compat_r.
+apply bpow_ge_0.
+apply IZR_le; omega.
+intros H1 H2; contradict H2.
+replace ny with 0%Z.
+simpl; ring.
+now apply sym_eq, Z.abs_0_iff, sym_eq.
+Qed.
 
 
 Theorem mult_error_FLT_ge_bpow :
   forall x y e,
   format x -> format y ->
-  (emin <= e + prec)%Z ->
   (bpow (e+2*prec-1) <= Rabs (x * y))%R ->
   (round beta (FLT_exp emin prec) rnd (x * y) - (x * y) <> 0)%R ->
   (bpow e <= Rabs (round beta (FLT_exp emin prec) rnd (x * y) - (x * y)))%R.
 Proof with auto with typeclass_instances.
 intros x y e.
 set (f := (round beta (FLT_exp emin prec) rnd (x * y))).
-intros Hx Hy He Hxy Hr0.
-destruct (Req_dec (x * y) 0) as [Hxy'|Hxy'].
-contradict Hr0.
-unfold f.
-rewrite Hxy'.
-rewrite round_0...
-ring.
-assert (Y:(bpow (emin + prec - 1) <= Rabs (x * y))%R).
-apply Rle_trans with (2:=Hxy); apply bpow_le.
-omega.
-(* *)
-destruct (mult_error_FLX_aux beta prec rnd x y) as ((m,i),(H1,(H2,H3))).
-now apply generic_format_FLX_FLT with emin.
-now apply generic_format_FLX_FLT with emin.
-rewrite <- (round_FLT_FLX beta emin); assumption.
-rewrite <- (round_FLT_FLX beta emin) in H1; try assumption.
-fold f in H1.
-rewrite <- H1.
-rewrite <- F2R_abs.
-apply Rle_trans with (bpow i).
-apply bpow_le; simpl in H3; rewrite H3.
-unfold Generic_fmt.cexp, FLX_exp.
-destruct (mag beta x) as (ex,Hex).
-destruct (mag beta y) as (ey,Hey); simpl.
-assert (e+2*prec-1 < ex+ey)%Z; try omega.
+intros Fx Fy H1.
+unfold f; rewrite Fx, Fy, <- F2R_mult.
+simpl (Fmult _ _ _).
+destruct (round_repr_same_exp beta (FLT_exp emin prec)
+ rnd (Ztrunc (scaled_mantissa beta (FLT_exp emin prec) x) *
+             Ztrunc (scaled_mantissa beta (FLT_exp emin prec) y))
+      (cexp x + cexp y)) as (n,Hn).
+rewrite Hn; clear Hn.
+rewrite <- F2R_minus, Fminus_same_exp.
+intros K.
+eapply Rle_trans with (2:=F2R_ge _ K).
+simpl (Fexp _).
+apply bpow_le.
+unfold cexp, FLT_exp.
+destruct (mag beta x) as (ex,Hx).
+destruct (mag beta y) as (ey,Hy).
+simpl; apply Zle_trans with ((ex-prec)+(ey-prec))%Z.
+2: apply Zplus_le_compat; apply Z.le_max_l.
+assert (e + 2*prec -1< ex+ey)%Z;[idtac|omega].
 apply lt_bpow with beta.
-apply Rle_lt_trans with (1:=Hxy).
+apply Rle_lt_trans with (1:=H1).
 rewrite Rabs_mult, bpow_plus.
 apply Rmult_lt_compat.
 apply Rabs_pos.
 apply Rabs_pos.
-apply Hex.
-contradict Hxy'; rewrite Hxy'; ring.
-apply Hey.
-contradict Hxy'; rewrite Hxy'; ring.
-apply bpow_le_F2R.
-apply gt_0_F2R with beta i.
-fold (Fabs beta (Float beta m i)).
-rewrite F2R_abs, H1.
-now apply Rabs_pos_lt.
+apply Hx.
+intros K'; contradict H1; apply Rlt_not_le.
+rewrite K', Rmult_0_l, Rabs_R0; apply bpow_gt_0.
+apply Hy.
+intros K'; contradict H1; apply Rlt_not_le.
+rewrite K', Rmult_0_r, Rabs_R0; apply bpow_gt_0.
 Qed.
 
 

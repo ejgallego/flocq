@@ -463,9 +463,9 @@ Context { prec_gt_0_ : Prec_gt_0 prec }.
 Lemma round_FLT_plus_ge :
   forall x y e,
   generic_format beta (FLT_exp emin prec) x -> generic_format beta (FLT_exp emin prec) y ->
-  (bpow e <= Rabs x)%R ->
+  (bpow (e+prec) <= Rabs x)%R ->
   (round beta (FLT_exp emin prec) rnd (x+y) <> 0)%R ->
-  (bpow (e - prec) <= Rabs (round beta (FLT_exp emin prec) rnd (x+y)))%R.
+  (bpow e <= Rabs (round beta (FLT_exp emin prec) rnd (x+y)))%R.
 Proof with auto with typeclass_instances.
 intros x y e Fx Fy He KK.
 assert (Zx:(x <> 0)%R).
@@ -480,7 +480,7 @@ rewrite <- mag_minus1; try assumption.
 unfold FLT_exp; apply bpow_le.
 apply Zle_trans with (2:=Z.le_max_l _ _).
 destruct (mag beta x) as (n,Hn); simpl.
-assert (e < n)%Z; try omega.
+assert (e + prec < n)%Z; try omega.
 apply lt_bpow with beta.
 apply Rle_lt_trans with (1:=He).
 now apply Hn.
@@ -493,10 +493,10 @@ Qed.
 Lemma round_FLT_plus_ge' :
   forall x y e,
   generic_format beta (FLT_exp emin prec) x -> generic_format beta (FLT_exp emin prec) y ->
-  (x <> 0%R -> (bpow e <= Rabs x)%R) ->
-  (x = 0%R -> y <> 0%R -> (bpow (e - prec) <= Rabs y)%R) ->
+  (x <> 0%R -> (bpow (e+prec) <= Rabs x)%R) ->
+  (x = 0%R -> y <> 0%R -> (bpow e <= Rabs y)%R) ->
   (round beta (FLT_exp emin prec) rnd (x+y) <> 0)%R ->
-  (bpow (e - prec) <= Rabs (round beta (FLT_exp emin prec) rnd (x+y)))%R.
+  (bpow e <= Rabs (round beta (FLT_exp emin prec) rnd (x+y)))%R.
 Proof with auto with typeclass_instances.
 intros x y e Fx Fy H1 H2 H3.
 case (Req_dec x 0); intros H4.
@@ -512,9 +512,9 @@ Qed.
 Lemma round_FLX_plus_ge :
   forall x y e,
   generic_format beta (FLX_exp prec) x -> generic_format beta (FLX_exp prec) y ->
-  (bpow e <= Rabs x)%R ->
+  (bpow (e+prec) <= Rabs x)%R ->
   (round beta (FLX_exp prec) rnd (x+y) <> 0)%R ->
-  (bpow (e - prec) <= Rabs (round beta (FLX_exp prec) rnd (x+y)))%R.
+  (bpow e <= Rabs (round beta (FLX_exp prec) rnd (x+y)))%R.
 Proof with auto with typeclass_instances.
 intros x y e Fx Fy He KK.
 assert (Zx:(x <> 0)%R).
@@ -528,7 +528,7 @@ unfold cexp.
 rewrite <- mag_minus1; try assumption.
 unfold FLX_exp; apply bpow_le.
 destruct (mag beta x) as (n,Hn); simpl.
-assert (e < n)%Z; try omega.
+assert (e + prec < n)%Z; try omega.
 apply lt_bpow with beta.
 apply Rle_lt_trans with (1:=He).
 now apply Hn.
