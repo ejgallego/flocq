@@ -633,13 +633,16 @@ Definition binop_nan_pl32 (f1 f2 : binary32) :=
   | _, _ => default_nan_pl32
   end.
 
-Definition b32_opp := Bopp 24 128 unop_nan_pl32.
-Definition b32_plus := Bplus _ _ Hprec Hprec_emax binop_nan_pl32.
-Definition b32_minus := Bminus _ _ Hprec Hprec_emax binop_nan_pl32.
-Definition b32_mult := Bmult _ _ Hprec Hprec_emax binop_nan_pl32.
-Definition b32_div := Bdiv _ _ Hprec Hprec_emax binop_nan_pl32.
-Definition b32_sqrt := Bsqrt _ _ Hprec Hprec_emax unop_nan_pl32.
+Definition b32_opp : binary32 -> binary32 := Bopp 24 128 unop_nan_pl32.
+Definition b32_abs : binary32 -> binary32 := Babs 24 128 unop_nan_pl32.
+Definition b32_sqrt :  mode -> binary32 -> binary32 := Bsqrt  _ _ Hprec Hprec_emax unop_nan_pl32.
 
+Definition b32_plus :  mode -> binary32 -> binary32 -> binary32 := Bplus  _ _ Hprec Hprec_emax binop_nan_pl32.
+Definition b32_minus : mode -> binary32 -> binary32 -> binary32 := Bminus _ _ Hprec Hprec_emax binop_nan_pl32.
+Definition b32_mult :  mode -> binary32 -> binary32 -> binary32 := Bmult  _ _ Hprec Hprec_emax binop_nan_pl32.
+Definition b32_div :   mode -> binary32 -> binary32 -> binary32 := Bdiv   _ _ Hprec Hprec_emax binop_nan_pl32.
+
+Definition b32_compare : binary32 -> binary32 -> option comparison := Bcompare 24 128.
 Definition b32_of_bits : Z -> binary32 := binary_float_of_bits 23 8 (refl_equal _) (refl_equal _) (refl_equal _).
 Definition bits_of_b32 : binary32 -> Z := bits_of_binary_float 23 8.
 
@@ -676,13 +679,16 @@ Definition binop_nan_pl64 (f1 f2 : binary64) :=
   | _, _ => default_nan_pl64
   end.
 
-Definition b64_opp := Bopp 53 1024 unop_nan_pl64.
-Definition b64_plus := Bplus _ _ Hprec Hprec_emax binop_nan_pl64.
-Definition b64_minus := Bminus _ _ Hprec Hprec_emax binop_nan_pl64.
-Definition b64_mult := Bmult _ _ Hprec Hprec_emax binop_nan_pl64.
-Definition b64_div := Bdiv _ _ Hprec Hprec_emax binop_nan_pl64.
-Definition b64_sqrt := Bsqrt _ _ Hprec Hprec_emax unop_nan_pl64.
+Definition b64_opp : binary64 -> binary64 := Bopp 53 1024 unop_nan_pl64.
+Definition b64_abs : binary64 -> binary64 := Babs 53 1024 unop_nan_pl64.
+Definition b64_sqrt : mode -> binary64 -> binary64 := Bsqrt _ _ Hprec Hprec_emax unop_nan_pl64.
 
+Definition b64_plus  : mode -> binary64 -> binary64 -> binary64 := Bplus  _ _ Hprec Hprec_emax binop_nan_pl64.
+Definition b64_minus : mode -> binary64 -> binary64 -> binary64 := Bminus _ _ Hprec Hprec_emax binop_nan_pl64.
+Definition b64_mult  : mode -> binary64 -> binary64 -> binary64 := Bmult  _ _ Hprec Hprec_emax binop_nan_pl64.
+Definition b64_div   : mode -> binary64 -> binary64 -> binary64 := Bdiv   _ _ Hprec Hprec_emax binop_nan_pl64.
+
+Definition b64_compare : binary64 -> binary64 -> option comparison := Bcompare 53 1024.
 Definition b64_of_bits : Z -> binary64 := binary_float_of_bits 52 11 (refl_equal _) (refl_equal _) (refl_equal _).
 Definition bits_of_b64 : binary64 -> Z := bits_of_binary_float 52 11.
 
