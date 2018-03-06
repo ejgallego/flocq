@@ -116,20 +116,24 @@ destruct (Z_lt_le_dec 1 m2') as [Hm2''|Hm2''].
   now constructor.
 Qed.
 
-Definition Fdiv m1 e1 m2 e2 :=
+Definition Fdiv (x y : float beta) :=
+  let (m1, e1) := x in
+  let (m2, e2) := y in
   let e' := ((Zdigits beta m1 + e1) - (Zdigits beta m2 + e2))%Z in
   let e := Zmin (Zmin (fexp e') (fexp (e' + 1))) (e1 - e2) in
   let '(m, l) := Fdiv_core m1 e1 m2 e2 e in
   (m, e, l).
 
 Theorem Fdiv_correct :
-  forall m1 e1 m2 e2,
-  (0 < m1)%Z -> (0 < m2)%Z ->
-  let '(m, e, l) := Fdiv m1 e1 m2 e2 in
-  (e <= cexp beta fexp (F2R (Float beta m1 e1) / F2R (Float beta m2 e2)))%Z /\
-  inbetween_float beta m e (F2R (Float beta m1 e1) / F2R (Float beta m2 e2)) l.
+  forall x y,
+  (0 < F2R x)%R -> (0 < F2R y)%R ->
+  let '(m, e, l) := Fdiv x y in
+  (e <= cexp beta fexp (F2R x / F2R y))%Z /\
+  inbetween_float beta m e (F2R x / F2R y) l.
 Proof.
-intros m1 e1 m2 e2 Hm1 Hm2.
+intros [m1 e1] [m2 e2] Hm1 Hm2.
+apply gt_0_F2R in Hm1.
+apply gt_0_F2R in Hm2.
 unfold Fdiv.
 generalize (mag_div_F2R m1 e1 m2 e2 Hm1 Hm2).
 set (e := Zminus _ _).

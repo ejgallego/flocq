@@ -164,20 +164,22 @@ now apply IZR_le.
 apply sqrt_ge_0.
 Qed.
 
-Definition Fsqrt m1 e1 :=
+Definition Fsqrt (x : float beta) :=
+  let (m1, e1) := x in
   let e' := (Zdigits beta m1 + e1 + 1)%Z in
   let e := Zmin (fexp (Z.div2 e')) (Z.div2 e1) in
-  let (m, l) := Fsqrt_core m1 e1 e in
+  let '(m, l) := Fsqrt_core m1 e1 e in
   (m, e, l).
 
 Theorem Fsqrt_correct :
-  forall m1 e1,
-  (0 < m1)%Z ->
-  let '(m, e, l) := Fsqrt m1 e1 in
-  (e <= cexp beta fexp (sqrt (F2R (Float beta m1 e1))))%Z /\
-  inbetween_float beta m e (sqrt (F2R (Float beta m1 e1))) l.
+  forall x,
+  (0 < F2R x)%R ->
+  let '(m, e, l) := Fsqrt x in
+  (e <= cexp beta fexp (sqrt (F2R x)))%Z /\
+  inbetween_float beta m e (sqrt (F2R x)) l.
 Proof.
-intros m1 e1 Hm1.
+intros [m1 e1] Hm1.
+apply gt_0_F2R in Hm1.
 unfold Fsqrt.
 set (e := Zmin _ _).
 assert (2 * e <= e1)%Z as He.
