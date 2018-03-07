@@ -251,7 +251,6 @@ simpl; ring.
 now apply sym_eq, Z.abs_0_iff, sym_eq.
 Qed.
 
-
 Theorem mult_error_FLT_ge_bpow :
   forall x y e,
   format x -> format y ->
@@ -263,7 +262,7 @@ intros x y e.
 set (f := (round beta (FLT_exp emin prec) rnd (x * y))).
 intros Fx Fy H1.
 unfold f; rewrite Fx, Fy, <- F2R_mult.
-simpl (Fmult _ _ _).
+simpl Fmult.
 destruct (round_repr_same_exp beta (FLT_exp emin prec)
  rnd (Ztrunc (scaled_mantissa beta (FLT_exp emin prec) x) *
              Ztrunc (scaled_mantissa beta (FLT_exp emin prec) y))
@@ -294,8 +293,4 @@ intros K'; contradict H1; apply Rlt_not_le.
 rewrite K', Rmult_0_r, Rabs_R0; apply bpow_gt_0.
 Qed.
 
-
 End Fprop_mult_error_FLT.
-
-
-

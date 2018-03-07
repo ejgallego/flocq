@@ -63,7 +63,7 @@ Lemma hombnd_plus :
   forall m M u1 v1 b1 B1 u2 v2 b2 B2,
   hombnd m M u1 v1 b1 B1 ->
   hombnd m M u2 v2 b2 B2 ->
-  hombnd m M (u1 + u2) (v1 + v2) (Fplus radix2 b1 b2) (Fplus radix2 B1 B2).
+  hombnd m M (u1 + u2) (v1 + v2) (Fplus b1 b2) (Fplus B1 B2).
 Proof.
 intros m M u1 v1 b1 B1 u2 v2 b2 B2 [H11 [H12 H1]] [H21 [H22 H2]].
 unfold hombnd.
@@ -87,7 +87,7 @@ Lemma hombnd_minus :
   forall m M u1 v1 b1 B1 u2 v2 b2 B2,
   hombnd m M u1 v1 b1 B1 ->
   hombnd m M u2 v2 b2 B2 ->
-  hombnd m M (u1 - u2) (v1 - v2) (Fplus radix2 b1 b2) (Fplus radix2 B1 B2).
+  hombnd m M (u1 - u2) (v1 - v2) (Fplus b1 b2) (Fplus B1 B2).
 Proof.
 intros m M u1 v1 b1 B1 u2 v2 b2 B2 H1 [H21 [H22 H2]].
 apply hombnd_plus with (1 := H1).
@@ -100,13 +100,13 @@ now split.
 Qed.
 
 Definition mult_err b1 B1 b2 B2 :=
-  Fplus radix2 (Fplus radix2 (Fmult radix2 b1 B2) (Fmult radix2 B1 b2)) (Fmult radix2 b1 b2).
+  Fplus (Fplus (Fmult b1 B2) (Fmult B1 b2)) (@Fmult radix2 b1 b2).
 
 Lemma hombnd_mult :
   forall m M1 u1 v1 b1 B1 M2 u2 v2 b2 B2,
   hombnd m M1 u1 v1 b1 B1 ->
   hombnd m M2 u2 v2 b2 B2 ->
-  hombnd m (M1 * M2) (u1 * u2) (v1 * v2) (mult_err b1 B1 b2 B2) (Fmult radix2 B1 B2).
+  hombnd m (M1 * M2) (u1 * u2) (v1 * v2) (mult_err b1 B1 b2 B2) (Fmult B1 B2).
 Proof.
 intros m M1 u1 v1 b1 B1 M2 u2 v2 b2 B2 [H11 [H12 H1]] [H21 [H22 H2]].
 unfold hombnd, mult_err.
@@ -147,7 +147,7 @@ now apply Rmult_le_compat ; try apply Rabs_pos.
 Qed.
 
 Definition round_err b B :=
-  Fplus radix2 (Fmult radix2 (Fplus radix2 b B) (Float radix2 1 (- prec))) b.
+  Fplus (Fmult (Fplus b B) (Float radix2 1 (- prec))) b.
 
 Lemma hombnd_rnd :
   forall m M u v b B,
@@ -278,7 +278,7 @@ Lemma hombnd_add :
   forall {m M u1 v1 b1 B1 u2 v2 b2 B2},
   hombnd' m M u1 v1 b1 B1 ->
   hombnd' m M u2 v2 b2 B2 ->
-  hombnd' m M (u1 + u2) (v1 + v2) (Fplus radix2 b1 b2) (Fplus radix2 B1 B2).
+  hombnd' m M (u1 + u2) (v1 + v2) (Fplus b1 b2) (Fplus B1 B2).
 Proof.
 apply hombnd_plus.
 Qed.
@@ -287,7 +287,7 @@ Lemma hombnd_sub :
   forall {m M u1 v1 b1 B1 u2 v2 b2 B2},
   hombnd' m M u1 v1 b1 B1 ->
   hombnd' m M u2 v2 b2 B2 ->
-  hombnd' m M (u1 - u2) (v1 - v2) (Fplus radix2 b1 b2) (Fplus radix2 B1 B2).
+  hombnd' m M (u1 - u2) (v1 - v2) (Fplus b1 b2) (Fplus B1 B2).
 Proof.
 apply hombnd_minus.
 Qed.
@@ -296,7 +296,7 @@ Lemma hombnd_mul :
   forall {m M1 u1 v1 b1 B1 M2 u2 v2 b2 B2},
   hombnd' m M1 u1 v1 b1 B1 ->
   hombnd' m M2 u2 v2 b2 B2 ->
-  hombnd' m (M1 * M2) (u1 * u2) (v1 * v2) (mult_err b1 B1 b2 B2) (Fmult radix2 B1 B2).
+  hombnd' m (M1 * M2) (u1 * u2) (v1 * v2) (mult_err b1 B1 b2 B2) (Fmult B1 B2).
 Proof.
 apply hombnd_mult.
 Qed.

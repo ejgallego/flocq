@@ -21,6 +21,9 @@ COPYING file for more details.
 
 Require Import Raux Defs Generic_fmt Float_prop Digits Bracket.
 
+Set Implicit Arguments.
+Set Strongly Strict Implicit.
+
 Section Fcalc_div.
 
 Variable beta : radix.

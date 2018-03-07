@@ -34,7 +34,7 @@ now apply F2R_ge_0.
 Qed.
 
 Definition plus (x y : float beta) :=
-  let (m, e) := Fplus beta x y in
+  let (m, e) := Fplus x y in
   let s := Zlt_bool m 0 in
   let '(m', e', l) := truncate beta fexp (Zabs m, e, loc_Exact) in
   Float beta (cond_Zopp s (choice s m' l)) e'.
@@ -46,7 +46,7 @@ Proof.
 intros x y.
 unfold plus.
 rewrite <- F2R_plus.
-destruct (Fplus beta x y) as [m e].
+destruct (Fplus x y) as [m e].
 rewrite (round_trunc_sign_any_correct beta fexp rnd choice rnd_choice _ (Zabs m) e loc_Exact).
 3: now right.
 destruct truncate as [[m' e'] l'].
@@ -57,7 +57,7 @@ apply sym_eq, F2R_Zabs.
 Qed.
 
 Definition mult (x y : float beta) :=
-  let (m, e) := Fmult beta x y in
+  let (m, e) := Fmult x y in
   let s := Zlt_bool m 0 in
   let '(m', e', l) := truncate beta fexp (Zabs m, e, loc_Exact) in
   Float beta (cond_Zopp s (choice s m' l)) e'.
@@ -69,7 +69,7 @@ Proof.
 intros x y.
 unfold mult.
 rewrite <- F2R_mult.
-destruct (Fmult beta x y) as [m e].
+destruct (Fmult x y) as [m e].
 rewrite (round_trunc_sign_any_correct beta fexp rnd choice rnd_choice _ (Zabs m) e loc_Exact).
 3: now right.
 destruct truncate as [[m' e'] l'].
@@ -81,7 +81,7 @@ Qed.
 
 Definition sqrt (x : float beta) :=
   if Zlt_bool 0 (Fnum x) then
-    let '(m', e', l) := truncate beta fexp (Fsqrt beta fexp x) in
+    let '(m', e', l) := truncate beta fexp (Fsqrt fexp x) in
     Float beta (choice false m' l) e'
   else Float beta 0 0.
 
@@ -92,7 +92,7 @@ Proof.
 intros x.
 unfold sqrt.
 case Zlt_bool_spec ; intros Hm.
-generalize (Fsqrt_correct beta fexp x (F2R_gt_0 _ _ Hm)).
+generalize (Fsqrt_correct fexp x (F2R_gt_0 _ _ Hm)).
 destruct Fsqrt as [[m' e'] l].
 intros [Hs1 Hs2].
 rewrite (round_trunc_sign_any_correct' beta fexp rnd choice rnd_choice _ m' e' l).
@@ -160,7 +160,7 @@ Qed.
 Definition div (x y : float beta) :=
   if Zeq_bool (Fnum x) 0 then Float beta 0 0
   else
-    let '(m, e, l) := truncate beta fexp (Fdiv beta fexp (Fabs _ x) (Fabs _ y)) in
+    let '(m, e, l) := truncate beta fexp (Fdiv fexp (Fabs x) (Fabs y)) in
     let s := xorb (Zlt_bool (Fnum x) 0) (Zlt_bool (Fnum y) 0) in
     Float beta (cond_Zopp s (choice s m l)) e.
 
@@ -178,16 +178,16 @@ case Zeq_bool_spec ; intros Hm.
   unfold Rdiv.
   rewrite Rmult_0_l.
   now apply round_0.
-assert (0 < F2R (Fabs _ x))%R as Hx.
+assert (0 < F2R (Fabs x))%R as Hx.
   destruct x as [mx ex].
   now apply F2R_gt_0, Z.abs_pos.
-assert (0 < F2R (Fabs _ y))%R as Hy'.
+assert (0 < F2R (Fabs y))%R as Hy'.
   destruct y as [my ey].
   apply F2R_gt_0, Z.abs_pos.
   contradict Hy.
   rewrite Hy.
   apply F2R_0.
-generalize (Fdiv_correct beta fexp (Fabs _ x) (Fabs _ y) Hx Hy').
+generalize (Fdiv_correct fexp _ _ Hx Hy').
 destruct Fdiv as [[m e] l].
 intros [Hs1 Hs2].
 rewrite (round_trunc_sign_any_correct' beta fexp rnd choice rnd_choice _ m e l).

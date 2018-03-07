@@ -20,6 +20,9 @@ COPYING file for more details.
 (** Basic operations on floats: alignment, addition, multiplication *)
 Require Import Raux Defs Float_prop.
 
+Set Implicit Arguments.
+Set Strongly Strict Implicit.
+
 Section Float_ops.
 
 Variable beta : radix.

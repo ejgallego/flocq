@@ -66,14 +66,14 @@ rewrite Hx, Hy.
 rewrite <- F2R_plus.
 apply generic_format_F2R.
 intros _.
-case_eq (Fplus beta fx fy).
+case_eq (Fplus fx fy).
 intros mxy exy Pxy.
 rewrite <- Pxy, F2R_plus, <- Hx, <- Hy.
 unfold cexp.
 replace exy with (fexp (Zmin ex ey)).
 apply monotone_exp.
 now apply mag_le_bpow.
-replace exy with (Fexp (Fplus beta fx fy)) by exact (f_equal Fexp Pxy).
+replace exy with (Fexp (Fplus fx fy)) by exact (f_equal Fexp Pxy).
 rewrite Fexp_Fplus.
 simpl. clear -monotone_exp.
 apply sym_eq.

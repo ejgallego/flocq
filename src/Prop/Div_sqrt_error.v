@@ -42,7 +42,7 @@ rewrite H; apply generic_format_0.
 rewrite Hx, Hy, <- F2R_plus.
 apply generic_format_F2R.
 intros _.
-case_eq (Fplus beta fx fy).
+case_eq (Fplus fx fy).
 intros mz ez Hz.
 rewrite <- Hz.
 apply Zle_trans with (Zmin (Fexp fx) (Fexp fy)).
@@ -84,7 +84,7 @@ destruct (canonical_generic_format _ _ x Hx) as (fx,(Hx1,Hx2)).
 destruct (canonical_generic_format _ _ y Hy) as (fy,(Hy1,Hy2)).
 destruct (canonical_generic_format beta (FLX_exp prec) (round beta (FLX_exp prec) rnd (x / y))) as (fr,(Hr1,Hr2)).
 apply generic_format_round...
-unfold Rminus; apply generic_format_plus_prec with fx (Fopp beta (Fmult beta fr fy)); trivial.
+unfold Rminus; apply generic_format_plus_prec with fx (Fopp (Fmult fr fy)); trivial.
 intros e; apply Zle_refl.
 now rewrite F2R_opp, F2R_mult, <- Hr1, <- Hy1.
 (* *)
@@ -114,7 +114,7 @@ unfold FLX_exp.
 ring_simplify.
 apply Zle_refl.
 (* *)
-replace (Fexp (Fopp beta (Fmult beta fr fy))) with (Fexp fr + Fexp fy)%Z.
+replace (Fexp (Fopp (Fmult fr fy))) with (Fexp fr + Fexp fy)%Z.
 2: unfold Fopp, Fmult; destruct fr; destruct fy; now simpl.
 replace (x + - (round beta (FLX_exp prec) rnd (x / y) * y))%R with
   (y * (-(round beta (FLX_exp prec) rnd (x / y) - x/y)))%R.
@@ -167,7 +167,7 @@ rewrite Hr; unfold Rsqr; ring_simplify (x-0*0)%R; assumption.
 destruct (canonical_generic_format _ _ x Hx) as (fx,(Hx1,Hx2)).
 destruct (canonical_generic_format beta (FLX_exp prec) (round beta (FLX_exp prec) (Znearest choice) (sqrt x))) as (fr,(Hr1,Hr2)).
 apply generic_format_round...
-unfold Rminus; apply generic_format_plus_prec with fx (Fopp beta (Fmult beta fr fr)); trivial.
+unfold Rminus; apply generic_format_plus_prec with fx (Fopp (Fmult fr fr)); trivial.
 intros e; apply Zle_refl.
 unfold Rsqr; now rewrite F2R_opp,F2R_mult, <- Hr1.
 (* *)
@@ -225,7 +225,7 @@ apply a.
 now apply Rgt_not_eq.
 now apply Rgt_ge.
 (* *)
-replace (Fexp (Fopp beta (Fmult beta fr fr))) with (Fexp fr + Fexp fr)%Z.
+replace (Fexp (Fopp (Fmult fr fr))) with (Fexp fr + Fexp fr)%Z.
 2: unfold Fopp, Fmult; destruct fr; now simpl.
 rewrite Hr1.
 replace (x + - Rsqr (F2R fr))%R with (-((F2R fr - sqrt x)*(F2R fr + sqrt x)))%R.

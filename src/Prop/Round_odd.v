@@ -682,14 +682,16 @@ simpl; now rewrite Fexp_d.
 Qed.
 
 
-Lemma m_eq: (0 < F2R d)%R ->  exists f:float beta,
-   F2R f = m /\ (Fexp f = fexp (mag beta x) -1)%Z.
+Lemma m_eq :
+  (0 < F2R d)%R ->
+  exists f:float beta,
+  F2R f = m /\ (Fexp f = fexp (mag beta x) - 1)%Z.
 Proof with auto with typeclass_instances.
 intros Y.
 specialize (Zeven_ex (radix_val beta)); rewrite Even_beta.
 intros (b, Hb); rewrite Zplus_0_r in Hb.
 destruct u'_eq as (u', (Hu'1,Hu'2)); trivial.
-exists (Fmult beta (Float beta b (-1)) (Fplus beta d u'))%R.
+exists (Fmult (Float beta b (-1)) (Fplus d u'))%R.
 split.
 rewrite F2R_mult, F2R_plus, Hu'1.
 unfold m; rewrite Rmult_comm.
@@ -700,9 +702,9 @@ simpl; field.
 apply Rgt_not_eq, Rmult_lt_reg_l with (1 := Rlt_0_2).
 rewrite Rmult_0_r, <- (mult_IZR 2), <-Hb.
 apply radix_pos.
-apply trans_eq with (-1+Fexp (Fplus beta d u'))%Z.
+apply trans_eq with (-1+Fexp (Fplus d u'))%Z.
 unfold Fmult.
-destruct  (Fplus beta d u'); reflexivity.
+destruct  (Fplus d u'); reflexivity.
 rewrite Zplus_comm; unfold Zminus; apply f_equal2.
 2: reflexivity.
 rewrite Fexp_Fplus.
@@ -717,7 +719,7 @@ Proof with auto with typeclass_instances.
 intros Y.
 specialize (Zeven_ex (radix_val beta)); rewrite Even_beta.
 intros (b, Hb); rewrite Zplus_0_r in Hb.
-exists (Fmult beta (Float beta b (-1)) u)%R.
+exists (Fmult (Float beta b (-1)) u)%R.
 split.
 rewrite F2R_mult; unfold m; rewrite <- Y, Rplus_0_l.
 rewrite Rmult_comm.
