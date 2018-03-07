@@ -753,7 +753,7 @@ apply bpow_gt_0.
 pattern x at 1; rewrite <- (Ropp_involutive x).
 apply Ropp_lt_contravar.
 apply pred_pos_lt_id.
-now auto with real.
+auto with real.
 Qed.
 
 
@@ -765,7 +765,7 @@ intros x Zx; unfold pred.
 pattern x at 2; rewrite <- (Ropp_involutive x).
 apply Ropp_lt_contravar.
 apply succ_gt_id.
-now auto with real.
+auto with real.
 Qed.
 
 Theorem succ_ge_id :
@@ -837,14 +837,13 @@ assert (Lex:(mag_val beta x (mag beta x) = ex)%Z).
 rewrite T; reflexivity.
 rewrite Lex in *.
 clear T; simpl in *; specialize (Hex H).
-rewrite Rabs_right in Hex.
-2: apply Rle_ge; apply Rlt_le; easy.
-assert (ex-1 < fexp ex  < ex)%Z.
-split ; apply (lt_bpow beta); rewrite <- M;[idtac|easy].
-destruct (proj1 Hex);[trivial|idtac].
-contradict Hx; auto with real.
+rewrite Rabs_pos_eq in Hex by now apply Rlt_le.
+assert (ex - 1 < fexp ex < ex)%Z.
+  split ; apply (lt_bpow beta) ; rewrite <- M by easy.
+  lra.
+  apply Hex.
 omega.
-rewrite 2!ulp_neq_0; try auto with real.
+rewrite 2!ulp_neq_0 by lra.
 apply f_equal.
 unfold cexp ; apply f_equal.
 case_eq (mag beta x); intros ex Hex T.
@@ -863,7 +862,7 @@ apply id_m_ulp_ge_bpow; trivial.
 rewrite ulp_neq_0; trivial.
 rewrite ulp_neq_0; trivial.
 right; unfold cexp; now rewrite Lex.
-contradict Hx; auto with real.
+lra.
 apply Rle_lt_trans with (2:=proj2 Hex).
 rewrite <- Rplus_0_r.
 apply Rplus_le_compat_l.
@@ -1078,8 +1077,7 @@ revert Heps; unfold ulp.
 rewrite Req_bool_true; trivial.
 case negligible_exp_spec.
 intros _ (H1,H2).
-absurd (0 < 0)%R; auto with real.
-now apply Rle_lt_trans with (1:=H1).
+exfalso ; lra.
 intros n Hn H.
 assert (fexp (mag beta eps) = fexp n).
 apply valid_exp; try assumption.
@@ -1145,9 +1143,7 @@ unfold round, scaled_mantissa, cexp.
 unfold ulp.
 rewrite Req_bool_true; trivial.
 case negligible_exp_spec.
-intros H2.
-intros J; absurd (0 < 0)%R; auto with real.
-apply Rlt_trans with eps; try assumption; apply Heps.
+lra.
 intros n Hn H.
 assert (fexp (mag beta eps) = fexp n).
 apply valid_exp; try assumption.

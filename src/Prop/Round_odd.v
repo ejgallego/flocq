@@ -814,8 +814,9 @@ now apply fexp_m_eq_0.
 Qed.
 
 
-Lemma DN_odd_d_aux: forall z, (F2R d<= z< F2R u)%R ->
-    Rnd_DN_pt (generic_format beta fexp) z (F2R d).
+Lemma DN_odd_d_aux :
+  forall z, (F2R d <= z < F2R u)%R ->
+  Rnd_DN_pt (generic_format beta fexp) z (F2R d).
 Proof with auto with typeclass_instances.
 intros z Hz1.
 replace (F2R d) with (round beta fexp Zfloor z).
@@ -826,22 +827,21 @@ intros Y; apply Rle_antisym; trivial.
 apply round_DN_pt...
 apply Hd.
 apply Hz1.
-intros Y; absurd (z < z)%R.
-auto with real.
+intros Y ; elim (Rlt_irrefl z).
 apply Rlt_le_trans with (1:=proj2 Hz1), Rle_trans with (1:=Y).
 apply round_DN_pt...
 Qed.
 
-Lemma UP_odd_d_aux: forall z, (F2R d< z <= F2R u)%R ->
-    Rnd_UP_pt (generic_format beta fexp) z (F2R u).
+Lemma UP_odd_d_aux :
+  forall z, (F2R d < z <= F2R u)%R ->
+  Rnd_UP_pt (generic_format beta fexp) z (F2R u).
 Proof with auto with typeclass_instances.
 intros z Hz1.
 replace (F2R u) with (round beta fexp Zceil z).
 apply round_UP_pt...
 case (Rnd_DN_UP_pt_split _ _ _ _ Hd Hu (round beta fexp Zceil z)).
 apply generic_format_round...
-intros Y; absurd (z < z)%R.
-auto with real.
+intros Y ; elim (Rlt_irrefl z).
 apply Rle_lt_trans with (2:=proj1 Hz1), Rle_trans with (2:=Y).
 apply round_UP_pt...
 intros Y; apply Rle_antisym; trivial.

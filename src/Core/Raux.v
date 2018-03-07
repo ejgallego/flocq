@@ -18,6 +18,7 @@ COPYING file for more details.
 *)
 
 (** * Missing definitions/lemmas *)
+Require Import Psatz.
 Require Export Reals ZArith.
 Require Export Zaux.
 
@@ -57,10 +58,8 @@ Theorem Rabs_minus_le:
   (Rabs (x-y) <= x)%R.
 Proof.
 intros x y Hx Hy.
-unfold Rabs; case (Rcase_abs (x - y)); intros H.
-apply Rplus_le_reg_l with x; ring_simplify; assumption.
-apply Rplus_le_reg_l with (-x)%R; ring_simplify.
-auto with real.
+apply Rabs_le.
+lra.
 Qed.
 
 Theorem Rplus_eq_reg_r :

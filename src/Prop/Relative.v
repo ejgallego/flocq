@@ -614,11 +614,10 @@ destruct (mag beta x) as (e,He); simpl.
 assert (e-1 < emin+prec)%Z.
 apply (lt_bpow beta).
 apply Rle_lt_trans with (2:=Hx).
-rewrite <- (Rabs_right x).
-apply He; auto with real.
-apply Rle_ge; now left.
+rewrite <- (Rabs_pos_eq x) by now apply Rlt_le.
+now apply He, Rgt_not_eq.
 omega.
-split;ring.
+split ; ring.
 Qed.
 
 End Fprop_relative_FLT.

@@ -320,18 +320,17 @@ apply Rle_refl.
 (* . *)
 destruct (Rle_or_lt 0 x).
 (* positive *)
-rewrite Rabs_right.
-rewrite Rabs_right; auto with real.
+rewrite Rabs_pos_eq with (1 := H1).
+rewrite Rabs_pos_eq.
 now apply (proj1 (H x)).
-apply Rle_ge.
 now apply (proj1 (H x)).
 (* negative *)
+apply Rlt_le in H1.
+rewrite Rabs_left1 with (1 := H1).
 rewrite Rabs_left1.
-rewrite Rabs_left1 ; auto with real.
 apply Ropp_le_contravar.
-apply (proj2 (H x)).
-auto with real.
-apply (proj2 (H x)) ; auto with real.
+now apply (proj2 (H x)).
+now apply (proj2 (H x)).
 Qed.
 
 Theorem Rnd_ZR_pt_monotone :
