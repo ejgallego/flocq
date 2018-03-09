@@ -1340,15 +1340,15 @@ apply generic_format_FLT.
 apply FLT_format_generic in Fx1; apply FLT_format_generic in Fx2...
 destruct Fx1 as [f Hf1 Hf2 Hf3].
 destruct Fx2 as [g Hg1 Hg2 Hg3].
-exists (Fplus beta f g).
+exists (Fplus f g).
 now rewrite F2R_plus, Hf1, Hg1.
 apply lt_IZR.
 rewrite abs_IZR.
 rewrite IZR_Zpower.
 2: auto with zarith.
-apply Rmult_lt_reg_r with (bpow (Fexp (Fplus beta f g))).
+apply Rmult_lt_reg_r with (bpow (Fexp (Fplus f g))).
 apply bpow_gt_0.
-apply Rle_lt_trans with (Rabs (F2R (Fplus beta f g))).
+apply Rle_lt_trans with (Rabs (F2R (Fplus f g))).
 right; unfold F2R; rewrite Rabs_mult.
 apply f_equal.
 apply sym_eq, Rabs_right.
@@ -1357,7 +1357,7 @@ rewrite F2R_plus, <- Hf1, <- Hg1.
 apply Rlt_le_trans with (1:=Y).
 rewrite <- bpow_plus.
 apply bpow_le.
-assert (emin <= Fexp (Fplus beta f g))%Z.
+assert (emin <= Fexp (Fplus f g))%Z.
 rewrite Fexp_Fplus.
 now apply Zmin_case.
 omega.
@@ -2155,12 +2155,12 @@ rewrite Hf1.
 apply Rle_trans with (1:=RRle_abs _).
 rewrite <- F2R_abs.
 unfold F2R; rewrite bpow_plus.
-replace (Fexp (Fabs beta f)) with (Fexp f).
+replace (Fexp (Fabs f)) with (Fexp f).
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 rewrite <- IZR_Zpower.
 left; apply IZR_lt.
-replace (Fnum (Fabs beta f)) with (Zabs (Fnum f)).
+replace (Fnum (Fabs f)) with (Zabs (Fnum f)).
 assumption.
 destruct f; unfold Fabs; reflexivity.
 omega.
@@ -2211,15 +2211,3 @@ omega.
 Qed.
 
 End Hyp_ok_.
-
-
-
-
-
-
-
-
-
-
-
-
