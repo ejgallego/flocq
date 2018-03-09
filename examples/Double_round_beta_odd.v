@@ -5,6 +5,7 @@ Require Import Fcore_defs.
 Require Import Fcore_generic_fmt.
 Require Import Fcalc_ops.
 Require Import Fcore_ulp.
+Require Fcore_FLX Fcore_FLT Fcore_FTZ.
 
 Require Import Fappli_double_round.
 
@@ -837,7 +838,7 @@ Qed.
 
 Section Double_round_mult_beta_odd_FLX.
 
-Require Import Fcore_FLX.
+Import Fcore_FLX.
 
 Variable prec : Z.
 Variable prec' : Z.
@@ -865,8 +866,8 @@ End Double_round_mult_beta_odd_FLX.
 
 Section Double_round_mult_beta_odd_FLT.
 
-Require Import Fcore_FLX.
-Require Import Fcore_FLT.
+Import Fcore_FLX.
+Import Fcore_FLT.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -898,7 +899,8 @@ End Double_round_mult_beta_odd_FLT.
 
 Section Double_round_mult_beta_odd_FTZ.
 
-Require Import Fcore_FTZ.
+Import Fcore_FLX.
+Import Fcore_FTZ.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -1170,7 +1172,7 @@ Qed.
 
 Section Double_round_plus_beta_odd_FLX.
 
-Require Import Fcore_FLX.
+Import Fcore_FLX.
 
 Variable prec : Z.
 Variable prec' : Z.
@@ -1214,8 +1216,8 @@ End Double_round_plus_beta_odd_FLX.
 
 Section Double_round_plus_beta_odd_FLT.
 
-Require Import Fcore_FLX.
-Require Import Fcore_FLT.
+Import Fcore_FLX.
+Import Fcore_FLT.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -1267,7 +1269,8 @@ End Double_round_plus_beta_odd_FLT.
 
 Section Double_round_plus_beta_odd_FTZ.
 
-Require Import Fcore_FTZ.
+Import Fcore_FLX.
+Import Fcore_FTZ.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -1548,7 +1551,7 @@ Qed.
 
 Section Double_round_sqrt_beta_odd_FLX.
 
-Require Import Fcore_FLX.
+Import Fcore_FLX.
 
 Variable prec : Z.
 Variable prec' : Z.
@@ -1575,8 +1578,8 @@ End Double_round_sqrt_beta_odd_FLX.
 
 Section Double_round_sqrt_beta_odd_FLT.
 
-Require Import Fcore_FLX.
-Require Import Fcore_FLT.
+Import Fcore_FLX.
+Import Fcore_FLT.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -1607,7 +1610,8 @@ End Double_round_sqrt_beta_odd_FLT.
 
 Section Double_round_sqrt_beta_odd_FTZ.
 
-Require Import Fcore_FTZ.
+Import Fcore_FLX.
+Import Fcore_FTZ.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -2276,7 +2280,7 @@ Qed.
 
 Section Double_round_div_beta_odd_rna_FLX.
 
-Require Import Fcore_FLX.
+Import Fcore_FLX.
 
 Variable prec : Z.
 Variable prec' : Z.
@@ -2307,8 +2311,8 @@ End Double_round_div_beta_odd_rna_FLX.
 
 Section Double_round_div_beta_odd_rna_FLT.
 
-Require Import Fcore_FLX.
-Require Import Fcore_FLT.
+Import Fcore_FLX.
+Import Fcore_FLT.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
@@ -2343,8 +2347,8 @@ End Double_round_div_beta_odd_rna_FLT.
 
 Section Double_round_div_beta_odd_rna_FTZ.
 
-Require Import Fcore_FLX.
-Require Import Fcore_FTZ.
+Import Fcore_FLX.
+Import Fcore_FTZ.
 
 Variable emin prec : Z.
 Variable emin' prec' : Z.
