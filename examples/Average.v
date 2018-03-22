@@ -846,83 +846,9 @@ Notation cexp := (canonic_exp radix2 (FLT_exp emin prec)).
 
 Definition average3 (x y : R) :=round_flt(x+round_flt(round_flt(y-x)/2)).
 
-Variables x y:R.
-Hypothesis Fx: format x.
-Hypothesis Fy: format y.
-
-Let a:=(x+y)/2.
-Let av:=average3 x y.
-
-
-Lemma average3_symmetry_Ropp: forall u v, average3 (-u) (-v) = - average3 u v.
-intros u v; unfold average3.
-replace (-v--u) with (-(v-u)) by ring.
-rewrite round_NE_opp.
-replace (- round_flt (v-u) / 2) with (- (round_flt (v-u) / 2)) by (unfold Rdiv; ring).
-rewrite round_NE_opp.
-replace (- u + - round_flt (round_flt (v - u) / 2)) with
-   (-(u+round_flt (round_flt (v - u) / 2))) by ring.
-apply round_NE_opp.
-Qed.
-
-
-Lemma average3_same_sign_1: 0 <= a -> 0 <= av.
-Proof with auto with typeclass_instances.
-intros H.
-apply round_ge_generic...
-apply generic_format_0.
-apply Rplus_le_reg_l with (-x).
-ring_simplify.
-apply round_ge_generic...
-now apply generic_format_opp.
-apply Rmult_le_reg_l with (1 := Rlt_0_2).
-apply Rle_trans with (-(2*x)).
-right; ring.
-apply Rle_trans with (round_flt (y - x)).
-2: right; field.
-apply round_ge_generic...
-apply generic_format_opp.
-now apply FLT_format_double...
-apply Rplus_le_reg_l with (2*x).
-apply Rmult_le_reg_r with (/2).
-lra.
-apply Rle_trans with 0;[right; ring|idtac].
-apply Rle_trans with (1:=H).
-right; unfold a, Rdiv; ring.
-Qed.
-
-Lemma average3_same_sign_2: a <= 0-> av <= 0.
-Proof with auto with typeclass_instances.
-intros H.
-apply round_le_generic...
-apply generic_format_0.
-apply Rplus_le_reg_l with (-x).
-ring_simplify.
-apply round_le_generic...
-now apply generic_format_opp.
-apply Rmult_le_reg_l with (1 := Rlt_0_2).
-apply Rle_trans with (-(2*x)).
-2: right; ring.
-apply Rle_trans with (round_flt (y - x)).
-right; field.
-apply round_le_generic...
-apply generic_format_opp.
-now apply FLT_format_double...
-apply Rplus_le_reg_l with (2*x).
-apply Rmult_le_reg_r with (/2).
-lra.
-apply Rle_trans with 0;[idtac|right; ring].
-apply Rle_trans with (2:=H).
-right; unfold a, Rdiv; ring.
-Qed.
-
-
-
-
 Lemma average3_between_aux: forall u v, format u -> format v -> u <= v ->
     u <= average3 u v <= v.
 Proof with auto with typeclass_instances.
-clear Fx Fy a av x y.
 intros x y Fx Fy M.
 split.
 (* . *)
@@ -1035,53 +961,17 @@ unfold Zminus; rewrite bpow_plus.
 reflexivity.
 Qed.
 
-Lemma average3_between: Rmin x y <= av <= Rmax x y.
-Proof with auto with typeclass_instances.
-case (Rle_or_lt x y); intros M.
-(* x <= y *)
-rewrite Rmin_left; try exact M.
-rewrite Rmax_right; try exact M.
-now apply average3_between_aux.
-(* y < x *)
-rewrite Rmin_right; try now left.
-rewrite Rmax_left; try now left.
-unfold av; rewrite <- (Ropp_involutive x); rewrite <- (Ropp_involutive y).
-rewrite average3_symmetry_Ropp.
-split; apply Ropp_le_contravar.
-apply average3_between_aux.
-now apply generic_format_opp.
-now apply generic_format_opp.
-apply Ropp_le_contravar; now left.
-apply average3_between_aux.
-now apply generic_format_opp.
-now apply generic_format_opp.
-apply Ropp_le_contravar; now left.
+Lemma average3_symmetry_Ropp: forall u v, average3 (-u) (-v) = - average3 u v.
+Proof.
+intros u v; unfold average3.
+replace (-v--u) with (-(v-u)) by ring.
+rewrite round_NE_opp.
+replace (- round_flt (v-u) / 2) with (- (round_flt (v-u) / 2)) by (unfold Rdiv; ring).
+rewrite round_NE_opp.
+replace (- u + - round_flt (round_flt (v - u) / 2)) with
+   (-(u+round_flt (round_flt (v - u) / 2))) by ring.
+apply round_NE_opp.
 Qed.
-
-
-Lemma average3_zero: a = 0 -> av = 0.
-Proof with auto with typeclass_instances.
-intros H.
-assert (y=-x).
-apply Rplus_eq_reg_l with x.
-apply Rmult_eq_reg_r with (/2).
-apply trans_eq with a.
-reflexivity.
-rewrite H; ring.
-lra.
-unfold av, average3.
-rewrite H0.
-replace (-x-x) with (-(2*x)) by ring.
-rewrite round_generic with (x:=(-(2*x)))...
-replace (-(2*x)/2) with (-x) by field.
-rewrite round_generic with (x:=-x)...
-replace (x+-x) with 0 by ring.
-apply round_0...
-now apply generic_format_opp.
-apply generic_format_opp.
-now apply FLT_format_double.
-Qed.
-
 
 Lemma average3_no_underflow_aux_aux: forall z:Z, (0 < z)%Z -> 
     (ZnearestE (Z2R z / 2) < z)%Z.
@@ -1185,7 +1075,7 @@ Lemma average3_no_underflow_aux2: forall u v, format u -> format v ->
     u <= v ->
    (bpow emin) <= Rabs ((u+v)/2) -> average3 u v <> 0.
 Proof with auto with typeclass_instances.
-clear Fx Fy a av x y; intros x y Fx Fy same_sign xLey H; unfold average3.
+intros x y Fx Fy same_sign xLey H; unfold average3.
 intros J.
 apply round_plus_eq_zero in J...
 2: apply generic_format_round...
@@ -1239,7 +1129,7 @@ Lemma average3_no_underflow_aux3: forall u v, format u -> format v ->
     (0 <= u /\ 0 <= v) \/ (u <= 0 /\ v <= 0) ->
    (bpow emin) <= Rabs ((u+v)/2) -> average3 u v <> 0.
 Proof with auto with typeclass_instances.
-clear Fx Fy a av x y; intros x y Fx Fy.
+intros x y Fx Fy.
 intros same_sign H.
 case (Rle_or_lt x y); intros H1.
 now apply average3_no_underflow_aux2.
@@ -1260,21 +1150,11 @@ unfold Rdiv; ring.
 Qed.
 
 
-Lemma average3_no_underflow: 
-  (0 <= x /\ 0 <= y) \/ (x <= 0 /\ y <= 0) ->
-  (bpow emin) <= Rabs a -> av <> 0.
-Proof with auto with typeclass_instances.
-intros; now apply average3_no_underflow_aux3.
-Qed.
-
-
-
 Lemma average3_correct_aux: forall u v, format u -> format v -> u <= v ->
      (0 <= u /\ 0 <= v) \/ (u <= 0 /\ v <= 0) ->
      0 < Rabs ((u+v)/2) < bpow emin ->
      Rabs (average3 u v -((u+v)/2)) <= 3/2 * ulp_flt ((u+v)/2).
 Proof with auto with typeclass_instances.
-clear Fx Fy x y a av.
 intros u v Fu Fv uLev same_sign.
 pose (b:=(u+v)/2); fold b.
 (* mostly forward proof *)
@@ -1430,13 +1310,10 @@ apply bpow_ge_0.
 lra.
 Qed.
 
-
-
 Lemma average3_correct_aux2: forall u v, format u -> format v -> u <= v ->
      (0 <= u /\ 0 <= v) \/ (u <= 0 /\ v <= 0) ->
      Rabs (average3 u v -((u+v)/2)) <= 3/2 * ulp_flt ((u+v)/2).
 Proof with auto with typeclass_instances.
-clear Fx Fy a av x y.
 intros u v Fu Fv uLev same_sign.
 pose (b:=(u+v)/2); fold b.
 assert (T: forall z, Rabs (2*z) = 2* Rabs z).
@@ -1630,6 +1507,119 @@ now apply (Z2R_le 0 3).
 lra.
 apply ulp_ge_0.
 Qed.
+
+Variables x y:R.
+Hypothesis Fx: format x.
+Hypothesis Fy: format y.
+
+Let a:=(x+y)/2.
+Let av:=average3 x y.
+
+Lemma average3_same_sign_1: 0 <= a -> 0 <= av.
+Proof with auto with typeclass_instances.
+intros H.
+apply round_ge_generic...
+apply generic_format_0.
+apply Rplus_le_reg_l with (-x).
+ring_simplify.
+apply round_ge_generic...
+now apply generic_format_opp.
+apply Rmult_le_reg_l with (1 := Rlt_0_2).
+apply Rle_trans with (-(2*x)).
+right; ring.
+apply Rle_trans with (round_flt (y - x)).
+2: right; field.
+apply round_ge_generic...
+apply generic_format_opp.
+now apply FLT_format_double...
+apply Rplus_le_reg_l with (2*x).
+apply Rmult_le_reg_r with (/2).
+lra.
+apply Rle_trans with 0;[right; ring|idtac].
+apply Rle_trans with (1:=H).
+right; unfold a, Rdiv; ring.
+Qed.
+
+Lemma average3_same_sign_2: a <= 0-> av <= 0.
+Proof with auto with typeclass_instances.
+intros H.
+apply round_le_generic...
+apply generic_format_0.
+apply Rplus_le_reg_l with (-x).
+ring_simplify.
+apply round_le_generic...
+now apply generic_format_opp.
+apply Rmult_le_reg_l with (1 := Rlt_0_2).
+apply Rle_trans with (-(2*x)).
+2: right; ring.
+apply Rle_trans with (round_flt (y - x)).
+right; field.
+apply round_le_generic...
+apply generic_format_opp.
+now apply FLT_format_double...
+apply Rplus_le_reg_l with (2*x).
+apply Rmult_le_reg_r with (/2).
+lra.
+apply Rle_trans with 0;[idtac|right; ring].
+apply Rle_trans with (2:=H).
+right; unfold a, Rdiv; ring.
+Qed.
+
+Lemma average3_between: Rmin x y <= av <= Rmax x y.
+Proof with auto with typeclass_instances.
+case (Rle_or_lt x y); intros M.
+(* x <= y *)
+rewrite Rmin_left; try exact M.
+rewrite Rmax_right; try exact M.
+now apply average3_between_aux.
+(* y < x *)
+rewrite Rmin_right; try now left.
+rewrite Rmax_left; try now left.
+unfold av; rewrite <- (Ropp_involutive x); rewrite <- (Ropp_involutive y).
+rewrite average3_symmetry_Ropp.
+split; apply Ropp_le_contravar.
+apply average3_between_aux.
+now apply generic_format_opp.
+now apply generic_format_opp.
+apply Ropp_le_contravar; now left.
+apply average3_between_aux.
+now apply generic_format_opp.
+now apply generic_format_opp.
+apply Ropp_le_contravar; now left.
+Qed.
+
+
+Lemma average3_zero: a = 0 -> av = 0.
+Proof with auto with typeclass_instances.
+intros H.
+assert (y=-x).
+apply Rplus_eq_reg_l with x.
+apply Rmult_eq_reg_r with (/2).
+apply trans_eq with a.
+reflexivity.
+rewrite H; ring.
+lra.
+unfold av, average3.
+rewrite H0.
+replace (-x-x) with (-(2*x)) by ring.
+rewrite round_generic with (x:=(-(2*x)))...
+replace (-(2*x)/2) with (-x) by field.
+rewrite round_generic with (x:=-x)...
+replace (x+-x) with 0 by ring.
+apply round_0...
+now apply generic_format_opp.
+apply generic_format_opp.
+now apply FLT_format_double.
+Qed.
+
+
+Lemma average3_no_underflow:
+  (0 <= x /\ 0 <= y) \/ (x <= 0 /\ y <= 0) ->
+  (bpow emin) <= Rabs a -> av <> 0.
+Proof with auto with typeclass_instances.
+intros; now apply average3_no_underflow_aux3.
+Qed.
+
 
 
 
