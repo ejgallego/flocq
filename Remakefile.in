@@ -27,7 +27,10 @@ FILES = \
 	Prop/Round_odd.v \
 	Prop/Double_rounding.v \
 	IEEE754/Binary.v \
-	IEEE754/Bits.v
+	IEEE754/Bits.v \
+	Translate/Pff.v \
+	Translate/Ftranslate_flocq2Pff.v \
+	Translate/Missing_theos.v
 
 OBJS = $(addprefix src/,$(addsuffix o,$(FILES)))
 
@@ -87,7 +90,7 @@ install:
 	prefix=@prefix@
 	exec_prefix=@exec_prefix@
 	mkdir -p @libdir@
-	for d in Core Calc Prop IEEE754; do mkdir -p @libdir@/$d; done
+	for d in Core Calc Prop IEEE754 Translate; do mkdir -p @libdir@/$d; done
 	for f in $(OBJS); do cp $f @libdir@/${f#src/}; done
 	( cd src && find . -type d -name ".coq-native" -exec cp -RT "{}" "@libdir@/{}" \; )
 

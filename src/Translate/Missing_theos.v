@@ -1,17 +1,7 @@
 Require Import Psatz.
-Require Import Float.Veltkamp.
-Require Import Float.RND.
-Require Export Float.Fast2Sum.
-Require Import Float.TwoSum.
-Require Import Float.FmaErr.
-Require Import Float.Dekker.
-Require Import Float.FmaErrApprox.
-Require Import Float.Axpy.
-Require Import Float.discriminant.
-Require Import Float.discriminant3.
 
 From Flocq Require Import Core Plus_error Mult_error Operations Sterbenz.
-Require Import Ftranslate_flocq2Pff.
+From Flocq Require Import Pff Ftranslate_flocq2Pff.
 
 Open Scope R_scope.
 
@@ -68,10 +58,10 @@ destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega; assumption.
 (* *)
-pose (Iplus := fun (f g:Float.float) => RND_Closest 
+pose (Iplus := fun (f g:Pff.float) => RND_Closest 
         (make_bound radix2 prec emin) radix2 (Zabs_nat prec) choice 
          (FtoR radix2 f + FtoR radix2 g)).
-pose (Iminus := fun (f g:Float.float) => RND_Closest 
+pose (Iminus := fun (f g:Pff.float) => RND_Closest 
         (make_bound radix2 prec emin) radix2 (Zabs_nat prec) choice 
          (FtoR radix2 f - FtoR radix2 g)).
 assert (H1: forall x y, FtoR 2 (Iplus x y) = round_flt (FtoR 2 x + FtoR 2 y)).
@@ -97,7 +87,7 @@ now rewrite Zopp_involutive.
 (* *)
 assert (K: FtoR 2 (Iminus fy (Iminus (Iplus fx fy) fx)) =
        FtoR 2 fx + FtoR 2 fy - FtoR 2 (Iplus fx fy)).
-apply Fast2Sum.Dekker with (make_bound radix2 prec emin) (Zabs_nat prec); try assumption.
+apply Pff.Dekker_FTS with (make_bound radix2 prec emin) (Zabs_nat prec); try assumption.
 apply Nat2Z.inj_lt.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
@@ -111,7 +101,8 @@ apply make_bound_p; omega.
 intros p q.
 apply FcanonicUnique with radix2 (make_bound radix2 prec emin) (Zabs_nat prec).
 apply radix_gt_1.
-apply notEqLt, lt_Zlt_inv.
+apply sym_not_eq, Nat.lt_neq.
+apply lt_Zlt_inv.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
 apply FcanonicFopp.
@@ -129,7 +120,7 @@ now rewrite round_N_opp_sym.
 intros p q.
 apply FcanonicUnique with radix2 (make_bound radix2 prec emin) (Zabs_nat prec).
 apply radix_gt_1.
-apply notEqLt, lt_Zlt_inv.
+apply sym_not_eq, Nat.lt_neq, lt_Zlt_inv.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
 apply RND_Closest_canonic.
@@ -144,7 +135,7 @@ rewrite H1,H2.
 rewrite Fopp_correct.
 f_equal; ring.
 (* . *)
-unfold Fast2Sum.FtoRradix.
+unfold Pff.FtoRradix.
 change 2%Z with (radix_val radix2).
 rewrite Hfx, Hfy; assumption.
 (* *)
@@ -201,10 +192,10 @@ destruct (format_is_pff_format radix2 (make_bound radix2 prec emin)
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega; assumption.
 (* *)
-pose (Iplus := fun (f g:Float.float) => RND_Closest 
+pose (Iplus := fun (f g:Pff.float) => RND_Closest 
         (make_bound radix2 prec emin) radix2 (Zabs_nat prec) choice 
          (FtoR radix2 f + FtoR radix2 g)).
-pose (Iminus := fun (f g:Float.float) => RND_Closest 
+pose (Iminus := fun (f g:Pff.float) => RND_Closest 
         (make_bound radix2 prec emin) radix2 (Zabs_nat prec) choice 
          (FtoR radix2 f - FtoR radix2 g)).
 assert (H1: forall x y, FtoR 2 (Iplus x y) = round_flt (FtoR 2 x + FtoR 2 y)).
@@ -242,14 +233,14 @@ apply Nat2Z.inj_lt.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
 (* . *)
-unfold TwoSum.FtoRradix.
+unfold FtoRradix.
 intros p q r s Fp Fq Fr Fs M1 M2.
 now rewrite 2!H1, M1, M2.
 (* . *)
 intros p q.
 apply FcanonicUnique with radix2 (make_bound radix2 prec emin) (Zabs_nat prec).
 apply radix_gt_1.
-apply notEqLt, lt_Zlt_inv.
+apply sym_not_eq, Nat.lt_neq, lt_Zlt_inv.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
 apply RND_Closest_canonic.
@@ -265,7 +256,7 @@ now rewrite 2!H1, Rplus_comm.
 intros p q.
 apply FcanonicUnique with radix2 (make_bound radix2 prec emin) (Zabs_nat prec).
 apply radix_gt_1.
-apply notEqLt, lt_Zlt_inv.
+apply sym_not_eq, Nat.lt_neq, lt_Zlt_inv.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
 apply FcanonicFopp.
@@ -283,7 +274,7 @@ now rewrite round_N_opp_sym.
 intros p q.
 apply FcanonicUnique with radix2 (make_bound radix2 prec emin) (Zabs_nat prec).
 apply radix_gt_1.
-apply notEqLt, lt_Zlt_inv.
+apply sym_not_eq, Nat.lt_neq, lt_Zlt_inv.
 rewrite inj_abs; simpl; omega.
 apply make_bound_p; omega.
 apply RND_Closest_canonic.
@@ -344,7 +335,7 @@ Let tx:=round_flt (x-hx).
 Lemma C_format: format (bpow s +1).
 Proof with auto with typeclass_instances.
 apply generic_format_FLT.
-exists (Float beta (Zpower beta s+1)%Z 0%Z); simpl.
+exists (Defs.Float beta (Zpower beta s+1)%Z 0%Z); simpl.
 unfold F2R; simpl.
 rewrite plus_IZR, IZR_Zpower; try omega.
 simpl; ring.
@@ -442,9 +433,11 @@ replace (Z.abs_nat (prec - s)) with (Z.abs_nat prec - Z.abs_nat s)%nat.
 rewrite <- (p'GivesBound beta (make_bound beta prec emin) (Zabs_nat s) (Zabs_nat prec)) at 2.
 simpl; easy.
 apply radix_gt_1.
+apply ZleLe; rewrite inj_abs; auto with zarith.
+apply ZleLe; rewrite inj_minus, 2!inj_abs, Zmax_r; simpl; auto with zarith.
 apply Nat2Z.inj.
-rewrite inj_abs; try omega.
-rewrite inj_minus, Zmax_r; rewrite 2!inj_abs; omega.
+rewrite inj_minus; repeat rewrite inj_abs; try omega.
+apply Zmax_r; omega.
 apply N2Z.inj.
 rewrite H4.
 rewrite Zabs2N.id_abs.
@@ -521,7 +514,7 @@ exact H3.
 apply Zpos_eq_iff.
 apply trans_eq with (Zpower_nat beta (Z.abs_nat prec - Z.abs_nat s)).
 rewrite <- p''GivesBound with (b:=make_bound beta prec emin) at 2.
-easy.
+simpl; auto.
 apply radix_gt_1.
 rewrite Zpower_Zpower_nat,Z2Pos.id.
 f_equal; apply sym_eq, Zabs2Nat.inj_sub; omega.
@@ -599,7 +592,7 @@ rewrite <- Zsucc_pred.
 apply inj_abs.
 apply Zpower_NR0.
 apply Zlt_le_weak; apply radix_gt_0.
-apply notEqLt, lt_Zlt_inv.
+apply sym_not_eq, Nat.lt_neq, lt_Zlt_inv.
 rewrite inj_abs.
 apply Zpower_nat_less.
 apply radix_gt_1.
@@ -627,11 +620,11 @@ Lemma underf_mult_aux:
   Fbounded b x ->
   Fbounded b y ->
    (bpow beta (e + 2 * prec - 1)%Z <= Rabs (FtoR beta x * FtoR beta y)) ->
-     (e <= Float.Fexp x + Float.Fexp y)%Z.
+     (e <= Pff.Fexp x + Pff.Fexp y)%Z.
 Proof.
 intros e x y Fx Fy H.
 assert (HH: forall z, Fbounded b z 
-   -> Rabs (FtoR beta z) < bpow beta (Float.Fexp z + prec)).
+   -> Rabs (FtoR beta z) < bpow beta (Pff.Fexp z + prec)).
 clear -precisionGt1 pGivesBound; intros z Hz.
 unfold FtoR; rewrite <- bpow_powerRZ.
 rewrite Rabs_mult, Rmult_comm.
@@ -645,7 +638,7 @@ rewrite <- abs_IZR, <- IZR_Zpower;[idtac|omega].
 apply IZR_lt.
 apply Zlt_le_trans with (1:=T1).
 rewrite Zpower_Zpower_nat; omega.
-assert (e+2*prec-1 < (Float.Fexp x+prec) +(Float.Fexp y +prec))%Z; try omega.
+assert (e+2*prec-1 < (Pff.Fexp x+prec) +(Pff.Fexp y +prec))%Z; try omega.
 (* *)
 apply lt_bpow with beta.
 apply Rle_lt_trans with (1:=H).
@@ -662,7 +655,7 @@ Lemma underf_mult_aux':
   Fbounded b x ->
   Fbounded b y ->
    (bpow beta (-dExp b + 2 * prec - 1)%Z <= Rabs (FtoR beta x * FtoR beta y)) ->
-     (-dExp b <= Float.Fexp x + Float.Fexp y)%Z.
+     (-dExp b <= Pff.Fexp x + Pff.Fexp y)%Z.
 Proof.
 intros.
 now apply underf_mult_aux.
@@ -904,11 +897,11 @@ assert (Z.div2 prec <= prec)%Z; try omega.
 rewrite Z.div2_div; apply Zlt_le_weak.
 apply Z_div_lt; omega.
 (* *)
-assert (D:(((- dExp (make_bound beta prec emin) <= Float.Fexp fx + Float.Fexp fy)%Z -> 
+assert (D:(((- dExp (make_bound beta prec emin) <= Pff.Fexp fx + Pff.Fexp fy)%Z -> 
         (FtoR beta fx * FtoR beta fy = FtoR beta fr + FtoR beta ft4)) /\
    Rabs (FtoR beta fx * FtoR beta fy - (FtoR beta fr + FtoR beta ft4)) <=
        7 / 2 * powerRZ beta (- dExp (make_bound beta prec emin)))).
-apply Dekker.Dekker with (Zabs_nat prec) fpx fqx fhx ftx fpy fqy fhy fty 
+apply Dekker with (Zabs_nat prec) fpx fqx fhx ftx fpy fqy fhy fty 
    fx1y1 fx1y2 fx2y1 fx2y2 ft1 ft2 ft3; try assumption.
 apply radix_gt_1.
 apply make_bound_p; omega.
@@ -1224,7 +1217,7 @@ rewrite Hfbe1'', Hfr1''; apply Hff'.
 rewrite Hfbe2; apply Hfga'.
 apply FcanonicUnique with (4:=Hfr1) (precision:=Zabs_nat prec).
 apply radix_gt_1.
-apply notEqLt.
+apply sym_not_eq, Nat.lt_neq.
 apply absolu_lt_nz; omega.
 apply make_bound_p; omega.
 apply RND_Closest_canonic.
@@ -1240,7 +1233,7 @@ apply make_bound_p; omega.
 rewrite Hfu1'', Hfal1''; fold u1; fold alpha1.
 apply FcanonicUnique with (4:=Hfbe1) (precision:=Zabs_nat prec).
 apply radix_gt_1.
-apply notEqLt.
+apply sym_not_eq, Nat.lt_neq.
 apply absolu_lt_nz; omega.
 apply make_bound_p; omega.
 apply RND_Closest_canonic.
@@ -2180,11 +2173,10 @@ apply FcanonicBound with radix2; try assumption.
 apply FcanonicBound with radix2; try assumption.
 apply FcanonicBound with radix2; try assumption.
 apply FcanonicBound with radix2; try assumption.
-apply FcanonicBound with radix2; try assumption.
 (* underflow *)
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega.
-assert (emin < Float.Fexp fd)%Z; try omega.
+assert (emin < Pff.Fexp fd)%Z; try omega.
 apply FloatFexp_gt with radix2 (make_bound radix2 prec emin) prec; try assumption.
 apply make_bound_p; omega.
 apply FcanonicBound with radix2; try assumption.
@@ -2192,7 +2184,7 @@ rewrite Hfd.
 apply U4_discri1; assumption.
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega.
-assert (emin < Float.Fexp ft)%Z; try omega.
+assert (emin < Pff.Fexp ft)%Z; try omega.
 apply FloatFexp_gt with radix2 (make_bound radix2 prec emin) prec; try assumption.
 apply make_bound_p; omega.
 now apply FcanonicBound with radix2.
@@ -2202,47 +2194,19 @@ apply bpow_le; omega.
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega.
 rewrite inj_abs;[idtac|omega].
-assert (emin +prec <= Float.Fexp fa +Float.Fexp fc)%Z; try omega.
-apply underf_mult_aux with radix2 (make_bound radix2 prec emin) prec; try easy.
-apply make_bound_p; omega.
-rewrite Hfa, Hfc.
-apply Rle_trans with (2:=U2 Zac).
-apply bpow_le; omega.
-rewrite make_bound_Emin; try assumption.
-replace (--emin)%Z with emin by omega.
-rewrite inj_abs; try omega.
-assert (emin +prec-1 < Float.Fexp fq)%Z; try omega.
-apply FloatFexp_gt with radix2 (make_bound radix2 prec emin) prec; try assumption.
-apply make_bound_p; omega.
-now apply FcanonicBound with radix2.
-rewrite Hfq''.
-apply abs_round_ge_generic...
-apply FLT_format_bpow...
-omega.
-apply Rle_trans with (2:=U2 Zac).
-apply bpow_le; omega.
-rewrite make_bound_Emin; try assumption.
-replace (--emin)%Z with emin by omega.
-rewrite inj_abs;[idtac|omega].
-assert (emin +prec <= Float.Fexp fb +Float.Fexp fb)%Z; try omega.
-apply underf_mult_aux with radix2 (make_bound radix2 prec emin) prec; try easy.
-apply make_bound_p; omega.
+replace 2%Z with (radix_val radix2) by easy.
 rewrite Hfb.
 apply Rle_trans with (2:=U1 Zbb).
-apply bpow_le; omega.
+rewrite <- bpow_powerRZ.
+apply bpow_le; simpl (radix_val radix2); omega.
 rewrite make_bound_Emin; try assumption.
 replace (--emin)%Z with emin by omega.
 rewrite inj_abs;[idtac|omega].
-assert (emin +prec-1 < Float.Fexp fp)%Z; try omega.
-apply FloatFexp_gt with radix2 (make_bound radix2 prec emin) prec; try assumption.
-apply make_bound_p; omega.
-now apply FcanonicBound with radix2.
-rewrite Hfp''.
-apply abs_round_ge_generic...
-apply FLT_format_bpow...
-omega.
-apply Rle_trans with (2:=U1 Zbb).
-apply bpow_le; omega.
+replace 2%Z with (radix_val radix2) by easy.
+rewrite Hfa, Hfc.
+apply Rle_trans with (2:=U2 Zac).
+rewrite <- bpow_powerRZ.
+apply bpow_le; simpl (radix_val radix2); omega.
 replace 2%Z with (radix_val radix2) by easy.
 right; apply CanonicGeNormal with prec; try assumption.
 apply make_bound_p; omega.
