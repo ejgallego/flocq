@@ -98,6 +98,62 @@ trivial.
 Qed.
 
 
+Lemma Zfloor_plus: forall (n:Z) y,
+  (Zfloor (IZR n+y) = n + Zfloor y)%Z.
+Proof.
+intros n y; unfold Zfloor.
+unfold Zminus; rewrite Zplus_assoc; f_equal.
+apply sym_eq, tech_up.
+rewrite plus_IZR.
+apply Rplus_lt_compat_l.
+apply archimed.
+rewrite plus_IZR, Rplus_assoc.
+apply Rplus_le_compat_l.
+apply Rplus_le_reg_r with (-y)%R.
+ring_simplify (y+1+-y)%R.
+apply archimed.
+Qed.
+
+Lemma Zceil_plus: forall (n:Z) y,
+  (Zceil (IZR n+y) = n + Zceil y)%Z.
+Proof.
+intros n y; unfold Zceil.
+rewrite Ropp_plus_distr, <- Ropp_Ropp_IZR.
+rewrite Zfloor_plus.
+ring.
+Qed.
+
+
+Lemma Zeven_abs: forall z, Z.even (Zabs z) = Z.even z.
+Proof.
+intros z; case (Zle_or_lt z 0); intros H1.
+rewrite Z.abs_neq; try assumption.
+apply Z.even_opp.
+rewrite Z.abs_eq; auto with zarith.
+Qed.
+
+
+
+
+Lemma Zrnd_odd_plus: forall x y, (x = IZR (Zfloor x)) ->
+    Z.even (Zfloor x) = true ->
+   (IZR (Zrnd_odd (x+y)) = x+IZR (Zrnd_odd y))%R.
+Proof.
+intros x y Hx H.
+unfold Zrnd_odd; rewrite Hx, Zfloor_plus.
+case (Req_EM_T y (IZR (Zfloor y))); intros Hy.
+rewrite Hy; repeat rewrite <- plus_IZR.
+repeat rewrite Zfloor_IZR.
+case (Req_EM_T _ _); intros K; easy.
+case (Req_EM_T _ _); intros K.
+contradict Hy.
+apply Rplus_eq_reg_l with (IZR (Zfloor x)).
+now rewrite K, plus_IZR.
+rewrite Z.even_add, H; simpl.
+case (Z.even (Zfloor y)).
+now rewrite Zceil_plus, plus_IZR.
+now rewrite plus_IZR.
+Qed.
 
 
 Section Fcore_rnd_odd.
@@ -781,8 +837,8 @@ assumption.
 intros H; unfold cexp; rewrite Hg2.
 rewrite mag_m_0; try assumption.
 apply Zle_trans with (1:=fexpe_fexp _).
-assert (fexp (mag beta (F2R u)-1) < fexp (mag beta (F2R u))+1)%Z;[idtac|omega].
-now apply fexp_m_eq_0.
+generalize (fexp_m_eq_0 Y).
+omega.
 Qed.
 
 
@@ -809,8 +865,8 @@ exists g; split; trivial.
 rewrite Hg2.
 rewrite mag_m_0; trivial.
 apply Zle_lt_trans with (1:=fexpe_fexp _).
-assert (fexp (mag beta (F2R u)-1) < fexp (mag beta (F2R u))+1)%Z;[idtac|omega].
-now apply fexp_m_eq_0.
+generalize (fexp_m_eq_0 Y).
+omega.
 Qed.
 
 
@@ -994,3 +1050,171 @@ rewrite <- Hu1; apply round_UP_pt...
 Qed.
 
 End Odd_prop.
+
+
+Section Odd_propbis.
+
+Variable beta : radix.
+Hypothesis Even_beta: Z.even (radix_val beta)=true.
+
+Variable emin prec:Z.
+Variable choice:Z->bool.
+
+Hypothesis prec_gt_1: (1 < prec)%Z.
+
+
+Notation format := (generic_format beta (FLT_exp emin prec)).
+Notation round_flt :=(round beta (FLT_exp emin prec) (Znearest choice)).
+Notation cexp_flt := (cexp beta (FLT_exp emin prec)).
+Notation fexpe k := (FLT_exp (emin-k) (prec+k)).
+
+
+
+Lemma Zrnd_odd_plus': forall x y,
+  (exists n:Z, exists e:Z, (x = IZR n*bpow beta e)%R /\ (1 <= e)%Z) ->
+   (IZR (Zrnd_odd (x+y)) = x+IZR (Zrnd_odd y))%R.
+Proof.
+intros x y (n,(e,(H1,H2))).
+apply Zrnd_odd_plus.
+rewrite H1.
+rewrite <- IZR_Zpower.
+2: auto with zarith.
+now rewrite <- mult_IZR, Zfloor_IZR.
+rewrite H1, <- IZR_Zpower.
+2: auto with zarith.
+rewrite <- mult_IZR, Zfloor_IZR.
+rewrite Z.even_mul.
+rewrite Z.even_pow.
+2: auto with zarith.
+rewrite Even_beta.
+apply Bool.orb_true_iff; now right.
+Qed.
+
+
+
+Theorem mag_round_odd: forall (x:R),
+ (emin < mag beta x)%Z ->
+  (mag_val beta _ (mag beta (round beta (FLT_exp emin prec) Zrnd_odd x))
+      = mag_val beta x (mag beta x))%Z.
+Proof with auto with typeclass_instances.
+intros x.
+assert (T:Prec_gt_0 prec).
+unfold Prec_gt_0; auto with zarith.
+case (Req_dec x 0); intros Zx.
+intros _; rewrite Zx, round_0...
+destruct (mag beta x) as (e,He); simpl; intros H.
+apply mag_unique; split.
+apply abs_round_ge_generic...
+apply FLT_format_bpow...
+auto with zarith.
+now apply He.
+assert (V:
+  (Rabs (round beta (FLT_exp emin prec) Zrnd_odd x) <= bpow beta e)%R).
+apply abs_round_le_generic...
+apply FLT_format_bpow...
+auto with zarith.
+left; now apply He.
+case V; try easy; intros K.
+assert (H0:Rnd_odd_pt beta (FLT_exp emin prec) x (round beta (FLT_exp emin prec) Zrnd_odd x)).
+apply round_odd_pt...
+destruct H0 as (_,HH); destruct HH as [H0|(H0,(g,(Hg1,(Hg2,Hg3))))].
+absurd (Rabs x < bpow beta e)%R.
+apply Rle_not_lt; right.
+now rewrite <- H0,K.
+now apply He.
+pose (gg:=Float beta (Zpower beta (e-FLT_exp emin prec (e+1))) (FLT_exp emin prec (e+1))).
+assert (Y1: F2R gg = bpow beta e).
+unfold F2R; simpl.
+rewrite IZR_Zpower.
+rewrite <- bpow_plus.
+f_equal; ring.
+assert (FLT_exp emin prec (e+1) <= e)%Z; [idtac|auto with zarith].
+unfold FLT_exp.
+apply Z.max_case_strong; auto with zarith.
+assert (Y2: canonical beta (FLT_exp emin prec) gg).
+unfold canonical; rewrite Y1; unfold gg; simpl.
+unfold cexp; now rewrite mag_bpow.
+assert (Y3: Fnum gg = Zabs (Fnum g)).
+apply trans_eq with (Fnum (Fabs g)).
+2: destruct g; unfold Fabs; now simpl.
+f_equal.
+apply canonical_unique with (FLT_exp emin prec); try assumption.
+destruct g; unfold Fabs; apply canonical_abs; easy.
+now rewrite Y1, F2R_abs, <- Hg1,K.
+assert (Y4: Z.even (Fnum gg) = true).
+unfold gg; simpl.
+rewrite Z.even_pow; try assumption.
+assert (FLT_exp emin prec (e+1) < e)%Z; [idtac|auto with zarith].
+unfold FLT_exp.
+apply Z.max_case_strong; auto with zarith.
+absurd (true = false).
+discriminate.
+rewrite <- Hg3.
+rewrite <- Zeven_abs.
+now rewrite <- Y3.
+Qed.
+
+Theorem fexp_round_odd: forall (x:R),
+  (cexp_flt (round beta (FLT_exp emin prec) Zrnd_odd x)
+      = cexp_flt x)%Z.
+Proof with auto with typeclass_instances.
+intros x.
+assert (G0:Valid_exp (FLT_exp emin prec)).
+apply FLT_exp_valid; unfold Prec_gt_0; auto with zarith.
+case (Req_dec x 0); intros Zx.
+rewrite Zx, round_0...
+case (Zle_or_lt (mag beta x) emin).
+unfold cexp; destruct (mag beta x) as (e,He); simpl.
+intros H; unfold FLT_exp at 4.
+rewrite Z.max_r.
+2: auto with zarith.
+apply Z.max_r.
+assert (G: Rabs (round beta (FLT_exp emin prec) Zrnd_odd x) = bpow beta emin).
+assert (G1: (Rabs (round beta (FLT_exp emin prec) Zrnd_odd x) <= bpow beta emin)%R).
+apply abs_round_le_generic...
+apply generic_format_bpow'...
+unfold FLT_exp; rewrite Z.max_r; auto with zarith.
+left; apply Rlt_le_trans with (bpow beta e).
+now apply He.
+now apply bpow_le.
+assert (G2: (0 <= Rabs (round beta (FLT_exp emin prec) Zrnd_odd x))%R).
+apply Rabs_pos.
+assert (G3: (Rabs (round beta (FLT_exp emin prec) Zrnd_odd x) <> 0)%R).
+assert (H0:Rnd_odd_pt beta (FLT_exp emin prec) x
+    (round beta (FLT_exp emin prec) Zrnd_odd x)).
+apply round_odd_pt...
+destruct H0 as (_,H0); destruct H0 as [H0|(_,(g,(Hg1,(Hg2,Hg3))))].
+apply Rgt_not_eq; rewrite H0.
+apply Rlt_le_trans with (bpow beta (e-1)).
+apply bpow_gt_0.
+now apply He.
+rewrite Hg1; intros K.
+contradict Hg3.
+replace (Fnum g) with 0%Z.
+easy.
+case (Z.eq_dec (Fnum g) Z0); intros W; try easy.
+contradict K.
+apply Rabs_no_R0.
+now apply F2R_neq_0.
+apply Rle_antisym; try assumption.
+apply Rle_trans with (succ beta (FLT_exp emin prec) 0).
+right; rewrite succ_0.
+rewrite ulp_FLT_small; try easy.
+unfold Prec_gt_0; auto with zarith.
+rewrite Rabs_R0; apply bpow_gt_0.
+apply succ_le_lt...
+apply generic_format_0.
+apply generic_format_abs; apply generic_format_round...
+case G2; [easy|intros; now contradict G3].
+rewrite <- mag_abs.
+rewrite G, mag_bpow; auto with zarith.
+intros H; unfold cexp.
+now rewrite mag_round_odd.
+Qed.
+
+
+
+
+End Odd_propbis.
+
+
