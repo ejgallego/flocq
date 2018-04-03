@@ -253,7 +253,7 @@ case (Z.even (Zfloor r));  simpl; ring.
 apply trans_eq with (Z.even (Zceil r)).
 rewrite Zceil_floor_neq.
 rewrite Z.even_add.
-simpl; reflexivity.
+destruct (Z.even (Zfloor r)); reflexivity.
 now apply sym_not_eq.
 rewrite <- (Z.even_opp (Zfloor (- r))).
 reflexivity.

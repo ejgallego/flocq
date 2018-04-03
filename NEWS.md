@@ -62,6 +62,19 @@ Version 3.0.0
   - `double_round_*_beta_ge_* -> round_round_*_radix_ge_*`
   - `double_round_* -> round_round_*`
 
+Version 2.6.1
+-------------
+
+* ensured compatibility from Coq 8.4 to 8.8
+
+Version 2.6.0
+-------------
+
+* ensured compatibility from Coq 8.4 to 8.7
+* removed some hypotheses on some lemmas of `Fcore_ulp`
+* added lemmas to `Fprop_plus_error`
+* improved examples
+
 Version 2.5.2
 -------------
 
