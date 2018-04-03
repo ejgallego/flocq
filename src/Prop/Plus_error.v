@@ -322,7 +322,7 @@ rewrite <- mag_minus1; try assumption.
 rewrite <- (mag_abs beta (x+y)).
 (* . *)
 assert (U:(Rabs (x+y) = Rabs x + Rabs y)%R \/ (y <> 0 /\ Rabs (x+y)=Rabs x - Rabs y)%R).
-assert (V: forall x y, (Rabs y <= Rabs x)%R -> 
+assert (V: forall x y, (Rabs y <= Rabs x)%R ->
    (Rabs (x+y) = Rabs x + Rabs y)%R \/ (y <> 0 /\ Rabs (x+y)=Rabs x - Rabs y)%R).
 clear; intros x y.
 case (Rle_or_lt 0 y); intros Hy.

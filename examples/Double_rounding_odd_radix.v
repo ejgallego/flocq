@@ -567,7 +567,7 @@ destruct (Rle_or_lt x (midp beta fexp1 x)) as [H1|H1].
       as [H2|H2].
     * (* midp fexp1 x + / 2 * ulp beta fexp2 x < x *)
       now apply round_round_gt_mid_further_place; [| | |omega| |rewrite Hm].
-    * (* x <= midp fexp1 x + / 2 * ulp beta fexp2 x *)    
+    * (* x <= midp fexp1 x + / 2 * ulp beta fexp2 x *)
       now apply neq_midpoint_beta_odd_aux2; [| | | |split].
 Qed.
 
@@ -1433,7 +1433,7 @@ destruct (Req_dec r 0) as [Zr|Nzr].
     apply (Zodd_not_Zeven 1); [now simpl|].
     rewrite <- H.
     now apply Zeven_mult_Zeven_l. }
-(* 0 < r *)    
+(* 0 < r *)
 assert (Pr : 0 < r) by lra.
 destruct (Zle_or_lt exx (2 * exsx)) as [H1|H1].
 - (* exx <= 2 * exsx *)
@@ -1842,7 +1842,7 @@ destruct (Req_dec rd 0) as [Zrd|Nzrd].
       apply Rplus_le_le_0_compat.
       + now apply Rlt_le.
       + apply Rmult_le_pos; [lra|].
-        apply bpow_ge_0. 
+        apply bpow_ge_0.
     - apply (Rmult_lt_reg_r (bpow (mag x))); [now apply bpow_gt_0|].
       rewrite Rmult_1_l; bpow_simplify.
       apply Rlt_le_trans with (/ 2 * (2 * u)).
@@ -1900,7 +1900,7 @@ destruct (Req_dec rd 0) as [Zrd|Nzrd].
   { rewrite Hlr.
     rewrite <- Ztrunc_floor.
     - apply generic_format_round; [exact Vfexp1|].
-      apply valid_rnd_DN. 
+      apply valid_rnd_DN.
     - now apply Rmult_le_pos; [apply Rlt_le|apply bpow_ge_0]. }
   change (bpow (fexp1 _)) with u in Hx2_3.
   rewrite <- Xmid' in Hx2_3.
@@ -2034,7 +2034,7 @@ destruct (Req_dec rd 0) as [Zrd|Nzrd].
     apply Rmult_lt_0_compat; [lra|apply bpow_gt_0].
   + rewrite plus_IZR; apply Rplus_le_compat_l; simpl.
     unfold u, ulp, cexp; fold f1; bpow_simplify; lra.
-Qed.      
+Qed.
 
 Lemma round_round_eq_mid_beta_odd_rna_aux2 :
   forall (fexp1 fexp2 : Z -> Z),

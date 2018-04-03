@@ -162,7 +162,7 @@ rewrite Zabs2N.id_abs.
 now apply Z.abs_neq.
 Qed.
 
-Lemma make_bound_p: 
+Lemma make_bound_p:
         Zpos (vNum (make_bound))=(Zpower_nat beta (Zabs_nat p)).
 Proof.
 unfold make_bound, vNum; simpl.
@@ -175,7 +175,7 @@ omega.
 Qed.
 
 
-Lemma FtoR_F2R: forall (f:Pff.float) (g: float beta), Pff.Fnum f = Fnum g -> Pff.Fexp f = Fexp g -> 
+Lemma FtoR_F2R: forall (f:Pff.float) (g: float beta), Pff.Fnum f = Fnum g -> Pff.Fexp f = Fexp g ->
   FtoR beta f = F2R g.
 Proof.
 intros f g H1 H2; unfold FtoR, F2R.
@@ -238,7 +238,7 @@ set (ex := cexp beta (FLT_exp (-dExp b) p) x).
 set (mx := Ztrunc (scaled_mantissa beta (FLT_exp (-dExp b) p) x)).
 intros Hx; repeat split ; simpl.
 apply lt_IZR.
-rewrite pGivesBound, IZR_Zpower_nat. 
+rewrite pGivesBound, IZR_Zpower_nat.
 apply Rmult_lt_reg_r with (bpow beta ex).
 apply bpow_gt_0.
 rewrite <- bpow_plus.
@@ -501,7 +501,7 @@ apply pff_round_NE_is_round.
 Qed.
 
 Lemma pff_round_UP_is_round: forall (r:R),
-  FtoR beta (RND_Max b beta (Z.abs_nat p) r) 
+  FtoR beta (RND_Max b beta (Z.abs_nat p) r)
              = round beta (FLT_exp (- dExp b) p) Zceil r.
 Proof with auto with typeclass_instances.
 intros r.
@@ -530,7 +530,7 @@ Qed.
 
 
 Lemma pff_round_DN_is_round: forall (r:R),
-  FtoR beta (RND_Min b beta (Z.abs_nat p) r) 
+  FtoR beta (RND_Min b beta (Z.abs_nat p) r)
              = round beta (FLT_exp (- dExp b) p) Zfloor r.
 Proof with auto with typeclass_instances.
 intros r.
@@ -627,7 +627,7 @@ apply pff_round_N_is_round.
 Qed.
 
 Lemma pff_round_is_round_N: forall r f, Closest b beta r f ->
-    exists (choice:Z->bool), 
+    exists (choice:Z->bool),
       FtoR beta f = round beta (FLT_exp (-dExp b) p) (Znearest choice) r.
 Proof with auto with typeclass_instances.
 intros r f Hf.

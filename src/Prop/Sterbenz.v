@@ -88,7 +88,7 @@ apply generic_format_abs_inv.
 rewrite Hxy.
 apply generic_format_bpow.
 apply valid_exp.
-case (Zmin_spec (mag beta x) (mag beta y)); intros (H1,H2); 
+case (Zmin_spec (mag beta x) (mag beta y)); intros (H1,H2);
    rewrite H2; now apply mag_generic_gt.
 Qed.
 

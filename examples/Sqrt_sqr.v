@@ -1117,7 +1117,7 @@ Qed.
 
 
 
-Lemma round_flx_sqr_sqrt_snd_deg: 
+Lemma round_flx_sqr_sqrt_snd_deg:
   (((radix_val beta=5)%Z /\ (3 < prec)%Z) \/ (5 < radix_val beta)%Z) ->
     sqrt (IZR beta) + / 4 * bpow (3 - prec) <=
       IZR beta * (2 - bpow (1 - prec)) / (2 * (2 + bpow (1 - prec))).
@@ -1821,7 +1821,7 @@ Proof with auto with typeclass_instances.
 intros x y Fx.
 assert (Y:Valid_exp (FLX_exp prec)).
 apply FLX_exp_valid; unfold Prec_gt_0; omega.
-assert (H: ((radix_val beta=5)%Z -> (3 < prec)%Z) \/ 
+assert (H: ((radix_val beta=5)%Z -> (3 < prec)%Z) \/
     ((radix_val beta=5)%Z /\ (prec=3)%Z)).
 case (Zle_lt_or_eq 3 prec); omega.
 case H; intros H'; clear H.

@@ -98,7 +98,7 @@ apply round_NE_pt...
 Qed.
 
 
-Lemma FLXN_le_exp: forall f1 f2:float beta, 
+Lemma FLXN_le_exp: forall f1 f2:float beta,
 ((Zpower beta (prec - 1) <= Zabs (Fnum f1) < Zpower beta prec)%Z) ->
 ((Zpower beta (prec - 1) <= Zabs (Fnum f2) < Zpower beta prec))%Z ->
 0 <= F2R f1 -> F2R f1 <= F2R f2 ->  (Fexp f1 <= Fexp f2)%Z.
@@ -215,8 +215,8 @@ Qed.
 
 Lemma t4_exact_aux: forall (f:float beta) g,
   (Z.abs (Fnum f) < Zpower beta prec)%Z
-   -> (0 <= g <= F2R f)%R 
-   -> (exists n:Z, (g=IZR n*bpow (Fexp f))%R) 
+   -> (0 <= g <= F2R f)%R
+   -> (exists n:Z, (g=IZR n*bpow (Fexp f))%R)
    -> format g.
 Proof with auto with typeclass_instances.
 intros f g Hf (Hg1,Hg2) (n,Hg3).
@@ -271,7 +271,7 @@ apply FLXN_format_generic in Fa...
 destruct Fa as [fa Hfa1 Hfa2].
 apply FLXN_format_generic in Fb...
 destruct Fb as [fb Hfb1 Hfb2].
-exists (Fnum fc -(Fnum fa*Zpower beta (Fexp fa-Fexp fc) 
+exists (Fnum fc -(Fnum fa*Zpower beta (Fexp fa-Fexp fc)
 -Fnum fb*Zpower beta (Fexp fb-Fexp fc)))%Z.
 rewrite Hfa1, Hfb1, Hfc1; unfold F2R; simpl.
 rewrite 2!minus_IZR.
@@ -399,14 +399,14 @@ now apply Rplus_le_le_0_compat.
 Qed.
 
 
-Lemma err_add2: forall x x2 y2 e2, err x2 y2 e2 
-  -> 0 <= e2 -> 0 <= y2 <= x 
+Lemma err_add2: forall x x2 y2 e2, err x2 y2 e2
+  -> 0 <= e2 -> 0 <= y2 <= x
   -> err (round_flx (x+x2)) (x+y2) (eps*(1+e2)+e2/2).
 Proof with auto with typeclass_instances.
 intros x x2 y2 e2 H2 H (Y1,Y2).
 replace (round_flx (x+x2) - (x+y2)) with ((round_flx (x+x2)-(x+x2))+(x2 - y2)) by ring.
 apply Rle_trans with (1:=Rabs_triang _ _).
-rewrite Rmult_plus_distr_r. 
+rewrite Rmult_plus_distr_r.
 apply Rplus_le_compat.
 apply Rle_trans with (eps*Rabs (x+x2)).
 apply err_init.
@@ -415,7 +415,7 @@ apply Rmult_le_compat_l.
 apply epsPos.
 replace (x+x2) with ((x + y2) +(x2-y2)) by ring.
 apply Rle_trans with (1:=Rabs_triang _ _).
-rewrite Rmult_plus_distr_r. 
+rewrite Rmult_plus_distr_r.
 rewrite Rmult_1_l.
 apply Rplus_le_compat_l.
 apply Rle_trans with (1:=H2).
@@ -445,7 +445,7 @@ Qed.
 
 
 
-Lemma err_mult: forall x1 y1 e1 x2 y2 e2, err x1 y1 e1 -> err x2 y2 e2 
+Lemma err_mult: forall x1 y1 e1 x2 y2 e2, err x1 y1 e1 -> err x2 y2 e2
   -> err (round_flx (x1*x2)) (y1*y2) (eps+(1+eps)*(e1+e2+e1*e2)).
 Proof with auto with typeclass_instances.
 intros x1 y1 e1 x2 y2 e2 H1 H2.
@@ -513,7 +513,7 @@ Qed.
 
 
 
-Lemma sqrt_var_maj_2: forall h : R, Rabs h <= /2 -> 
+Lemma sqrt_var_maj_2: forall h : R, Rabs h <= /2 ->
   Rabs (sqrt (1 + h) - 1) <= Rabs h / 2 + (Rabs h) * (Rabs h) / 4.
 Proof.
 intros h H1.
@@ -560,7 +560,7 @@ Qed.
 
 
 
-Lemma err_sqrt: forall x y e, 0 <= y -> e <= /2 -> err x y e 
+Lemma err_sqrt: forall x y e, 0 <= y -> e <= /2 -> err x y e
   -> err (round_flx (sqrt x)) (sqrt y) (eps+(1+eps)*(/2*e+/4*e*e)).
 Proof with auto with typeclass_instances.
 intros x y e Hy He H.
@@ -828,7 +828,7 @@ left; apply Rinv_0_lt_compat, Rmult_lt_0_compat; apply Rle_lt_0_plus_1; apply Rl
 apply sqrt_pos.
 Qed.
 
-Lemma Delta_correct_2 : radix_val beta=2%Z -> 
+Lemma Delta_correct_2 : radix_val beta=2%Z ->
     (Rabs (Delta - E_Delta) <= (19/4*eps+33*eps*eps) * E_Delta).
 Proof with auto with typeclass_instances.
 intros Hradix.
@@ -1125,8 +1125,8 @@ Qed.
 
 Lemma t4_exact_aux_: forall (f:float beta) g,
   (Z.abs (Fnum f) < Zpower beta prec)%Z
-   -> (0 <= g <= F2R f)%R 
-   -> (exists n:Z, (g=IZR n*bpow (Fexp f))%R) 
+   -> (0 <= g <= F2R f)%R
+   -> (exists n:Z, (g=IZR n*bpow (Fexp f))%R)
    -> (emin <= Fexp f)%Z
    -> format g.
 Proof with auto with typeclass_instances.
@@ -1189,8 +1189,8 @@ destruct Fa as [fa Hfa1 Hfa2].
 apply generic_format_FLX_FLT in Fb.
 apply FLXN_format_generic in Fb...
 destruct Fb as [fb Hfb1 Hfb2].
-exists (Fnum fc -(Fnum fa*Zpower beta (Fexp fa-Fexp fc) 
--Fnum fb*Zpower beta (Fexp fb-Fexp fc)))%Z. 
+exists (Fnum fc -(Fnum fa*Zpower beta (Fexp fa-Fexp fc)
+-Fnum fb*Zpower beta (Fexp fb-Fexp fc)))%Z.
 rewrite Hfa1, Hfb1, Hfc1; unfold F2R; simpl.
 rewrite 2!minus_IZR.
 rewrite 2!mult_IZR.
@@ -1275,7 +1275,7 @@ destruct Fa as [fa Hfa1 Hfa2 Hfa3].
 apply FLT_format_generic in Fb...
 destruct Fb as [fb Hfb1 Hfb2 Hfb3].
 rewrite Hgc2.
-exists (Fnum gc -(Fnum fa*Zpower beta (Fexp fa-emin) 
+exists (Fnum gc -(Fnum fa*Zpower beta (Fexp fa-emin)
 -Fnum fb*Zpower beta (Fexp fb -emin)))%Z.
 rewrite Hfa1, Hfb1, Hgc1; unfold F2R; simpl.
 rewrite Hgc2, 2!minus_IZR.
@@ -1337,7 +1337,7 @@ Qed.
 Notation err x y e := (Rabs (x - y) <= e * Rabs y).
 Notation eps :=(/2*bpow (1-prec)).
 
-Lemma err_add_no_err: forall x1 x2, 
+Lemma err_add_no_err: forall x1 x2,
     format x1 -> format x2
   -> err (round_flt (x1+x2)) (x1+x2) eps.
 Proof with auto with typeclass_instances.
@@ -1422,15 +1422,15 @@ repeat rewrite Rabs_right; try reflexivity; apply Rle_ge; try assumption.
 now apply Rplus_le_le_0_compat.
 Qed.
 
-Lemma err_add2_: forall x x2 y2 e2, err x2 y2 e2 
+Lemma err_add2_: forall x x2 y2 e2, err x2 y2 e2
   -> format x -> format x2
-  -> 0 <= e2 -> 0 <= y2 <= x 
+  -> 0 <= e2 -> 0 <= y2 <= x
   -> err (round_flt (x+x2)) (x+y2) (eps*(1+e2)+e2/2).
 Proof with auto with typeclass_instances.
 intros x x2 y2 e2 H2 Z1 Z2 H (Y1,Y2).
 replace (round_flt (x+x2) - (x+y2)) with ((round_flt (x+x2)-(x+x2))+(x2 - y2)) by ring.
 apply Rle_trans with (1:=Rabs_triang _ _).
-rewrite Rmult_plus_distr_r. 
+rewrite Rmult_plus_distr_r.
 apply Rplus_le_compat.
 apply Rle_trans with (eps*Rabs (x+x2)).
 now apply err_add_no_err.
@@ -1439,7 +1439,7 @@ apply Rmult_le_compat_l.
 apply epsPos.
 replace (x+x2) with ((x + y2) +(x2-y2)) by ring.
 apply Rle_trans with (1:=Rabs_triang _ _).
-rewrite Rmult_plus_distr_r. 
+rewrite Rmult_plus_distr_r.
 rewrite Rmult_1_l.
 apply Rplus_le_compat_l.
 apply Rle_trans with (1:=H2).
@@ -1463,8 +1463,8 @@ rewrite <- Rmult_assoc, Rinv_r.
 rewrite 2!Rabs_pos_eq ; lra.
 Qed.
 
-Lemma err_mult_aux: forall x1 y1 e1 x2 y2 e2, format x1 -> format x2 -> err x1 y1 e1 -> err x2 y2 e2 
-  -> err (round_flt (x1*x2)) (y1*y2) (eps+(1+eps)*(e1+e2+e1*e2)) 
+Lemma err_mult_aux: forall x1 y1 e1 x2 y2 e2, format x1 -> format x2 -> err x1 y1 e1 -> err x2 y2 e2
+  -> err (round_flt (x1*x2)) (y1*y2) (eps+(1+eps)*(e1+e2+e1*e2))
        \/ (Rabs (round_flt (x1*x2)) <= bpow (emin+prec-1)).
 Proof with auto with typeclass_instances.
 intros x1 y1 e1 x2 y2 e2 Hx1 Hx2 H1 H2.
@@ -1525,7 +1525,7 @@ apply Rmult_le_compat; try assumption; apply Rabs_pos.
 rewrite Rabs_mult; right; ring.
 Qed.
 
-Lemma err_mult_: forall x1 y1 e1 x2 y2 e2, format x1 -> format x2 -> err x1 y1 e1 -> err x2 y2 e2 
+Lemma err_mult_: forall x1 y1 e1 x2 y2 e2, format x1 -> format x2 -> err x1 y1 e1 -> err x2 y2 e2
   -> (bpow (emin+prec-1) < Rabs (round_flt (x1*x2)))
   -> err (round_flt (x1*x2)) (y1*y2) (eps+(1+eps)*(e1+e2+e1*e2)).
 Proof.
@@ -1580,7 +1580,7 @@ Qed.
 
 
 
-Lemma err_sqrt_: forall x y e, 0 <= y -> e <= /2 -> err x y e -> 
+Lemma err_sqrt_: forall x y e, 0 <= y -> e <= /2 -> err x y e ->
      bpow (emin+prec-1) < round_flt (sqrt x)
   -> err (round_flt (sqrt x)) (sqrt y) (eps+(1+eps)*(/2*e+/4*e*e)).
 Proof with auto with typeclass_instances.
@@ -1688,7 +1688,7 @@ apply Rle_ge, Hy.
 Qed.
 
 
-Lemma subnormal_aux: forall x y, format x -> (Rabs x <= 1 -> Rabs y <= 1) -> bpow (emin+prec-1) < Rabs (round_flt (x*y)) 
+Lemma subnormal_aux: forall x y, format x -> (Rabs x <= 1 -> Rabs y <= 1) -> bpow (emin+prec-1) < Rabs (round_flt (x*y))
    -> bpow (emin+prec-1) < Rabs x.
 Proof with auto with typeclass_instances.
 intros x y Fx H1 H2.
@@ -1874,7 +1874,7 @@ Qed.
 (* argh, would be simpler in radix 2  Delta = /4 * round_flx (sqrt M) *)
 
 
-Lemma Delta_correct_ : 
+Lemma Delta_correct_ :
   /4 * bpow (Zceil ((IZR (emin+prec-1))/2)) < Delta  ->
    (Rabs (Delta - E_Delta) <= (23/4*eps+38*eps*eps) * E_Delta).
 Proof with auto with typeclass_instances.
@@ -2024,7 +2024,7 @@ apply sqrt_pos.
 Qed.
 
 
-Lemma Delta_correct_2_ : radix_val beta=2%Z -> 
+Lemma Delta_correct_2_ : radix_val beta=2%Z ->
   bpow (Zceil ((IZR (emin+prec-1))/2) -2) < Delta  ->
   (Rabs (Delta - E_Delta) <= (19/4*eps+33*eps*eps) * E_Delta).
 Proof with auto with typeclass_instances.

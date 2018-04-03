@@ -78,7 +78,7 @@ apply Zle_trans with (1:=H3).
 apply Zle_succ.
 Qed.
 
-Lemma FLT_format_half: forall u, 
+Lemma FLT_format_half: forall u,
    format u -> bpow (prec+emin) <= Rabs u -> format (u/2).
 Proof with auto with typeclass_instances.
 intros u Fu H.
@@ -108,7 +108,7 @@ now apply IZR_lt.
 now apply Zlt_le_weak.
 Qed.
 
-Lemma FLT_round_half: forall z, bpow (prec+emin) <= Rabs z -> 
+Lemma FLT_round_half: forall z, bpow (prec+emin) <= Rabs z ->
    round_flt (z/2)= round_flt z /2.
 Proof with auto with typeclass_instances.
 intros z Hz.
@@ -252,7 +252,7 @@ apply bpow_le; omega.
 Qed.
 
 
-Lemma round_plus_small_id_aux: forall f h, format f -> (bpow (prec+emin) <= f) -> 0 < f 
+Lemma round_plus_small_id_aux: forall f h, format f -> (bpow (prec+emin) <= f) -> 0 < f
    -> Rabs h <= /4* ulp_flt f -> round_flt (f+h) = f.
 Proof with auto with typeclass_instances.
 intros f h Ff H1 H2 Hh.
@@ -309,8 +309,8 @@ apply mag_ge_bpow.
 replace (prec+emin+1-1)%Z with (prec+emin)%Z by ring.
 rewrite Rabs_right; try assumption.
 apply Rle_ge; now left.
-assert (T1:(ulp_flt (pred_flt f) = ulp_flt f) 
-     \/ ( ulp_flt (pred_flt f) = /2* ulp_flt f 
+assert (T1:(ulp_flt (pred_flt f) = ulp_flt f)
+     \/ ( ulp_flt (pred_flt f) = /2* ulp_flt f
                /\ f = bpow (mag radix2 f -1))).
 generalize H; rewrite pred_eq_pos; [idtac|now left].
 unfold pred_pos; case Req_bool_spec; intros K HH.
@@ -407,7 +407,7 @@ unfold cexp, FLT_exp.
 rewrite Z.max_l.
 reflexivity.
 omega.
-assert (T: (ulp_flt (pred_flt f) = ulp_flt f \/ 
+assert (T: (ulp_flt (pred_flt f) = ulp_flt f \/
               (ulp_flt (pred_flt f) = / 2 * ulp_flt f /\ - h < / 4 * ulp_flt f))
          \/ (ulp_flt (pred_flt f) = / 2 * ulp_flt f /\
               f = bpow (mag radix2 f - 1) /\
@@ -583,7 +583,7 @@ rewrite T3.
 field.
 Qed.
 
-Lemma round_plus_small_id: forall f h, format f -> (bpow (prec+emin) <= Rabs f)  
+Lemma round_plus_small_id: forall f h, format f -> (bpow (prec+emin) <= Rabs f)
    -> Rabs h <= /4* ulp_flt f -> round_flt (f+h) = f.
 intros f h Ff H1 H2.
 case (Rle_or_lt 0 f); intros V.
@@ -849,7 +849,7 @@ Variable emin prec : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 
 Notation format := (generic_format radix2 (FLT_exp emin prec)).
-Notation round_flt :=(round radix2 (FLT_exp emin prec) ZnearestE). 
+Notation round_flt :=(round radix2 (FLT_exp emin prec) ZnearestE).
 Notation ulp_flt :=(ulp radix2 (FLT_exp emin prec)).
 Notation cexp := (cexp radix2 (FLT_exp emin prec)).
 
@@ -1092,7 +1092,7 @@ now apply FLT_format_double.
 Qed.
 
 
-Lemma avg_half_sub_no_underflow_aux_aux: forall z:Z, (0 < z)%Z -> 
+Lemma avg_half_sub_no_underflow_aux_aux: forall z:Z, (0 < z)%Z ->
     (ZnearestE (IZR z / 2) < z)%Z.
 Proof.
 intros z H1.
@@ -1186,7 +1186,7 @@ omega.
 Qed.
 
 
-Lemma avg_half_sub_no_underflow_aux2: forall u v, format u -> format v -> 
+Lemma avg_half_sub_no_underflow_aux2: forall u v, format u -> format v ->
     (0 <= u /\ 0 <= v) \/ (u <= 0 /\ v <= 0) ->
     u <= v ->
    (bpow emin) <= Rabs ((u+v)/2) -> avg_half_sub u v <> 0.
@@ -1241,7 +1241,7 @@ rewrite <- H1; assumption.
 lra.
 Qed.
 
-Lemma avg_half_sub_no_underflow_aux3: forall u v, format u -> format v -> 
+Lemma avg_half_sub_no_underflow_aux3: forall u v, format u -> format v ->
     (0 <= u /\ 0 <= v) \/ (u <= 0 /\ v <= 0) ->
    (bpow emin) <= Rabs ((u+v)/2) -> avg_half_sub u v <> 0.
 Proof with auto with typeclass_instances.
@@ -1266,7 +1266,7 @@ unfold Rdiv; ring.
 Qed.
 
 
-Lemma avg_half_sub_no_underflow: 
+Lemma avg_half_sub_no_underflow:
   (0 <= x /\ 0 <= y) \/ (x <= 0 /\ y <= 0) ->
   (bpow emin) <= Rabs a -> av <> 0.
 Proof with auto with typeclass_instances.
@@ -1297,7 +1297,7 @@ change (bpow (-(1))) with (/2).
 field.
 assert (Z.abs (nu+nv) = 1)%Z.
 assert (0 < Z.abs (nu+nv) < 2)%Z;[idtac|omega].
-split; apply lt_IZR; simpl; rewrite abs_IZR; 
+split; apply lt_IZR; simpl; rewrite abs_IZR;
  apply Rmult_lt_reg_l with (bpow (emin-1)); try apply bpow_gt_0.
 rewrite Rmult_0_r.
 apply Rlt_le_trans with (1:=H1).
@@ -1637,7 +1637,7 @@ Qed.
 
 
 
-(* tight example x=1/2 and y=2^p-1: error is 5/4 ulp *) 
+(* tight example x=1/2 and y=2^p-1: error is 5/4 ulp *)
 
 Lemma avg_half_sub_correct: (0 <= x /\ 0 <= y) \/ (x <= 0 /\ y <= 0) ->
      Rabs (av-a) <= 3/2 * ulp_flt a.
@@ -1684,17 +1684,17 @@ Variable emin prec : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 
 Notation format := (generic_format radix2 (FLT_exp emin prec)).
-Notation round_flt :=(round radix2 (FLT_exp emin prec) ZnearestE). 
+Notation round_flt :=(round radix2 (FLT_exp emin prec) ZnearestE).
 Notation ulp_flt :=(ulp radix2 (FLT_exp emin prec)).
 Notation cexp := (cexp radix2 (FLT_exp emin prec)).
 
-Definition average (x y : R) := 
+Definition average (x y : R) :=
    let samesign :=  match (Rle_bool 0 x), (Rle_bool 0 y) with
         true  , true   => true
       | false , false => true
       | _,_ => false
    end in
-     if samesign then 
+     if samesign then
        match (Rle_bool (Rabs x) (Rabs y)) with
             true => avg_half_sub emin prec x y
           | false => avg_half_sub emin prec y x
@@ -1724,11 +1724,11 @@ intros; replace u with v; trivial; auto with real.
 intros H1 H2; contradict H1; auto with real.
 Qed.
 
-Lemma average_symmetry_Ropp: forall u v, format u -> format v -> 
+Lemma average_symmetry_Ropp: forall u v, format u -> format v ->
   average (-u) (-v) = - average u v.
 Proof with auto with typeclass_instances.
 (* first: nonnegative u *)
-assert (forall u v, 0 <= u -> format u -> format v -> 
+assert (forall u v, 0 <= u -> format u -> format v ->
   average (-u) (-v) = - average u v).
 intros u v Hu Fu Fv; unfold average.
 rewrite 2!Rabs_Ropp.
