@@ -77,7 +77,7 @@ examples/%.vo: examples/%.v
 
 clean:
 	rm -f $(OBJS) $(EOBJS) $(MOBJS) src/*.glob examples/*.glob
-	for d in src src/Core src/Calc src/Prop src/IEEE754 examples; do \
+	for d in src src/Core src/Calc src/Prop src/Pff src/IEEE754 examples; do \
 	  rm -f $d/.coq-native/*.o $d/.coq-native/*.cm*; done
 	find . -type d -name ".coq-native" -empty -prune -exec rmdir "{}" \;
 
@@ -87,6 +87,26 @@ html/index.html: $(OBJS)
 	@COQDOC@ -toc -interpolate -utf8 -html -g -R src Flocq -d html \
 	  --coqlib http://coq.inria.fr/distrib/current/stdlib/ \
 	  $(addprefix src/,$(FILES))
+
+deps.dot: $(addprefix src/,$(FILES)) Remakefile.in
+	(echo "digraph flocq_deps { pack=true; rank=max;"
+	echo "node [shape=ellipse, style=filled, URL=\"Flocq.\N.html\", color=black];"
+	echo '{ rank=same; "Core.Zaux"; "Core.Raux"; }'
+	echo '{ rank=same; "Core.FLX"; "Core.FIX"; "Core.Round_NE"; "Calc.Operations"; }'
+	echo '{ rank=same; "Core.FLT"; "Core.FTZ"; }'
+	echo '{ rank=same; "Core.Generic_fmt"; "Core.Ulp"; }'
+	echo '{ rank=same; "IEEE754.Binary"; "IEEE754.Bits"; }'
+	echo '{ rank=same; "Pff.Pff2FlocqAux"; "Pff.Pff2Flocq"; }'
+	(cd src ; @COQDEP@ -R . Flocq $(FILES)) |
+	  sed -n -e 's,/,.,g;s/[.]vo.*: [^ ]*[.]v//p' |
+	  while read src dst; do
+	    color=$$(echo "$src" | sed -e 's,Core.*,turquoise,;s,Calc.*,plum,;s,Prop.*,lightcoral,;s,Pff.*,yellow,;s,IEEE754.*,cornflowerblue,;s,Version.*,white,')
+	    echo "\"$src\" [fillcolor=$color];"
+	    for d in $dst; do
+	      echo "\"$src\" -> \"${d%.vo}\" ;"
+	    done
+	  done;
+	echo "}") | tred > $@
 
 doc: html/index.html
 

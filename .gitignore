@@ -4,6 +4,7 @@ ChangeLog
 config.log
 config.status
 configure
+deps.dot
 install-sh
 lia.cache
 Remakefile
