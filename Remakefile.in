@@ -71,6 +71,10 @@ configure config.status: configure.in
 	@COQDEP@ -R src Flocq $< | @REMAKE@ -r $@
 	@COQC@ -R src Flocq $<
 
+examples/%.vo: examples/%.v
+	@COQDEP@ -R src Flocq -R examples FlocqEx $< | @REMAKE@ -r $@
+	@COQC@ -R src Flocq -R examples FlocqEx $<
+
 clean:
 	rm -f $(OBJS) $(EOBJS) $(MOBJS) src/*.glob examples/*.glob
 	for d in src src/Core src/Calc src/Prop src/IEEE754 examples; do \

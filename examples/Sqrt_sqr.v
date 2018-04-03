@@ -1260,8 +1260,9 @@ apply Rplus_le_compat_r.
 apply IZR_le, kLe2.
 rewrite minus_IZR; simpl.
 generalize (beta); intros n.
-case (Z.even_odd_dec n); intros V.
-apply Z.even_ex_iff in V; destruct V as (m, Hm).
+destruct (Zeven_ex n) as [m Hm].
+destruct (Z.even n).
+rewrite Zplus_0_r in Hm.
 rewrite Hm, mult_IZR.
 replace (2*IZR m / 2) with (IZR m).
 rewrite Zceil_IZR.
@@ -1272,7 +1273,6 @@ apply Rlt_le, Rinv_0_lt_compat.
 apply Rle_lt_0_plus_1, Rlt_le, Rlt_0_1.
 apply Rlt_le, Rlt_0_1.
 simpl; field.
-apply Zodd_ex_iff in V; destruct V as (m, Hm).
 rewrite Hm, plus_IZR, mult_IZR.
 replace ((2*IZR m + 1)/2) with (IZR m+/2).
 replace (Zceil (IZR m + / 2)) with (m+1)%Z.
@@ -1333,8 +1333,7 @@ apply Hprec5; now rewrite G.
 apply Rle_trans with (- (IZR beta / 2) + IZR (beta)*2/(2+bpow (1-prec))).
 right; field.
 apply Rgt_not_eq.
-rewrite Rplus_comm, <- Rplus_assoc.
-apply Rle_lt_0_plus_1, Rlt_le, Rle_lt_0_plus_1, bpow_ge_0.
+generalize (bpow_gt_0 beta (1 - prec)) ; lra.
 apply Rplus_le_compat_l.
 apply Rle_trans with (2*sqrt (IZR beta) * ((sqrt (IZR beta) * bpow (e - 1))*bpow (1 - e) /(2+bpow (1-prec)))).
 apply Rle_trans with ((sqrt (IZR beta) * sqrt (IZR beta))
@@ -1345,16 +1344,14 @@ rewrite sqrt_sqrt.
 ring_simplify (e-1+(1-e))%Z.
 simpl; unfold Rdiv; right; simpl; ring.
 left; apply radix_pos.
-apply Rgt_not_eq; rewrite Rplus_comm, <- Rplus_assoc.
-apply Rle_lt_0_plus_1, Rlt_le, Rle_lt_0_plus_1, bpow_ge_0.
+generalize (bpow_gt_0 beta (1 - prec)) ; lra.
 apply Rmult_le_compat_l.
 apply Rmult_le_pos.
 apply Rlt_le, Rle_lt_0_plus_1, Rlt_le, Rlt_0_1.
 apply sqrt_pos.
 apply Rmult_le_compat_r.
 apply Rlt_le, Rinv_0_lt_compat.
-rewrite Rplus_comm, <- Rplus_assoc.
-apply Rle_lt_0_plus_1, Rlt_le, Rle_lt_0_plus_1, bpow_ge_0.
+generalize (bpow_gt_0 beta (1 - prec)) ; lra.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 now left.
@@ -1381,7 +1378,7 @@ assumption.
 apply round_flx_sqr_sqrt_aux2...
 apply kpos.
 rewrite ulp_neq_0; try now apply Rgt_not_eq.
-unfold k, canonic_exp, FLX_exp.
+unfold k, cexp, FLX_exp.
 destruct (mag beta x) as (e,He).
 simpl (mag_val beta x (Build_mag_prop beta x e He)) in *.
 apply Rle_lt_trans with (2 * IZR (Zceil (x * bpow (1 - e) / (2+bpow (1-prec))) - 1) *
@@ -1415,8 +1412,7 @@ ring_simplify (1 - e + (prec - 1 + (e - prec)))%Z.
 simpl (bpow 0); rewrite Rmult_1_r.
 right; field.
 apply Rgt_not_eq.
-rewrite Rplus_comm, <- Rplus_assoc; apply Rle_lt_0_plus_1.
-apply Rlt_le, Rle_lt_0_plus_1, bpow_ge_0.
+generalize (bpow_gt_0 beta (1 - prec)) ; lra.
 Qed.
 
 End Sec3.
@@ -1630,7 +1626,7 @@ Qed.
 
 End Sec5.
 Require Import Compute.
-Require Import Flocq.Calc.Fcalc_bracket Flocq.Calc.Fcalc_round Flocq.Calc.Fcalc_ops Flocq.Calc.Fcalc_div.
+From Flocq Require Import Bracket Round Operations Div.
 
 
 Section Sec6.
@@ -1650,13 +1646,12 @@ unfold x, rnd.
 set (r c (s : bool) m l := cond_incr (round_N (if s then negb (c (- (m + 1))%Z) else c m) l) m).
 rewrite mult_correct with (choice := r c2)...
 2: intros x' m l H ; now apply inbetween_int_N_sign.
-rewrite sqrt_correct with (prec := prec) (choice := r c1)...
-2: intros e ; apply Zle_refl.
+rewrite sqrt_correct with (fexp := FLX_exp prec) (choice := r c1)...
 2: intros x' m l H ; now apply inbetween_int_N_sign.
 apply Rminus_diag_uniq.
 rewrite <- F2R_minus.
-set (f mx := let x := Float beta mx 0 in Fminus beta
-  (sqrt beta (FLX_exp prec) prec (r c1) (mult beta (FLX_exp prec) (r c2) x x)) x).
+set (f mx := let x := Float beta mx 0 in Fminus
+  (sqrt beta (FLX_exp prec) (r c1) (mult beta (FLX_exp prec) (r c2) x x)) x).
 fold (f mx).
 assert (Fnum (f mx) = Z0).
 clear x.
@@ -1705,8 +1700,8 @@ intros rnd Hrnd x e.
 case (Req_dec x 0); intros Hx.
 rewrite Hx, Rmult_0_l, round_0...
 ring.
-unfold round, FLX_exp, scaled_mantissa, canonic_exp.
-rewrite ln_beta_mult_bpow; try exact Hx.
+unfold round, FLX_exp, scaled_mantissa, cexp.
+rewrite mag_mult_bpow; try exact Hx.
 unfold F2R; simpl.
 rewrite Rmult_assoc; rewrite <- bpow_plus.
 rewrite Rmult_assoc; rewrite <- bpow_plus.
@@ -1720,7 +1715,7 @@ Lemma round_FLX_gt_0: forall rnd, Valid_rnd rnd -> Prec_gt_0 prec ->
   forall x, 0 < x -> 0 < round beta (FLX_exp prec) rnd x.
 Proof with auto with typeclass_instances.
 intros rnd Hrnd Hprec x Hx.
-destruct (ln_beta beta x) as (e,He).
+destruct (mag beta x) as (e,He).
 apply Rlt_le_trans with (round beta (FLX_exp prec) rnd (bpow (e-1))).
 rewrite round_generic...
 apply bpow_gt_0.
@@ -1758,7 +1753,7 @@ intros x Hx Fx.
 rewrite Fx.
 unfold F2R; simpl.
 pose (m:=(Ztrunc (scaled_mantissa beta (FLX_exp prec) x))).
-pose (e:=(canonic_exp beta (FLX_exp prec) x)).
+pose (e := cexp beta (FLX_exp prec) x).
 fold m; fold e.
 replace (IZR m * bpow e * (IZR m * bpow e)) with
   ((IZR m * IZR m)*(bpow e*bpow e)) by ring.
@@ -1780,9 +1775,9 @@ apply Zfloor_lub; simpl; easy.
 apply lt_IZR.
 apply Rle_lt_trans with (1:=Zfloor_lb _).
 rewrite <- (Rabs_right (scaled_mantissa _ _ _)); try (apply Rle_ge; easy).
-apply Rlt_le_trans with (1:=abs_scaled_mantissa_lt_bpow _ _ _).
-unfold canonic_exp, FLX_exp.
-ring_simplify (ln_beta beta x - (ln_beta beta x - prec))%Z.
+apply Rlt_le_trans with (1 := scaled_mantissa_lt_bpow _ _ _).
+unfold cexp, FLX_exp.
+ring_simplify (mag beta x - (mag beta x - prec))%Z.
 rewrite H2; simpl.
 unfold Z.pow_pos; simpl; rewrite H1.
 simpl; right; ring.
@@ -1830,7 +1825,7 @@ destruct H' as (H1,H2).
 apply Rabs_le_inv.
 apply abs_round_le_generic...
 apply generic_format_FLX.
-exists (Float beta 1 0); split.
+exists (Float beta 1 0).
 unfold F2R; simpl; ring.
 simpl.
 apply Zpower_gt_1; omega.
