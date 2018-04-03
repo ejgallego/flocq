@@ -222,6 +222,19 @@ now apply Zlt_le_weak.
 lra.
 Qed.
 
+Theorem round_plus_eq_0 :
+  forall x y,
+  format x -> format y ->
+  round beta fexp rnd (x + y) = 0%R ->
+  (x + y = 0)%R.
+Proof with auto with typeclass_instances.
+intros x y Fx Fy H.
+destruct (Req_dec (x + y) 0) as [H'|H'].
+exact H'.
+contradict H.
+now apply round_plus_neq_0.
+Qed.
+
 End Fprop_plus_zero.
 
 Section Fprop_plus_FLT.
