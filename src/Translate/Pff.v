@@ -11062,7 +11062,7 @@ case H; intros H1.
 apply
  Rle_trans with (Rabs (FtoR radix p) * powerRZ radix (Zsucc (- precision)))%R.
 apply FulpLe2; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply Rle_trans with (Rabs p * powerRZ radix (Zsucc (- precision)) + 0)%R;
  [ right; fold FtoRradix; ring | apply Rplus_le_compat_l; auto with real zarith ].
 apply powerRZ_le, Rlt_IZR, TwoMoreThanOne.
@@ -11089,7 +11089,7 @@ cut (0 < 1 - powerRZ radix (- precision))%R; [ intros H1 | idtac ].
 2: ring_simplify.
 2: replace 1%R with (powerRZ radix 0);
     [ auto with real zarith | simpl in |- *; auto ].
-2: apply Rlt_powerRZ; try omega; apply TwoMoreThanOneR.
+2: apply Rlt_powerRZ; try omega; try apply TwoMoreThanOneR.
 apply Rmult_le_reg_l with (1 - powerRZ radix (- precision))%R; auto.
 ring_simplify ((1 - powerRZ radix (- precision)) * Rabs p)%R.
 apply
@@ -11139,7 +11139,7 @@ apply Rle_trans with (Fulp b radix precision p * (radix * / radix))%R;
  [ rewrite Rinv_r; auto with real zarith | right; ring ].
 ring_simplify (Fulp b radix precision p * 1)%R.
 unfold FtoRradix in |- *; apply ClosestUlp; auto.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 Qed.
 
 
@@ -11164,7 +11164,7 @@ case
     (p := p)
     (q := q)
     (pq := f); auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 intros x0 H'; elim H'; intros H2 H'1; elim H'1; intros H3 H4; clear H' H'1.
 apply Rplus_eq_reg_l with (- FtoRradix f)%R; ring_simplify (-f+f)%R.
 apply trans_eq with (FtoR radix p + FtoR radix q - FtoR radix f)%R;
@@ -11179,13 +11179,13 @@ cut (forall z : Z, (0 <= z)%Z -> (z < 1)%Z -> z = 0%Z);
 unfold Fabs in |- *; simpl in |- *; apply Zle_ZERO_Zabs.
 replace 1%Z with (Fnum (Float 1 (- dExp b))); [ idtac | simpl in |- *; auto ].
 apply Rlt_Fexp_eq_Zlt with (radix := radix); auto with zarith real.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 rewrite Fabs_correct; auto with zarith; try apply  TwoMoreThanOne; apply Rlt_le_trans with (1 := H5).
 right; unfold FtoR in |- *; simpl in |- *; ring.
 unfold Fabs in |- *; simpl in |- *.
 rewrite H4; rewrite H12; apply Zmin_le1; auto with zarith.
 elim Hq; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 intros m; case (Rle_or_lt 0 m); intros H'.
 rewrite Rabs_right; auto with real.
 rewrite Rabs_left1; auto with real; intros H'1.
@@ -11294,7 +11294,7 @@ apply Rlt_le; apply Rlt_le_trans with (1 := H6).
 rewrite Rabs_left1; [ right; ring | idtac ].
 apply Rplus_le_reg_l with (FtoRradix u).
 ring_simplify; auto.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 fold FtoRradix in |- *;
  apply
   Rplus_le_reg_l with (Fulp b radix precision (FPred b radix precision u)).
@@ -11316,11 +11316,11 @@ apply Rmult_le_reg_l with (INR 2); auto with arith real.
 apply Rle_trans with (Fulp b radix precision u).
 unfold FtoRradix in |- *; apply ClosestUlp; auto with arith zarith.
 replace (INR 2) with (IZR radix); auto with zarith arith real.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply FulpFPredLe; auto with zarith.
-apply TwoMoreThanOne.
-apply TwoMoreThanOne.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply
  trans_eq
   with ((1 - / 2%nat) * Fulp b radix precision (FPred b radix precision u))%R;
@@ -11333,7 +11333,7 @@ case
     (u + / 2%nat * Fulp b radix precision (FPred b radix precision u)));
  intros H6.
 apply MinOrMax1 with precision; auto with arith zarith real.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply Rlt_le_trans with (1 := H4); rewrite Rabs_right.
 apply
  Rplus_le_reg_l
@@ -11358,7 +11358,7 @@ simpl; field; auto with real.
 apply Rle_ge; apply Rplus_le_reg_l with (FtoRradix u); auto with real.
 ring_simplify; auto with real.
 apply MinOrMax2 with precision; auto with arith zarith real.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply Rlt_le_trans with (1 := H4).
 apply
  Rle_trans
@@ -11368,7 +11368,7 @@ apply
  [ apply Rplus_le_compat_r | idtac ].
 apply Rmult_le_compat_l; auto with real arith.
 apply FulpFPredGePos; auto with arith zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply
  Rle_trans
   with
@@ -11378,7 +11378,7 @@ apply Rmult_le_reg_l with (INR 2); auto with real arith.
 rewrite <- Rmult_assoc; rewrite Rinv_r; auto with real arith.
 ring_simplify (1 * Fulp b radix precision u)%R.
 unfold FtoRradix in |- *; apply ClosestUlp; auto with real arith zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply trans_eq with ((/ 2%nat + / 2%nat) * Fulp b radix precision u)%R;
  [ ring | auto with real arith ].
 replace (/ 2%nat + / 2%nat)%R with 1%R; [ ring | auto with real arith ].
@@ -11491,7 +11491,7 @@ apply Rmult_le_reg_l with (INR 2); auto with real arith.
 rewrite <- Rmult_assoc; rewrite Rinv_r; auto with real arith.
 ring_simplify (1 * Fulp b radix precision t)%R.
 unfold FtoRradix in |- *; apply ClosestUlp; auto with real arith zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply Rle_trans with (/ 2%nat * (/ 4%nat * Fulp b radix precision u))%R.
 apply Rmult_le_compat_l; auto with real arith.
 apply Rmult_le_reg_l with (INR 4); auto with real arith.
@@ -11510,11 +11510,11 @@ replace (Fnormalize radix b precision t) with t;
  | apply
     FcanonicUnique with (radix := radix) (b := b) (precision := precision);
     auto with real zarith ].
-2: apply TwoMoreThanOne.
+2: try apply TwoMoreThanOne.
 2: apply FnormalizeCanonic; auto with zarith.
-2: apply TwoMoreThanOne.
+2: try apply TwoMoreThanOne.
 2: apply sym_eq; apply FnormalizeCorrect; auto with real zarith.
-2: apply TwoMoreThanOne.
+2: try apply TwoMoreThanOne.
 replace
  (Fnormalize radix b precision (Float (Fnum t) (Zsucc (Zsucc (Fexp t)))))
  with (Float (Fnum t) (Zsucc (Zsucc (Fexp t)))).
@@ -11525,26 +11525,26 @@ replace (Zsucc (Zsucc (Fexp t))) with (2 + Fexp t)%Z;
 f_equal; simpl; unfold radix; ring_simplify; easy.
 apply FcanonicUnique with (radix := radix) (b := b) (precision := precision);
  auto with real arith zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 2: apply FnormalizeCanonic; auto with zarith.
-2: apply TwoMoreThanOne.
+2: try apply TwoMoreThanOne.
 2: apply sym_eq; apply FnormalizeCorrect; auto with real zarith.
-2: apply TwoMoreThanOne.
+2: try apply TwoMoreThanOne.
 elim H1; intros H7 H8.
 left; repeat (split; simpl in |- *; auto with zarith).
 rewrite
  FulpFabs with b radix precision (Float (Fnum t) (Zsucc (Zsucc (Fexp t))));
  auto with zarith.
-2: apply TwoMoreThanOne.
+2: try apply TwoMoreThanOne.
 rewrite FulpFabs with b radix precision u; auto with zarith.
-2: apply TwoMoreThanOne.
+2: try apply TwoMoreThanOne.
 apply LeFulpPos; auto with zarith real.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 now apply absFBounded.
 now apply absFBounded.
 unfold FtoRradix in |- *; rewrite Fabs_correct; auto with real zarith.
 apply Rabs_pos.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 replace (FtoR radix (Fabs (Float (Fnum t) (Zsucc (Zsucc (Fexp t)))))) with
  (Zabs (Fnum t) * powerRZ radix (Zsucc (Zsucc (Fexp t))))%R;
  [ idtac | unfold FtoR in |- *; simpl in |- *; auto ].
@@ -11557,7 +11557,7 @@ replace (powerRZ radix (Fexp t) * Zabs (Fnum t))%R with (Rabs (FtoRradix t));
  [ unfold FtoRradix in |- *; repeat rewrite Fabs_correct;
     auto with real zarith
  | idtac ].
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 unfold FtoRradix in |- *; rewrite <- Fabs_correct; auto with zarith;
  try apply TwoMoreThanOne; unfold FtoR in |- *; simpl in |- *; ring.
 apply Rmult_le_reg_l with (INR 2); auto with arith real.
@@ -11569,8 +11569,7 @@ apply
     (/ 4%nat * (2%nat * Fulp b radix precision (FPred b radix precision u)))%R;
  [ apply Rmult_le_compat_l; auto with real arith | right; ring ].
 replace (INR 2) with (IZR radix); auto with arith zarith real.
-apply FulpFPredLe; auto with arith zarith real.
-apply TwoMoreThanOne.
+apply FulpFPredLe; auto with arith zarith real; try apply TwoMoreThanOne.
 Qed.
 
 
@@ -11586,7 +11585,7 @@ Theorem Axpy_aux2 :
  MinOrMax radix b (a1 * x1 + y1) u.
 intros H1 H2 H3 H4 H5.
 apply MinOrMax1 with precision; auto with zarith; fold FtoRradix in |- *.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 replace (a1 * x1 + y1 - FtoRradix u)%R with
  (y1 - y + (a1 * x1 - a * x) + (a * x - t + (t + y - u)))%R;
  [ idtac | ring ].
@@ -11633,17 +11632,17 @@ apply Rle_trans with (/ 2%nat * Fulp b radix precision t)%R;
 rewrite <- Rmult_assoc; rewrite Rinv_r; auto with real arith.
 ring_simplify (1 * Fulp b radix precision t)%R; unfold FtoRradix in |- *;
  apply ClosestUlp; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 unfold Fulp in |- *; replace (Fnormalize radix b precision t) with t.
 elim H2; intros H6 H7; elim H7; intros H8 H9; rewrite H8;
  auto with zarith real.
 apply FcanonicUnique with (radix := radix) (b := b) (precision := precision);
  auto with real zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 right; auto.
 apply FnormalizeCanonic; try apply TwoMoreThanOne; auto with zarith.
 apply sym_eq; apply FnormalizeCorrect; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 rewrite H4; right.
 ring_simplify  (FtoRradix t + FtoRradix y - (FtoRradix t + FtoRradix y))%R;
  apply Rabs_R0.
@@ -11660,9 +11659,9 @@ unfold Fulp in |- *; apply Rle_powerRZ; auto with zarith real.
 cut (Fbounded b (Fnormalize radix b precision (FPred b radix precision u)));
  [ intros H6; elim H6; auto | idtac ].
 apply FnormalizeBounded; auto with zarith arith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply FBoundedPred; auto with zarith arith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply
  Rle_trans
   with
@@ -11672,7 +11671,7 @@ apply
  Rle_trans with (1 * Fulp b radix precision (FPred b radix precision u))%R;
  [ apply Rmult_le_compat_r; auto with real zarith | right; ring ].
 unfold Fulp in |- *; auto with real zarith.
-apply powerRZ_le, Rlt_IZR; apply TwoMoreThanOne.
+apply powerRZ_le, Rlt_IZR; try apply TwoMoreThanOne.
 apply Rmult_le_reg_l with (INR 4); auto with real arith.
 apply Rle_trans with (4%nat * / 4%nat + 2%nat * (2%nat * / 2%nat))%R;
  [ right; simpl; ring | idtac ].
@@ -11699,7 +11698,7 @@ apply Rmult_le_reg_l with (INR 2); auto with real arith;
  rewrite <- Rmult_assoc; rewrite Rinv_r; auto with arith real.
 ring_simplify (1 * Fulp b radix precision t)%R; unfold FtoRradix in |- *;
  apply ClosestUlp; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply Rmult_le_reg_l with (INR 4); auto with real arith;
  repeat rewrite <- Rmult_assoc.
 replace (INR 4) with (2%nat * 2%nat)%R;
@@ -11712,22 +11711,20 @@ replace (Fnormalize radix b precision t) with t;
 2: apply
     FcanonicUnique with (radix := radix) (b := b) (precision := precision);
     auto with real zarith.
-2: apply TwoMoreThanOne.
+2: try apply TwoMoreThanOne.
 2: right; auto.
-2: apply FnormalizeCanonic; auto with zarith; apply TwoMoreThanOne.
-2: apply sym_eq; apply FnormalizeCorrect; auto with zarith.
-2: apply TwoMoreThanOne.
+2: apply FnormalizeCanonic; auto with zarith; try apply TwoMoreThanOne.
+2: apply sym_eq; apply FnormalizeCorrect; auto with zarith; try apply TwoMoreThanOne.
 replace (Fnormalize radix b precision (FPred b radix precision u)) with
  (FPred b radix precision u).
 2: apply
     FcanonicUnique with (radix := radix) (b := b) (precision := precision);
     auto with real zarith.
-2: apply TwoMoreThanOne.
-2: apply FPredCanonic; auto with zarith; apply TwoMoreThanOne.
+2: try apply TwoMoreThanOne.
+2: apply FPredCanonic; auto with zarith; try apply TwoMoreThanOne.
 2: apply FnormalizeCanonic; auto with zarith; try apply TwoMoreThanOne.
-2: apply FBoundedPred; auto with zarith; apply TwoMoreThanOne.
-2: apply sym_eq; apply FnormalizeCorrect; auto with zarith.
-2: apply TwoMoreThanOne.
+2: apply FBoundedPred; auto with zarith; try apply TwoMoreThanOne.
+2: apply sym_eq; apply FnormalizeCorrect; auto with zarith; try apply TwoMoreThanOne.
 replace (2%nat * powerRZ radix (- dExp b))%R with
  (powerRZ radix (Zsucc (- dExp b)));
  [ apply Rle_powerRZ | unfold Zsucc in |- * ]; auto with zarith real.
@@ -11748,7 +11745,7 @@ intros H1 H2 H3 H4 H5 H6.
 case (Rle_or_lt u (a1 * x1 + y1)); intros H7.
 apply MinOrMax2 with precision; auto with zarith real;
  fold FtoRradix in |- *.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 replace (a1 * x1 + y1 - FtoRradix u)%R with
  (y1 - y + (a1 * x1 - a * x) + (a * x - t + (t + y - u)))%R;
  [ idtac | ring ].
@@ -11785,12 +11782,12 @@ replace (Fnormalize radix b precision (FPred b radix precision u)) with
  (FPred b radix precision u); auto with zarith.
 apply FcanonicUnique with (radix := radix) (b := b) (precision := precision);
  auto with real zarith.
-apply TwoMoreThanOne.
-apply FPredCanonic; auto with zarith; apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
+apply FPredCanonic; auto with zarith; try apply TwoMoreThanOne.
 apply FnormalizeCanonic; auto with zarith; try apply TwoMoreThanOne.
-apply FBoundedPred; auto with zarith; apply TwoMoreThanOne.
+apply FBoundedPred; auto with zarith; try apply TwoMoreThanOne.
 apply sym_eq; apply FnormalizeCorrect; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply
  Rle_trans
   with
@@ -11803,24 +11800,24 @@ apply Rmult_le_reg_l with (INR 2);
 ring_simplify; apply Rle_trans with (Fulp b radix precision t);
  [ unfold FtoRradix in |- *; apply ClosestUlp; auto with zarith
  | unfold Fulp in |- * ].
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 replace (Fexp (Fnormalize radix b precision t)) with (- dExp b)%Z;
  auto with real zarith.
 replace (Fnormalize radix b precision t) with t.
 elim H2; auto with zarith.
 apply FcanonicUnique with (radix := radix) (b := b) (precision := precision);
  auto with real zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 right; auto.
-apply FnormalizeCanonic; auto with zarith; apply TwoMoreThanOne.
+apply FnormalizeCanonic; auto with zarith; try apply TwoMoreThanOne.
 apply sym_eq; apply FnormalizeCorrect; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply Rmult_le_reg_l with (INR 2);
  [ idtac | rewrite <- Rmult_assoc; rewrite Rinv_r ];
  auto with arith real.
 ring_simplify (1 * Fulp b radix precision u)%R; unfold FtoRradix in |- *;
  apply ClosestUlp; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply Rmult_le_reg_l with (INR 4); auto with arith real.
 apply Rle_trans with   (powerRZ radix (-dExp b) * 3%nat
   + Fulp b radix precision u * 2%nat)%R.
@@ -11846,10 +11843,10 @@ replace (2 + - dExp b)%Z with (Zsucc (- dExp b) + 1)%Z;
 replace (Fnormalize radix b precision u) with u; auto with zarith arith.
 apply FcanonicUnique with (radix := radix) (b := b) (precision := precision);
  auto with real zarith.
-apply TwoMoreThanOne.
-apply FnormalizeCanonic; auto with zarith; apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
+apply FnormalizeCanonic; auto with zarith; try apply TwoMoreThanOne.
 apply sym_eq; apply FnormalizeCorrect; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 right; replace (INR 4) with (2%nat + 2%nat)%R;
  [ ring | rewrite <- plus_INR; auto with arith real ].
 case (Rle_or_lt (t + y) u); intros H8.
@@ -11864,24 +11861,24 @@ apply V.
 apply Rmult_le_reg_l with (INR 2); auto with real arith.
 apply Rle_trans with (Fulp b radix precision u);
  [ unfold FtoRradix in |- *; apply ClosestUlp; auto with zarith | idtac ].
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 replace (powerRZ 2%Z (- dExp b)) with
  (Fulp b radix precision (FPred b radix precision u)).
 replace (INR 2) with (IZR radix); auto with zarith real.
 apply FulpFPredLe; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 unfold Fulp in |- *;
  replace (Fnormalize radix b precision (FPred b radix precision u)) with
   (FPred b radix precision u).
 rewrite H4; auto with zarith real.
 apply FcanonicUnique with (radix := radix) (b := b) (precision := precision);
  auto with real zarith.
-apply TwoMoreThanOne.
-apply FPredCanonic; auto with zarith; apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
+apply FPredCanonic; auto with zarith; try apply TwoMoreThanOne.
 apply FnormalizeCanonic; auto with zarith; try apply TwoMoreThanOne.
-apply FBoundedPred; auto with zarith; apply TwoMoreThanOne.
+apply FBoundedPred; auto with zarith; try apply TwoMoreThanOne.
 apply sym_eq; apply FnormalizeCorrect; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 replace (powerRZ 2%Z (- dExp b)) with
  (Fulp b radix precision (FPred b radix precision u)).
 2: unfold Fulp in |- *;
@@ -11903,29 +11900,29 @@ contradict V'.
 cut (ProjectorP b radix (Closest b radix));
  [ unfold ProjectorP in |- *; intros W' | idtac ].
 apply sym_eq; apply W'; auto with zarith real.
-apply FBoundedPred; auto with zarith; apply TwoMoreThanOne.
+apply FBoundedPred; auto with zarith; try apply TwoMoreThanOne.
 apply RoundedProjector; apply ClosestRoundedModeP with precision;
  auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply not_eq_sym; apply Rlt_dichotomy_converse; left.
 unfold FtoRradix in |- *; apply FPredLt; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply
  Rplus_eq_reg_l with (Fulp b radix precision (FPred b radix precision u)).
 rewrite Rplus_comm; unfold FtoRradix in |- *; rewrite FpredUlpPos;
  auto with zarith.
 rewrite <- W; unfold FtoRradix, radix in |- *; ring.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply FcanonicUnique with (radix := radix) (b := b) (precision := precision);
  auto with real zarith.
-apply TwoMoreThanOne.
-apply FPredCanonic; auto with zarith; apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
+apply FPredCanonic; auto with zarith; try apply TwoMoreThanOne.
 apply FnormalizeCanonic; auto with zarith; try apply TwoMoreThanOne.
-apply FBoundedPred; auto with zarith; apply TwoMoreThanOne.
+apply FBoundedPred; auto with zarith; try apply TwoMoreThanOne.
 apply sym_eq; apply FnormalizeCorrect; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply MinOrMax1 with precision; auto with zarith; fold FtoRradix in |- *.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 rewrite Rabs_left1.
 2: apply Rplus_le_reg_l with (FtoRradix u).
 2: ring_simplify; auto with real.
@@ -11982,14 +11979,14 @@ apply
  [ rewrite <- Rmult_assoc; apply Rmult_le_compat_r | right; ring ];
  auto with real arith zarith.
 unfold Fulp in |- *; auto with real zarith.
-apply powerRZ_le, Rlt_IZR; apply TwoMoreThanOne.
+apply powerRZ_le, Rlt_IZR; try apply TwoMoreThanOne.
 rewrite Rmult_comm; apply Rmult_le_reg_l with (INR 4); auto with arith real;
  rewrite <- Rmult_assoc; rewrite Rinv_r; auto with real arith.
 simpl; ring_simplify; auto with real arith.
 apply Rle_trans with (Fulp b radix precision t);
  [ unfold FtoRradix in |- *; apply ClosestUlp; auto with zarith
  | unfold Fulp in |- * ].
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply Rle_powerRZ; auto with zarith real.
 replace (Fnormalize radix b precision t) with t;
  [ elim H2; intros H9 H10; elim H10; intros H11 H12; rewrite H11 | idtac ].
@@ -11997,8 +11994,8 @@ replace (Fnormalize radix b precision t) with t;
 replace (Fnormalize radix b precision (FPred b radix precision u)) with
  (FPred b radix precision u); [ rewrite H4; auto with zarith | idtac ].
 apply sym_eq; apply FcanonicFnormalizeEq; auto with zarith.
-apply TwoMoreThanOne.
-apply FPredCanonic; auto with zarith; apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
+apply FPredCanonic; auto with zarith; try apply TwoMoreThanOne.
 Qed.
 
 Theorem AxpyPos :
@@ -12020,7 +12017,7 @@ case (V (- dExp b)%Z (Fexp u));
 apply Axpy_aux2; auto.
 unfold FtoRradix in |- *; apply plusExact1 with b precision;
  auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 rewrite <- H7; elim H6; intros H8 H9; elim H9; intros H10 H11; rewrite H10.
 rewrite Zmin_le1; auto with zarith; elim Fy; auto.
 case (V (- dExp b)%Z (Fexp (FPred b radix precision u))).
@@ -12028,7 +12025,7 @@ cut (Fbounded b (FPred b radix precision u)); [ intros H8 | idtac ];
  auto.
 apply H8.
 apply FBoundedPred; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 intros H8; apply Axpy_aux3; auto.
 intros H8; apply Axpy_aux1; auto.
 apply Axpy_aux1_aux3; auto.
@@ -12059,7 +12056,7 @@ pattern p at 3 in |- *; rewrite <- Fopp_Fopp.
 rewrite <- (Rabs_Ropp (FtoR radix (FSucc b radix precision (Fopp (Fopp p)))));
  rewrite <- (Fopp_correct radix (FSucc b radix precision (Fopp (Fopp p)))).
 rewrite <- FPredFopFSucc with b radix precision (Fopp p); auto with zarith.
-2: apply TwoMoreThanOne.
+2: try apply TwoMoreThanOne.
 replace (Fulp b radix precision p) with (Fulp b radix precision (Fopp p));
  auto.
 fold FtoRradix in |- *; apply V; auto.
@@ -12073,11 +12070,11 @@ rewrite <- H4; rewrite Rabs_R0.
 ring_simplify (0 - Fulp b radix precision p)%R; apply Rle_trans with 0%R;
  auto with real zarith.
 rewrite <- Ropp_0; apply Ropp_le_contravar.
-unfold Fulp; apply powerRZ_le, Rlt_IZR; apply TwoMoreThanOne.
+unfold Fulp; apply powerRZ_le, Rlt_IZR; try apply TwoMoreThanOne.
 apply Rabs_pos.
 intros q H2 H3 H4.
 unfold FtoRradix in |- *; rewrite <- FpredUlpPos with b radix precision q;
- auto with zarith; fold FtoRradix in |- *.
+ auto with zarith; fold FtoRradix in |- *; try apply TwoMoreThanOne.
 apply
  Rle_trans
   with
@@ -12096,9 +12093,8 @@ ring_simplify
       Fulp b radix precision q))%R.
 rewrite Rplus_comm; apply Rplus_le_compat_r.
 apply FulpFPredGePos; auto with zarith real.
-apply TwoMoreThanOne.
-apply powerRZ_le, Rlt_IZR; apply TwoMoreThanOne.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
+apply powerRZ_le, Rlt_IZR; try apply TwoMoreThanOne.
 Qed.
 
 Theorem UlpFlessuGe :
@@ -12126,12 +12122,12 @@ cut (0 < 1 - powerRZ radix (- precision))%R; [ intros H'1 | idtac ].
 2: replace 1%R with (powerRZ radix 0);
     [ auto with real zarith | simpl in |- *; auto ].
 2: apply Rlt_powerRZ; auto with zarith.
-2: apply Rlt_IZR; apply TwoMoreThanOne.
+2: apply Rlt_IZR; try apply TwoMoreThanOne.
 cut (0 < 1 + powerRZ radix (- precision))%R; [ intros H'2 | idtac ].
 2: apply Rlt_le_trans with 1%R; auto with real.
 2: apply Rle_trans with (1 + 0)%R; auto with real zarith.
 2: apply Rplus_le_compat_l.
-2: apply powerRZ_le, Rlt_IZR; apply TwoMoreThanOne.
+2: apply powerRZ_le, Rlt_IZR; try apply TwoMoreThanOne.
 cut (0 < powerRZ radix precision - 1)%R; [ intros H'3 | idtac ].
 2: apply Rplus_lt_reg_r with 1%R.
 2: ring_simplify.
@@ -12143,7 +12139,7 @@ cut (0 < 1 - powerRZ radix (Zsucc (- precision)))%R; [ intros H'4 | idtac ].
 2: ring_simplify.
 2: replace 1%R with (powerRZ radix 0);
     [ auto with real zarith | simpl in |- *; auto ].
-2: apply Rlt_powerRZ; auto with zarith; apply Rlt_IZR; apply TwoMoreThanOne.
+2: apply Rlt_powerRZ; auto with zarith; apply Rlt_IZR; try apply TwoMoreThanOne.
 cut (0 < INR 4)%R; [ intros H'5 | auto with arith real ].
 rewrite
  (Rinv_mult_distr
@@ -12244,7 +12240,7 @@ apply Rle_trans with (Fulp b radix precision u * (radix * / radix))%R;
  [ rewrite Rinv_r; auto with real zarith | right; ring ].
 ring_simplify (Fulp b radix precision u * 1)%R.
 unfold FtoRradix in |- *; apply ClosestUlp; auto with real zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 rewrite Rplus_comm; auto.
 rewrite Rplus_comm; apply Rplus_le_compat_r.
 apply Rmult_le_reg_l with (IZR radix); auto with real zarith.
@@ -12253,17 +12249,17 @@ ring_simplify (1 * Fulp b radix precision u)%R.
 apply
  Rle_trans with (Rabs (FtoRradix u) * powerRZ radix (Zsucc (- precision)))%R.
 unfold FtoRradix in |- *; apply FulpLe2; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 replace (Fnormalize radix b precision u) with u;
  [ idtac
  | apply
     FcanonicUnique with (radix := radix) (precision := precision) (b := b) ];
  auto with zarith real.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply FnormalizeCanonic; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply sym_eq; apply FnormalizeCorrect; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 unfold Zsucc in |- *; rewrite powerRZ_add; auto with zarith real;
  simpl in |- *; auto with zarith real; right; ring.
 replace (FtoRradix y + FtoRradix t)%R with (FtoRradix u); auto with real.
@@ -12274,10 +12270,10 @@ pattern 1%R at 2 in |- *; replace 1%R with (/ 1)%R; auto with real zarith.
 apply Rle_Rinv; auto with real zarith.
 pattern 1%R at 1 in |- *; replace 1%R with (1 + 0)%R; auto with real zarith.
 apply Rplus_le_compat_l.
-apply powerRZ_le, Rlt_IZR; apply TwoMoreThanOne.
+apply powerRZ_le, Rlt_IZR; try apply TwoMoreThanOne.
 unfold FtoRradix in |- *; apply plusExact1 with b precision;
  auto with real zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 rewrite Rplus_comm; auto.
 elim H1; intros H5 H6; elim H6; intros H7 H8; rewrite H7; apply Zmin_Zle;
  elim Fy; elim Ft; auto with zarith.
@@ -12312,12 +12308,11 @@ apply Rmult_le_reg_l with (powerRZ radix precision - 1)%R; auto.
 rewrite <- Rmult_assoc; rewrite Rinv_r; auto with real.
 ring_simplify (1 * Rabs (FtoRradix (FLess u)))%R; unfold FtoRradix in |- *;
  apply FulpGe; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 unfold FLess in |- *; case (Rcase_abs u); intros H.
 apply FBoundedSuc; auto with zarith.
-apply TwoMoreThanOne.
-apply FBoundedPred; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
+apply FBoundedPred; auto with zarith; try apply TwoMoreThanOne.
 Qed.
 
 Theorem UlpFlessuGe2 :
@@ -12359,7 +12354,7 @@ cut (0 < 1 + powerRZ radix (- precision))%R; [ intros H'2 | idtac ].
 2: apply Rlt_le_trans with 1%R; auto with real.
 2: apply Rle_trans with (1 + 0)%R; auto with real zarith.
 2: apply Rplus_le_compat_l.
-2: apply powerRZ_le, Rlt_IZR; apply TwoMoreThanOne.
+2: apply powerRZ_le, Rlt_IZR; try apply TwoMoreThanOne.
 cut (0 < powerRZ radix precision - 1)%R; [ intros H'3 | idtac ].
 2: apply Rplus_lt_reg_r with 1%R.
 2: ring_simplify.
@@ -12413,7 +12408,7 @@ apply powerRZ_Zopp; auto with zarith real.
 rewrite powerRZ_Zopp; auto with zarith real.
 replace (powerRZ radix 2%nat) with (INR 4);
  [ auto with zarith real | unfold radix; simpl in |- *; ring ].
-apply Rgt_not_eq, powerRZ_lt, Rlt_IZR; apply TwoMoreThanOne.
+apply Rgt_not_eq, powerRZ_lt, Rlt_IZR; try apply TwoMoreThanOne.
 apply Rle_Rinv; auto with real.
 apply
  Rlt_le_trans
@@ -12430,7 +12425,7 @@ apply
 apply Rle_trans with (powerRZ radix precision + -0)%R;
  [ idtac | right; ring ]; auto with real zarith.
 apply Rplus_le_compat_l, Ropp_le_contravar.
-apply powerRZ_le; auto with zarith; apply Rlt_IZR; apply TwoMoreThanOne.
+apply powerRZ_le; auto with zarith; apply Rlt_IZR; try apply TwoMoreThanOne.
 apply Ropp_le_contravar.
 repeat rewrite <- Rmult_assoc.
 apply Rmult_le_compat_r; auto with real.
@@ -12481,7 +12476,7 @@ apply
  [ idtac | right].
 apply Rplus_le_compat_l; apply Rplus_le_compat_l.
 apply Rplus_le_compat; auto with real zarith.
-apply Ropp_le_contravar, Rle_powerRZ; auto with zarith; left; apply Rlt_IZR; apply TwoMoreThanOne.
+apply Ropp_le_contravar, Rle_powerRZ; auto with zarith; left; apply Rlt_IZR; try apply TwoMoreThanOne.
 apply powerRZ_le; apply Rlt_IZR, TwoMoreThanOne.
 apply trans_eq with
  (powerRZ radix (- precision) * powerRZ radix precision +( -
@@ -12504,7 +12499,7 @@ ring.
 apply Ropp_lt_contravar.
 apply Rmult_lt_reg_l with (powerRZ radix (Z_of_nat 2 + dExp b));
  auto with real zarith.
-apply powerRZ_lt, Rlt_IZR; apply TwoMoreThanOne.
+apply powerRZ_lt, Rlt_IZR; try apply TwoMoreThanOne.
 rewrite <- Rmult_assoc; unfold Zpred in |- *.
 repeat rewrite <- powerRZ_add; auto with real zarith.
 replace (2%nat + dExp b + (- dExp b + -1 + -1))%Z with 0%Z by ring.
@@ -12554,7 +12549,7 @@ apply Rle_Rinv; auto with real arith zarith.
 apply Rle_lt_trans with (powerRZ radix 0 - 1)%R;
  [ right; simpl in |- *; ring | auto with real arith zarith ].
 unfold Rminus in |- *; apply Rplus_lt_compat_r; auto with real arith zarith.
-apply Rlt_powerRZ; auto with zarith; try (simpl; omega); apply Rlt_IZR; apply TwoMoreThanOne.
+apply Rlt_powerRZ; auto with zarith; try (simpl; omega); apply Rlt_IZR; try apply TwoMoreThanOne.
 unfold Rminus in |- *; apply Rplus_le_compat_r; apply Rle_powerRZ;
  auto with real arith zarith.
 simpl; omega.
@@ -12571,7 +12566,7 @@ apply Rle_lt_trans with (1 - powerRZ radix 0)%R;
 unfold Rminus in |- *; apply Rplus_lt_compat_l; apply Ropp_lt_contravar;
  auto with real arith zarith.
 apply Rlt_powerRZ; simpl; auto with zarith.
-apply Rlt_IZR; apply TwoMoreThanOne.
+apply Rlt_IZR; try apply TwoMoreThanOne.
 unfold Rminus in |- *; apply Rplus_le_compat_l; apply Ropp_le_contravar;
  apply Rle_powerRZ; auto with real arith zarith.
 simpl; omega.
@@ -12664,9 +12659,9 @@ replace (Fulp b radix precision (Fopp (FSucc b radix precision u))) with
  auto.
 unfold Fulp in |- *; rewrite Fnormalize_Fopp; simpl in |- *;
  auto with real zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply MinOrMax3 with precision; auto with zarith; fold FtoRradix in |- *.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 cut (FtoRradix t = 0%R); [ intros H' | idtac ].
 cut (FtoRradix y = 0%R); [ intros H5 | idtac ].
 replace (a1 * x1 + y1 - FtoRradix u)%R with
@@ -12696,29 +12691,29 @@ rewrite <- Rmult_assoc; rewrite Rinv_r; auto with real arith.
 ring_simplify (1 * Fulp b radix precision (FPred b radix precision u))%R;
  apply Rle_trans with (Fulp b radix precision t).
 unfold FtoRradix in |- *; apply ClosestUlp; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 unfold Fulp in |- *; apply Rle_powerRZ; auto with real zarith.
 replace (Fexp (Fnormalize radix b precision t)) with (- dExp b)%Z.
 cut (Fbounded b (Fnormalize radix b precision (FPred b radix precision u)));
  [ intros H6; elim H6; auto | apply FnormalizeBounded; auto with zarith ].
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply FBoundedPred; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 replace (Fnormalize radix b precision t) with t.
 replace t with (Float 0 (- dExp b)); [ simpl in |- *; auto | idtac ].
 apply FcanonicUnique with (radix := radix) (precision := precision) (b := b);
  auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 right; repeat (split; simpl in |- *; auto with zarith).
 fold FtoRradix in |- *; rewrite H'; unfold FtoRradix, FtoR in |- *;
  simpl in |- *; ring.
 apply FcanonicUnique with (radix := radix) (precision := precision) (b := b);
  auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply FnormalizeCanonic; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply sym_eq; apply FnormalizeCorrect; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply
  Rle_trans
   with
@@ -12728,7 +12723,7 @@ apply
  Rle_trans with (1 * Fulp b radix precision (FPred b radix precision u))%R;
  [ apply Rmult_le_compat_r | right; ring ].
 unfold Fulp in |- *; auto with real zarith.
-apply powerRZ_le; apply Rlt_IZR; apply TwoMoreThanOne.
+apply powerRZ_le; apply Rlt_IZR; try apply TwoMoreThanOne.
 apply Rmult_le_reg_l with (INR 4); auto with real arith.
 apply Rle_trans with 3%R;simpl;[right; field|idtac].
 apply Rle_trans with (3+1)%R; auto with real; right; ring.
@@ -12742,13 +12737,13 @@ replace (FtoRradix y) with (FtoRradix t + FtoRradix y)%R; auto.
 rewrite H'; ring.
 apply FcanonicUnique with (radix := radix) (precision := precision) (b := b);
  auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 right; repeat (split; simpl in |- *; auto with zarith).
 fold FtoRradix in |- *; rewrite <- H4; unfold FtoRradix, FtoR in |- *;
  simpl in |- *; ring.
 apply RoundedProjector; auto.
 apply ClosestRoundedModeP with precision; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 cut (forall z : R, (Rabs z <= 0)%R -> z = 0%R); [ intros V; apply V | idtac ].
 apply Rmult_le_reg_l with (INR 4); auto with real arith.
 apply Rle_trans with (1 := H1); right; rewrite <- H4; auto with real.
@@ -12830,7 +12825,7 @@ apply Rle_trans with (Fulp b radix precision u * (radix * / radix))%R;
  [ rewrite Rinv_r; auto with real zarith | right; ring ].
 ring_simplify (Fulp b radix precision u * 1)%R.
 unfold FtoRradix in |- *; apply ClosestUlp; auto with real zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 rewrite Rplus_comm; auto.
 ring_simplify (1*Rabs u)%R; apply Rplus_le_compat_l.
 apply Rmult_le_reg_l with (IZR radix); auto with real zarith.
@@ -12839,17 +12834,17 @@ ring_simplify (1 * Fulp b radix precision u)%R.
 apply
  Rle_trans with (Rabs (FtoRradix u) * powerRZ radix (Zsucc (- precision)))%R.
 unfold FtoRradix in |- *; apply FulpLe2; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 replace (Fnormalize radix b precision u) with u;
  [ idtac
  | apply
     FcanonicUnique with (radix := radix) (precision := precision) (b := b) ];
  auto with zarith real.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply FnormalizeCanonic; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 apply sym_eq; apply FnormalizeCorrect; auto with zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 unfold Zsucc in |- *; rewrite powerRZ_add; auto with zarith real;
  simpl in |- *; auto with zarith real; right; ring.
 replace (FtoRradix y + FtoRradix t)%R with (FtoRradix u); auto with real.
@@ -12860,10 +12855,10 @@ pattern 1%R at 2 in |- *; replace 1%R with (/ 1)%R; auto with real zarith.
 apply Rle_Rinv; auto with real zarith.
 pattern 1%R at 1 in |- *; replace 1%R with (1 + 0)%R; auto with real zarith.
 apply Rplus_le_compat_l.
-apply powerRZ_le; apply Rlt_IZR; apply TwoMoreThanOne.
+apply powerRZ_le; apply Rlt_IZR; try apply TwoMoreThanOne.
 unfold FtoRradix in |- *; apply plusExact1 with b precision;
  auto with real zarith.
-apply TwoMoreThanOne.
+try apply TwoMoreThanOne.
 rewrite Rplus_comm; auto.
 elim H4; intros H5 H6; elim H6; intros H7 H8; rewrite H7; apply Zmin_Zle;
  elim Fy; elim Ft; auto with zarith.
@@ -12896,7 +12891,7 @@ apply Rle_trans with (5%nat + 4%nat * 0)%R; auto with real arith.
 ring_simplify (5%nat + 4%nat * 0)%R; auto with real arith.
 apply Rplus_le_compat_l; apply Rmult_le_compat_l.
 rewrite INR_IZR_INZ; apply Rle_IZR; omega.
-apply powerRZ_le, Rlt_IZR; apply TwoMoreThanOne.
+apply powerRZ_le, Rlt_IZR; try apply TwoMoreThanOne.
 apply
  Rle_trans
   with
@@ -12904,9 +12899,9 @@ apply
      powerRZ radix (Zpred (- dExp b)) * / (1 - powerRZ 2%Z (- precision)))%R;
  [ idtac | right; simpl; unfold radix; ring ].
 unfold FtoRradix in |- *; apply RoundLeGeneral; auto with real zarith.
-apply Rplus_le_compat_l, powerRZ_le, Rlt_IZR; apply TwoMoreThanOne.
+apply Rplus_le_compat_l, powerRZ_le, Rlt_IZR; try apply TwoMoreThanOne.
 ring_simplify.
-apply Rlt_powerRZ; auto with zarith; apply Rlt_IZR; apply TwoMoreThanOne.
+apply Rlt_powerRZ; auto with zarith; apply Rlt_IZR; try apply TwoMoreThanOne.
 apply Rle_lt_trans with (1 := H2).
 apply UlpFlessuGe2 with t; auto.
 Qed.
@@ -18378,12 +18373,11 @@ rewrite <- Zpower_nat_is_exp; rewrite pGivesBound; auto with zarith.
 apply Zpower_nat_monotone_le; auto with zarith.
 assert (2*s <= t)%Z; auto with zarith.
 unfold s.
-rewrite inj_minus1; auto with zarith.
+rewrite inj_minus1 by (generalize (lt_div2 t); auto with zarith).
 assert (t <= 2*(div2 t))%Z; auto with zarith.
 apply Zle_trans with  (Div2.double (div2 t)).
 2: unfold Div2.double; rewrite inj_plus; auto with zarith.
 rewrite <- even_double; auto with zarith.
-generalize (lt_div2 t); auto with zarith.
 apply sym_eq; apply p''GivesBound; auto.
 apply Zle_trans with (Fexp (Fnormalize radix b t x)+Fexp (Fnormalize radix b t y))%Z; auto with zarith.
 rewrite FcanonicFnormalizeEq; auto with zarith.
@@ -19879,7 +19873,7 @@ replace (x+-r)%R with (-(r-x))%R;[rewrite Rabs_Ropp|ring].
 apply Rle_trans with (Fulp bo radix precision x).
 unfold FtoRradix; apply ClosestUlp; auto.
 rewrite CanonicFulp; auto with real zarith.
-right; unfold FtoR; simpl; ring.
+right; unfold FtoR, radix; simpl; ring.
 left; auto.
 case H3; intros V.
 left; generalize V; unfold FNeven; rewrite FcanonicFnormalizeEq; auto with zarith.
@@ -21036,8 +21030,7 @@ left; auto.
 clear H1 H2; assert (FtoRradix p=powerRZ radix (precision+Zpred (Fexp p)))%R.
 case (Zle_lt_or_eq (Zpower_nat radix (pred precision)) (Fnum p)).
 elim Np; intros.
-apply Zmult_le_reg_r with radix; auto with zarith.
-apply Zlt_gt; auto with zarith.
+apply Zmult_le_reg_r with radix; auto with zarith; try (apply Zlt_gt; auto with zarith).
 apply Zle_trans with (Zpower_nat radix precision).
 pattern radix at 2 in |-*; replace radix with (Zpower_nat radix 1).
 rewrite <- Zpower_nat_is_exp; auto with zarith.
@@ -21156,8 +21149,7 @@ left; auto.
 clear H1; assert (FtoRradix q=powerRZ radix (precision+Zpred (Fexp q)))%R.
 case (Zle_lt_or_eq (Zpower_nat radix (pred precision)) (Fnum q)).
 elim Nq; intros.
-apply Zmult_le_reg_r with radix; auto with zarith.
-apply Zlt_gt; auto with zarith.
+apply Zmult_le_reg_r with radix; auto with zarith; try (apply Zlt_gt; auto with zarith).
 apply Zle_trans with (Zpower_nat radix precision).
 pattern radix at 2 in |-*; replace radix with (Zpower_nat radix 1).
 rewrite <- Zpower_nat_is_exp; auto with zarith.
