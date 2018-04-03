@@ -19,8 +19,8 @@ COPYING file for more details.
 
 Require Import Psatz.
 
-From Flocq Require Import Core Plus_error Mult_error Operations Sterbenz.
-From Flocq Require Import Pff Ftranslate_flocq2Pff.
+Require Import Core Plus_error Mult_error Operations Sterbenz.
+Require Import Pff Pff2FlocqAux.
 
 Open Scope R_scope.
 
