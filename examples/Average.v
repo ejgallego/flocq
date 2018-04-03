@@ -1,3 +1,20 @@
+(**
+This example is part of the Flocq formalization of floating-point
+arithmetic in Coq: http://flocq.gforge.inria.fr/
+
+Copyright (C) 2014-2018 Sylvie Boldo
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 3 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+COPYING file for more details.
+*)
+
 Require Import Reals Fourier Psatz.
 From Flocq Require Import Core Plus_error.
 
@@ -41,7 +58,7 @@ Variable emin prec : Z.
 Context { prec_gt_0_ : Prec_gt_0 prec }.
 
 Notation format := (generic_format radix2 (FLT_exp emin prec)).
-Notation round_flt :=(round radix2 (FLT_exp emin prec) ZnearestE). 
+Notation round_flt :=(round radix2 (FLT_exp emin prec) ZnearestE).
 Notation ulp_flt :=(ulp radix2 (FLT_exp emin prec)).
 Notation cexp := (cexp radix2 (FLT_exp emin prec)).
 Notation pred_flt := (pred radix2 (FLT_exp emin prec)).
