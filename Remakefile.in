@@ -60,8 +60,8 @@ check-more: $(MOBJS)
 Remakefile: Remakefile.in config.status
 	./config.status Remakefile
 
-src/Flocq_version.v: src/Flocq_version.v.in config.status
-	./config.status src/Flocq_version.v
+src/Version.v: src/Version.v.in config.status
+	./config.status src/Version.v
 
 configure config.status: configure.in
 	autoconf
