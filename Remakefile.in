@@ -87,10 +87,15 @@ html/index.html: $(OBJS)
 	@COQDOC@ -toc -interpolate -utf8 -html -g -R src Flocq -d html \
 	  --coqlib http://coq.inria.fr/distrib/current/stdlib/ \
 	  $(addprefix src/,$(FILES))
+	cd html/
+	for f in *.html; do \
+	  sed "s/<a href=\"index.html\">Index<\/a>/Go back to the <a href=\"..\/index.html\">Main page<\/a> or <a href=\"index.html\">Index<\/a>./" $f > glop; \
+	  mv -f glop $f; done
+
 
 deps.dot: $(addprefix src/,$(FILES)) Remakefile.in
 	(echo "digraph flocq_deps { pack=true; rank=max;"
-	echo "node [shape=ellipse, style=filled, URL=\"Flocq.\N.html\", color=black];"
+	echo "node [shape=ellipse, style=filled, URL=\"html/Flocq.\N.html\", color=black];"
 	echo '{ rank=same; "Core.Zaux"; "Core.Raux"; }'
 	echo '{ rank=same; "Core.FLX"; "Core.FIX"; "Core.Round_NE"; "Calc.Operations"; }'
 	echo '{ rank=same; "Core.FLT"; "Core.FTZ"; }'
@@ -107,6 +112,13 @@ deps.dot: $(addprefix src/,$(FILES)) Remakefile.in
 	    done
 	  done;
 	echo "}") | tred > $@
+
+deps.png: deps.dot
+	dot -T png deps.dot > deps.png
+
+deps.map: deps.dot
+	dot -T cmap deps.dot > deps.map
+
 
 doc: html/index.html
 
