@@ -1,4 +1,4 @@
-AC_INIT([Flocq], [2.6.1],
+AC_INIT([Flocq], [3.0.0],
         [Sylvie Boldo <sylvie.boldo@inria.fr>, Guillaume Melquiond <guillaume.melquiond@inria.fr>],
         [flocq])
 
@@ -68,5 +68,5 @@ MINGW*)
 	;;
 esac
 
-AC_CONFIG_FILES([Remakefile src/Flocq_version.v])
+AC_CONFIG_FILES([Remakefile src/Version.v])
 AC_OUTPUT

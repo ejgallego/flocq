@@ -1,5 +1,23 @@
-Require Import Flocq.Core.Fcore.
-Require Import Flocq.Calc.Fcalc_bracket Flocq.Calc.Fcalc_round Flocq.Calc.Fcalc_ops Flocq.Calc.Fcalc_div Flocq.Calc.Fcalc_sqrt.
+(**
+This example is part of the Flocq formalization of floating-point
+arithmetic in Coq: http://flocq.gforge.inria.fr/
+
+Copyright (C) 2015-2018 Sylvie Boldo
+#<br />#
+Copyright (C) 2015-2018 Guillaume Melquiond
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 3 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+COPYING file for more details.
+*)
+
+From Flocq Require Import Core Bracket Round Operations Div Sqrt.
 
 Section Compute.
 
@@ -29,13 +47,13 @@ Proof.
 intros m e.
 case Zlt_bool_spec ; intros H.
 apply Rlt_bool_true.
-now apply F2R_lt_0_compat.
+now apply F2R_lt_0.
 apply Rlt_bool_false.
-now apply F2R_ge_0_compat.
+now apply F2R_ge_0.
 Qed.
 
 Definition plus (x y : float beta) :=
-  let (m, e) := Fplus beta x y in
+  let (m, e) := Fplus x y in
   let s := Zlt_bool m 0 in
   let '(m', e', l) := truncate beta fexp (Zabs m, e, loc_Exact) in
   Float beta (cond_Zopp s (choice s m' l)) e'.
@@ -47,7 +65,7 @@ Proof.
 intros x y.
 unfold plus.
 rewrite <- F2R_plus.
-destruct (Fplus beta x y) as [m e].
+destruct (Fplus x y) as [m e].
 rewrite (round_trunc_sign_any_correct beta fexp rnd choice rnd_choice _ (Zabs m) e loc_Exact).
 3: now right.
 destruct truncate as [[m' e'] l'].
@@ -58,7 +76,7 @@ apply sym_eq, F2R_Zabs.
 Qed.
 
 Definition mult (x y : float beta) :=
-  let (m, e) := Fmult beta x y in
+  let (m, e) := Fmult x y in
   let s := Zlt_bool m 0 in
   let '(m', e', l) := truncate beta fexp (Zabs m, e, loc_Exact) in
   Float beta (cond_Zopp s (choice s m' l)) e'.
@@ -70,7 +88,7 @@ Proof.
 intros x y.
 unfold mult.
 rewrite <- F2R_mult.
-destruct (Fmult beta x y) as [m e].
+destruct (Fmult x y) as [m e].
 rewrite (round_trunc_sign_any_correct beta fexp rnd choice rnd_choice _ (Zabs m) e loc_Exact).
 3: now right.
 destruct truncate as [[m' e'] l'].
@@ -81,9 +99,8 @@ apply sym_eq, F2R_Zabs.
 Qed.
 
 Definition sqrt (x : float beta) :=
-  let (m, e) := x in
-  if Zlt_bool 0 m then
-    let '(m', e', l) := truncate beta fexp (Fsqrt_core beta prec m e) in
+  if Zlt_bool 0 (Fnum x) then
+    let '(m', e', l) := truncate beta fexp (Fsqrt fexp x) in
     Float beta (choice false m' l) e'
   else Float beta 0 0.
 
@@ -91,20 +108,18 @@ Theorem sqrt_correct :
   forall x : float beta,
   round beta fexp rnd (R_sqrt.sqrt (F2R x)) = F2R (sqrt x).
 Proof.
-intros [m e].
+intros x.
 unfold sqrt.
 case Zlt_bool_spec ; intros Hm.
-generalize (Fsqrt_core_correct beta prec m e Hm).
-destruct Fsqrt_core as [[m' e'] l].
+generalize (Fsqrt_correct fexp x (F2R_gt_0 _ _ Hm)).
+destruct Fsqrt as [[m' e'] l].
 intros [Hs1 Hs2].
-rewrite (round_trunc_sign_any_correct beta fexp rnd choice rnd_choice _ m' e' l).
+rewrite (round_trunc_sign_any_correct' beta fexp rnd choice rnd_choice _ m' e' l).
 destruct truncate as [[m'' e''] l'].
 now rewrite Rlt_bool_false by apply sqrt_ge_0.
 now rewrite Rabs_pos_eq by apply sqrt_ge_0.
-left.
-apply Zle_trans with (2 := fexp_prec _).
-clear -Hs1 ; omega.
-destruct (Req_dec (F2R (Float beta m e)) 0) as [Hz|Hz].
+now left.
+destruct (Req_dec (F2R x) 0) as [Hz|Hz].
 rewrite Hz, sqrt_0, F2R_0.
 now apply round_0.
 unfold R_sqrt.sqrt.
@@ -113,13 +128,13 @@ rewrite F2R_0.
 now apply round_0.
 destruct H as [H|H].
 elim Rgt_not_le with (1 := H).
-now apply F2R_le_0_compat.
+now apply F2R_le_0.
 now elim Hz.
 Qed.
 
 Lemma Rsgn_div :
   forall x y : R,
-  x <> R0 -> y <> R0 ->
+  x <> 0%R -> y <> 0%R ->
   Rlt_bool (x / y) 0 = xorb (Rlt_bool x 0) (Rlt_bool y 0).
 Proof.
 intros x y Hx0 Hy0.
@@ -162,51 +177,54 @@ now elim Hy0.
 Qed.
 
 Definition div (x y : float beta) :=
-  let (mx, ex) := x in
-  let (my, ey) := y in
-  if Zeq_bool mx 0 then Float beta 0 0
+  if Zeq_bool (Fnum x) 0 then Float beta 0 0
   else
-    let '(m, e, l) := truncate beta fexp (Fdiv_core beta prec (Zabs mx) ex (Zabs my) ey) in
-    let s := xorb (Zlt_bool mx 0) (Zlt_bool my 0) in
+    let '(m, e, l) := truncate beta fexp (Fdiv fexp (Fabs x) (Fabs y)) in
+    let s := xorb (Zlt_bool (Fnum x) 0) (Zlt_bool (Fnum y) 0) in
     Float beta (cond_Zopp s (choice s m l)) e.
 
 Theorem div_correct :
   forall x y : float beta,
-  F2R y <> R0 ->
+  F2R y <> 0%R ->
   round beta fexp rnd (F2R x / F2R y) = F2R (div x y).
 Proof.
-intros [mx ex] [my ey] Hy.
+intros x y Hy.
 unfold div.
 case Zeq_bool_spec ; intros Hm.
-rewrite Hm, 2!F2R_0.
-unfold Rdiv.
-rewrite Rmult_0_l.
-now apply round_0.
-assert (Hx: (0 < Zabs mx)%Z) by now apply Z.abs_pos.
-assert (Hy': (0 < Zabs my)%Z).
-  apply Z.abs_pos.
+  destruct x as [mx ex].
+  simpl in Hm.
+  rewrite Hm, 2!F2R_0.
+  unfold Rdiv.
+  rewrite Rmult_0_l.
+  now apply round_0.
+assert (0 < F2R (Fabs x))%R as Hx.
+  destruct x as [mx ex].
+  now apply F2R_gt_0, Z.abs_pos.
+assert (0 < F2R (Fabs y))%R as Hy'.
+  destruct y as [my ey].
+  apply F2R_gt_0, Z.abs_pos.
   contradict Hy.
   rewrite Hy.
   apply F2R_0.
-generalize (Fdiv_core_correct beta prec (Zabs mx) ex (Zabs my) ey Hprec Hx Hy').
-destruct Fdiv_core as [[m e] l].
+generalize (Fdiv_correct fexp _ _ Hx Hy').
+destruct Fdiv as [[m e] l].
 intros [Hs1 Hs2].
-rewrite (round_trunc_sign_any_correct beta fexp rnd choice rnd_choice _ m e l).
-destruct truncate as [[m' e'] l'].
-apply (f_equal (fun s => F2R (Float beta (cond_Zopp s (choice s _ _)) _))).
-rewrite Rsgn_div.
-apply f_equal2 ; apply Rsgn_F2R.
-contradict Hm.
-apply F2R_eq_0_reg with (1 := Hm).
-exact Hy.
-unfold Rdiv.
-rewrite Rabs_mult, Rabs_Rinv.
-rewrite <- 2!F2R_Zabs.
-exact Hs2.
-exact Hy.
-left.
-apply Zle_trans with (2 := fexp_prec _).
-clear -Hs1 ; omega.
+rewrite (round_trunc_sign_any_correct' beta fexp rnd choice rnd_choice _ m e l).
+- destruct truncate as [[m' e'] l'].
+  apply (f_equal (fun s => F2R (Float beta (cond_Zopp s (choice s _ _)) _))).
+  rewrite Rsgn_div.
+  apply f_equal2 ; apply Rsgn_F2R.
+  contradict Hm.
+  apply eq_0_F2R with (1 := Hm).
+  exact Hy.
+- unfold Rdiv.
+  rewrite Rabs_mult, Rabs_Rinv by exact Hy.
+  now rewrite <- 2!F2R_abs.
+- left.
+  rewrite <- cexp_abs.
+  unfold Rdiv.
+  rewrite Rabs_mult, Rabs_Rinv by exact Hy.
+  now rewrite <- 2!F2R_abs.
 Qed.
 
 End Compute.

@@ -1,9 +1,22 @@
-Require Import Reals.
-Require Import Fcore.
-Require Import Fcalc_ops.
-Require Import Psatz.
-Require Import Fprop_relative.
-Require Import Fprop_plus_error.
+(**
+This example is part of the Flocq formalization of floating-point
+arithmetic in Coq: http://flocq.gforge.inria.fr/
+
+Copyright (C) 2016-2018 Guillaume Melquiond
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 3 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+COPYING file for more details.
+*)
+
+Require Import Reals Psatz.
+From Flocq Require Import Core Operations Relative Plus_error.
 
 Section Theory.
 
@@ -67,7 +80,7 @@ Lemma hombnd_plus :
   forall m M u1 v1 b1 B1 u2 v2 b2 B2,
   hombnd m M u1 v1 b1 B1 ->
   hombnd m M u2 v2 b2 B2 ->
-  hombnd m M (u1 + u2) (v1 + v2) (Fplus radix2 b1 b2) (Fplus radix2 B1 B2).
+  hombnd m M (u1 + u2) (v1 + v2) (Fplus b1 b2) (Fplus B1 B2).
 Proof.
 intros m M u1 v1 b1 B1 u2 v2 b2 B2 [H11 [H12 H1]] [H21 [H22 H2]].
 unfold hombnd.
@@ -91,7 +104,7 @@ Lemma hombnd_minus :
   forall m M u1 v1 b1 B1 u2 v2 b2 B2,
   hombnd m M u1 v1 b1 B1 ->
   hombnd m M u2 v2 b2 B2 ->
-  hombnd m M (u1 - u2) (v1 - v2) (Fplus radix2 b1 b2) (Fplus radix2 B1 B2).
+  hombnd m M (u1 - u2) (v1 - v2) (Fplus b1 b2) (Fplus B1 B2).
 Proof.
 intros m M u1 v1 b1 B1 u2 v2 b2 B2 H1 [H21 [H22 H2]].
 apply hombnd_plus with (1 := H1).
@@ -104,13 +117,13 @@ now split.
 Qed.
 
 Definition mult_err b1 B1 b2 B2 :=
-  Fplus radix2 (Fplus radix2 (Fmult radix2 b1 B2) (Fmult radix2 B1 b2)) (Fmult radix2 b1 b2).
+  Fplus (Fplus (Fmult b1 B2) (Fmult B1 b2)) (@Fmult radix2 b1 b2).
 
 Lemma hombnd_mult :
   forall m M1 u1 v1 b1 B1 M2 u2 v2 b2 B2,
   hombnd m M1 u1 v1 b1 B1 ->
   hombnd m M2 u2 v2 b2 B2 ->
-  hombnd m (M1 * M2) (u1 * u2) (v1 * v2) (mult_err b1 B1 b2 B2) (Fmult radix2 B1 B2).
+  hombnd m (M1 * M2) (u1 * u2) (v1 * v2) (mult_err b1 B1 b2 B2) (Fmult B1 B2).
 Proof.
 intros m M1 u1 v1 b1 B1 M2 u2 v2 b2 B2 [H11 [H12 H1]] [H21 [H22 H2]].
 unfold hombnd, mult_err.
@@ -151,7 +164,7 @@ now apply Rmult_le_compat ; try apply Rabs_pos.
 Qed.
 
 Definition round_err b B :=
-  Fplus radix2 (Fmult radix2 (Fplus radix2 b B) (Float radix2 1 (- prec))) b.
+  Fplus (Fmult (Fplus b B) (Float radix2 1 (- prec))) b.
 
 Lemma hombnd_rnd :
   forall m M u v b B,
@@ -166,7 +179,7 @@ apply Rplus_le_le_0_compat with (2 := Ho1).
 apply Rmult_le_pos.
 apply Rplus_le_le_0_compat with (1 := Ho1).
 now apply Rle_trans with (1 := Rle_0_1).
-now apply F2R_ge_0_compat.
+now apply F2R_ge_0.
 apply (conj Ho2).
 intros H.
 specialize (Ho (Rle_trans _ _ _ H (Rmin_l _ _))).
@@ -233,7 +246,7 @@ Lemma hombnd_sub_init :
 Proof.
 intros u v Fu Fv.
 split.
-now apply F2R_ge_0_compat.
+now apply F2R_ge_0.
 unfold F2R at 1 3 ; simpl.
 rewrite 2!Rmult_1_l.
 repeat split ; try apply Rle_refl.
@@ -243,7 +256,7 @@ rewrite round_generic.
 unfold Rminus at 1.
 rewrite Rplus_opp_r, Rabs_R0.
 apply Rmult_le_pos.
-now apply F2R_ge_0_compat.
+now apply F2R_ge_0.
 apply Rabs_pos.
 apply valid_rnd_N.
 apply FLT_format_plus_small ; try easy.
@@ -282,7 +295,7 @@ Lemma hombnd_add :
   forall {m M u1 v1 b1 B1 u2 v2 b2 B2},
   hombnd' m M u1 v1 b1 B1 ->
   hombnd' m M u2 v2 b2 B2 ->
-  hombnd' m M (u1 + u2) (v1 + v2) (Fplus radix2 b1 b2) (Fplus radix2 B1 B2).
+  hombnd' m M (u1 + u2) (v1 + v2) (Fplus b1 b2) (Fplus B1 B2).
 Proof.
 apply hombnd_plus.
 Qed.
@@ -291,7 +304,7 @@ Lemma hombnd_sub :
   forall {m M u1 v1 b1 B1 u2 v2 b2 B2},
   hombnd' m M u1 v1 b1 B1 ->
   hombnd' m M u2 v2 b2 B2 ->
-  hombnd' m M (u1 - u2) (v1 - v2) (Fplus radix2 b1 b2) (Fplus radix2 B1 B2).
+  hombnd' m M (u1 - u2) (v1 - v2) (Fplus b1 b2) (Fplus B1 B2).
 Proof.
 apply hombnd_minus.
 Qed.
@@ -300,7 +313,7 @@ Lemma hombnd_mul :
   forall {m M1 u1 v1 b1 B1 M2 u2 v2 b2 B2},
   hombnd' m M1 u1 v1 b1 B1 ->
   hombnd' m M2 u2 v2 b2 B2 ->
-  hombnd' m (M1 * M2) (u1 * u2) (v1 * v2) (mult_err b1 B1 b2 B2) (Fmult radix2 B1 B2).
+  hombnd' m (M1 * M2) (u1 * u2) (v1 * v2) (mult_err b1 B1 b2 B2) (Fmult B1 B2).
 Proof.
 apply hombnd_mult.
 Qed.

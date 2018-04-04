@@ -1,4 +1,21 @@
-Require Import Reals Flocq.Core.Fcore.
+(**
+This example is part of the Flocq formalization of floating-point
+arithmetic in Coq: http://flocq.gforge.inria.fr/
+
+Copyright (C) 2014-2018 Guillaume Melquiond
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 3 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+COPYING file for more details.
+*)
+
+Require Import Reals Flocq.Core.Core.
 Require Import Gappa.Gappa_tactic Interval.Interval_tactic.
 
 Open Scope R_scope.
@@ -74,7 +91,7 @@ Lemma method_error :
   Rabs ((f - exp t) / exp t) <= 23 * pow2 (-62).
 Proof.
 intros t t2 p q f Ht.
-unfold f, q, p, t2, p0, p1, p2, q0, q1, q2 ; simpl ;
+unfold f, q, p, t2, p0, p1, p2, q0, q1, q2 ;
 interval with (i_bisect_taylor t 9, i_prec 70).
 Qed.
 
@@ -103,11 +120,11 @@ assert (Rabs x <= 5/16 \/ 5/16 <= Rabs x <= 746) as [Bx'|Bx'] by gappa.
   rewrite 2!round_generic with (2 := Fx)...
   gappa.
 - assert (Hl: - 1 * pow2 (-102) <= Log2l - (ln 2 - Log2h) <= 0).
-    unfold Log2l, Log2h ; simpl bpow ;
+    unfold Log2l, Log2h ;
     interval with (i_prec 110).
   assert (Ax: x = x * InvLog2 * (1 / InvLog2)).
     field.
-    unfold InvLog2 ; simpl ; interval.
+    unfold InvLog2 ; interval.
   unfold te.
   replace (x - k * ln 2) with (x - k * Log2h - k * (ln 2 - Log2h)) by ring.
   revert Hl Ax.
@@ -132,8 +149,8 @@ generalize (method_error t Bt).
 intros Ef.
 rewrite bpow_plus, Rmult_assoc.
 assert (exp x = pow2 (Zfloor k) * exp (x - k * ln 2)) as ->.
-  assert (exists k', k = Z2R k') as [k' ->] by (eexists ; apply Rmult_1_r).
-  rewrite Zfloor_Z2R, bpow_exp, <- exp_plus.
+  assert (exists k', k = IZR k') as [k' ->] by (eexists ; apply Rmult_1_r).
+  rewrite Zfloor_IZR, bpow_exp, <- exp_plus.
   apply f_equal.
   simpl ; ring.
 rewrite <- Rmult_minus_distr_l.
@@ -152,9 +169,9 @@ assert (Rabs ((exp t - exp x) / exp x) <= 33 * pow2 (-60)).
   rewrite <- exp_Ropp, <- exp_plus.
   revert Ex.
   unfold Rminus ; generalize (t + - x) ; clear.
-  simpl ; intros r Hr ; interval with (i_prec 60).
+  intros r Hr ; interval with (i_prec 60).
 apply rel_helper. apply Rgt_not_eq, exp_pos.
 apply rel_helper in H. 2: apply Rgt_not_eq, exp_pos.
 apply rel_helper in Ef. 2: apply Rgt_not_eq, exp_pos.
-unfold t2, add, mul, sub, div, p0, p1, p2, q0, q1, q2 in * ; simpl bpow in * ; gappa.
+unfold t2, add, mul, sub, div, p0, p1, p2, q0, q1, q2 in * ; gappa.
 Qed.
