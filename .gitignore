@@ -5,6 +5,8 @@ config.log
 config.status
 configure
 deps.dot
+deps.png
+deps.map
 install-sh
 lia.cache
 Remakefile
