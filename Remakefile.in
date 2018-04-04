@@ -87,10 +87,9 @@ html/index.html: $(OBJS)
 	@COQDOC@ -toc -interpolate -utf8 -html -g -R src Flocq -d html \
 	  --coqlib http://coq.inria.fr/distrib/current/stdlib/ \
 	  $(addprefix src/,$(FILES))
-	cd html/
-	for f in *.html; do \
-	  sed "s/<a href=\"index.html\">Index<\/a>/Go back to the <a href=\"..\/index.html\">Main page<\/a> or <a href=\"index.html\">Index<\/a>./" $f > glop; \
-	  mv -f glop $f; done
+	for f in html/*.html; do
+	  sed -e 's;<a href="index.html">Index</a>;Go back to the <a href="../index.html">Main page</a> or <a href="index.html">Index</a>.;' -i $f
+	done
 
 
 deps.dot: $(addprefix src/,$(FILES)) Remakefile.in
