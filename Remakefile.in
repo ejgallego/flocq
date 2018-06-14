@@ -85,7 +85,7 @@ html/index.html: $(OBJS)
 	rm -rf html
 	mkdir -p html
 	@COQDOC@ -toc -interpolate -utf8 -html -g -R src Flocq -d html \
-	  --coqlib http://coq.inria.fr/distrib/current/stdlib/ \
+	  --coqlib http://coq.inria.fr/distrib/current/stdlib \
 	  $(addprefix src/,$(FILES))
 	for f in html/*.html; do
 	  sed -e 's;<a href="index.html">Index</a>;Go back to the <a href="../index.html">Main page</a> or <a href="index.html">Index</a>.;' -i $f
@@ -116,7 +116,7 @@ deps.png: deps.dot
 	dot -T png deps.dot > deps.png
 
 deps.map: deps.dot
-	dot -T cmap deps.dot > deps.map
+	dot -T cmap deps.dot | sed -e 's,>$,/>,' > deps.map
 
 
 doc: html/index.html
