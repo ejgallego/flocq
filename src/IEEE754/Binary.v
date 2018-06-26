@@ -493,32 +493,33 @@ Qed.
 Definition Bcompare (f1 f2 : binary_float) : option comparison :=
   match f1, f2 with
   | B754_nan _ _ _,_ | _,B754_nan _ _ _ => None
-  | B754_infinity true, B754_infinity true
-  | B754_infinity false, B754_infinity false => Some Eq
-  | B754_infinity true, _ => Some Lt
-  | B754_infinity false, _ => Some Gt
-  | _, B754_infinity true => Some Gt
-  | _, B754_infinity false => Some Lt
-  | B754_finite true _ _ _, B754_zero _ => Some Lt
-  | B754_finite false _ _ _, B754_zero _ => Some Gt
-  | B754_zero _, B754_finite true _ _ _ => Some Gt
-  | B754_zero _, B754_finite false _ _ _ => Some Lt
+  | B754_infinity s1, B754_infinity s2 =>
+    Some match s1, s2 with
+    | true, true => Eq
+    | false, false => Eq
+    | true, false => Lt
+    | false, true => Gt
+    end
+  | B754_infinity s, _ => Some (if s then Lt else Gt)
+  | _, B754_infinity s => Some (if s then Gt else Lt)
+  | B754_finite s _ _ _, B754_zero _ => Some (if s then Lt else Gt)
+  | B754_zero _, B754_finite s _ _ _ => Some (if s then Gt else Lt)
   | B754_zero _, B754_zero _ => Some Eq
   | B754_finite s1 m1 e1 _, B754_finite s2 m2 e2 _ =>
-    match s1, s2 with
-    | true, false => Some Lt
-    | false, true => Some Gt
+    Some match s1, s2 with
+    | true, false => Lt
+    | false, true => Gt
     | false, false =>
       match Zcompare e1 e2 with
-      | Lt => Some Lt
-      | Gt => Some Gt
-      | Eq => Some (Pcompare m1 m2 Eq)
+      | Lt => Lt
+      | Gt => Gt
+      | Eq => Pcompare m1 m2 Eq
       end
     | true, true =>
       match Zcompare e1 e2 with
-      | Lt => Some Gt
-      | Gt => Some Lt
-      | Eq => Some (CompOpp (Pcompare m1 m2 Eq))
+      | Lt => Gt
+      | Gt => Lt
+      | Eq => CompOpp (Pcompare m1 m2 Eq)
       end
     end
   end.
@@ -530,12 +531,12 @@ Theorem Bcompare_correct :
 Proof.
   Ltac apply_Rcompare :=
     match goal with
-      | [ |- Some Lt = Some (Rcompare _ _) ] => f_equal; symmetry; apply Rcompare_Lt
-      | [ |- Some Eq = Some (Rcompare _ _) ] => f_equal; symmetry; apply Rcompare_Eq
-      | [ |- Some Gt = Some (Rcompare _ _) ] => f_equal; symmetry; apply Rcompare_Gt
+      | [ |- Lt = Rcompare _ _ ] => symmetry; apply Rcompare_Lt
+      | [ |- Eq = Rcompare _ _ ] => symmetry; apply Rcompare_Eq
+      | [ |- Gt = Rcompare _ _ ] => symmetry; apply Rcompare_Gt
     end.
-  unfold Bcompare; intros.
-  destruct f1, f2 ; try easy.
+  unfold Bcompare; intros f1 f2 H1 H2.
+  destruct f1, f2; try easy; apply f_equal; clear H1 H2.
   now rewrite Rcompare_Eq.
   destruct s0 ; apply_Rcompare.
   now apply F2R_lt_0.
@@ -544,7 +545,6 @@ Proof.
   now apply F2R_lt_0.
   now apply F2R_gt_0.
   simpl.
-  clear H H0.
   apply andb_prop in e0; destruct e0; apply (canonical_canonical_mantissa false) in H.
   apply andb_prop in e2; destruct e2; apply (canonical_canonical_mantissa false) in H1.
   pose proof (Zcompare_spec e e1); unfold canonical, Fexp in H1, H.
