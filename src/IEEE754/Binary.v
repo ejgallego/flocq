@@ -375,25 +375,45 @@ Proof.
 now intros [| |? []|].
 Qed.
 
-Definition build_nan (x : { x | is_nan x = true }) :=
-  proj1_sig x.
+Definition get_nan_pl (x : binary_float) : positive :=
+  match x with B754_nan _ pl _ => pl | _ => xH end.
+
+Definition build_nan (x : { x | is_nan x = true }) : binary_float.
+Proof.
+apply (B754_nan (Bsign (proj1_sig x)) (get_nan_pl (proj1_sig x))).
+destruct x as [x H].
+simpl.
+revert H.
+assert (H: false = true -> nan_pl 1 = true) by now destruct (nan_pl 1).
+destruct x; try apply H.
+intros _.
+apply e.
+Defined.
+
+Theorem build_nan_correct :
+  forall x : { x | is_nan x = true },
+  build_nan x = proj1_sig x.
+Proof.
+intros [x H].
+now destruct x.
+Qed.
 
 Theorem B2R_build_nan :
   forall x, B2R (build_nan x) = 0%R.
 Proof.
-now intros [[| | |] H].
+easy.
 Qed.
 
 Theorem is_finite_build_nan :
   forall x, is_finite (build_nan x) = false.
 Proof.
-now intros [[| | |] H].
+easy.
 Qed.
 
 Theorem is_nan_build_nan :
   forall x, is_nan (build_nan x) = true.
 Proof.
-now intros [[| | |] H].
+easy.
 Qed.
 
 (** Opposite *)
@@ -419,7 +439,6 @@ Theorem B2R_Bopp :
   B2R (Bopp opp_nan x) = (- B2R x)%R.
 Proof.
 intros opp_nan [sx|sx|sx plx Hplx|sx mx ex Hx]; apply sym_eq ; try apply Ropp_0.
-simpl. rewrite B2R_build_nan. exact Ropp_0.
 simpl.
 rewrite <- F2R_opp.
 now case sx.
@@ -429,9 +448,7 @@ Theorem is_finite_Bopp :
   forall opp_nan x,
   is_finite (Bopp opp_nan x) = is_finite x.
 Proof.
-intros opp_nan [| | |] ; try easy.
-simpl; intros.
-apply is_finite_build_nan.
+now intros opp_nan [| | |].
 Qed.
 
 (** Absolute value *)
@@ -449,7 +466,6 @@ Theorem B2R_Babs :
   B2R (Babs abs_nan x) = Rabs (B2R x).
 Proof.
   intros abs_nan [sx|sx|sx plx Hx|sx mx ex Hx]; apply sym_eq ; try apply Rabs_R0.
-  simpl. rewrite B2R_build_nan. exact Rabs_R0.
   simpl. rewrite <- F2R_abs. now destruct sx.
 Qed.
 
@@ -457,9 +473,7 @@ Theorem is_finite_Babs :
   forall abs_nan x,
   is_finite (Babs abs_nan x) = is_finite x.
 Proof.
-  intros abs_nan [| | |] ; try easy.
-  simpl; intros.
-  apply is_finite_build_nan.
+  now intros abs_nan [| | |].
 Qed.
 
 Theorem Bsign_Babs :
