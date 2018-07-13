@@ -4,6 +4,7 @@ Version 3.0.0
 * stripped the `F*_` prefix from all the file names, renamed some files:
   - `Definitions -> Defs`
   - `Appli -> IEEE754`
+* renamed `ln_beta` into `mag`
 * renamed `canonic_exp` into `cexp`, `canonic` into `canonical`
 * renamed all theorems ending with `unicity` by `unique`
 * changed `FLX_`, `FIX_`, `FLT_`, `FLXN_`, `FTZ_format` into inductive types
