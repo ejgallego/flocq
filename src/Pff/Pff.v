@@ -12,6 +12,7 @@ Require Export Div2.
 Require Export Even.
 Require Import Psatz.
 
+Ltac omega ::= lia.
 
 (*** was file sTactic.v  ***)
 
@@ -366,7 +367,6 @@ replace (Zsucc 0) with (Z_of_nat 1).
 intros H'; rewrite absolu_INR; simpl in |- *; auto.
 simpl in |- *; auto.
 intros p H'; rewrite <- Zpos_succ_morphism; simpl in |- *; auto with zarith.
-unfold nat_of_P in |- *; rewrite Pmult_nat_succ_morphism; auto.
 Qed.
 
 Theorem Zlt_next :
@@ -391,7 +391,6 @@ Theorem Zle_abs : forall p : Z, (p <= Z_of_nat (Zabs_nat p))%Z.
 intros p; case p; simpl in |- *; auto with zarith; intros q;
  rewrite inject_nat_convert with (p := Zpos q);
  auto with zarith.
-unfold Zle in |- *; red in |- *; intros H'2; discriminate.
 Qed.
 
 
@@ -462,14 +461,6 @@ intros z; case z; auto.
 simpl in |- *; auto with zarith.
 repeat rewrite Zabs_eq; auto with zarith.
 intros p; rewrite Zabs_eq_opp; auto with zarith.
-2: unfold Zsucc in |- *; replace 0%Z with (-1 + 1)%Z; auto with zarith.
-2: case p; simpl in |- *; intros; red in |- *; simpl in |- *; intros;
-    red in |- *; intros; discriminate.
-replace (- Zsucc (Zneg p))%Z with (Zpos p - 1)%Z.
-replace (Zsucc (Zabs (Zneg p))) with (Zpos p + 1)%Z;
- auto with zarith.
-unfold Zsucc in |- *; rewrite Zopp_plus_distr.
-auto with zarith.
 Qed.
 
 Theorem Zle_Zpred : forall x y : Z, (x < y)%Z -> (x <= Zpred y)%Z.
@@ -492,7 +483,6 @@ Theorem Zlt_mult_simpl_l :
  forall a b c : Z, (0 < c)%Z -> (c * a < c * b)%Z -> (a < b)%Z.
 intros a b0 c H H0; apply Zgt_lt.
 apply Zmult_gt_reg_r with (p := c); try apply Zlt_gt; auto with zarith.
-repeat rewrite (fun x => Zmult_comm x c); auto with zarith.
 Qed.
 (* An equality function on Z that return a bool *)
 
@@ -577,7 +567,6 @@ Theorem Zlt_Zabs_inv1 :
  forall z1 z2 : Z, (Zabs z1 < z2)%Z -> (- z2 < z1)%Z.
 intros z1 z2 H; case (Zle_or_lt 0 z1); intros H1.
 apply Zlt_le_trans with (- (0))%Z; auto with zarith.
-apply Zlt_Zopp; apply Zle_lt_trans with (2 := H); auto with zarith.
 rewrite <- (Zopp_involutive z1); rewrite <- (Zabs_eq_opp z1);
  auto with zarith.
 Qed.
@@ -593,7 +582,6 @@ Theorem Zle_Zabs_inv1 :
  forall z1 z2 : Z, (Zabs z1 <= z2)%Z -> (- z2 <= z1)%Z.
 intros z1 z2 H; case (Zle_or_lt 0 z1); intros H1.
 apply Zle_trans with (- (0))%Z; auto with zarith.
-apply Zle_Zopp; apply Zle_trans with (2 := H); auto with zarith.
 rewrite <- (Zopp_involutive z1); rewrite <- (Zabs_eq_opp z1);
  auto with zarith.
 Qed.
@@ -603,7 +591,6 @@ Theorem Zle_Zabs_inv2 :
 intros z1 z2 H; case (Zle_or_lt 0 z1); intros H1.
 rewrite <- (Zabs_eq z1); auto.
 apply Zle_trans with (Zabs z1); auto with zarith.
-rewrite Zabs_eq_opp; omega.
 Qed.
 
 Theorem Zlt_Zabs_Zpred :
@@ -611,8 +598,6 @@ Theorem Zlt_Zabs_Zpred :
  (Zabs z1 < z2)%Z -> z1 <> Zpred z2 -> (Zabs (Zsucc z1) < z2)%Z.
 intros z1 z2 H H0; case (Zle_or_lt 0 z1); intros H1.
 rewrite Zabs_eq; auto with zarith.
-rewrite Zabs_eq in H; auto with zarith.
-apply Zlt_trans with (2 := H).
 repeat rewrite Zabs_eq_opp; auto with zarith.
 Qed.
 
@@ -662,8 +647,6 @@ Qed.
 Theorem Zlt_Zabs_intro :
  forall z1 z2 : Z, (- z2 < z1)%Z -> (z1 < z2)%Z -> (Zabs z1 < z2)%Z.
 intros z1 z2; case z1; case z2; simpl in |- *; auto with zarith.
-intros p p0 H H0; change (- Zneg p0 < - Zneg p)%Z in |- *;
- auto with zarith.
 Qed.
 (*** was file Digit.v  ***)
 (****************************************************************************
@@ -791,7 +774,6 @@ intros; rewrite H1; rewrite Zpower_nat_O; auto with zarith.
 intros r'; rewrite digitAux1; auto.
 intros H1; generalize (Rec (n * r)%Z); case (digitAux v (n * r) q').
 intros; rewrite Zpower_nat_O; auto with zarith.
-apply Zle_trans with (m := r); auto with zarith.
 intros r'; rewrite digitAux1; auto.
 intros q' Rec r; generalize (Zcompare_correct r v); case (r ?= v)%Z; auto.
 intros H1; generalize (Rec (n * r)%Z); case (digitAux v (n * r) q').
@@ -799,7 +781,6 @@ intros; rewrite H1; rewrite Zpower_nat_O; auto with zarith.
 intros r'; rewrite digitAux1; auto.
 intros H1; generalize (Rec (n * r)%Z); case (digitAux v (n * r) q').
 intros; rewrite Zpower_nat_O; auto with zarith.
-apply Zle_trans with (m := r); auto with zarith.
 intros r'; rewrite digitAux1; auto.
 Qed.
 (* digit is correct (first part) *)
@@ -812,12 +793,10 @@ intros p H; unfold digit in |- *;
  generalize (digitAuxLess (Zabs (Zpos p)) 1 (xO p));
  case (digitAux (Zabs (Zpos p)) 1 (xO p)); simpl in |- *;
  auto with zarith.
-intros _; apply Zlt_ZERO_Zle_ONE; auto with zarith.
 intros p H; unfold digit in |- *;
  generalize (digitAuxLess (Zabs (Zneg p)) 1 (xO p));
  case (digitAux (Zabs (Zneg p)) 1 (xO p)); simpl in |- *;
  auto with zarith.
-intros _; apply Zlt_ZERO_Zle_ONE; auto with zarith.
 Qed.
 
 
@@ -865,15 +844,9 @@ intros p; elim p; simpl in |- *; auto.
 intros p0 H; rewrite Zpos_xI.
 apply Zlt_le_trans with (2 * (n * Zpower_nat n (pos_length p0)))%Z;
 auto with zarith.
-apply Zmult_le_compat_r; auto with zarith.
-apply Zle_mult_gen; auto with zarith.
-apply Zpower_NR0; auto with zarith.
 intros p0 H; rewrite Zpos_xO.
 apply Zlt_le_trans with (2 * (n * Zpower_nat n (pos_length p0)))%Z;
 auto with zarith.
-apply Zmult_le_compat_r; auto with zarith.
-apply Zle_mult_gen; auto with zarith.
-apply Zpower_NR0; auto with zarith.
 auto with zarith.
 Qed.
 (* digit is correct (second part) *)
@@ -1545,7 +1518,6 @@ rewrite FshiftCorrectInv; auto.
 rewrite <- H'1.
 red in |- *; intros H'2.
 absurd (0%Z = (Fexp y - Fexp x)%Z); auto with zarith arith.
-rewrite <- (inj_abs (Fexp y - Fexp x)); auto with zarith.
 apply Zlt_le_weak; auto.
 apply FshiftFdigit; auto.
 apply sameExpEq; auto.
@@ -1556,7 +1528,6 @@ rewrite FshiftCorrectInv; auto.
 rewrite <- H'1.
 red in |- *; intros H'2.
 absurd (0%Z = (Fexp x - Fexp y)%Z); auto with zarith arith.
-rewrite <- (inj_abs (Fexp x - Fexp y)); auto with zarith.
 apply Zlt_le_weak; auto.
 apply FshiftFdigit; auto.
 Qed.
@@ -1701,8 +1672,6 @@ repeat rewrite <- powerRZ_add; auto with real zarith arith.
 2: now apply Rgt_not_eq, Rlt_IZR.
 repeat rewrite inj_abs; auto with real zarith.
 repeat rewrite Zplus_minus; auto.
-generalize (Z.le_min_r (Fexp x) (Fexp y)); omega.
-generalize (Z.le_min_l (Fexp x) (Fexp y)); omega.
 Qed.
 
 Definition Fopp (x : float) := Float (- Fnum x) (Fexp x).
@@ -1943,7 +1912,6 @@ pattern (Zabs (Fnum q)) at 1 in |- *;
 rewrite Zabs_eq; simpl in |- *; auto with zarith.
 apply Zpower_NR1; omega.
 apply Zpower_NR0; omega.
-simpl in |- *; ring.
 cut (Fexp p <= Fexp q)%Z; [ intros E2 | idtac ].
 apply le_IZR; auto.
 apply (Rle_monotony_contra_exp radix) with (z := Fexp p);
@@ -2039,7 +2007,6 @@ Theorem maxFbounded :
 intros b z H; split; auto.
 change (Zabs (Zpred (Zpos (vNum b))) < Zpos (vNum b))%Z in |- *.
 rewrite Zabs_eq; auto with zarith.
-apply Zlt_0_le_0_pred; auto with zarith.
 Qed.
 
 Theorem maxMax :
@@ -2188,8 +2155,6 @@ apply Zle_antisym; auto.
 intros n H' p q H'0 H'1; case (Zle_lt_or_eq _ _ H'0); intros H'2.
 simpl in |- *; right.
 apply H'; auto with zarith.
-rewrite Zplus_succ_comm.
-rewrite <- inj_S; auto.
 simpl in |- *; auto.
 Qed.
 
@@ -2232,8 +2197,6 @@ intros p0 H'1; absurd (p <= q)%Z; auto.
 apply Zlt_not_le; auto.
 apply Zlt_O_minus_lt; auto.
 replace (p - q)%Z with (- (q - p))%Z; auto with zarith.
-rewrite H'1; simpl in |- *; auto with zarith.
-unfold Zlt in |- *; simpl in |- *; auto.
 apply Zle_trans with (m := r); auto.
 Qed.
 
@@ -2345,7 +2308,6 @@ Theorem FnormalNotZero : forall p : float, Fnormal p -> ~ is_Fzero p.
 unfold is_Fzero in |- *; intros p H; red in |- *; intros H1.
 case H; rewrite H1.
 replace (Zabs (radix * 0)) with 0%Z; auto with zarith.
-rewrite Zmult_comm; simpl in |- *; auto.
 Qed.
 
 Theorem FnormalFop : forall p : float, Fnormal p -> Fnormal (Fopp p).
@@ -2354,8 +2316,6 @@ apply oppBounded; apply H.
 replace (Zabs (radix * Fnum (Fopp p))) with (Zabs (radix * Fnum p));
  try apply H.
 case p; simpl in |- *; auto with zarith.
-intros Fnum1 Fexp1; rewrite <- Zopp_mult_distr_r; apply sym_equal;
- apply Zabs_Zopp.
 Qed.
 
 Theorem FnormalFabs : forall p : float, Fnormal p -> Fnormal (Fabs p).
@@ -2496,7 +2456,6 @@ apply Zle_trans with 0%Z; auto with zarith.
 intros H'0; exists (Float (Zsucc (Fnum p)) (Fexp p)); split; auto.
 repeat split; simpl in |- *; try apply H'; auto with zarith.
 case (Zle_or_lt 0 (Fnum p)); intros H1; auto with zarith.
-rewrite Zabs_eq; auto with zarith.
 apply Zlt_trans with (Zabs (Fnum p)); try apply H'; auto with zarith.
 repeat rewrite Zabs_eq_opp; auto with zarith.
 intros H'0;
@@ -2526,9 +2485,7 @@ apply digitInv; auto.
 rewrite pGivesBound.
 rewrite Zabs_eq; auto with zarith.
 apply Zle_Zpred, Zpower_nat_monotone_lt; auto with zarith.
-now apply Zle_Zpred, Zpower_nat_less.
-rewrite Zabs_eq; auto with zarith.
-apply Zle_Zpred; auto with zarith.
+auto with zarith.
 Qed.
 
 Theorem digitVNumiSPrecision :
@@ -2536,7 +2493,6 @@ Theorem digitVNumiSPrecision :
 apply digitInv; auto.
 rewrite pGivesBound.
 rewrite Zabs_eq; auto with zarith.
-apply Zpower_NR0; omega.
 rewrite Zabs_eq; auto with zarith.
 rewrite pGivesBound; auto with zarith.
 apply Zpower_nat_monotone_lt; auto with zarith.
@@ -2576,7 +2532,6 @@ Theorem FboundedMboundPos :
 intros z m H' H'0 H'1; case (Zle_lt_or_eq _ _ H'0); intros H'2.
 exists (Float m z); split; auto with zarith.
 repeat split; simpl in |- *; auto with zarith.
-rewrite Zabs_eq; auto; rewrite pGivesBound; auto.
 case (FboundNext (Float (Zpred (Zpos (vNum b))) z)).
 split; auto with zarith.
 rewrite Z.abs_eq.
@@ -2622,7 +2577,6 @@ apply H.
 destruct H as (H1,H2).
 intros H3; contradict H2; rewrite H3.
 replace (Zabs (radix * 0)) with 0%Z; auto with zarith.
-rewrite Zmult_0_r; auto with zarith.
 rewrite plus_comm; simpl in |- *; auto.
 Qed.
 
@@ -2653,12 +2607,13 @@ absurd (Fnum (Fshift radix (Zabs_nat (Fexp p - Fexp q)) p) < Fnum q)%Z; auto.
 2: apply Rlt_Fexp_eq_Zlt with (radix := radix); auto with zarith.
 2: unfold FtoRradix in |- *; rewrite FshiftCorrect; auto.
 2: unfold Fshift in |- *; simpl in |- *; auto with zarith.
-2: replace (Z_of_nat (Zabs_nat (Fexp p - Fexp q))) with (Fexp p - Fexp q)%Z;
-    auto with zarith.
+(* 2: replace (Z_of_nat (Zabs_nat (Fexp p - Fexp q))) with (Fexp p - Fexp q)%Z;
+    auto with zarith. *)
+(*
 2: cut (0 < Fexp p - Fexp q)%Z; auto with zarith.
 2: case (Fexp p - Fexp q)%Z; simpl in |- *; auto with zarith.
 2: intros p0; rewrite (inject_nat_convert (Zpos p0)); auto with arith.
-2: intros p0 H'5; discriminate.
+2: intros p0 H'5; discriminate. *)
 red in |- *; intros H'5.
 absurd
  (Fdigit radix (Fshift radix (Zabs_nat (Fexp p - Fexp q)) p) <=
@@ -2666,10 +2621,6 @@ absurd
 rewrite FshiftFdigit; auto with arith.
 replace (Fdigit radix p) with precision.
 replace (Fdigit radix q) with precision; auto with zarith.
-cut (0 < Fexp p - Fexp q)%Z; auto with zarith.
-case (Fexp p - Fexp q)%Z; simpl in |- *; auto with zarith.
-intros p0 H'6; generalize (convert_not_O p0); auto with zarith.
-intros p0 H'6; discriminate.
 now apply sym_equal, FnormalPrecision.
 now apply sym_equal, FnormalPrecision.
 apply FnormalNotZero; auto with arith.
@@ -2717,8 +2668,7 @@ rewrite Zpower_nat_is_exp; auto with zarith.
 rewrite Zpower_nat_1; auto with zarith.
 rewrite (fun x => Zmult_comm x radix); unfold nNormMin in |- *;
  auto with zarith.
-apply Zle_Zabs.
-omega.
+lia.
 Qed.
 
 Theorem pNormal_absolu_min :
@@ -2788,7 +2738,6 @@ apply digit_monotone; try assumption.
 rewrite (fun x => Zabs_eq (Zpred x)); auto with zarith.
 rewrite Zmult_comm; rewrite Zpower_nat_1.
 generalize (proj2 (proj2 H)); omega.
-apply Zle_Zpred; auto with zarith.
 rewrite plus_comm; simpl in |- *; auto.
 Qed.
 
@@ -2872,7 +2821,6 @@ case H'; replace Fnum1 with (- - Fnum1)%Z; auto with zarith.
 unfold Fopp, Fshift, Fdigit in |- *; simpl in |- *.
 replace (digit radix (- Fnum1)) with (digit radix Fnum1).
 apply floatEq; simpl in |- *; auto with zarith.
-ring.
 case Fnum1; simpl in |- *; auto.
 Qed.
 
@@ -2906,7 +2854,6 @@ intros p H'.
 generalize (FnormalizeBounded p H').
 unfold Fnormalize in |- *; case (Z_zerop (Fnum p)); auto.
 intros H'0; right; repeat split; simpl in |- *; auto with zarith.
-rewrite Zmult_comm; simpl in |- *; red in |- *; simpl in |- *; auto.
 intros H'1.
 case (min_or (precision - Fdigit radix p) (Zabs_nat (dExp b + Fexp p)));
  intros Min; case Min; clear Min; intros MinR MinL.
@@ -2925,7 +2872,6 @@ replace (1 + (pred (Fdigit radix p) + (precision - Fdigit radix p))) with
  precision; auto.
 rewrite pGivesBound; auto with real.
 rewrite Zabs_eq; auto with zarith.
-apply Zpower_NR0; omega.
 cut (Fdigit radix p <= precision).
 2: now apply pGivesDigit.
 unfold Fdigit in |- *.
@@ -3146,7 +3092,6 @@ repeat split; simpl in |- *; auto with zarith.
 rewrite (Zabs_eq (pPred (vNum b))).
 unfold pPred in |- *; auto with zarith.
 unfold pPred in |- *; rewrite pGivesBound; auto with zarith.
-generalize (Zpower_NR1 radix precision); omega.
 rewrite Zabs_Zmult; repeat rewrite Zabs_eq; auto with zarith.
 apply Zle_trans with ((1 + 1) * pPred (vNum b))%Z; auto with zarith.
 replace ((1 + 1) * pPred (vNum b))%Z with (pPred (vNum b) + pPred (vNum b))%Z;
@@ -3155,7 +3100,6 @@ replace (Zpos (vNum b)) with (1 + Zpred (Zpos (vNum b)))%Z;
  unfold pPred in |- *; auto with zarith.
 apply Zplus_le_compat_r; apply Zle_Zpred.
 apply vNumbMoreThanOne.
-generalize vNumbMoreThanOne; omega.
 Qed.
 
 Theorem FcanonicPpred :
@@ -3174,7 +3118,6 @@ pattern nNormMin at 1 in |- *; replace nNormMin with (1 * nNormMin)%Z;
  auto with zarith.
 apply Zmult_gt_0_lt_compat_r; auto with zarith.
 rewrite PosNormMin; auto with zarith.
-rewrite Zabs_eq; auto with zarith.
 Qed.
 
 Theorem FcanonicNnormMin :
@@ -3400,7 +3343,6 @@ replace 0%Z with (- 0%nat)%Z by easy.
 apply Zlt_Zopp, nNormPos; auto with zarith.
 intros H'4; repeat split; simpl in |- *; auto with zarith.
 apply Zle_lt_trans with (Zsucc (Zabs (Fnum a))); auto with zarith.
-apply Zabs_Zs.
 case (Zlt_next (Zabs (Fnum a)) (Zpos (vNum b)));
  auto with zarith arith; try apply B0.
 intros H1; contradict H'3.
@@ -3521,7 +3463,6 @@ apply H'.
 repeat split; simpl in |- *; auto with zarith arith.
 rewrite Zabs_Zopp.
 rewrite Zabs_eq; unfold pPred in |- *; auto with zarith.
-apply Zlt_0_le_0_pred; auto with zarith.
 generalize (proj2 H'); omega.
 repeat split; simpl in |- *; try apply H'.
 apply Zlt_Zabs_Zpred; try apply H'; auto with zarith.
@@ -4034,8 +3975,6 @@ replace (Zpos (P_of_succ_nat (Zabs_nat (Fexp q - Fexp p))))
  with (Zsucc (Fexp q - Fexp p)).
 unfold Zsucc, Zpred in |- *; ring.
 rewrite <- (inj_abs (Fexp q - Fexp p)); auto with zarith.
-rewrite <- inj_S; simpl in |- *; auto.
-rewrite inj_abs; auto with zarith.
 rewrite FSuccSimpl4; auto.
 intros H'2 H'3.
 replace p with (Fshift radix (Zabs_nat (Fexp q - Fexp p)) q).
@@ -4683,11 +4622,8 @@ unfold pPred in |- *; apply Zle_Zpred; simpl in |- *.
 red in |- *; simpl in |- *; auto.
 apply mZlist_correct; auto.
 unfold boundR, boundNat in |- *; simpl in |- *; auto with zarith.
-apply Zle_trans with 0%Z; auto with zarith arith.
-rewrite <- Zopp_0; apply Zle_Zopp.
 case (dExp b); try intros; try rewrite N2Z.inj_pos; auto with zarith arith.
-case (boundR r); simpl in |- *; auto with zarith.
-case (boundR r); simpl in |- *; auto with zarith.
+auto with zarith.
 Qed.
 
 Theorem mBFadic_correct4 :
@@ -4710,11 +4646,7 @@ red in |- *; simpl in |- *; auto with zarith.
 apply mZlist_correct; auto.
 simpl in |- *; auto with zarith.
 unfold boundR, boundNat in |- *; simpl in |- *; auto with zarith.
-apply Zle_trans with 0%Z; auto with zarith.
-rewrite <- Zopp_0; apply Zle_Zopp.
 case (dExp b); auto with zarith.
-intros; rewrite N2Z.inj_pos; auto with zarith.
-simpl in |- *; auto with zarith.
 Qed.
 
 Theorem mBPadic_Fbounded :
@@ -5890,7 +5822,6 @@ rewrite inj_plus; rewrite inj_mult.
 rewrite <- (inject_nat_convert (Zpos n') n'); auto.
 repeat rewrite inj_oZ1; auto.
 rewrite inj_oZ1; rewrite Zabs_eq; auto with zarith.
-rewrite <- (inject_nat_convert (Zpos m') m'); auto with zarith.
 rewrite <- (inject_nat_convert (Zpos n') n'); auto with zarith.
 rewrite inj_oZ1; rewrite Zabs_eq; auto with zarith.
 rewrite <- (inject_nat_convert (Zpos n') n'); auto with zarith.
@@ -5901,16 +5832,11 @@ replace (Zneg m') with (- Zpos m')%Z; [ idtac | simpl in |- *; auto ].
 rewrite <- (inject_nat_convert (Zpos m') m'); auto.
 rewrite H1.
 rewrite inj_plus; rewrite inj_mult.
-rewrite <- (inject_nat_convert (Zpos n') n'); auto.
 repeat rewrite inj_oZ1; auto with zarith.
-ring.
 rewrite <- Zopp_mult_distr_l; rewrite Zabs_Zopp.
 rewrite inj_oZ1; rewrite Zabs_eq; auto with zarith.
-rewrite <- (inject_nat_convert (Zpos m') m'); auto with zarith.
-rewrite <- (inject_nat_convert (Zpos n') n'); auto with zarith.
 rewrite Zabs_Zopp.
 rewrite inj_oZ1; rewrite Zabs_eq; auto with zarith.
-rewrite <- (inject_nat_convert (Zpos n') n'); auto with zarith.
 intros n' Hn'; case m; simpl in |- *; auto.
 exists 0%Z; repeat split; simpl in |- *; auto with zarith.
 intros m'; generalize (Pdiv_correct m' n'); case (Pdiv m' n'); simpl in |- *;
@@ -5922,12 +5848,10 @@ rewrite H1.
 rewrite inj_plus; rewrite inj_mult.
 rewrite <- (inject_nat_convert (Zpos n') n'); auto.
 repeat rewrite inj_oZ1; auto with zarith.
-ring.
 replace (Zneg n') with (- Zpos n')%Z; [ idtac | simpl in |- *; auto ].
 rewrite Zmult_opp_opp.
 rewrite inj_oZ1; rewrite Zabs_eq; auto with zarith.
 rewrite <- (inject_nat_convert (Zpos n') n'); auto with zarith.
-rewrite <- (inject_nat_convert (Zpos m') m'); auto with zarith.
 rewrite inj_oZ1; rewrite Zabs_eq; auto with zarith.
 rewrite <- (inject_nat_convert (Zpos n') n'); auto with zarith.
 intros m'; generalize (Pdiv_correct m' n'); case (Pdiv m' n'); simpl in |- *;
@@ -5940,15 +5864,11 @@ rewrite H1.
 rewrite inj_plus; rewrite inj_mult.
 rewrite <- (inject_nat_convert (Zpos n') n'); auto.
 repeat rewrite inj_oZ1; auto with zarith.
-ring.
 replace (Zneg n') with (- Zpos n')%Z; [ idtac | simpl in |- *; auto ].
 rewrite <- Zopp_mult_distr_r; rewrite Zabs_Zopp.
 rewrite inj_oZ1; rewrite Zabs_eq; auto with zarith.
-rewrite <- (inject_nat_convert (Zpos m') m'); auto with zarith.
-rewrite <- (inject_nat_convert (Zpos n') n'); auto with zarith.
 rewrite Zabs_Zopp.
 rewrite inj_oZ1; rewrite Zabs_eq; auto with zarith.
-rewrite <- (inject_nat_convert (Zpos n') n'); auto with zarith.
 Qed.
 
 Theorem ZquotientPos :
@@ -5988,10 +5908,6 @@ contradict Hz4.
 replace (Zabs m) with (1 * Zabs m)%Z; [ idtac | ring ].
 apply Zle_not_lt; rewrite H2.
 rewrite Zabs_Zmult; apply Zle_Zmult_comp_r; auto with zarith.
-generalize H3; case (z1 - Zquotient n m)%Z;
- try (intros H1; case H1; auto; fail); simpl in |- *;
- intros p; case p; simpl in |- *; auto; intros; red in |- *;
- simpl in |- *; auto; red in |- *; intros; discriminate.
 rewrite Zmult_minus_distr_r; rewrite (Zmult_comm z1); rewrite <- Hz1;
  (pattern n at 1 in |- *; rewrite Hz2); ring.
 Qed.
@@ -6087,10 +6003,6 @@ pattern (Zpower_nat r (digit r v)) at 1 in |- *;
 rewrite (fun x y => Zabs_eq (Zpower_nat x y)); auto with zarith.
 apply Zle_Zmult_comp_l; auto with zarith.
 apply Zpower_NR0; omega.
-generalize Z1; case q; simpl in |- *; try (intros H1; case H1; auto; fail);
- intros p;
- (case p; unfold Zle in |- *; simpl in |- *; intros; red in |- *; intros;
-   discriminate).
 apply Zpower_NR0; omega.
 now apply digitMore.
 Qed.
@@ -6364,7 +6276,6 @@ Theorem MSB_shift :
  forall (x : float) (n : nat), ~ is_Fzero x -> MSB x = MSB (Fshift radix n x).
 intros; unfold MSB, Fshift, Fdigit in |- *; simpl in |- *.
 rewrite digitAdd; auto with zarith.
-rewrite inj_plus; unfold Zpred in |- *; ring.
 Qed.
 
 Theorem MSB_comp :
@@ -7473,7 +7384,6 @@ intros H'3;
 repeat split; simpl in |- *; auto.
 case (ZquotientProp (Fnum p * Fnum q) (Zpower_nat radix precision));
  auto with zarith.
-apply sym_not_eq, Zlt_not_eq, Zpower_nat_less; omega.
 intros x (H'5, (H'6, H'7)).
 cut
  (Zquotient (Fnum p * Fnum q) (Zpower_nat radix precision) *
@@ -7497,8 +7407,6 @@ rewrite Zpower_nat_Z_powerRZ; auto with zarith.
 pattern (Fnum p * Fnum q)%Z at 1 in |- *; rewrite H'5; ring.
 rewrite pGivesBound.
 rewrite <- (Zabs_eq (Zpower_nat radix precision)); auto with zarith.
-apply Zlt_Zabs_inv2; auto.
-apply Zpower_NR0; omega.
 apply Rmult_le_reg_l with (r := powerRZ radix (Fexp p + Fexp q));
  auto with real zarith.
 apply powerRZ_lt, Rlt_IZR; omega.
@@ -7512,7 +7420,6 @@ case
     (m := Zquotient (Fnum p * Fnum q) (Zpower_nat radix precision));
  auto with zarith.
 apply Zmult_le_reg_r with (p := Zpower_nat radix precision); auto with zarith.
-apply Zlt_gt, Zpower_nat_less; auto with zarith.
 pattern (Zpower_nat radix precision) at 2 in |- *;
  rewrite <- (fun x => Zabs_eq (Zpower_nat radix x)).
 rewrite <- Zabs_Zmult.
@@ -7522,7 +7429,6 @@ apply Zle_trans with (Zpower_nat radix precision * Zabs (Fnum q))%Z.
 apply Zle_Zmult_comp_r; auto with zarith.
 apply Zlt_le_weak; rewrite <- pGivesBound; apply Fp.
 apply Zle_Zmult_comp_l; auto with zarith.
-apply Zpower_NR0; omega.
 apply Zlt_le_weak; rewrite <- pGivesBound; apply Fq.
 apply Zpower_NR0; omega.
 intros x0 (H'8, H'9); rewrite <- H'9.
@@ -7562,11 +7468,9 @@ cut (0 <= Fnum p * Fnum q)%Z;
  | apply Zle_mult_gen; apply (LeR0Fnum radix); auto with arith ].
 case (ZquotientProp (Fnum p * Fnum q) (Zpower_nat radix precision));
  auto with zarith.
-apply sym_not_eq, Zlt_not_eq, Zpower_nat_less; omega.
 intros r; intros (H'3, (H'4, H'5)).
 cut (0 <= Zquotient (Fnum p * Fnum q) (Zpower_nat radix precision))%Z;
  [ intros Z2 | apply ZquotientPos; auto with zarith ].
-2: apply Zpower_NR0; omega.
 cut (0 <= r)%Z;
  [ intros Z3
  | replace r with
@@ -7577,10 +7481,6 @@ cut (0 <= r)%Z;
     auto ].
 2: apply Zle_Zminus_ZERO; rewrite Zabs_eq in H'4; auto with zarith;
     rewrite Zabs_eq in H'4; auto with zarith.
-2: apply Z.mul_nonneg_nonneg; try assumption.
-2: apply Zpower_NR0; omega.
-2: apply Z.mul_nonneg_nonneg; try assumption.
-2: apply Zpower_NR0; omega.
 case (Z_eq_dec r 0); intros Z4.
 exists (Fzero (Fexp p + Fexp q)); repeat (split; auto with zarith).
 replace (FtoRradix (Fzero (Fexp p + Fexp q))) with 0%R;
@@ -7596,7 +7496,6 @@ case
     (m := Zquotient (Fnum p * Fnum q) (Zpower_nat radix precision));
  auto with zarith.
 apply Zmult_le_reg_r with (p := Zpower_nat radix precision); auto with zarith.
-apply Zlt_gt, Zpower_nat_less; auto with zarith.
 pattern (Zpower_nat radix precision) at 2 in |- *;
  rewrite <- (fun x => Zabs_eq (Zpower_nat radix x)).
 rewrite <- Zabs_Zmult.
@@ -7606,7 +7505,6 @@ apply Zle_trans with (Zpower_nat radix precision * Zabs (Fnum q))%Z.
 apply Zle_Zmult_comp_r; auto with zarith.
 apply Zlt_le_weak; rewrite <- pGivesBound; apply Fp.
 apply Zle_Zmult_comp_l; auto with zarith.
-apply Zpower_NR0; omega.
 apply Zlt_le_weak; rewrite <- pGivesBound; apply Fq.
 apply Zpower_NR0; omega.
 intros x (H'6, H'7).
@@ -7660,7 +7558,6 @@ repeat rewrite Zmin_n_n; repeat rewrite <- Zminus_diag_reverse;
  auto.
 intros H1 H2; rewrite Zabs_Zopp; apply Zlt_Zabs_intro.
 apply Zlt_le_trans with 0%Z; auto with zarith.
-rewrite <- Zopp_0; apply Zlt_Zopp; auto with zarith.
 cut (Fnum p * Fnum q <= m)%Z; auto with zarith.
 apply le_IZR;
  apply (Rle_monotony_contra_exp radix) with (z := (Fexp p + Fexp q)%Z);
@@ -7683,7 +7580,6 @@ replace
  (Zsucc (Zquotient (Fnum p * Fnum q) (Zpower_nat radix precision)) *
   Zpower_nat radix precision - Fnum p * Fnum q)%Z;
  auto with zarith.
-unfold Zsucc in |- *; simpl in |- *; ring.
 pattern (Fnum p * Fnum q)%Z at 1 in |- *; rewrite H'3; ring.
 apply le_IZR;
  apply (Rle_monotony_contra_exp radix) with (z := (Fexp p + Fexp q)%Z);
@@ -7712,19 +7608,11 @@ cut (0 < Zabs (Fnum p))%Z; [ intros Eq2 | idtac ].
 cut (0 < Zabs (Fnum q))%Z; [ intros Eq3 | idtac ].
 apply Zlt_mult_simpl_l with (c := Zpower_nat radix precision);
  auto with zarith.
-apply Zpower_nat_less; omega.
+
 rewrite (fun x y z => Zmult_comm x (Zquotient y z)).
 apply Zle_lt_trans with (Fnum p * Fnum q)%Z.
 rewrite Zabs_eq in H'4; auto with zarith; rewrite Zabs_eq in H'4;
  auto with zarith.
-rewrite <- (Zabs_eq (Fnum p * Fnum q)); auto with zarith; rewrite Zabs_Zmult.
-apply Z.mul_nonneg_nonneg.
-apply ZquotientPos.
-auto with zarith.
-apply Zpower_NR0; omega.
-apply Zpower_NR0; omega.
-apply Z.mul_nonneg_nonneg; try assumption.
-apply Zpower_NR0; omega.
 cut (Zabs (Fnum q) < Zpower_nat radix precision)%Z;
  [ intros Eq4| rewrite <- pGivesBound; apply Fq ]; auto with zarith.
 cut (Zabs (Fnum p) < Zpower_nat radix precision)%Z;
@@ -7737,13 +7625,10 @@ apply Zmult_gt_0_lt_compat_l; auto with zarith.
 apply Zmult_gt_0_lt_compat_r; auto with zarith.
 case (Zle_lt_or_eq _ _ (Zle_ZERO_Zabs (Fnum q))); auto.
 intros Eq3; contradict Eq1; replace (Fnum q) with 0%Z; auto with zarith.
-generalize Eq3; case (Fnum q); simpl in |- *; auto; intros; discriminate.
 case (Zle_lt_or_eq _ _ (Zle_ZERO_Zabs (Fnum p))); auto.
 intros Eq3; contradict Eq1; replace (Fnum p) with 0%Z; auto with zarith.
-generalize Eq3; case (Fnum p); simpl in |- *; auto; intros; discriminate.
 rewrite <- Eq1; replace (Zquotient 0 (Zpower_nat radix precision)) with 0%Z;
  auto with zarith.
-apply Zpower_nat_less; omega.
 intros f1 (Hf1, Hf2); rewrite <- Hf2.
 case H'2; intros L1 (L2, L3); apply L3; auto.
 rewrite Hf2; unfold Fmult, FtoRradix, FtoR in |- *.
@@ -7762,7 +7647,6 @@ pattern (Fnum p * Fnum q)%Z at 1 in |- *; rewrite H'3;
  cut (r < Zpower_nat radix precision)%Z; auto with zarith.
 rewrite Zabs_eq in H'5; auto with zarith; rewrite Zabs_eq in H'5;
  auto with zarith.
-apply Zpower_NR0; omega.
 unfold Zsucc in |- *; repeat rewrite mult_IZR || rewrite plus_IZR;
  simpl in |- *.
 rewrite (powerRZ_add radix precision); auto with real zarith.
@@ -9584,7 +9468,6 @@ field.
 apply Rplus_le_compat_l; apply Ropp_le_contravar.
 apply Rle_powerRZ; auto with real arith zarith.
 apply Rle_IZR; omega.
-simpl; omega.
 rewrite Rmult_plus_distr_l.
 rewrite <- powerRZ_add; auto with real arith.
 replace (- precision + precision)%Z with 0%Z; simpl in |- *; ring.
@@ -9651,7 +9534,6 @@ pattern (Zpower_nat radix precision) at 1 in |- *;
  replace (Zpower_nat radix precision) with
   (Zsucc 0 * Zpower_nat radix precision)%Z; auto.
 apply Zle_Zmult_comp_r; auto with zarith.
-apply Zpower_NR0; omega.
 unfold Zsucc in |- *; ring.
 cut (0 <= Fnum q)%Z; auto with zarith.
 apply (LeR0Fnum radix); auto.
@@ -10481,7 +10363,6 @@ apply le_IZR.
 apply (Rle_monotony_contra_exp radix) with (z := Fexp2); auto.
 case H'6; auto.
 case H'6; auto.
-intros; simpl in |- *; ring.
 replace (Fexp2 - Fexp2)%Z with 0%Z; simpl in |- *; auto with zarith.
 Qed.
 
@@ -10948,7 +10829,6 @@ unfold FtoRradix in |- *;
  [ idtac | apply FnormalizeCorrect; auto with zarith arith ].
 cut (Fcanonic radix b (Fzero (- dExp b))); [ intros H3 | idtac ].
 2: right; repeat (split; simpl in |- *; auto with zarith).
-2: ring_simplify (radix * 0)%Z; rewrite Zabs_eq; auto with zarith.
 cut (p = Fzero (- dExp b)); [ intros H4 | idtac ].
 2: apply
     FcanonicUnique with (radix := radix) (precision := precision) (b := b);
@@ -12530,7 +12410,6 @@ replace 0%R with (powerRZ radix 0 - 1)%R;
 apply Rplus_lt_compat_r.
 apply Rlt_powerRZ; auto with zarith; try apply Rlt_IZR; try apply TwoMoreThanOne.
 unfold Rminus in |- *; apply Rplus_le_compat_r; apply Rle_powerRZ; auto with real arith zarith.
-simpl; omega.
 unfold radix; simpl in |- *; ring; auto with arith zarith real.
 apply Rmult_lt_compat_l; auto with real arith.
 repeat rewrite Rinv_mult_distr; auto with real.
@@ -12552,7 +12431,6 @@ unfold Rminus in |- *; apply Rplus_lt_compat_r; auto with real arith zarith.
 apply Rlt_powerRZ; auto with zarith; try (simpl; omega); apply Rlt_IZR; try apply TwoMoreThanOne.
 unfold Rminus in |- *; apply Rplus_le_compat_r; apply Rle_powerRZ;
  auto with real arith zarith.
-simpl; omega.
 apply Rmult_le_compat; auto with real arith zarith.
 apply Rmult_le_pos; auto with real.
 apply Rle_Rinv.
@@ -12569,7 +12447,6 @@ apply Rlt_powerRZ; simpl; auto with zarith.
 apply Rlt_IZR; try apply TwoMoreThanOne.
 unfold Rminus in |- *; apply Rplus_le_compat_l; apply Ropp_le_contravar;
  apply Rle_powerRZ; auto with real arith zarith.
-simpl; omega.
 unfold Rminus in |- *; apply Rplus_le_compat_l; apply Ropp_le_contravar;
  auto with real arith zarith.
 apply powerRZ_le; apply Rlt_IZR, TwoMoreThanOne.
@@ -12937,7 +12814,6 @@ Theorem FboundedMbound2Pos :
 intros C z m H' H'0 H'1; case (Zle_lt_or_eq _ _ H'0); intros H'2.
 exists (Float m z); split; auto with zarith.
 repeat split; simpl in |- *; auto with zarith.
-rewrite Zabs_eq; auto; rewrite pGivesBound; auto.
 exists (Float 1 (p+z)).
 split;[split; simpl; auto with zarith|split].
 rewrite pGivesBound; apply Zle_lt_trans with (Zpower_nat radix 0); auto with zarith.
@@ -13148,7 +13024,6 @@ fold FtoRradix; rewrite <- T; auto.
 unfold nNormMin, FtoRradix, FtoR; simpl;rewrite Zpower_nat_Z_powerRZ.
 rewrite <- powerRZ_add; auto with real zarith.
 replace (pred p+e)%Z with (e+p-1)%Z; auto with real zarith.
-rewrite inj_pred; unfold Zpred; auto with zarith arith.
 apply IZR_neq; omega.
 cut (FPred b radix p f < f)%R; [intros|unfold FtoRradix; apply FPredLt; auto with zarith].
 rewrite Rabs_right.
@@ -13232,7 +13107,6 @@ fold FtoRradix; rewrite <- U; rewrite T'; auto.
 unfold nNormMin, FtoRradix, FtoR; simpl;rewrite Zpower_nat_Z_powerRZ.
 rewrite <- powerRZ_add; auto with real zarith.
 replace (pred p+e)%Z with (e+p-1)%Z; auto with real zarith.
-rewrite inj_pred; unfold Zpred; auto with zarith arith.
 apply IZR_neq; omega.
 replace e with (Fexp (Float (nNormMin radix p) e)); auto.
 apply Fcanonic_Rle_Zle with radix b p; auto with real zarith.
@@ -13388,10 +13262,8 @@ elim H5; intros.
 apply Zmult_le_reg_r with radix; auto with zarith.
 rewrite Zmult_comm; rewrite <- PosNormMin with radix b p; auto with zarith.
 rewrite Zabs_eq in H7; auto with zarith.
-rewrite Zmult_comm; auto.
 elim H5; intros T1 T2; elim T1; elim T2; clear T1 T2; intros.
 right; split; split; simpl; auto with zarith.
-rewrite Zabs_eq; auto; apply Zle_lt_trans with (2:=H8); rewrite Zabs_eq; auto.
 apply Zle_lt_trans with (2:=H7); rewrite Zabs_eq; auto with zarith.
 rewrite Zabs_eq; auto with zarith.
 apply Zle_trans with (2:=I1); apply Zplus_le_reg_l with 1%Z.
@@ -13754,7 +13626,6 @@ exists (Float (Fnum x +radix) (Fexp x + s)).
 elim Nx; elim Fx; intros.
 repeat split; simpl; auto with zarith.
 rewrite Zabs_eq; auto with zarith.
-rewrite Zabs_eq; auto with zarith.
 rewrite Zabs_eq in H3; auto with zarith.
 apply Zle_trans with (1:=H3); auto with zarith.
 unfold FtoRradix, FtoR; simpl; rewrite plus_IZR; simpl; ring.
@@ -13896,7 +13767,6 @@ apply ClosestOpp; auto.
 clear H0; generalize ClosestCompatible; unfold CompatibleP; intros T.
 cut (Fbounded b (Float 1 (t + s + Fexp x)));[intros H1|idtac].
 2: split; simpl; elim Fx; intros; auto with zarith.
-2: apply vNumbMoreThanOne with radix t; auto with zarith.
 apply T with  (powerRZ radix (Fexp x) * (powerRZ radix (t + s) + radix + 1))%R
   (Fnormalize radix b t (Float 1 (t + s + Fexp x))); auto with real.
 2: rewrite FnormalizeCorrect; auto with zarith.
@@ -13993,8 +13863,6 @@ rewrite pGivesBound; rewrite Zabs_eq ; auto with zarith.
 apply Zlt_le_trans with (Zpower_nat radix (pred t) + Zpower_nat radix (pred t))%Z.
 apply Zplus_lt_compat_l.
 apply Zpower_nat_monotone_lt; auto with zarith.
-rewrite <- Zabs2Nat.id; apply Zabs_nat_lt.
-rewrite inj_pred; auto with zarith.
 pattern t at 3 in |-*; replace t with (1+(pred t))%nat; auto with zarith.
 rewrite Zpower_nat_is_exp; replace (Zpower_nat radix 1) with radix; auto with zarith.
 apply Zle_trans with (2*Zpower_nat radix (pred t))%Z; auto with zarith.
@@ -14038,7 +13906,6 @@ rewrite Rabs_right.
 2:apply Rle_ge; auto with real zarith.
 2: apply powerRZ_le, Rlt_IZR; omega.
 replace (pred t+(s+Fexp x))%Z with (t-1+(s+Fexp x))%Z; auto with real zarith.
-2:rewrite inj_pred; unfold Zpred; auto with zarith arith.
 apply Rle_trans with (powerRZ radix (Fexp x) * (powerRZ radix (t - 1) + radix) *
     powerRZ radix s - powerRZ radix (s + 1 + Fexp x))%R;[idtac|right;field; auto with real].
 rewrite Rmult_plus_distr_l.
@@ -14149,9 +14016,6 @@ cut (1 <Zpower_nat radix (pred (pred t)))%Z;auto with zarith.
 apply Zle_lt_trans with  (Zpower_nat radix 0)%Z; auto with zarith.
 apply Zpower_nat_monotone_lt; omega.
 apply Zpower_nat_monotone_le; auto with zarith.
-apply ZleLe; rewrite <- Zabs_absolu; auto with zarith.
-rewrite Zabs_eq; auto with zarith; rewrite inj_pred; auto with zarith.
-rewrite inj_pred; auto with zarith; unfold Zpred; auto with zarith.
 pattern t at 4 in |-*; replace t with ((pred t)+1); auto with zarith.
 cut  ((Zpower_nat radix 1)=radix)%Z;[intros K|unfold Zpower_nat; simpl; auto with zarith].
 rewrite Zpower_nat_is_exp; rewrite K.
@@ -14213,7 +14077,6 @@ cut (Fnum x=Zpower_nat radix (pred t));[intros|idtac].
 unfold FtoRradix, FtoR; rewrite H0; rewrite Zpower_nat_Z_powerRZ.
 rewrite <- powerRZ_add; auto with real zarith.
 replace  (pred t + Fexp x)%Z with  (Fexp x + t - 1)%Z; auto with real zarith.
-rewrite inj_pred; unfold Zpred; auto with zarith.
 apply IZR_neq; omega.
 cut ( Zpower_nat radix (pred t) <= Fnum x)%Z;[intros P1|idtac].
 cut ( Fnum x < Zpower_nat radix (pred t) +1)%Z;[intros P2; auto with zarith|idtac].
@@ -15051,8 +14914,6 @@ rewrite Rabs_right;[idtac|apply Rle_ge; auto with real zarith].
 rewrite Rabs_right;[idtac|apply Rle_ge;
    apply Rle_trans with (2:=H3); auto with real zarith].
 apply Rle_trans with (2:=H3); apply Rle_powerRZ; try apply Rle_IZR; auto with real zarith.
-rewrite inj_pred; unfold Zpred; auto with zarith.
-rewrite inj_minus1; auto with zarith.
 apply powerRZ_le, Rlt_IZR; omega.
 apply powerRZ_le, Rlt_IZR; omega.
 apply IZR_neq; omega.
@@ -15154,7 +15015,6 @@ rewrite plus_IZR; rewrite Zpower_nat_Z_powerRZ; simpl.
 rewrite Rmult_plus_distr_l; rewrite <- powerRZ_add; try apply IZR_neq; auto with real zarith.
 rewrite Rplus_comm; apply Rplus_le_compat.
 apply Rle_powerRZ; try apply Rle_IZR; auto with zarith.
-rewrite inj_minus1; auto with real zarith.
 unfold Rdiv; apply Rmult_le_compat; auto with real zarith.
 apply powerRZ_le, Rlt_IZR; omega.
 apply Rle_powerRZ; try apply Rle_IZR; auto with zarith.
@@ -15549,10 +15409,6 @@ replace (Zpos (P_of_succ_nat (pred (pred t)))) with
        (nat_of_P
           (P_of_succ_nat
              (pred (pred t))))); auto with zarith.
-rewrite nat_of_P_o_P_of_succ_nat_eq_succ; auto with zarith.
-replace (S (pred (pred t))) with (pred t); auto with zarith.
-unfold Z_of_nat; rewrite nat_of_P_o_P_of_succ_nat_eq_succ;
- auto with zarith.
 cut (forall (x:N) (y:positive), (x+(Zpos y)=(x +Npos y)%N)%Z).
 intros T; rewrite <- T; auto with zarith.
 intros;unfold Nplus.
@@ -15570,7 +15426,6 @@ unfold FtoRradix, FtoR; rewrite H4; simpl; ring.
 apply Rle_IZR.
 case (Zle_or_lt 0%Z (Fnum f)); intros H3.
 case (Zle_lt_or_eq _ _ H3); auto with zarith; intros H4.
-right; rewrite Zabs_eq; auto with zarith.
 right; rewrite <- Zabs_Zopp; rewrite Zabs_eq; auto with zarith.
 apply Rle_powerRZ; auto with real zarith.
 apply Rle_IZR; omega.
@@ -15584,16 +15439,6 @@ rewrite Fabs_correct; auto with real.
 apply Rabs_pos.
 apply FnormalizeCanonic; auto with zarith.
 elim H; split; unfold plusExp; simpl; auto with zarith.
-cut (forall (x:N) (y:positive), (x+(Zpos y)=(x +Npos y)%N)%Z).
-intros T; rewrite <- T; auto with zarith.
-apply Zle_trans with (-(dExp b))%Z; auto with zarith.
-apply Zle_trans with (-(dExp b) + Zneg  (P_of_succ_nat (pred (pred t))))%Z; auto with zarith.
-apply Zeq_le; ring_simplify;  auto with zarith.
-apply Zle_trans with (-(dExp b)+0)%Z; auto with zarith.
-apply Zplus_le_compat_l.
-apply Pos2Z.neg_is_nonpos.
-intros;unfold Nplus.
-case x; auto with zarith.
 Qed.
 
 
@@ -15606,12 +15451,6 @@ apply H2; auto.
 elim Fg; intros; split; unfold plusExp; auto.
 cut (forall (x:N) (y:positive), (x+(Zpos y)=(x +Npos y)%N)%Z).
 intros T; simpl; rewrite <- T; auto with zarith.
-apply Zle_trans with (-(dExp b0))%Z; auto with zarith.
-apply Zle_trans with (-(dExp b0) + Zneg  (P_of_succ_nat (pred (pred t))))%Z; auto with zarith.
-apply Zeq_le; ring_simplify; auto with zarith.
-apply Zle_trans with (-(dExp b0)+0)%Z; auto with zarith.
-apply Zplus_le_compat_l.
-apply Pos2Z.neg_is_nonpos.
 intros;unfold Nplus.
 case x; auto with zarith.
 Qed.
@@ -15629,12 +15468,6 @@ split.
 elim H1; intros; split; auto.
 cut (forall (x:N) (y:positive), (x+(Zpos y)=(x +Npos y)%N)%Z).
 intros T; simpl; rewrite <- T; auto with zarith.
-apply Zle_trans with (-(dExp b0))%Z; auto with zarith.
-apply Zle_trans with (-(dExp b0) + Zneg  (P_of_succ_nat (pred (pred t))))%Z; auto with zarith.
-apply Zeq_le; ring_simplify; auto with zarith.
-apply Zle_trans with (-(dExp b0)+0)%Z; auto with zarith.
-apply Zplus_le_compat_l.
-apply Pos2Z.neg_is_nonpos.
 intros;unfold Nplus.
 case x; auto with zarith.
 intros g Hg.
@@ -15807,16 +15640,6 @@ replace (Fnormalize radix (plusExp b0) n f) with  (Fnormalize radix b0 n f); aut
 apply FcanonicUnique with radix (plusExp b0) n; auto with zarith.
 elim H5; intros J1 J2; elim J1; intros J3 J4.
 unfold plusExp; left; split;[split|idtac];simpl; auto with zarith.
-cut (forall (x:N) (y:positive), (x+(Zpos y)=(x +Npos y)%N)%Z).
-intros T; simpl; rewrite <- T; auto with zarith.
-apply Zle_trans with (-(dExp b0))%Z; auto with zarith.
-apply Zle_trans with (-(dExp b0) + Zneg  (P_of_succ_nat (pred (pred t))))%Z; auto with zarith.
-apply Zeq_le; ring_simplify; auto with zarith.
-apply Zle_trans with (-(dExp b0)+0)%Z; auto with zarith.
-apply Zplus_le_compat_l.
-apply Pos2Z.neg_is_nonpos.
-intros;unfold Nplus.
-case x; auto with zarith.
 apply FnormalizeCanonic; auto with zarith.
 elim H0; intros J1 J2; elim J1; auto.
 repeat rewrite FnormalizeCorrect; auto with real.
@@ -15847,8 +15670,6 @@ replace (- Fnum (Fnormalize radix b0 n f) +
 cut (Zabs (- Fnum (Fnormalize radix b0 n f) +
     Fnum fext * Zpower_nat radix (Zabs_nat (Fexp fext + dExp b0))) = Zabs 0)%Z;
   auto with zarith.
-intros J; case (Zabs_eq_case _ _ J); auto with zarith.
-rewrite (Zabs_eq 0%Z); auto with zarith.
 cut (0 <=  (Zabs
      (- Fnum (Fnormalize radix b0 n f) + Fnum fext *
    Zpower_nat radix (Zabs_nat (Fexp fext + dExp b0)))))%Z; auto with zarith.
@@ -15995,16 +15816,6 @@ replace (Fnormalize radix (plusExp b0) n f) with  (Fnormalize radix b0 n f); aut
 apply FcanonicUnique with radix (plusExp b0) n; auto with zarith.
 elim H6; intros J1 J2; elim J1; intros J3 J4.
 unfold plusExp; left; split;[split|idtac];simpl; auto with zarith.
-cut (forall (x:N) (y:positive), (x+(Zpos y)=(x +Npos y)%N)%Z).
-intros T; simpl; rewrite <- T; auto with zarith.
-apply Zle_trans with (-(dExp b0))%Z; auto with zarith.
-apply Zle_trans with (-(dExp b0) + Zneg  (P_of_succ_nat (pred (pred t))))%Z; auto with zarith.
-apply Zeq_le; ring_simplify; auto with zarith.
-apply Zle_trans with (-(dExp b0)+0)%Z; auto with zarith.
-apply Zplus_le_compat_l.
-apply Pos2Z.neg_is_nonpos.
-intros;unfold Nplus.
-case x; auto with zarith.
 apply FnormalizeCanonic; auto with zarith.
 elim H5; auto.
 repeat rewrite FnormalizeCorrect; auto with real.
@@ -16019,28 +15830,8 @@ apply ClosestCompatible with (1 := H5); auto.
 rewrite FnormalizeCorrect; auto with real.
 elim H6; intros J1 J2; elim J1; intros.
 split; unfold plusExp; simpl; auto with zarith.
-cut (forall (x:N) (y:positive), (x+(Zpos y)=(x +Npos y)%N)%Z).
-intros T; simpl; rewrite <- T; auto with zarith.
-apply Zle_trans with (-(dExp b0))%Z; auto with zarith.
-apply Zle_trans with (-(dExp b0) + Zneg  (P_of_succ_nat (pred (pred t))))%Z; auto with zarith.
-apply Zeq_le; ring_simplify; auto with zarith.
-apply Zle_trans with (-(dExp b0)+0)%Z; auto with zarith.
-apply Zplus_le_compat_l.
-apply Pos2Z.neg_is_nonpos.
-intros;unfold Nplus.
-case x; auto with zarith.
 elim H6; intros J1 J2; elim J1; intros.
 split; [split|idtac]; unfold plusExp; simpl; auto with zarith.
-cut (forall (x:N) (y:positive), (x+(Zpos y)=(x +Npos y)%N)%Z).
-intros T; simpl; rewrite <- T; auto with zarith.
-apply Zle_trans with (-(dExp b0))%Z; auto with zarith.
-apply Zle_trans with (-(dExp b0) + Zneg  (P_of_succ_nat (pred (pred t))))%Z; auto with zarith.
-apply Zeq_le; ring_simplify; auto with zarith.
-apply Zle_trans with (-(dExp b0)+0)%Z; auto with zarith.
-apply Zplus_le_compat_l.
-apply Pos2Z.neg_is_nonpos.
-intros;unfold Nplus.
-case x; auto with zarith.
 apply Zle_trans with (-(dExp b0)-1)%Z; auto with zarith.
 intros H6.
 right; intros;apply sym_eq.
@@ -16071,7 +15862,6 @@ replace (- Fnum (Fnormalize radix b0 n f) +
 cut (Zabs (- Fnum (Fnormalize radix b0 n f) +
     Fnum fext * Zpower_nat radix (Zabs_nat (Fexp fext + dExp b0))) = Zabs 0)%Z;
   auto with zarith.
-intros J; case (Zabs_eq_case _ _ J); auto with zarith.
 rewrite (Zabs_eq 0%Z); auto with zarith.
 cut (0 <=  (Zabs
      (- Fnum (Fnormalize radix b0 n f) + Fnum fext *
@@ -16185,12 +15975,6 @@ elim Sx; intros T1 T2; elim T1; intros.
 split; unfold plusExp; auto with zarith.
 cut (forall (x:N) (y:positive), (x+(Zpos y)=(x +Npos y)%N)%Z).
 intros T; simpl; rewrite <- T; auto with zarith.
-apply Zle_trans with (-(dExp b))%Z; auto with zarith.
-apply Zle_trans with (-(dExp b) + Zneg  (P_of_succ_nat (pred (pred t))))%Z; auto with zarith.
-apply Zeq_le; ring_simplify; auto with zarith.
-apply Zle_trans with (-(dExp b)+0)%Z; auto with zarith.
-apply Zplus_le_compat_l.
-apply Pos2Z.neg_is_nonpos.
 intros;unfold Nplus.
 case x0; auto with zarith.
 left; auto.
@@ -16208,12 +15992,6 @@ elim Sx; intros T1 T2; elim T1; intros.
 split; unfold plusExp; auto with zarith.
 cut (forall (x:N) (y:positive), (x+(Zpos y)=(x +Npos y)%N)%Z).
 intros T; simpl; rewrite <- T; auto with zarith.
-apply Zle_trans with (-(dExp b))%Z; auto with zarith.
-apply Zle_trans with (-(dExp b) + Zneg  (P_of_succ_nat (pred (pred t))))%Z; auto with zarith.
-apply Zeq_le; ring_simplify; auto with zarith.
-apply Zle_trans with (-(dExp b)+0)%Z; auto with zarith.
-apply Zplus_le_compat_l.
-apply Pos2Z.neg_is_nonpos.
 intros;unfold Nplus.
 case x0; auto with zarith.
 left; auto.
@@ -16231,11 +16009,6 @@ elim H4; intros; split; auto with zarith.
 cut (forall (x:N) (y:positive), (x+(Zpos y)=(x +Npos y)%N)%Z).
 intros T; simpl; rewrite <- T; auto with zarith.
 apply Zle_trans with (-(dExp b))%Z; auto with zarith.
-apply Zle_trans with (-(dExp b) + Zneg  (P_of_succ_nat (pred (pred t))))%Z; auto with zarith.
-apply Zeq_le; ring_simplify; auto with zarith.
-apply Zle_trans with (-(dExp b)+0)%Z; auto with zarith.
-apply Zplus_le_compat_l.
-apply Pos2Z.neg_is_nonpos.
 intros;unfold Nplus.
 case x0; auto with zarith.
 unfold b'; simpl; auto with zarith.
@@ -16266,11 +16039,9 @@ elim H1; intros J1 J2; elim J1; unfold plusExp; simpl; auto with zarith.
 elim Sx; intros J1 J2; elim J1; intros ; unfold b'; simpl; auto.
 unfold plusExp; simpl.
 rewrite <- p'GivesBound with radix b s t; auto with zarith.
-simpl; rewrite nat_of_P_o_P_of_succ_nat_eq_succ; auto with zarith.
 apply ClosestRoundedModeP with (t-s); auto with zarith.
 unfold plusExp; simpl.
 rewrite <- p'GivesBound with radix b s t; auto with zarith.
-simpl; rewrite nat_of_P_o_P_of_succ_nat_eq_succ; auto with zarith.
 rewrite <- x'Eq; unfold FtoRradix;auto with zarith.
 replace (FtoR radix x' * (powerRZ radix s + 1))%R
   with (FtoRradix (Fplus radix x (Float (Fnum x) (s+Fexp x)%Z))).
@@ -16372,9 +16143,6 @@ intros T; simpl; rewrite <- T; auto with zarith.
 apply Zle_trans with (-(dExp b'))%Z; auto with zarith.
 apply Zle_trans with (-(dExp b') + Zneg  (P_of_succ_nat (pred (pred t))))%Z; auto with zarith.
 apply Zeq_le; ring_simplify; auto with zarith.
-apply Zle_trans with (-(dExp b')+0)%Z; auto with zarith.
-apply Zplus_le_compat_l.
-apply Pos2Z.neg_is_nonpos.
 intros;unfold Nplus.
 case x0; auto with zarith.
 unfold b'; simpl; auto with zarith.
@@ -16958,12 +16726,10 @@ intros bext fext f K1 K2; intros.
 elim H0; intros.
 split.
 elim H1; intros; split; auto with zarith.
-rewrite K1; auto.
 intros g Hg.
 case (Zle_or_lt (-(dExp b)) (Fexp g)); intros.
 apply H2.
 elim Hg; split; auto with zarith.
-rewrite <- K1; auto.
 case (Zle_lt_or_eq (-(dExp b)) (Fexp (Fnormalize radix b p f))).
 cut (Fbounded b (Fnormalize radix b p f));[intros T; elim T; auto|idtac].
 apply FnormalizeBounded; auto with zarith.
@@ -17174,7 +16940,6 @@ rewrite <- H; rewrite pGivesBound; rewrite Zpower_nat_Z_powerRZ; auto with real 
 unfold nNormMin; rewrite Zpower_nat_Z_powerRZ.
 repeat rewrite <- powerRZ_add; try apply IZR_neq; auto with real zarith.
 apply Rle_powerRZ; try apply Rle_IZR; auto with real zarith.
-rewrite inj_pred; auto with zarith; unfold Zpred; auto with zarith.
 apply Rle_ge; apply LeFnumZERO; auto.
 unfold firstNormalPos, nNormMin; simpl; auto with zarith.
 apply Zpower_NR0; omega.
@@ -17272,7 +17037,6 @@ split; auto.
 assert (Fbounded b x1);[elim H2; auto|idtac].
 split.
 elim H4; intros; split; auto with zarith.
-rewrite <- H; auto.
 split;[idtac|intros; auto with real].
 ring_simplify (x1-x1)%R; rewrite Rabs_R0; apply Rlt_le.
 apply Rmult_lt_0_compat; auto with real zarith.
@@ -17305,11 +17069,9 @@ apply Rle_trans with (powerRZ radix (Fexp x2)).
 unfold Fulp; apply Rle_powerRZ; auto with zarith real.
 apply Rle_IZR; omega.
 apply FcanonicLeastExp with radix b' p; auto with zarith.
-rewrite <- H; auto.
 rewrite FnormalizeCorrect; auto with zarith real.
 elim H3'; auto.
 apply FnormalizeCanonic; auto with zarith.
-rewrite <- H; auto.
 elim H3'; auto.
 apply Rmult_le_reg_l with 2%R; auto with real.
 apply Rle_trans with  (powerRZ radix (- dExp b));[idtac|right; field; auto with real].
@@ -17384,7 +17146,6 @@ unfold FtoRradix; apply sym_eq.
 apply RoundedModeProjectorIdemEq with b p (Closest b radix); auto with zarith.
 apply ClosestRoundedModeP with p; auto with zarith.
 elim H4; intros; split; auto with zarith.
-rewrite H; auto.
 fold FtoRradix; rewrite H5.
 rewrite <- V4; auto with zarith.
 rewrite <- W4; auto with zarith real.
@@ -18110,7 +17871,6 @@ rewrite <- even_double; auto with zarith.
 apply Zle_trans with (2*t+1-(S ( Div2.double (div2 t))))%Z; auto with zarith.
 rewrite <- odd_double; auto with zarith.
 replace (Z_of_nat (S ( Div2.double (div2 t)))) with (1+ Div2.double (div2 t))%Z; auto with zarith.
-rewrite inj_S; unfold Zsucc; auto with zarith.
 unfold Div2.double; rewrite inj_plus; ring.
 Qed.
 
@@ -18129,7 +17889,6 @@ intros I2; absurd (odd t); auto.
 intros I3; apply not_even_and_odd with t; auto.
 replace t with (4%nat); auto with zarith.
 apply even_S; apply odd_S; apply even_S; apply odd_S; apply even_O.
-rewrite inj_S; unfold Zsucc; auto with zarith.
 unfold Div2.double; rewrite inj_plus; ring.
 Qed.
 
@@ -18144,7 +17903,6 @@ apply Zle_trans with (-1+(S ( Div2.double (div2 t))))%Z; auto with zarith.
 rewrite inj_S; unfold Zsucc; auto with zarith.
 unfold Div2.double; rewrite inj_plus; auto with zarith.
 rewrite <- odd_double; auto with zarith.
-rewrite inj_minus1; auto with zarith.
 Qed.
 
 
@@ -18500,7 +18258,6 @@ unfold FtoRradix; rewrite <- G1.
  apply ClosestZero with (Bound (P_of_succ_nat (pred (Zabs_nat (Zpower_nat radix (t - s)))))
             (dExp b)) (t-s) (FtoR radix y)%R; auto with zarith.
 apply p'GivesBound; auto with zarith.
-apply SLe; auto.
 apply SGe; auto.
 cut (s <= t-2)%nat ;[idtac | apply SGe; auto].
 unfold s; auto with zarith.
@@ -18515,16 +18272,6 @@ rewrite <- X1.
 assert (Fnormal radix (plusExp t b) x).
 elim Cx; intros F1 F2; elim F1; intros.
 split;[split|idtac]; unfold plusExp; simpl; auto with zarith.
-cut (forall (x:N) (y:positive), (x+(Zpos y)=(x +Npos y)%N)%Z).
-intros T; simpl; rewrite <- T; auto with zarith.
-apply Zle_trans with (-(dExp b))%Z; auto with zarith.
-apply Zle_trans with (-(dExp b) + Zneg  (P_of_succ_nat (pred (pred t))))%Z; auto with zarith.
-apply Zeq_le; ring_simplify; auto with zarith.
-apply Zle_trans with (-(dExp b)+0)%Z; auto with zarith.
-apply Zplus_le_compat_l.
-apply Pos2Z.neg_is_nonpos.
-intros;unfold Nplus.
-case x0; auto with zarith.
 assert (- dExp (plusExp t b) <= Fexp x + Fexp yy)%Z.
 elim X2; intros F1 F2; elim F1; intros.
 assert (0 <= Fexp x)%Z; auto with zarith.
@@ -18764,7 +18511,6 @@ unfold FtoRradix; rewrite <- G1.
  apply ClosestZero with (Bound (P_of_succ_nat (pred (Zabs_nat (Zpower_nat radix (t - s)))))
             (dExp b)) (t-s) (FtoR radix x)%R; auto with zarith.
 apply p'GivesBound; auto with zarith.
-apply SLe; auto.
 apply SGe; auto.
 cut  (s <= t - 2)%nat; [unfold s; auto with zarith| apply SGe; auto].
 unfold FtoRradix; apply ClosestZero with b t (x*y)%R; auto with zarith.
@@ -18778,16 +18524,6 @@ rewrite <- X1.
 assert (Fnormal radix (plusExp t b) y).
 elim Cy; intros F1 F2; elim F1; intros.
 split;[split|idtac]; unfold plusExp; simpl; auto with zarith.
-cut (forall (x:N) (y:positive), (x+(Zpos y)=(x +Npos y)%N)%Z).
-intros T; simpl; rewrite <- T; auto with zarith.
-apply Zle_trans with (-(dExp b))%Z; auto with zarith.
-apply Zle_trans with (-(dExp b) + Zneg  (P_of_succ_nat (pred (pred t))))%Z; auto with zarith.
-apply Zeq_le; ring_simplify; auto with zarith.
-apply Zle_trans with (-(dExp b)+0)%Z; auto with zarith.
-apply Zplus_le_compat_l.
-apply Pos2Z.neg_is_nonpos.
-intros;unfold Nplus.
-case x0; auto with zarith.
 assert (- dExp (plusExp t b) <= Fexp xx + Fexp y)%Z.
 elim X2; intros F1 F2; elim F1; intros.
 assert (0 <= Fexp y)%Z; auto with zarith.
@@ -18991,8 +18727,6 @@ apply Zlt_not_le.
 elim H; intros T1 T2; elim T2; intros G1 T; clear T1 T2 T.
 elim H0; intros T1 T2; elim T2; intros G2 T; clear T1 T2 T.
 rewrite G1; rewrite G2; auto with zarith.
-cut (0 < dExp b)%Z; auto with zarith.
-generalize dExpPos; unfold Z_of_N; case (dExp b); auto with zarith.
 Qed.
 
 
@@ -19095,9 +18829,6 @@ intros T; simpl; rewrite <- T; auto with zarith.
 apply Zle_lt_trans with (Ndouble (dExp b)); auto with zarith.
 unfold Ndouble; case (dExp b); auto with zarith.
 intros; unfold Z_of_N; auto with zarith.
-apply Zle_trans with (2*(Zpos p0))%Z; auto with zarith.
-apply Zle_trans with (1*(Zpos p0))%Z; auto with zarith.
-apply Zle_lt_trans with (Ndouble (dExp b)+0)%Z; auto with zarith.
 intros;unfold Nplus.
 case x0; auto with zarith.
 Qed.
@@ -19111,15 +18842,6 @@ intros T; rewrite <- T; auto with zarith.
 replace  (Zpos (xO (P_of_succ_nat t))) with (2*t+2)%Z.
 unfold Ndouble; case (dExp b); auto with zarith.
 apply trans_eq with (2*(Zpos (P_of_succ_nat t)))%Z; auto with zarith.
-replace  (Zpos (P_of_succ_nat t)) with (t+1)%Z; auto with zarith.
-apply trans_eq with
-    (Z_of_nat
-       (nat_of_P
-          (P_of_succ_nat t))); auto with zarith.
-rewrite nat_of_P_o_P_of_succ_nat_eq_succ; auto with zarith arith.
-replace (S t) with (t+1)%nat; auto with zarith arith; rewrite inj_plus; auto with zarith.
-unfold Z_of_nat; rewrite nat_of_P_o_P_of_succ_nat_eq_succ;
- auto with zarith.
 Qed.
 
 
@@ -19158,9 +18880,6 @@ apply Rle_IZR; omega.
 rewrite dExpPrimEq.
 rewrite inj_pred; auto with zarith; unfold Zpred.
 ring_simplify (t + -1 + - (2 * dExp b + 2 * t + 2))%Z; auto with zarith.
-assert (0 <= dExp b)%Z; auto with zarith.
-case (dExp b); intros; auto with zarith.
-rewrite N2Z.inj_pos; apply Pos2Z.is_nonneg.
 apply IZR_neq; omega.
 apply Rle_trans with (1:=H1); unfold FtoRradix; repeat rewrite Fabs_correct; auto.
 rewrite FnormalizeCorrect; auto with zarith real.
@@ -19175,14 +18894,11 @@ apply Zle_trans with (Fexp (Float (nNormMin radix t) (-t-dExp b))); auto with za
 apply Fcanonic_Rle_Zle with radix b' t; auto with zarith.
 apply FcanonicNnormMin; auto with zarith.
 unfold b'; simpl; rewrite dExpPrimEq; auto with zarith.
-cut (0 <= dExp b)%Z; auto with zarith; case (dExp b); auto with zarith.
-intros m; rewrite N2Z.inj_pos; apply Pos2Z.is_nonneg.
 rewrite Rabs_right.
 rewrite <- Fabs_correct; auto; fold FtoRradix; apply Rle_trans with (2:=H1).
 unfold FtoRradix, FtoR, nNormMin; simpl; rewrite Zpower_nat_Z_powerRZ.
 rewrite <- powerRZ_add; try apply IZR_neq; auto with real zarith; apply Rle_powerRZ; auto with zarith real.
 apply Rle_IZR; omega.
-rewrite inj_pred; auto with zarith; unfold Zpred; auto with zarith.
 apply Rle_ge; apply LeFnumZERO; auto with zarith.
 unfold nNormMin; simpl; auto with zarith.
 apply Zpower_NR0; omega.
@@ -19489,7 +19205,6 @@ unfold FtoRradix; rewrite <- G1.
 apply ClosestZero with (Bound (P_of_succ_nat (pred (Zabs_nat (Zpower_nat radix (t - s)))))
             (dExp b)) (t-s) (FtoR radix x)%R; auto with zarith.
 apply p'GivesBound; auto with zarith.
-apply SLe; auto.
 apply SGe; auto.
 cut (s <= t-2)%nat; [unfold s; auto with zarith | apply SGe; auto].
 unfold FtoRradix; apply ClosestZero with b t (x*y)%R; auto with zarith.
@@ -19542,7 +19257,6 @@ unfold FtoRradix; rewrite <- G1.
 apply ClosestZero with (Bound (P_of_succ_nat (pred (Zabs_nat (Zpower_nat radix (t - s)))))
             (dExp b)) (t-s) (FtoR radix y)%R; auto with zarith.
 apply p'GivesBound; auto with zarith.
-apply SLe; auto.
 apply SGe; auto.
 cut (s <= t-2)%nat; [unfold s; auto with zarith | apply SGe; auto].
 unfold FtoRradix; apply ClosestZero with b t (x*y)%R; auto with zarith.
@@ -20491,8 +20205,6 @@ rewrite dpEq; rewrite dqEq; rewrite <- H3; rewrite <- H3'.
 elim H; unfold Rabs; case (Rcase_abs dp'); case (Rcase_abs dq'); intros.
 exists (Float 0%Z 0%Z); split;[split; auto with zarith|idtac].
 simpl; case (dExp bo); auto with zarith.
-intros l; rewrite N2Z.inj_pos, <- Zopp_0.
-apply Zle_Zopp; apply Pos2Z.is_nonneg.
 apply trans_eq with (-(-dp')+-dq')%R;[rewrite H0; rewrite H6; unfold FtoRradix, FtoR;simpl|idtac];ring.
 exists (Float (-2)%Z (Zpred (Fexp p))); split;[split; simpl; auto with zarith|idtac].
 rewrite pGivesBound; apply Zle_lt_trans with (Zpower_nat radix 1); auto with zarith.
@@ -20506,8 +20218,6 @@ apply Zle_trans with (Fexp dp'); auto with zarith; apply H2.
 unfold Rminus;rewrite H0; rewrite H6; unfold FtoRradix, FtoR;simpl; ring.
 exists (Float 0%Z 0%Z); split;[split; auto with zarith|idtac].
 simpl; case (dExp bo); auto with zarith.
-intros l; rewrite N2Z.inj_pos, <- Zopp_0.
-apply Zle_Zopp; apply Pos2Z.is_nonneg.
 rewrite H0; rewrite H6; unfold FtoRradix, FtoR; simpl;ring.
 Qed.
 
@@ -20880,8 +20590,6 @@ rewrite <- Rabs_left; auto with real.
 assert (Fbounded bo (Float (Zpred (Zpower_nat radix precision)) e)).
 split; auto with zarith.
 simpl; rewrite pGivesBound; auto with zarith.
-rewrite Zabs_eq; auto with zarith.
-apply Zle_Zpred, Zpower_nat_less; auto with zarith.
 simpl; rewrite <- q_eqExp; apply Roundq; auto with zarith.
 rewrite <- Rabs_Ropp.
 replace (-dp)%R with (p-b*b')%R; [idtac|rewrite dpEq;ring].
@@ -21634,7 +21342,6 @@ right; rewrite pGivesBound; rewrite Zpower_nat_Z_powerRZ; auto with real.
 unfold nNormMin; repeat rewrite <- powerRZ_add; auto with real zarith.
 rewrite Zpower_nat_Z_powerRZ; repeat rewrite <- powerRZ_add; auto with real zarith.
 replace (Fexp q+pred precision)%Z with (precision+Fexp d)%Z; auto with real zarith.
-rewrite inj_pred; auto with zarith; unfold Zpred; rewrite H2; ring.
 assert (Fnum q= nNormMin radix precision + 1)%Z; auto with zarith.
 clear P H3.
 assert (p=Float (nNormMin radix precision) (Fexp q+1)).
@@ -22341,7 +22048,6 @@ fold FtoRradix; apply Rlt_le_trans with q; auto.
 case (Zle_or_lt 0 (Fnum t-3)%Z); intros.
 rewrite Zabs_eq; auto.
 apply Zle_lt_trans with (Zabs (Fnum t)); auto with zarith.
-rewrite Zabs_eq; auto with zarith.
 apply Ft.
 rewrite <- Zabs_Zopp; rewrite Zabs_eq; auto with zarith.
 apply Zlt_le_trans with 3%Z; auto with zarith.
@@ -22958,10 +22664,6 @@ case (Z_eq_dec 0 (Fnum g')); intros.
 absurd (FtoR radix g=0)%R; auto with real.
 rewrite <- R3; unfold FtoR; simpl; rewrite <- e0; simpl; ring.
 absurd (0 <  Zabs (Fnum g'))%Z; auto with zarith.
-apply Zlt_le_trans with (Zabs_nat (Fnum g')); auto with zarith.
-assert  (0 < Zabs_nat (Fnum g')); auto with zarith arith.
-apply absolu_lt_nz; auto.
-rewrite Zabs_absolu; auto with zarith.
 Qed.
 
 Theorem AddExpGeUnderf2: forall f1:float ,forall f2:float, forall g:float, forall e:Z,
@@ -23038,10 +22740,6 @@ case (Z_eq_dec 0 (Fnum g')); intros.
 absurd (FtoR radix g=0)%R; auto with real.
 rewrite <- R3; unfold FtoR; simpl; rewrite <- e0; simpl; ring.
 absurd (0 <  Zabs (Fnum g'))%Z; auto with zarith.
-apply Zlt_le_trans with (Zabs_nat (Fnum g')); auto with zarith.
-assert  (0 < Zabs_nat (Fnum g')); auto with zarith arith.
-apply absolu_lt_nz; auto.
-rewrite Zabs_absolu; auto with zarith.
 Qed.
 
 Theorem AddExpGe1Underf2: forall f1:float ,forall f2:float, forall g:float, forall e:Z,
@@ -23180,7 +22878,6 @@ rewrite powerRZ_1; unfold radix; ring.
 apply absFBounded; elim Roundt;  intros A1 A2; elim A1; auto.
 elim Roundt;  intros A1 A2; elim A1; intros A4 A3; elim A4; intros.
 split; unfold Fabs; simpl; auto with zarith.
-rewrite Zabs_eq; auto with zarith.
 unfold FtoRradix; rewrite Fabs_correct; auto.
 rewrite Rabs_right; auto with real.
 apply Rle_ge, Rabs_pos.
@@ -23645,7 +23342,6 @@ exists (Float 0%Z 0%Z).
 split.
 unfold Fbounded; split; auto with zarith.
 simpl; case (dExp bo); auto with zarith.
-intros m; rewrite N2Z.inj_pos; apply Pos2Z.neg_is_nonpos.
 apply trans_eq with 0%R.
 unfold FtoR; simpl; ring.
 fold radix; fold FtoRradix.
@@ -24172,12 +23868,6 @@ intros; right; left.
  generalize H1; unfold Fabs; simpl; auto with zarith real.
 intros H2; rewrite <- H2; simpl; ring.
 left; replace (Fnum (Fplus radix a b)) with 0%Z;[simpl; ring|auto with zarith].
-case (Z_eq_dec 0  (Fnum (Fplus radix a b))); auto with zarith; intros.
-assert (0 <  Zabs (Fnum (Fplus radix a b)))%Z; auto with zarith.
-apply Zlt_le_trans with (Zabs_nat (Fnum (Fplus radix a b))); auto with zarith.
-assert (0 < Zabs_nat (Fnum (Fplus radix a b)))%nat; auto with zarith.
-apply absolu_lt_nz; auto.
-rewrite Zabs_absolu; auto with zarith.
 apply sym_eq; unfold Fplus; simpl; apply Zmin_le2.
 apply Fcanonic_Rle_Zle with radix bo p; auto with zarith.
 case H0;intros H1;[idtac|case H1; clear H1; intros H1]; clear H0.
@@ -24249,12 +23939,6 @@ apply Rmult_le_compat_r; auto with real zarith.
 apply powerRZ_le, Rlt_IZR; omega.
 apply Rle_IZR; generalize H1; simpl; auto with zarith.
 intros; left; replace (Fnum (Fplus radix a b)) with 0%Z;[simpl; ring|auto with zarith].
-case (Z_eq_dec 0  (Fnum (Fplus radix a b))); auto with zarith; intros.
-assert (0 <  Zabs (Fnum (Fplus radix a b)))%Z; auto with zarith.
-apply Zlt_le_trans with (Zabs_nat (Fnum (Fplus radix a b))); auto with zarith.
-assert (0 < Zabs_nat (Fnum (Fplus radix a b)))%nat; auto with zarith.
-apply absolu_lt_nz; auto.
-rewrite Zabs_absolu; auto with zarith.
 apply sym_eq; unfold Fplus; simpl; apply Zmin_le2.
 apply Fcanonic_Rle_Zle with radix bo p; auto with zarith.
 case H1;intros H2; clear H1.
@@ -25717,7 +25401,6 @@ elim LeExpRound2 with (Zmin (Fexp y) (Fexp a+Fexp x)) (Fplus radix gat' be2') ga
 2: unfold FtoRradix; rewrite Fplus_correct; auto; fold FtoRradix; rewrite V8;
    rewrite V4; rewrite U5; rewrite U2; rewrite <- be2Def; auto.
 2: simpl; apply Zmin_Zle; auto with zarith.
-2: rewrite V6; apply Zmin_Zle; auto with zarith.
 intros ga' T; elim T; intros W1 T'; elim T'; intros W2 W3; clear T T'.
 exists ga'; exists al2'; split; auto; split.
 unfold FtoRradix; rewrite F1; fold FtoRradix.
@@ -25938,7 +25621,6 @@ apply Zpower_nat_monotone_lt; omega.
 apply Fcanonic_Rle_Zle with radix bo p; auto with zarith.
 left; split;[split|idtac]; auto with zarith.
 apply Zle_lt_trans with  (Zabs (Zpos (vNum bo) - 2 * radix)); auto with zarith.
-rewrite Zabs_eq; auto with zarith.
 simpl; auto with zarith.
 apply Zle_trans with (Zabs (radix * (Zpos (vNum bo) - 2 * radix))); auto with zarith.
 rewrite Zabs_Zmult; repeat rewrite Zabs_eq; auto with zarith.
@@ -26011,7 +25693,6 @@ elim LeExpRound2 with bo radix p (Fexp a+Fexp x)%Z (Fplus radix (Fplus radix ph 
 2: fold FtoRradix; rewrite H8.
 2: ring_simplify (ph + (a * x - ph) + b)%R; auto with real.
 2: simpl; apply Zmin_Zle; auto with zarith.
-2: apply Zmin_Zle; auto with zarith.
 fold FtoRradix; intros z' T; elim T; intros H15 T'; elim T'; intros H16 H17; clear T T'.
 cut ( exists v : float,  (FtoRradix v = uh - z)%R /\ Fbounded bo v /\ (Fexp v=Fexp a+Fexp x)%Z).
 intros T; elim T; intros v T1; elim T1; intros T2 T3; elim T3; intros; exists v; split; auto.
@@ -26729,7 +26410,6 @@ fold FtoRradix; intros ul' T; elim T; intros H2 T'; elim T'; intros; clear T T'.
 rewrite ulDef; rewrite <- H2.
 absurd (Fexp uh < Fexp uh)%Z; auto with zarith.
 apply Zle_lt_trans with (Fexp ul'); auto with zarith.
-rewrite H4; apply Zmin_Zle; auto with zarith.
 apply ClosestErrorExpStrict with bo radix p (ph+b)%R; auto with zarith.
 elim uhDef; auto.
 fold FtoRradix; rewrite H2; rewrite <- ulDef; auto with real.

@@ -285,7 +285,6 @@ apply radix_gt_1.
 apply FnormalizeCanonic; try assumption.
 apply radix_gt_1.
 assert (0 < Z.abs_nat p); try omega.
-apply absolu_lt_nz; omega.
 Qed.
 
 
@@ -377,8 +376,6 @@ rewrite <- Fabs_correct.
 2: apply radix_gt_0.
 apply FsubnormalLtFirstNormalPos; auto with zarith.
 apply radix_gt_1.
-intros KK; absurd (1 < p)%Z; try assumption.
-apply Zle_not_lt; rewrite <- (inj_abs p); omega.
 apply FsubnormFabs; auto with zarith.
 apply radix_gt_1.
 split; [idtac|split]; assumption.
@@ -395,10 +392,7 @@ omega.
 replace (p-1)%Z with (Z_of_nat (Peano.pred (Zabs_nat p))).
 rewrite <- IZR_Zpower_nat.
 reflexivity.
-rewrite inj_pred; try omega.
-rewrite inj_abs; omega.
-intros KK; absurd (1 < p)%Z; try assumption.
-apply Zle_not_lt; rewrite <- (inj_abs p); omega.
+rewrite inj_pred; omega.
 Qed.
 
 
@@ -421,8 +415,6 @@ rewrite <- Hf1.
 generalize (EvenClosestUniqueP b beta (Zabs_nat p)); unfold UniqueP; intros T.
 apply sym_eq; apply T with r; auto with zarith; clear T.
 apply radix_gt_1.
-apply Nat2Z.inj_lt.
-rewrite inj_abs; simpl; omega.
 split.
 (* *)
 split; auto; intros g Hg.
@@ -456,8 +448,6 @@ apply canonical_unique with (FLT_exp (- dExp b) p).
 apply pff_canonic_is_canonic.
 apply FnormalizeCanonic; auto with zarith real.
 apply radix_gt_1.
-intros KK; absurd (1 < p)%Z; try assumption.
-apply Zle_not_lt; rewrite <- (inj_abs p); omega.
 exact L.
 rewrite <- Hg1, <- Hf1.
 rewrite <- FnormalizeCorrect with beta b (Zabs_nat p) f; auto with zarith.
@@ -477,8 +467,6 @@ rewrite <- Hv1.
 apply Hq2; auto.
 apply RND_EvenClosest_correct; auto with zarith.
 apply radix_gt_1.
-apply Nat2Z.inj_lt.
-rewrite inj_abs; simpl; omega.
 Qed.
 
 
@@ -490,13 +478,9 @@ exists (RND_EvenClosest b beta (Zabs_nat p) r).
 split.
 apply RND_EvenClosest_canonic; auto with zarith.
 apply radix_gt_1.
-apply Nat2Z.inj_lt.
-rewrite inj_abs; simpl; omega.
 split.
 apply RND_EvenClosest_correct; auto with zarith.
 apply radix_gt_1.
-apply Nat2Z.inj_lt.
-rewrite inj_abs; simpl; omega.
 apply pff_round_NE_is_round.
 Qed.
 

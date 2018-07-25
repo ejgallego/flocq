@@ -416,8 +416,7 @@ apply make_bound_p; omega.
 replace 2%nat with (Zabs_nat 2) by easy.
 apply Zabs_nat_le; omega.
 apply Nat2Z.inj_le.
-rewrite inj_abs; try omega.
-rewrite inj_minus, Zmax_r; rewrite inj_abs; simpl; omega.
+rewrite inj_abs; lia.
 rewrite Hfx; rewrite inj_abs; try omega.
 rewrite bpow_powerRZ in Hfp'; exact Hfp'.
 rewrite Hfx, Hfp'', <- Hchoice; assumption.
@@ -453,17 +452,14 @@ rewrite <- (p'GivesBound beta (make_bound beta prec emin) (Zabs_nat s) (Zabs_nat
 simpl; easy.
 apply radix_gt_1.
 apply ZleLe; rewrite inj_abs; auto with zarith.
-apply ZleLe; rewrite inj_minus, 2!inj_abs, Zmax_r; simpl; auto with zarith.
 apply Nat2Z.inj.
-rewrite inj_minus; repeat rewrite inj_abs; try omega.
-apply Zmax_r; omega.
+rewrite inj_minus; repeat rewrite inj_abs; omega.
 apply N2Z.inj.
 rewrite H4.
 rewrite Zabs2N.id_abs.
 now apply Z.abs_neq.
 apply Nat2Z.inj.
-rewrite inj_abs; try omega.
-rewrite inj_minus, Zmax_r; rewrite 2!inj_abs; omega.
+rewrite inj_abs; omega.
 apply RND_EvenClosest_correct.
 apply radix_gt_1.
 apply Nat2Z.inj_lt.
@@ -510,8 +506,7 @@ apply make_bound_p; omega.
 replace 2%nat with (Zabs_nat 2) by easy.
 apply Zabs_nat_le; omega.
 apply Nat2Z.inj_le.
-rewrite inj_abs; try omega.
-rewrite inj_minus, Zmax_r; rewrite inj_abs; simpl; omega.
+rewrite inj_abs; omega.
 rewrite Hfx; rewrite inj_abs; try omega.
 rewrite bpow_powerRZ in Hfp'; exact Hfp'.
 rewrite Hfx, Hfp''; assumption.
@@ -589,8 +584,7 @@ apply make_bound_p; omega.
 replace 2%nat with (Zabs_nat 2) by easy.
 apply Zabs_nat_le; omega.
 apply Nat2Z.inj_le.
-rewrite inj_abs; try omega.
-rewrite inj_minus, Zmax_r; rewrite inj_abs; simpl; omega.
+rewrite inj_abs; omega.
 rewrite Hfx; rewrite inj_abs; try omega.
 rewrite bpow_powerRZ in Hfp'; apply Hfp'.
 rewrite Hfx, Hfp''; apply Hfq'.
@@ -951,8 +945,7 @@ apply even_equiv.
 exists (Zabs_nat l).
 apply Nat2Z.inj.
 rewrite inj_mult.
-rewrite 2!inj_abs; try omega.
-rewrite Hl; simpl; easy.
+rewrite 2!inj_abs; omega.
 (* *)
 rewrite <- Hfx, <- Hfy.
 unfold r; rewrite <- Hfr''.

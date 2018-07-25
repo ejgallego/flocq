@@ -623,9 +623,6 @@ rewrite H. 2: discriminate.
 revert H1. clear -H2.
 rewrite Zpos_digits2_pos.
 unfold fexp, FLT_exp.
-generalize (Zdigits radix2 (Zpos mx)).
-intros ; zify ; subst.
-clear -H H2. clearbody emin.
 omega.
 Qed.
 
