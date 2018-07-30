@@ -129,7 +129,6 @@ now apply He.
 unfold cexp, FLT_exp.
 replace ((mag radix2 (z/2))-prec)%Z with ((mag radix2 z -1) -prec)%Z.
 rewrite Z.max_l; try omega.
-rewrite Z.max_l; try omega.
 apply Zplus_eq_compat; try reflexivity.
 apply sym_eq, mag_unique.
 destruct (mag radix2 z) as (e,He); simpl.
