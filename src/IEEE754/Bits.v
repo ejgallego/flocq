@@ -30,6 +30,99 @@ Arguments B754_finite {prec} {emax}.
 
 (** Number of bits for the fraction and exponent *)
 Variable mw ew : Z.
+
+Definition join_bits (s : bool) m e :=
+  (Z.shiftl ((if s then Zpower 2 ew else 0) + e) mw + m)%Z.
+
+Lemma join_bits_range :
+  forall s m e,
+  (0 <= m < 2^mw)%Z ->
+  (0 <= e < 2^ew)%Z ->
+  (0 <= join_bits s m e < 2 ^ (mw + ew + 1))%Z.
+Proof.
+intros s m e Hm He.
+assert (0 <= mw)%Z as Hmw.
+  destruct mw as [|mw'|mw'] ; try easy.
+  clear -Hm ; simpl in Hm ; omega.
+assert (0 <= ew)%Z as Hew.
+  destruct ew as [|ew'|ew'] ; try easy.
+  clear -He ; simpl in He ; omega.
+unfold join_bits.
+rewrite Z.shiftl_mul_pow2 by easy.
+split.
+- apply (Zplus_le_compat 0 _ 0) with (2 := proj1 Hm).
+  rewrite <- (Zmult_0_l (2^mw)).
+  apply Zmult_le_compat_r.
+  case s.
+  clear -He ; omega.
+  now rewrite Zmult_0_l.
+  clear -Hm ; omega.
+- apply Zlt_le_trans with (((if s then 2 ^ ew else 0) + e + 1) * 2 ^ mw)%Z.
+  rewrite (Zmult_plus_distr_l _ 1).
+  apply Zplus_lt_compat_l.
+  now rewrite Zmult_1_l.
+  rewrite <- (Zplus_assoc mw), (Zplus_comm mw), Zpower_plus.
+  apply Zmult_le_compat_r.
+  rewrite Zpower_plus by easy.
+  change (2^1)%Z with 2%Z.
+  case s ; clear -He ; omega.
+  clear -Hm ; omega.
+  clear -Hew ; omega.
+  easy.
+Qed.
+
+Definition split_bits x :=
+  let mm := Zpower 2 mw in
+  let em := Zpower 2 ew in
+  (Zle_bool (mm * em) x, Zmod x mm, Zmod (Zdiv x mm) em)%Z.
+
+Theorem split_join_bits :
+  forall s m e,
+  (0 <= m < Zpower 2 mw)%Z ->
+  (0 <= e < Zpower 2 ew)%Z ->
+  split_bits (join_bits s m e) = (s, m, e).
+Proof.
+intros s m e Hm He.
+assert (0 <= mw)%Z as Hmw.
+  destruct mw as [|mw'|mw'] ; try easy.
+  clear -Hm ; simpl in Hm ; omega.
+assert (0 <= ew)%Z as Hew.
+  destruct ew as [|ew'|ew'] ; try easy.
+  clear -He ; simpl in He ; omega.
+unfold split_bits, join_bits.
+rewrite Z.shiftl_mul_pow2 by easy.
+apply f_equal2 ; [apply f_equal2|].
+- case s.
+  + apply Zle_bool_true.
+    apply Zle_0_minus_le.
+    ring_simplify.
+    apply Zplus_le_0_compat.
+    apply Zmult_le_0_compat.
+    apply He.
+    clear -Hm ; omega.
+    apply Hm.
+  + apply Zle_bool_false.
+    apply Zplus_lt_reg_l with (2^mw * (-e))%Z.
+    replace (2 ^ mw * - e + ((0 + e) * 2 ^ mw + m))%Z with (m * 1)%Z by ring.
+    rewrite <- Zmult_plus_distr_r.
+    apply Zlt_le_trans with (2^mw * 1)%Z.
+    now apply Zmult_lt_compat_r.
+    apply Zmult_le_compat_l.
+    clear -He ; omega.
+    clear -Hm ; omega.
+- rewrite Zplus_comm.
+  rewrite Z_mod_plus_full.
+  now apply Zmod_small.
+- rewrite Z_div_plus_full_l by (clear -Hm ; omega).
+  rewrite Zdiv_small with (1 := Hm).
+  rewrite Zplus_0_r.
+  case s.
+  + replace (2^ew + e)%Z with (e + 1 * 2^ew)%Z by ring.
+    rewrite Z_mod_plus_full.
+    now apply Zmod_small.
+  + now apply Zmod_small.
+Qed.
+
 Hypothesis Hmw : (0 < mw)%Z.
 Hypothesis Hew : (0 < ew)%Z.
 
@@ -59,93 +152,6 @@ Qed.
 
 Hypothesis Hmax : (prec < emax)%Z.
 
-Definition join_bits (s : bool) m e :=
-  (Z.shiftl ((if s then Zpower 2 ew else 0) + e) mw + m)%Z.
-
-Lemma join_bits_range :
-  forall s m e,
-  (0 <= m < 2^mw)%Z ->
-  (0 <= e < 2^ew)%Z ->
-  (0 <= join_bits s m e < 2 ^ (mw + ew + 1))%Z.
-Proof.
-intros s m e Hm He.
-unfold join_bits.
-rewrite Z.shiftl_mul_pow2 by now apply Zlt_le_weak.
-split.
-- apply (Zplus_le_compat 0 _ 0) with (2 := proj1 Hm).
-  rewrite <- (Zmult_0_l (2^mw)).
-  apply Zmult_le_compat_r.
-  case s.
-  clear -He ; omega.
-  now rewrite Zmult_0_l.
-  clear -Hm ; omega.
-- apply Zlt_le_trans with (((if s then 2 ^ ew else 0) + e + 1) * 2 ^ mw)%Z.
-  rewrite (Zmult_plus_distr_l _ 1).
-  apply Zplus_lt_compat_l.
-  now rewrite Zmult_1_l.
-  rewrite <- (Zplus_assoc mw), (Zplus_comm mw), Zpower_plus.
-  apply Zmult_le_compat_r.
-  rewrite Zpower_plus.
-  change (2^1)%Z with 2%Z.
-  case s ; clear -He ; omega.
-  now apply Zlt_le_weak.
-  easy.
-  clear -Hm ; omega.
-  clear -Hew ; omega.
-  now apply Zlt_le_weak.
-Qed.
-
-Definition split_bits x :=
-  let mm := Zpower 2 mw in
-  let em := Zpower 2 ew in
-  (Zle_bool (mm * em) x, Zmod x mm, Zmod (Zdiv x mm) em)%Z.
-
-Theorem split_join_bits :
-  forall s m e,
-  (0 <= m < Zpower 2 mw)%Z ->
-  (0 <= e < Zpower 2 ew)%Z ->
-  split_bits (join_bits s m e) = (s, m, e).
-Proof.
-intros s m e Hm He.
-unfold split_bits, join_bits.
-rewrite Z.shiftl_mul_pow2 by now apply Zlt_le_weak.
-apply f_equal2.
-apply f_equal2.
-(* *)
-case s.
-apply Zle_bool_true.
-apply Zle_0_minus_le.
-ring_simplify.
-apply Zplus_le_0_compat.
-apply Zmult_le_0_compat.
-apply He.
-now apply Zlt_le_weak.
-apply Hm.
-apply Zle_bool_false.
-apply Zplus_lt_reg_l with (2^mw * (-e))%Z.
-replace (2 ^ mw * - e + ((0 + e) * 2 ^ mw + m))%Z with (m * 1)%Z by ring.
-rewrite <- Zmult_plus_distr_r.
-apply Zlt_le_trans with (2^mw * 1)%Z.
-now apply Zmult_lt_compat_r.
-apply Zmult_le_compat_l.
-clear -He. omega.
-now apply Zlt_le_weak.
-(* *)
-rewrite Zplus_comm.
-rewrite Z_mod_plus_full.
-now apply Zmod_small.
-(* *)
-rewrite Z_div_plus_full_l.
-rewrite Zdiv_small with (1 := Hm).
-rewrite Zplus_0_r.
-case s.
-replace (2^ew + e)%Z with (e + 1 * 2^ew)%Z by ring.
-rewrite Z_mod_plus_full.
-now apply Zmod_small.
-now apply Zmod_small.
-now apply Zgt_not_eq.
-Qed.
-
 Theorem join_split_bits :
   forall x,
   (0 <= x < Zpower 2 (mw + ew + 1))%Z ->
@@ -171,7 +177,6 @@ case Zle_bool_spec ; intros Hs.
 apply Zle_antisym.
 cut (x / (2^mw * 2^ew) < 2)%Z. clear ; omega.
 apply Zdiv_lt_upper_bound.
-try apply Hx. (* 8.2/8.3 compatibility *)
 now apply Zmult_lt_0_compat.
 rewrite <- Zpower_exp ; try ( apply Zle_ge ; apply Zlt_le_weak ; assumption ).
 change 2%Z at 1 with (Zpower 2 1).
@@ -181,7 +186,6 @@ discriminate.
 apply Zle_ge.
 now apply Zplus_le_0_compat ; apply Zlt_le_weak.
 apply Zdiv_le_lower_bound.
-try apply Hx. (* 8.2/8.3 compatibility *)
 now apply Zmult_lt_0_compat.
 now rewrite Zmult_1_l.
 apply Zdiv_small.
