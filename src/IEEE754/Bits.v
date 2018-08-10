@@ -614,23 +614,25 @@ Arguments B754_nan {prec} {emax}.
 Definition binary32 := binary_float 24 128.
 
 Let Hprec : (0 < 24)%Z.
+Proof.
 apply refl_equal.
 Qed.
 
 Let Hprec_emax : (24 < 128)%Z.
+Proof.
 apply refl_equal.
 Qed.
 
-Definition default_nan_pl32 : { nan | is_nan 24 128 nan = true } :=
+Definition default_nan_pl32 : { nan : binary32 | is_nan 24 128 nan = true } :=
   exist _ (@B754_nan 24 128 false (iter_nat xO 22 xH) (refl_equal true)) (refl_equal true).
 
-Definition unop_nan_pl32 (f : binary32) :=
+Definition unop_nan_pl32 (f : binary32) : { nan : binary32 | is_nan 24 128 nan = true } :=
   match f as f with
   | B754_nan s pl Hpl => exist _ (B754_nan s pl Hpl) (refl_equal true)
   | _ => default_nan_pl32
   end.
 
-Definition binop_nan_pl32 (f1 f2 : binary32) :=
+Definition binop_nan_pl32 (f1 f2 : binary32) : { nan : binary32 | is_nan 24 128 nan = true } :=
   match f1, f2 with
   | B754_nan s1 pl1 Hpl1, _ => exist _ (B754_nan s1 pl1 Hpl1) (refl_equal true)
   | _, B754_nan s2 pl2 Hpl2 => exist _ (B754_nan s2 pl2 Hpl2) (refl_equal true)
@@ -660,23 +662,25 @@ Arguments B754_nan {prec} {emax}.
 Definition binary64 := binary_float 53 1024.
 
 Let Hprec : (0 < 53)%Z.
+Proof.
 apply refl_equal.
 Qed.
 
 Let Hprec_emax : (53 < 1024)%Z.
+Proof.
 apply refl_equal.
 Qed.
 
-Definition default_nan_pl64 : { nan | is_nan 53 1024 nan = true } :=
+Definition default_nan_pl64 : { nan : binary64 | is_nan 53 1024 nan = true } :=
   exist _ (@B754_nan 53 1024 false (iter_nat xO 51 xH) (refl_equal true)) (refl_equal true).
 
-Definition unop_nan_pl64 (f : binary64) :=
+Definition unop_nan_pl64 (f : binary64) : { nan : binary64 | is_nan 53 1024 nan = true } :=
   match f as f with
   | B754_nan s pl Hpl => exist _ (B754_nan s pl Hpl) (refl_equal true)
   | _ => default_nan_pl64
   end.
 
-Definition binop_nan_pl64 (f1 f2 : binary64) :=
+Definition binop_nan_pl64 (f1 f2 : binary64) : { nan : binary64 | is_nan 53 1024 nan = true } :=
   match f1, f2 with
   | B754_nan s1 pl1 Hpl1, _ => exist _ (B754_nan s1 pl1 Hpl1) (refl_equal true)
   | _, B754_nan s2 pl2 Hpl2 => exist _ (B754_nan s2 pl2 Hpl2) (refl_equal true)
