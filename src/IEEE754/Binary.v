@@ -416,6 +416,29 @@ Proof.
 easy.
 Qed.
 
+Definition erase (x : binary_float) : binary_float.
+Proof.
+destruct x as [s|s|s pl H|s m e H].
+- exact (B754_zero s).
+- exact (B754_infinity s).
+- apply (B754_nan s pl).
+  destruct nan_pl.
+  apply eq_refl.
+  exact H.
+- apply (B754_finite s m e).
+  destruct bounded.
+  apply eq_refl.
+  exact H.
+Defined.
+
+Theorem erase_correct :
+  forall x, erase x = x.
+Proof.
+destruct x as [s|s|s pl H|s m e H] ; try easy ; simpl.
+- apply f_equal, eqbool_irrelevance.
+- apply f_equal, eqbool_irrelevance.
+Qed.
+
 (** Opposite *)
 
 Definition Bopp opp_nan x :=

@@ -639,6 +639,7 @@ Definition binop_nan_pl32 (f1 f2 : binary32) : { nan : binary32 | is_nan 24 128 
   | _, _ => default_nan_pl32
   end.
 
+Definition b32_erase : binary32 -> binary32 := erase 24 128.
 Definition b32_opp : binary32 -> binary32 := Bopp 24 128 unop_nan_pl32.
 Definition b32_abs : binary32 -> binary32 := Babs 24 128 unop_nan_pl32.
 Definition b32_sqrt :  mode -> binary32 -> binary32 := Bsqrt  _ _ Hprec Hprec_emax unop_nan_pl32.
@@ -687,6 +688,7 @@ Definition binop_nan_pl64 (f1 f2 : binary64) : { nan : binary64 | is_nan 53 1024
   | _, _ => default_nan_pl64
   end.
 
+Definition b64_erase : binary64 -> binary64 := erase 53 1024.
 Definition b64_opp : binary64 -> binary64 := Bopp 53 1024 unop_nan_pl64.
 Definition b64_abs : binary64 -> binary64 := Babs 53 1024 unop_nan_pl64.
 Definition b64_sqrt : mode -> binary64 -> binary64 := Bsqrt _ _ Hprec Hprec_emax unop_nan_pl64.
