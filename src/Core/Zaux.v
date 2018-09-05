@@ -17,10 +17,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
-Require Import Omega ZArith Lia.
+Require Import ZArith Omega.
 Require Import Zquot.
-
-Local Ltac omega ::= lia.
 
 Section Zmissing.
 

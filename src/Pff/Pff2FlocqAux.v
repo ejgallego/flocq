@@ -19,6 +19,7 @@ COPYING file for more details.
 
 (** Translation from Flocq to Pff *)
 
+Require Import Lia.
 Require Import Pff Core Binary.
 
 Section RND_Closest_c.
@@ -55,6 +56,7 @@ Definition RND_Closest (r : R) :=
 
 Theorem RND_Closest_canonic :
  forall r : R, Fcanonic beta b (RND_Closest r).
+Proof.
 intros r; unfold RND_Closest in |- *.
 case (Rle_dec _ _ ); intros H1.
 case (Rle_lt_or_eq_dec _ _ H1); intros H2.
@@ -67,6 +69,7 @@ Qed.
 
 Theorem RND_Closest_correct :
  forall r : R, Closest b beta r (RND_Closest r).
+Proof.
 intros r.
 generalize (radix_gt_1 beta); intros M.
 split.
@@ -190,6 +193,7 @@ Section b_Bounds.
 Definition bsingle := make_bound radix2 24 (-149)%Z.
 
 Lemma psGivesBound: Zpos (vNum bsingle) = Zpower_nat 2 24.
+Proof.
 unfold bsingle; apply make_bound_p.
 omega.
 Qed.
@@ -197,6 +201,7 @@ Qed.
 Definition bdouble := make_bound radix2 53 1074.
 
 Lemma pdGivesBound: Zpos (vNum bdouble) = Zpower_nat 2 53.
+Proof.
 unfold bdouble; apply make_bound_p.
 omega.
 Qed.
@@ -214,6 +219,7 @@ Hypothesis precisionNotZero : (1 < p)%Z.
 
 Lemma pff_format_is_format: forall f, Fbounded b f ->
   (generic_format beta (FLT_exp (-dExp b) p) (FtoR beta f)).
+Proof.
 intros f Hf.
 apply generic_format_FLT; auto with zarith.
 exists (Float beta (Pff.Fnum f) (Pff.Fexp f)).
@@ -265,6 +271,7 @@ Qed.
 Lemma format_is_pff_format: forall r,
   (generic_format beta (FLT_exp (-dExp b) p) r)
   -> exists f, FtoR beta f = r /\ Fbounded b f.
+Proof.
 intros r Hr.
 eexists; split.
 2: apply (format_is_pff_format' _ Hr).
@@ -284,11 +291,12 @@ rewrite <- Hf1; apply FnormalizeCorrect.
 apply radix_gt_1.
 apply FnormalizeCanonic; try assumption.
 apply radix_gt_1.
-assert (0 < Z.abs_nat p); try omega.
+lia.
 Qed.
 
 
 Lemma equiv_RNDs_aux: forall z, Z.even z = true -> Even z.
+Proof.
 intros z; unfold Z.even, Even.
 case z.
 intros; exists 0%Z; auto with zarith.
@@ -374,8 +382,9 @@ apply He; auto.
 apply Rlt_le_trans with (FtoR beta (firstNormalPos beta b (Zabs_nat p))).
 rewrite <- Fabs_correct.
 2: apply radix_gt_0.
-apply FsubnormalLtFirstNormalPos; auto with zarith.
+apply FsubnormalLtFirstNormalPos with (3 := pGivesBound).
 apply radix_gt_1.
+lia.
 apply FsubnormFabs; auto with zarith.
 apply radix_gt_1.
 split; [idtac|split]; assumption.
@@ -392,7 +401,7 @@ omega.
 replace (p-1)%Z with (Z_of_nat (Peano.pred (Zabs_nat p))).
 rewrite <- IZR_Zpower_nat.
 reflexivity.
-rewrite inj_pred; omega.
+rewrite inj_pred; lia.
 Qed.
 
 
@@ -412,9 +421,11 @@ unfold Rnd_NE_pt, Rnd_NG_pt, Rnd_N_pt, NE_prop in H.
 destruct H as ((H1,H2),H3).
 destruct (format_is_pff_format _ H1) as (f,(Hf1,Hf2)).
 rewrite <- Hf1.
-generalize (EvenClosestUniqueP b beta (Zabs_nat p)); unfold UniqueP; intros T.
-apply sym_eq; apply T with r; auto with zarith; clear T.
+apply sym_eq.
+eapply (EvenClosestUniqueP b beta (Zabs_nat p)).
 apply radix_gt_1.
+lia.
+exact pGivesBound.
 split.
 (* *)
 split; auto; intros g Hg.
@@ -448,6 +459,7 @@ apply canonical_unique with (FLT_exp (- dExp b) p).
 apply pff_canonic_is_canonic.
 apply FnormalizeCanonic; auto with zarith real.
 apply radix_gt_1.
+lia.
 exact L.
 rewrite <- Hg1, <- Hf1.
 rewrite <- FnormalizeCorrect with beta b (Zabs_nat p) f; auto with zarith.
@@ -465,22 +477,26 @@ intros g Hg.
 destruct (format_is_pff_format _ Hg) as (v,(Hv1,Hv2)).
 rewrite <- Hv1.
 apply Hq2; auto.
-apply RND_EvenClosest_correct; auto with zarith.
+apply RND_EvenClosest_correct with (3 := pGivesBound).
 apply radix_gt_1.
+lia.
 Qed.
 
 
 Lemma round_NE_is_pff_round: forall (r:R),
    exists f:Pff.float, (Fcanonic beta b f /\ (EvenClosest b beta (Zabs_nat p) r f) /\
     FtoR beta f =  round beta (FLT_exp (-dExp b) p) rndNE r).
+Proof.
 intros r.
 exists (RND_EvenClosest b beta (Zabs_nat p) r).
 split.
-apply RND_EvenClosest_canonic; auto with zarith.
+apply RND_EvenClosest_canonic with (3 := pGivesBound).
 apply radix_gt_1.
+lia.
 split.
-apply RND_EvenClosest_correct; auto with zarith.
+apply RND_EvenClosest_correct with (3 := pGivesBound).
 apply radix_gt_1.
+lia.
 apply pff_round_NE_is_round.
 Qed.
 
@@ -768,6 +784,7 @@ Qed.
 Lemma Fulp_ulp:  forall f, Fbounded b f ->
    Fulp b beta (Z.abs_nat p) f
     = ulp beta (FLT_exp (-dExp b) p) (FtoR beta f).
+Proof.
 intros f H.
 assert (Y1: (1 < beta)%Z) by apply radix_gt_1.
 assert (Y2:Z.abs_nat p <> 0).
@@ -795,19 +812,17 @@ Lemma round_NE_is_pff_round_b32: forall (r:R),
 Proof.
 apply (round_NE_is_pff_round radix2 bsingle 24).
 apply psGivesBound.
-omega.
+apply eq_refl.
 Qed.
 
 
 Lemma round_NE_is_pff_round_b64: forall (r:R),
    exists f:Pff.float, (Fcanonic 2 bdouble f /\ (EvenClosest bdouble 2 53 r f) /\
     FtoR 2 f =  round radix2 (FLT_exp (-1074) 53) rndNE r).
-apply (round_NE_is_pff_round radix2 bdouble 53).
 Proof.
+apply (round_NE_is_pff_round radix2 bdouble 53).
 apply pdGivesBound.
-omega.
+apply eq_refl.
 Qed.
-
-
 
 End Equiv_instanc.

@@ -646,7 +646,7 @@ rewrite H. 2: discriminate.
 revert H1. clear -H2.
 rewrite Zpos_digits2_pos.
 unfold fexp, FLT_exp.
-omega.
+intros ; zify ; omega.
 Qed.
 
 Theorem bounded_ge_emin :
