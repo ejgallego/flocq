@@ -62,7 +62,7 @@ Definition Fdiv_core m1 e1 m2 e2 e :=
     if Zle_bool e (e1 - e2)%Z
     then (m1 * Zpower beta (e1 - e2 - e), m2)%Z
     else (m1, m2 * Zpower beta (e - (e1 - e2)))%Z in
-  let '(q, r) :=  Zdiv_eucl m1' m2' in
+  let '(q, r) :=  Z.div_eucl m1' m2' in
   (q, new_location m2' r loc_Exact).
 
 Theorem Fdiv_core_correct :
@@ -96,7 +96,7 @@ assert ((F2R (Float beta m1 e1) / F2R (Float beta m2 e2) = IZR m1' / IZR m2' * b
     now apply IZR_neq, Zgt_not_eq. }
 clearbody m12 ; clear Hm Hm1 Hm2.
 generalize (Z_div_mod m1' m2' (Z.lt_gt _ _ Hm2')).
-destruct (Zdiv_eucl m1' m2') as (q, r).
+destruct (Z.div_eucl m1' m2') as (q, r).
 intros (Hq, Hr).
 rewrite Hf.
 unfold inbetween_float, F2R. simpl.
@@ -123,7 +123,7 @@ Definition Fdiv (x y : float beta) :=
   let (m1, e1) := x in
   let (m2, e2) := y in
   let e' := ((Zdigits beta m1 + e1) - (Zdigits beta m2 + e2))%Z in
-  let e := Zmin (Zmin (fexp e') (fexp (e' + 1))) (e1 - e2) in
+  let e := Z.min (Z.min (fexp e') (fexp (e' + 1))) (e1 - e2) in
   let '(m, l) := Fdiv_core m1 e1 m2 e2 e in
   (m, e, l).
 
@@ -140,19 +140,19 @@ apply gt_0_F2R in Hm2.
 unfold Fdiv.
 generalize (mag_div_F2R m1 e1 m2 e2 Hm1 Hm2).
 set (e := Zminus _ _).
-set (e' := Zmin (Zmin (fexp e) (fexp (e + 1))) (e1 - e2)).
+set (e' := Z.min (Z.min (fexp e) (fexp (e + 1))) (e1 - e2)).
 intros [H1 H2].
 generalize (Fdiv_core_correct m1 e1 m2 e2 e' Hm1 Hm2).
 destruct Fdiv_core as [m' l].
 apply conj.
-apply Zle_trans with (1 := Zle_min_l _ _).
+apply Z.le_trans with (1 := Z.le_min_l _ _).
 unfold cexp.
 destruct (Zle_lt_or_eq _ _ H1) as [H|H].
 - replace (fexp (mag _ _)) with (fexp (e + 1)).
-  apply Zle_min_r.
+  apply Z.le_min_r.
   clear -H1 H2 H ; apply f_equal ; omega.
 - replace (fexp (mag _ _)) with (fexp e).
-  apply Zle_min_l.
+  apply Z.le_min_l.
   clear -H1 H2 H ; apply f_equal ; omega.
 Qed.
 

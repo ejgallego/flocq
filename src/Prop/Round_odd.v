@@ -40,16 +40,16 @@ split.
 intros x y Hxy.
 assert (Zfloor x <= Zrnd_odd y)%Z.
 (* .. *)
-apply Zle_trans with (Zfloor y).
+apply Z.le_trans with (Zfloor y).
 now apply Zfloor_le.
 unfold Zrnd_odd; destruct (Req_EM_T  y (IZR (Zfloor y))).
-now apply Zle_refl.
+now apply Z.le_refl.
 case (Z.even (Zfloor y)).
 apply le_IZR.
 apply Rle_trans with y.
 apply Zfloor_lb.
 apply Zceil_ub.
-now apply Zle_refl.
+now apply Z.le_refl.
 unfold Zrnd_odd at 1.
 (* . *)
 destruct (Req_EM_T  x (IZR (Zfloor x))) as [Hx|Hx].
@@ -124,7 +124,7 @@ ring.
 Qed.
 
 
-Lemma Zeven_abs: forall z, Z.even (Zabs z) = Z.even z.
+Lemma Zeven_abs: forall z, Z.even (Z.abs z) = Z.even z.
 Proof.
 intros z; case (Zle_or_lt z 0); intros H1.
 rewrite Z.abs_neq; try assumption.
@@ -603,7 +603,7 @@ intros Y.
 apply generic_format_bpow.
 apply valid_exp.
 rewrite <- Fexp_d; trivial.
-apply Zlt_le_trans with  (mag beta (F2R d))%Z.
+apply Z.lt_le_trans with  (mag beta (F2R d))%Z.
 rewrite Cd; apply mag_generic_gt...
 now apply Rgt_not_eq.
 apply Hd.
@@ -836,7 +836,7 @@ apply generic_format_F2R' with g.
 assumption.
 intros H; unfold cexp; rewrite Hg2.
 rewrite mag_m_0; try assumption.
-apply Zle_trans with (1:=fexpe_fexp _).
+apply Z.le_trans with (1:=fexpe_fexp _).
 generalize (fexp_m_eq_0 Y).
 omega.
 Qed.
@@ -864,7 +864,7 @@ apply exists_even_fexp_lt.
 exists g; split; trivial.
 rewrite Hg2.
 rewrite mag_m_0; trivial.
-apply Zle_lt_trans with (1:=fexpe_fexp _).
+apply Z.le_lt_trans with (1:=fexpe_fexp _).
 generalize (fexp_m_eq_0 Y).
 omega.
 Qed.
@@ -951,7 +951,7 @@ destruct (exists_even_fexp_lt fexpe o) as (k',(Hk'1,(Hk'2,Hk'3))).
 eexists; split.
 apply sym_eq, Y.
 simpl; unfold cexp.
-apply Zle_lt_trans with (1:=fexpe_fexp _).
+apply Z.le_lt_trans with (1:=fexpe_fexp _).
 omega.
 absurd (true=false).
 discriminate.
@@ -1134,7 +1134,7 @@ apply Z.max_case_strong; auto with zarith.
 assert (Y2: canonical beta (FLT_exp emin prec) gg).
 unfold canonical; rewrite Y1; unfold gg; simpl.
 unfold cexp; now rewrite mag_bpow.
-assert (Y3: Fnum gg = Zabs (Fnum g)).
+assert (Y3: Fnum gg = Z.abs (Fnum g)).
 apply trans_eq with (Fnum (Fabs g)).
 2: destruct g; unfold Fabs; now simpl.
 f_equal.

@@ -34,7 +34,7 @@ Context { prec_gt_0_ : Prec_gt_0 prec }.
 Inductive FTZ_format (x : R) : Prop :=
   FTZ_spec (f : float beta) :
     x = F2R f ->
-    (x <> 0%R -> Zpower beta (prec - 1) <= Zabs (Fnum f) < Zpower beta prec)%Z ->
+    (x <> 0%R -> Zpower beta (prec - 1) <= Z.abs (Fnum f) < Zpower beta prec)%Z ->
     (emin <= Fexp f)%Z ->
     FTZ_format x.
 
@@ -91,7 +91,7 @@ rewrite Hx1, Zx.
 apply F2R_0.
 unfold FTZ_exp, FLX_exp.
 rewrite Zlt_bool_false.
-apply Zle_refl.
+apply Z.le_refl.
 rewrite Hx1, mag_F2R with (1 := Zxm).
 cut (prec - 1 < mag beta (IZR xm))%Z.
 clear -Hx3 ; omega.
@@ -110,7 +110,7 @@ exists (Float beta 0 emin).
 apply sym_eq, F2R_0.
 intros H.
 now elim H.
-apply Zle_refl.
+apply Z.le_refl.
 unfold generic_format, scaled_mantissa, cexp, FTZ_exp in Hx.
 destruct (mag beta x) as (ex, Hx4).
 simpl in Hx.
@@ -131,7 +131,7 @@ apply lt_IZR.
 apply Rmult_lt_reg_r with (bpow (emin + prec - 1)).
 apply bpow_gt_0.
 rewrite Rmult_0_l.
-change (0 < F2R (Float beta (Zabs (Ztrunc (x * bpow (- (emin + prec - 1))))) (emin + prec - 1)))%R.
+change (0 < F2R (Float beta (Z.abs (Ztrunc (x * bpow (- (emin + prec - 1))))) (emin + prec - 1)))%R.
 rewrite F2R_Zabs, <- Hx2.
 now apply Rabs_pos_lt.
 apply bpow_le.
@@ -144,7 +144,7 @@ apply Rmult_le_reg_r with (bpow (ex - prec)).
 apply bpow_gt_0.
 rewrite <- bpow_plus.
 replace (prec - 1 + (ex - prec))%Z with (ex - 1)%Z by ring.
-change (bpow (ex - 1) <= F2R (Float beta (Zabs (Ztrunc (x * bpow (- (ex - prec))))) (ex - prec)))%R.
+change (bpow (ex - 1) <= F2R (Float beta (Z.abs (Ztrunc (x * bpow (- (ex - prec))))) (ex - prec)))%R.
 rewrite F2R_Zabs, <- Hx2.
 apply Hx4.
 apply Zle_minus_le_0.
@@ -155,11 +155,11 @@ apply Rmult_lt_reg_r with (bpow (ex - prec)).
 apply bpow_gt_0.
 rewrite <- bpow_plus.
 replace (prec + (ex - prec))%Z with ex by ring.
-change (F2R (Float beta (Zabs (Ztrunc (x * bpow (- (ex - prec))))) (ex - prec)) < bpow ex)%R.
+change (F2R (Float beta (Z.abs (Ztrunc (x * bpow (- (ex - prec))))) (ex - prec)) < bpow ex)%R.
 rewrite F2R_Zabs, <- Hx2.
 apply Hx4.
 now apply Zlt_le_weak.
-now apply Zge_le.
+now apply Z.ge_le.
 Qed.
 
 Theorem FTZ_format_satisfies_any :
@@ -185,7 +185,7 @@ apply generic_inclusion_ge.
 intros e He.
 unfold FTZ_exp.
 rewrite Zlt_bool_false.
-apply Zle_refl.
+apply Z.le_refl.
 omega.
 Qed.
 
@@ -326,7 +326,7 @@ unfold FTZ_exp.
 generalize (Zlt_cases (ex - prec) emin).
 case Zlt_bool.
 intros _.
-apply Zle_refl.
+apply Z.le_refl.
 intros He'.
 elim Rlt_not_le with (1 := Hx).
 apply Rle_trans with (2 := proj1 He).

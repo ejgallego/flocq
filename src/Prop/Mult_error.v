@@ -119,7 +119,7 @@ split;[assumption|split].
 rewrite Hr.
 simpl.
 clear Hr.
-apply Zle_trans with (cexp (x * y)%R - prec)%Z.
+apply Z.le_trans with (cexp (x * y)%R - prec)%Z.
 unfold cexp, FLX_exp.
 apply Zplus_le_compat_r.
 rewrite mag_unique with (1 := Hexy).
@@ -202,9 +202,9 @@ simpl in H2, H3.
 unfold cexp, FLT_exp.
 case (Zmax_spec (mag beta (F2R (Float beta m e)) - prec) emin);
   intros (M1,M2); rewrite M2.
-apply Zle_trans with (2:=H2).
+apply Z.le_trans with (2:=H2).
 unfold cexp, FLX_exp.
-apply Zle_refl.
+apply Z.le_refl.
 rewrite H3.
 unfold cexp, FLX_exp.
 assert (Hxy0:(x*y <> 0)%R).
@@ -276,7 +276,7 @@ apply bpow_le.
 unfold cexp, FLT_exp.
 destruct (mag beta x) as (ex,Hx).
 destruct (mag beta y) as (ey,Hy).
-simpl; apply Zle_trans with ((ex-prec)+(ey-prec))%Z.
+simpl; apply Z.le_trans with ((ex-prec)+(ey-prec))%Z.
 2: apply Zplus_le_compat; apply Z.le_max_l.
 assert (e + 2*prec -1< ex+ey)%Z;[idtac|omega].
 apply lt_bpow with beta.

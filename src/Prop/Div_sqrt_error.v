@@ -45,15 +45,15 @@ intros _.
 case_eq (Fplus fx fy).
 intros mz ez Hz.
 rewrite <- Hz.
-apply Zle_trans with (Zmin (Fexp fx) (Fexp fy)).
+apply Z.le_trans with (Z.min (Fexp fx) (Fexp fy)).
 rewrite F2R_plus, <- Hx, <- Hy.
 unfold cexp.
-apply Zle_trans with (1:=Hfexp _).
+apply Z.le_trans with (1:=Hfexp _).
 apply Zplus_le_reg_l with prec; ring_simplify.
 apply mag_le_bpow with (1 := H).
-now apply Zmin_case.
+now apply Z.min_case.
 rewrite <- Fexp_Fplus, Hz.
-apply Zle_refl.
+apply Z.le_refl.
 Qed.
 
 Context { prec_gt_0_ : Prec_gt_0 prec }.
@@ -85,7 +85,7 @@ destruct (canonical_generic_format _ _ y Hy) as (fy,(Hy1,Hy2)).
 destruct (canonical_generic_format beta (FLX_exp prec) (round beta (FLX_exp prec) rnd (x / y))) as (fr,(Hr1,Hr2)).
 apply generic_format_round...
 unfold Rminus; apply generic_format_plus_prec with fx (Fopp (Fmult fr fy)); trivial.
-intros e; apply Zle_refl.
+intros e; apply Z.le_refl.
 now rewrite F2R_opp, F2R_mult, <- Hr1, <- Hy1.
 (* *)
 destruct (relative_error_FLX_ex beta prec (prec_gt_0 prec) rnd (x / y)%R) as (eps,(Heps1,Heps2)).
@@ -112,7 +112,7 @@ apply Rlt_le_trans with (1 := proj2 Hex).
 apply bpow_le.
 unfold FLX_exp.
 ring_simplify.
-apply Zle_refl.
+apply Z.le_refl.
 (* *)
 replace (Fexp (Fopp (Fmult fr fy))) with (Fexp fr + Fexp fy)%Z.
 2: unfold Fopp, Fmult; destruct fr; destruct fy; now simpl.
@@ -143,7 +143,7 @@ left; now apply a.
 Qed.
 
 (** Remainder of the square in FLX (with p>1) and rounding to nearest *)
-Variable Hp1 : Zlt 1 prec.
+Variable Hp1 : Z.lt 1 prec.
 
 Theorem sqrt_error_FLX_N :
   forall x, format x ->
@@ -168,7 +168,7 @@ destruct (canonical_generic_format _ _ x Hx) as (fx,(Hx1,Hx2)).
 destruct (canonical_generic_format beta (FLX_exp prec) (round beta (FLX_exp prec) (Znearest choice) (sqrt x))) as (fr,(Hr1,Hr2)).
 apply generic_format_round...
 unfold Rminus; apply generic_format_plus_prec with fx (Fopp (Fmult fr fr)); trivial.
-intros e; apply Zle_refl.
+intros e; apply Z.le_refl.
 unfold Rsqr; now rewrite F2R_opp,F2R_mult, <- Hr1.
 (* *)
 apply Rle_lt_trans with x.

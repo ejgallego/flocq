@@ -36,7 +36,7 @@ Context { prec_gt_0_ : Prec_gt_0 }.
 
 Inductive FLX_format (x : R) : Prop :=
   FLX_spec (f : float beta) :
-    x = F2R f -> (Zabs (Fnum f) < Zpower beta prec)%Z -> FLX_format x.
+    x = F2R f -> (Z.abs (Fnum f) < Zpower beta prec)%Z -> FLX_format x.
 
 Definition FLX_exp (e : Z) := (e - prec)%Z.
 
@@ -127,14 +127,14 @@ apply FLX_format_generic.
 apply generic_format_FIX in Fx.
 revert Fx.
 apply generic_inclusion with (e := e)...
-apply Zle_refl.
+apply Z.le_refl.
 Qed.
 
 (** unbounded floating-point format with normal mantissas *)
 Inductive FLXN_format (x : R) : Prop :=
   FLXN_spec (f : float beta) :
     x = F2R f ->
-    (x <> 0%R -> Zpower beta (prec - 1) <= Zabs (Fnum f) < Zpower beta prec)%Z ->
+    (x <> 0%R -> Zpower beta (prec - 1) <= Z.abs (Fnum f) < Zpower beta prec)%Z ->
     FLXN_format x.
 
 Theorem generic_format_FLXN :

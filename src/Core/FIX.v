@@ -43,7 +43,7 @@ unfold FIX_exp.
 split ; intros H.
 now apply Zlt_le_weak.
 split.
-apply Zle_refl.
+apply Z.le_refl.
 now intros _ _.
 Qed.
 
@@ -76,7 +76,7 @@ Qed.
 Global Instance FIX_exp_monotone : Monotone_exp FIX_exp.
 Proof.
 intros ex ey H.
-apply Zle_refl.
+apply Z.le_refl.
 Qed.
 
 Theorem ulp_FIX :

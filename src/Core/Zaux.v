@@ -25,7 +25,7 @@ Section Zmissing.
 (** About Z *)
 Theorem Zopp_le_cancel :
   forall x y : Z,
-  (-y <= -x)%Z -> Zle x y.
+  (-y <= -x)%Z -> Z.le x y.
 Proof.
 intros x y Hxy.
 apply Zplus_le_reg_r with (-x - y)%Z.
@@ -37,7 +37,7 @@ Theorem Zgt_not_eq :
   (y < x)%Z -> (x <> y)%Z.
 Proof.
 intros x y H Hn.
-apply Zlt_irrefl with x.
+apply Z.lt_irrefl with x.
 now rewrite Hn at 1.
 Qed.
 
@@ -93,12 +93,12 @@ Theorem Zpower_plus :
   Zpower n (k1 + k2) = (Zpower n k1 * Zpower n k2)%Z.
 Proof.
 intros n k1 k2 H1 H2.
-now apply Zpower_exp ; apply Zle_ge.
+now apply Zpower_exp ; apply Z.le_ge.
 Qed.
 
 Theorem Zpower_Zpower_nat :
   forall b e, (0 <= e)%Z ->
-  Zpower b e = Zpower_nat b (Zabs_nat e).
+  Zpower b e = Zpower_nat b (Z.abs_nat e).
 Proof.
 intros b [|e|e] He.
 apply refl_equal.
@@ -161,7 +161,7 @@ Variable r : radix.
 
 Theorem radix_gt_0 : (0 < r)%Z.
 Proof.
-apply Zlt_le_trans with 2%Z.
+apply Z.lt_le_trans with 2%Z.
 easy.
 apply Zle_bool_imp_le.
 apply r.
@@ -170,7 +170,7 @@ Qed.
 Theorem radix_gt_1 : (1 < r)%Z.
 Proof.
 destruct r as (v, Hr). simpl.
-apply Zlt_le_trans with 2%Z.
+apply Z.lt_le_trans with 2%Z.
 easy.
 now apply Zle_bool_imp_le.
 Qed.
@@ -195,7 +195,7 @@ easy.
 rewrite Zpower_nat_S.
 apply Zmult_lt_0_compat with (2 := IHn).
 apply radix_gt_0.
-apply Zle_lt_trans with (1 * Zpower_nat r n)%Z.
+apply Z.le_lt_trans with (1 * Zpower_nat r n)%Z.
 rewrite Zmult_1_l.
 now apply (Zlt_le_succ 0).
 apply Zmult_lt_compat_r with (1 := H).
@@ -209,7 +209,7 @@ Theorem Zpower_gt_0 :
 Proof.
 intros p Hp.
 rewrite Zpower_Zpower_nat with (1 := Hp).
-induction (Zabs_nat p).
+induction (Z.abs_nat p).
 easy.
 rewrite Zpower_nat_S.
 apply Zmult_lt_0_compat with (2 := IHn).
@@ -258,7 +258,7 @@ rewrite <- (Zmult_1_r (r ^ e1)) at 1.
 apply Zmult_lt_compat2.
 split.
 now apply Zpower_gt_0.
-apply Zle_refl.
+apply Z.le_refl.
 split.
 easy.
 apply Zpower_gt_1.
@@ -296,8 +296,8 @@ induction (nat_of_P n).
 easy.
 rewrite inj_S.
 change (Zpower_nat r (S n0)) with (r * Zpower_nat r n0)%Z.
-unfold Zsucc.
-apply Zlt_le_trans with (r * (Z_of_nat n0 + 1))%Z.
+unfold Z.succ.
+apply Z.lt_le_trans with (r * (Z_of_nat n0 + 1))%Z.
 clear.
 apply Zlt_0_minus_lt.
 replace (r * (Z_of_nat n0 + 1) - (Z_of_nat n0 + 1))%Z with ((r - 1) * (Z_of_nat n0 + 1))%Z by ring.
@@ -309,7 +309,7 @@ apply (Zle_lt_succ 0).
 apply Zle_0_nat.
 apply Zmult_le_compat_l.
 now apply Zlt_le_succ.
-apply Zle_trans with 2%Z.
+apply Z.le_trans with 2%Z.
 easy.
 apply Zle_bool_imp_le.
 apply r.
@@ -332,7 +332,7 @@ rewrite Zopp_mult_distr_l.
 apply Z_mod_plus.
 easy.
 apply Zmult_gt_0_compat.
-now apply Zlt_gt.
+now apply Z.lt_gt.
 easy.
 now elim Hb.
 Qed.
@@ -363,7 +363,7 @@ Qed.
 
 Theorem Zdiv_mod_mult :
   forall n a b, (0 <= a)%Z -> (0 <= b)%Z ->
-  (Zdiv (Zmod n (a * b)) a) = Zmod (Zdiv n a) b.
+  (Z.div (Zmod n (a * b)) a) = Zmod (Z.div n a) b.
 Proof.
 intros n a b Ha Hb.
 destruct (Zle_lt_or_eq _ _ Ha) as [Ha'|Ha'].
@@ -373,12 +373,12 @@ rewrite (Zmult_comm a b) at 2.
 rewrite Zmult_assoc.
 unfold Zminus.
 rewrite Zopp_mult_distr_l.
-rewrite Z_div_plus by now apply Zlt_gt.
+rewrite Z_div_plus by now apply Z.lt_gt.
 rewrite <- Zdiv_Zdiv by easy.
 apply sym_eq.
 apply Zmod_eq.
-now apply Zlt_gt.
-now apply Zmult_gt_0_compat ; apply Zlt_gt.
+now apply Z.lt_gt.
+now apply Zmult_gt_0_compat ; apply Z.lt_gt.
 rewrite <- Hb'.
 rewrite Zmult_0_r, 2!Zmod_0_r.
 apply Zdiv_0_l.
@@ -391,7 +391,7 @@ Theorem ZOdiv_mod_mult :
   (Z.quot (Z.rem n (a * b)) a) = Z.rem (Z.quot n a) b.
 Proof.
 intros n a b.
-destruct (Z_eq_dec a 0) as [Za|Za].
+destruct (Z.eq_dec a 0) as [Za|Za].
 rewrite Za.
 now rewrite 2!Zquot_0_r, Zrem_0_l.
 assert (Z.rem n (a * b) = n + - (Z.quot (Z.quot n a) b * b) * a)%Z.
@@ -408,34 +408,34 @@ Qed.
 
 Theorem ZOdiv_small_abs :
   forall a b,
-  (Zabs a < b)%Z -> Z.quot a b = Z0.
+  (Z.abs a < b)%Z -> Z.quot a b = Z0.
 Proof.
 intros a b Ha.
 destruct (Zle_or_lt 0 a) as [H|H].
-apply Zquot_small.
+apply Z.quot_small.
 split.
 exact H.
-now rewrite Zabs_eq in Ha.
-apply Zopp_inj.
-rewrite <- Zquot_opp_l, Zopp_0.
-apply Zquot_small.
+now rewrite Z.abs_eq in Ha.
+apply Z.opp_inj.
+rewrite <- Zquot_opp_l, Z.opp_0.
+apply Z.quot_small.
 generalize (Zabs_non_eq a).
 omega.
 Qed.
 
 Theorem ZOmod_small_abs :
   forall a b,
-  (Zabs a < b)%Z -> Z.rem a b = a.
+  (Z.abs a < b)%Z -> Z.rem a b = a.
 Proof.
 intros a b Ha.
 destruct (Zle_or_lt 0 a) as [H|H].
-apply Zrem_small.
+apply Z.rem_small.
 split.
 exact H.
-now rewrite Zabs_eq in Ha.
-apply Zopp_inj.
+now rewrite Z.abs_eq in Ha.
+apply Z.opp_inj.
 rewrite <- Zrem_opp_l.
-apply Zrem_small.
+apply Z.rem_small.
 generalize (Zabs_non_eq a).
 omega.
 Qed.
@@ -445,7 +445,7 @@ Theorem ZOdiv_plus :
   (Z.quot (a + b) c = Z.quot a c + Z.quot b c + Z.quot (Z.rem a c + Z.rem b c) c)%Z.
 Proof.
 intros a b c Hab.
-destruct (Z_eq_dec c 0) as [Zc|Zc].
+destruct (Z.eq_dec c 0) as [Zc|Zc].
 now rewrite Zc, 4!Zquot_0_r.
 apply Zmult_reg_r with (1 := Zc).
 rewrite 2!Zmult_plus_distr_l.
@@ -584,8 +584,8 @@ Proof.
 intros x y Hxy.
 generalize (Zle_cases x y).
 case Zle_bool ; intros H.
-elim (Zlt_irrefl x).
-now apply Zle_lt_trans with y.
+elim (Z.lt_irrefl x).
+now apply Z.le_lt_trans with y.
 apply refl_equal.
 Qed.
 
@@ -624,8 +624,8 @@ Proof.
 intros x y Hxy.
 generalize (Zlt_cases x y).
 case Zlt_bool ; intros H.
-elim (Zlt_irrefl x).
-now apply Zlt_le_trans with y.
+elim (Z.lt_irrefl x).
+now apply Z.lt_le_trans with y.
 apply refl_equal.
 Qed.
 
@@ -659,32 +659,32 @@ Inductive Zcompare_prop (x y : Z) : comparison -> Prop :=
   | Zcompare_Gt_ : (y < x)%Z -> Zcompare_prop x y Gt.
 
 Theorem Zcompare_spec :
-  forall x y, Zcompare_prop x y (Zcompare x y).
+  forall x y, Zcompare_prop x y (Z.compare x y).
 Proof.
 intros x y.
 destruct (Z_dec x y) as [[H|H]|H].
 generalize (Zlt_compare _ _ H).
-case (Zcompare x y) ; try easy.
+case (Z.compare x y) ; try easy.
 now constructor.
 generalize (Zgt_compare _ _ H).
-case (Zcompare x y) ; try easy.
+case (Z.compare x y) ; try easy.
 constructor.
-now apply Zgt_lt.
+now apply Z.gt_lt.
 generalize (proj2 (Zcompare_Eq_iff_eq _ _) H).
-case (Zcompare x y) ; try easy.
+case (Z.compare x y) ; try easy.
 now constructor.
 Qed.
 
 Theorem Zcompare_Lt :
   forall x y,
-  (x < y)%Z -> Zcompare x y = Lt.
+  (x < y)%Z -> Z.compare x y = Lt.
 Proof.
 easy.
 Qed.
 
 Theorem Zcompare_Eq :
   forall x y,
-  (x = y)%Z -> Zcompare x y = Eq.
+  (x = y)%Z -> Z.compare x y = Eq.
 Proof.
 intros x y.
 apply <- Zcompare_Eq_iff_eq.
@@ -692,29 +692,29 @@ Qed.
 
 Theorem Zcompare_Gt :
   forall x y,
-  (y < x)%Z -> Zcompare x y = Gt.
+  (y < x)%Z -> Z.compare x y = Gt.
 Proof.
 intros x y.
-apply Zlt_gt.
+apply Z.lt_gt.
 Qed.
 
 End Zcompare.
 
 Section cond_Zopp.
 
-Definition cond_Zopp (b : bool) m := if b then Zopp m else m.
+Definition cond_Zopp (b : bool) m := if b then Z.opp m else m.
 
 Theorem cond_Zopp_negb :
-  forall x y, cond_Zopp (negb x) y = Zopp (cond_Zopp x y).
+  forall x y, cond_Zopp (negb x) y = Z.opp (cond_Zopp x y).
 Proof.
 intros [|] y.
-apply sym_eq, Zopp_involutive.
+apply sym_eq, Z.opp_involutive.
 easy.
 Qed.
 
 Theorem abs_cond_Zopp :
   forall b m,
-  Zabs (cond_Zopp b m) = Zabs m.
+  Z.abs (cond_Zopp b m) = Z.abs m.
 Proof.
 intros [|] m.
 apply Zabs_Zopp.
@@ -723,14 +723,14 @@ Qed.
 
 Theorem cond_Zopp_Zlt_bool :
   forall m,
-  cond_Zopp (Zlt_bool m 0) m = Zabs m.
+  cond_Zopp (Zlt_bool m 0) m = Z.abs m.
 Proof.
 intros m.
 apply sym_eq.
 case Zlt_bool_spec ; intros Hm.
 apply Zabs_non_eq.
 now apply Zlt_le_weak.
-now apply Zabs_eq.
+now apply Z.abs_eq.
 Qed.
 
 End cond_Zopp.
@@ -768,11 +768,11 @@ Section faster_div.
 
 Lemma Zdiv_eucl_unique :
   forall a b,
-  Zdiv_eucl a b = (Zdiv a b, Zmod a b).
+  Z.div_eucl a b = (Z.div a b, Zmod a b).
 Proof.
 intros a b.
-unfold Zdiv, Zmod.
-now case Zdiv_eucl.
+unfold Z.div, Zmod.
+now case Z.div_eucl.
 Qed.
 
 Fixpoint Zpos_div_eucl_aux1 (a b : positive) {struct b} :=
@@ -795,7 +795,7 @@ intros a b.
 revert a.
 induction b ; intros a.
 - easy.
-- change (Z.pos_div_eucl a (Zpos b~0)) with (Zdiv_eucl (Zpos a) (Zpos b~0)).
+- change (Z.pos_div_eucl a (Zpos b~0)) with (Z.div_eucl (Zpos a) (Zpos b~0)).
   rewrite Zdiv_eucl_unique.
   change (Zpos b~0) with (2 * Zpos b)%Z.
   rewrite Z.rem_mul_r by easy.
@@ -803,7 +803,7 @@ induction b ; intros a.
   destruct a as [a|a|].
   + change (Zpos_div_eucl_aux1 a~1 b~0) with (let (q, r) := Zpos_div_eucl_aux1 a b in (q, 2 * r + 1)%Z).
     rewrite IHb. clear IHb.
-    change (Z.pos_div_eucl a (Zpos b)) with (Zdiv_eucl (Zpos a) (Zpos b)).
+    change (Z.pos_div_eucl a (Zpos b)) with (Z.div_eucl (Zpos a) (Zpos b)).
     rewrite Zdiv_eucl_unique.
     change (Zpos a~1) with (1 + 2 * Zpos a)%Z.
     rewrite (Zmult_comm 2 (Zpos a)).
@@ -813,7 +813,7 @@ induction b ; intros a.
     apply Zplus_comm.
   + change (Zpos_div_eucl_aux1 a~0 b~0) with (let (q, r) := Zpos_div_eucl_aux1 a b in (q, 2 * r)%Z).
     rewrite IHb. clear IHb.
-    change (Z.pos_div_eucl a (Zpos b)) with (Zdiv_eucl (Zpos a) (Zpos b)).
+    change (Z.pos_div_eucl a (Zpos b)) with (Z.div_eucl (Zpos a) (Zpos b)).
     rewrite Zdiv_eucl_unique.
     change (Zpos a~0) with (2 * Zpos a)%Z.
     rewrite (Zmult_comm 2 (Zpos a)).
@@ -821,7 +821,7 @@ induction b ; intros a.
     apply f_equal.
     now rewrite Z_mod_mult.
   + easy.
-- change (Z.pos_div_eucl a 1) with (Zdiv_eucl (Zpos a) 1).
+- change (Z.pos_div_eucl a 1) with (Z.div_eucl (Zpos a) 1).
   rewrite Zdiv_eucl_unique.
   now rewrite Zdiv_1_r, Zmod_1_r.
 Qed.
@@ -839,13 +839,13 @@ Lemma Zpos_div_eucl_aux_correct :
 Proof.
 intros a b.
 unfold Zpos_div_eucl_aux.
-change (Z.pos_div_eucl a (Zpos b)) with (Zdiv_eucl (Zpos a) (Zpos b)).
+change (Z.pos_div_eucl a (Zpos b)) with (Z.div_eucl (Zpos a) (Zpos b)).
 rewrite Zdiv_eucl_unique.
 case Pos.compare_spec ; intros H.
 now rewrite H, Z_div_same, Z_mod_same.
 now rewrite Zdiv_small, Zmod_small by (split ; easy).
 rewrite Zpos_div_eucl_aux1_correct.
-change (Z.pos_div_eucl a (Zpos b)) with (Zdiv_eucl (Zpos a) (Zpos b)).
+change (Z.pos_div_eucl a (Zpos b)) with (Z.div_eucl (Zpos a) (Zpos b)).
 apply Zdiv_eucl_unique.
 Qed.
 
@@ -880,7 +880,7 @@ Definition Zfast_div_eucl (a b : Z) :=
 
 Theorem Zfast_div_eucl_correct :
   forall a b : Z,
-  Zfast_div_eucl a b = Zdiv_eucl a b.
+  Zfast_div_eucl a b = Z.div_eucl a b.
 Proof.
 unfold Zfast_div_eucl.
 intros [|a|a] [|b|b] ; try rewrite Zpos_div_eucl_aux_correct ; easy.

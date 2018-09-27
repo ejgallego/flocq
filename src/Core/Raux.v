@@ -485,7 +485,7 @@ now apply Rcompare_Gt.
 Qed.
 
 Theorem Rcompare_IZR :
-  forall x y, Rcompare (IZR x) (IZR y) = Zcompare x y.
+  forall x y, Rcompare (IZR x) (IZR y) = Z.compare x y.
 Proof.
 intros x y.
 case Rcompare_spec ; intros H ; apply sym_eq.
@@ -823,7 +823,7 @@ intros n x Hnx.
 apply Zlt_succ_le.
 apply lt_IZR.
 apply Rle_lt_trans with (1 := Hnx).
-unfold Zsucc.
+unfold Z.succ.
 rewrite plus_IZR.
 apply Zfloor_ub.
 Qed.
@@ -886,7 +886,7 @@ Proof.
 intros n x Hnx.
 unfold Zceil.
 apply Zopp_le_cancel.
-rewrite Zopp_involutive.
+rewrite Z.opp_involutive.
 apply Zfloor_lub.
 rewrite opp_IZR.
 now apply Ropp_le_contravar.
@@ -899,13 +899,13 @@ Theorem Zceil_imp :
 Proof.
 intros n x Hnx.
 unfold Zceil.
-rewrite <- (Zopp_involutive n).
+rewrite <- (Z.opp_involutive n).
 apply f_equal.
 apply Zfloor_imp.
 split.
 rewrite opp_IZR.
 now apply Ropp_le_contravar.
-rewrite <- (Zopp_involutive 1).
+rewrite <- (Z.opp_involutive 1).
 rewrite <- Zopp_plus_distr.
 rewrite opp_IZR.
 now apply Ropp_lt_contravar.
@@ -918,7 +918,7 @@ Proof.
 intros n.
 unfold Zceil.
 rewrite <- opp_IZR, Zfloor_IZR.
-apply Zopp_involutive.
+apply Z.opp_involutive.
 Qed.
 
 Theorem Zceil_le :
@@ -1001,7 +1001,7 @@ case Rlt_bool_spec ; intro Hx.
 unfold Ztrunc.
 case Rlt_bool_spec ; intro Hy.
 now apply Zceil_le.
-apply Zle_trans with 0%Z.
+apply Z.le_trans with 0%Z.
 apply Zceil_glb.
 now apply Rlt_le.
 now apply Zfloor_lub.
@@ -1012,14 +1012,14 @@ Qed.
 
 Theorem Ztrunc_opp :
   forall x,
-  Ztrunc (- x) = Zopp (Ztrunc x).
+  Ztrunc (- x) = Z.opp (Ztrunc x).
 Proof.
 intros x.
 unfold Ztrunc at 2.
 case Rlt_bool_spec ; intros Hx.
 rewrite Ztrunc_floor.
 apply sym_eq.
-apply Zopp_involutive.
+apply Z.opp_involutive.
 rewrite <- Ropp_0.
 apply Ropp_le_contravar.
 now apply Rlt_le.
@@ -1032,7 +1032,7 @@ Qed.
 
 Theorem Ztrunc_abs :
   forall x,
-  Ztrunc (Rabs x) = Zabs (Ztrunc x).
+  Ztrunc (Rabs x) = Z.abs (Ztrunc x).
 Proof.
 intros x.
 rewrite Ztrunc_floor. 2: apply Rabs_pos.
@@ -1041,19 +1041,19 @@ case Rlt_bool_spec ; intro H.
 rewrite Rabs_left with (1 := H).
 rewrite Zabs_non_eq.
 apply sym_eq.
-apply Zopp_involutive.
+apply Z.opp_involutive.
 apply Zceil_glb.
 now apply Rlt_le.
 rewrite Rabs_pos_eq with (1 := H).
 apply sym_eq.
-apply Zabs_eq.
+apply Z.abs_eq.
 now apply Zfloor_lub.
 Qed.
 
 Theorem Ztrunc_lub :
   forall n x,
   (IZR n <= Rabs x)%R ->
-  (n <= Zabs (Ztrunc x))%Z.
+  (n <= Z.abs (Ztrunc x))%Z.
 Proof.
 intros n x H.
 rewrite <- Ztrunc_abs.
@@ -1125,7 +1125,7 @@ Qed.
 
 Theorem Zaway_opp :
   forall x,
-  Zaway (- x) = Zopp (Zaway x).
+  Zaway (- x) = Z.opp (Zaway x).
 Proof.
 intros x.
 unfold Zaway at 2.
@@ -1137,14 +1137,14 @@ apply Rlt_le.
 now apply Ropp_0_gt_lt_contravar.
 rewrite Zaway_floor.
 apply sym_eq.
-apply Zopp_involutive.
+apply Z.opp_involutive.
 rewrite <- Ropp_0.
 now apply Ropp_le_contravar.
 Qed.
 
 Theorem Zaway_abs :
   forall x,
-  Zaway (Rabs x) = Zabs (Zaway x).
+  Zaway (Rabs x) = Z.abs (Zaway x).
 Proof.
 intros x.
 rewrite Zaway_ceil. 2: apply Rabs_pos.
@@ -1160,7 +1160,7 @@ apply Rle_lt_trans with (2 := H).
 apply Zfloor_lb.
 rewrite Rabs_pos_eq with (1 := H).
 apply sym_eq.
-apply Zabs_eq.
+apply Z.abs_eq.
 apply le_IZR.
 apply Rle_trans with (1 := H).
 apply Zceil_ub.
@@ -1257,7 +1257,7 @@ split.
 apply Rmult_le_pos.
 apply IZR_le.
 refine (proj1 (Z_mod_lt _ _ _)).
-now apply Zlt_gt.
+now apply Z.lt_gt.
 apply Rlt_le.
 apply Rinv_0_lt_compat.
 now apply IZR_lt.
@@ -1266,7 +1266,7 @@ now apply IZR_lt.
 rewrite Rmult_1_l, Rmult_assoc, Rinv_l, Rmult_1_r.
 apply IZR_lt.
 eapply Z_mod_lt.
-now apply Zlt_gt.
+now apply Z.lt_gt.
 apply Rgt_not_eq.
 now apply IZR_lt.
 (* . *)
@@ -1298,7 +1298,7 @@ Theorem radix_pos : (0 < IZR r)%R.
 Proof.
 destruct r as (v, Hr). simpl.
 apply IZR_lt.
-apply Zlt_le_trans with 2%Z.
+apply Z.lt_le_trans with 2%Z.
 easy.
 now apply Zle_bool_imp_le.
 Qed.
@@ -1438,7 +1438,7 @@ Theorem lt_bpow :
   (bpow e1 < bpow e2)%R -> (e1 < e2)%Z.
 Proof.
 intros e1 e2 H.
-apply Zgt_lt.
+apply Z.gt_lt.
 apply Znot_le_gt.
 intros H'.
 apply Rlt_not_le with (1 := H).
@@ -1457,7 +1457,7 @@ intros e1 e2 H.
 apply Rnot_lt_le.
 intros H'.
 apply Zle_not_gt with (1 := H).
-apply Zlt_gt.
+apply Z.lt_gt.
 now apply lt_bpow.
 Qed.
 
@@ -1470,7 +1470,7 @@ apply Znot_gt_le.
 intros H'.
 apply Rle_not_lt with (1 := H).
 apply bpow_lt.
-now apply Zgt_lt.
+now apply Z.gt_lt.
 Qed.
 
 Theorem bpow_inj :
@@ -1819,7 +1819,7 @@ Qed.
 Theorem mag_le_Zpower :
   forall m e,
   m <> Z0 ->
-  (Zabs m < Zpower r e)%Z->
+  (Z.abs m < Zpower r e)%Z->
   (mag (IZR m) <= e)%Z.
 Proof.
 intros m e Zm Hm.
@@ -1829,7 +1829,7 @@ destruct (Zle_or_lt 0 e).
 rewrite <- abs_IZR, <- IZR_Zpower with (1 := H).
 now apply IZR_lt.
 elim Zm.
-cut (Zabs m < 0)%Z.
+cut (Z.abs m < 0)%Z.
 now case m.
 clear -Hm H.
 now destruct e.
@@ -1838,7 +1838,7 @@ Qed.
 Theorem mag_gt_Zpower :
   forall m e,
   m <> Z0 ->
-  (Zpower r e <= Zabs m)%Z ->
+  (Zpower r e <= Z.abs m)%Z ->
   (e < mag (IZR m))%Z.
 Proof.
 intros m e Zm Hm.
@@ -2032,7 +2032,7 @@ Qed.
 Lemma mag_sqrt :
   forall x,
   (0 < x)%R ->
-  mag (sqrt x) = Zdiv2 (mag x + 1) :> Z.
+  mag (sqrt x) = Z.div2 (mag x + 1) :> Z.
 Proof.
 intros x Px.
 apply mag_unique.
@@ -2214,7 +2214,7 @@ destruct (Rle_lt_dec l 0) as [Hl|Hl].
   apply ub.
   now apply HE.
 left.
-set (N := Zabs_nat (up (/l) - 2)).
+set (N := Z.abs_nat (up (/l) - 2)).
 exists N.
 assert (HN: (INR N + 1 = IZR (up (/ l)) - 1)%R).
   unfold N.
@@ -2222,7 +2222,7 @@ assert (HN: (INR N + 1 = IZR (up (/ l)) - 1)%R).
   rewrite inj_Zabs_nat.
   replace (IZR (up (/ l)) - 1)%R with (IZR (up (/ l) - 2) + 1)%R.
   apply (f_equal (fun v => IZR v + 1)%R).
-  apply Zabs_eq.
+  apply Z.abs_eq.
   apply Zle_minus_le_0.
   apply (Zlt_le_succ 1).
   apply lt_IZR.
@@ -2307,10 +2307,10 @@ intros n; apply H.
 destruct K as (n, Hn).
 left; now exists (-Z.of_nat n)%Z.
 right; intros n; case (Zle_or_lt 0 n); intros M.
-rewrite <- (Zabs_eq n); trivial.
+rewrite <- (Z.abs_eq n); trivial.
 rewrite <- Zabs2Nat.id_abs.
 apply J.
-rewrite <- (Zopp_involutive n).
+rewrite <- (Z.opp_involutive n).
 rewrite <- (Z.abs_neq n).
 rewrite <- Zabs2Nat.id_abs.
 apply K.

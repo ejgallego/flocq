@@ -986,8 +986,8 @@ assert (UB : y * bpow (- fexp (mag x)) < / IZR (beta ^ k)).
       * omega.
       * simpl; unfold Raux.bpow, Z.pow_pos.
         now apply Rle_refl.
-      * casetype False; apply (Zlt_irrefl 0).
-        apply (Zlt_trans _ _ _ Hk).
+      * casetype False; apply (Z.lt_irrefl 0).
+        apply (Z.lt_trans _ _ _ Hk).
         apply Zlt_neg_0. }
 rewrite (Zfloor_imp mx).
 { split; ring_simplify.
@@ -1204,16 +1204,16 @@ destruct (Z.lt_ge_cases (mag x - 2) (mag y)) as [Hlt|Hge].
   + (* mag y = mag x *)
     apply (round_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
     * apply Hexp4.
-      apply Zle_trans with (mag (x - y)); [omega|].
+      apply Z.le_trans with (mag (x - y)); [omega|].
       now apply mag_minus.
     * rewrite Heq.
       apply Hexp4.
-      apply Zle_trans with (mag (x - y)); [omega|].
+      apply Z.le_trans with (mag (x - y)); [omega|].
       now apply mag_minus.
   + (* mag y = mag x - 1 *)
     apply (round_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
     * apply Hexp4.
-      apply Zle_trans with (mag (x - y)); [omega|].
+      apply Z.le_trans with (mag (x - y)); [omega|].
       now apply mag_minus.
     * rewrite Heqm1.
       apply Hexp4.
@@ -1231,7 +1231,7 @@ destruct (Z.lt_ge_cases (mag x - 2) (mag y)) as [Hlt|Hge].
     rewrite Lxmy.
     * apply Hexp1.
       replace (_ + _)%Z with (mag x : Z); [|ring].
-      now apply Zle_trans with (mag y).
+      now apply Z.le_trans with (mag y).
     * apply Hexp1.
       now replace (_ + _)%Z with (mag x : Z); [|ring].
 Qed.
@@ -1260,7 +1260,7 @@ assert (Hfx : (fexp1 (mag x) < mag x)%Z);
 assert (Hfy : (fexp1 (mag y) < mag y)%Z);
   [now apply mag_generic_gt; [|apply Rgt_not_eq|]|].
 apply (round_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
-- apply Zle_trans with (fexp1 (mag (x - y))).
+- apply Z.le_trans with (fexp1 (mag (x - y))).
   + apply Hexp4; omega.
   + omega.
 - now apply Hexp3.
@@ -2014,16 +2014,16 @@ destruct (Z.lt_ge_cases (mag x - 2) (mag y)) as [Hlt|Hge].
   + (* mag y = mag x *)
     apply (round_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
     * apply Hexp4.
-      apply Zle_trans with (mag (x - y)); [omega|].
+      apply Z.le_trans with (mag (x - y)); [omega|].
       now apply mag_minus.
     * rewrite Heq.
       apply Hexp4.
-      apply Zle_trans with (mag (x - y)); [omega|].
+      apply Z.le_trans with (mag (x - y)); [omega|].
       now apply mag_minus.
   + (* mag y = mag x - 1 *)
     apply (round_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
     * apply Hexp4.
-      apply Zle_trans with (mag (x - y)); [omega|].
+      apply Z.le_trans with (mag (x - y)); [omega|].
       now apply mag_minus.
     * rewrite Heqm1.
       apply Hexp4.
@@ -2041,7 +2041,7 @@ destruct (Z.lt_ge_cases (mag x - 2) (mag y)) as [Hlt|Hge].
     rewrite Lxmy.
     * apply Hexp1.
       replace (_ + _)%Z with (mag x : Z); [|ring].
-      now apply Zle_trans with (mag y).
+      now apply Z.le_trans with (mag y).
     * apply Hexp1.
       now replace (_ + _)%Z with (mag x : Z); [|ring].
 Qed.
@@ -2070,7 +2070,7 @@ assert (Hfx : (fexp1 (mag x) < mag x)%Z);
 assert (Hfy : (fexp1 (mag y) < mag y)%Z);
   [now apply mag_generic_gt; [|apply Rgt_not_eq|]|].
 apply (round_round_minus_aux0_aux fexp1); [| |exact Fx|exact Fy].
-- apply Zle_trans with (fexp1 (mag (x - y))).
+- apply Z.le_trans with (fexp1 (mag (x - y))).
   + apply Hexp4; omega.
   + omega.
 - now apply Hexp3.
@@ -3538,7 +3538,7 @@ assert (Hf : F2R f = x).
       simpl; lra. }
 apply (generic_format_F2R' _ _ x f Hf).
 intros _.
-apply Zle_refl.
+apply Z.le_refl.
 Qed.
 
 Lemma round_round_really_zero :
@@ -3600,7 +3600,7 @@ destruct (Zle_or_lt (fexp2 (mag x)) (mag x)).
       rewrite mult_IZR; apply Rmult_lt_0_compat;
       apply IZR_lt; omega.
     * apply IZR_lt.
-      apply (Zle_lt_trans _ _ _ Hbeta).
+      apply (Z.le_lt_trans _ _ _ Hbeta).
       rewrite <- (Zmult_1_r beta) at 1.
       apply Zmult_lt_compat_l; omega.
 - (* mag x < fexp2 (mag x) *)
@@ -3876,7 +3876,7 @@ destruct (Zle_or_lt Z0 (fexp1 (mag x) - mag (x / y)
       apply (Zplus_le_reg_r _ _ (- mag y)); ring_simplify.
       rewrite (Zplus_comm (- _)); fold (Zminus (mag (x / y)) (mag y)).
       destruct (mag_div_disj x y Px Py) as [Hxy|Hxy]; rewrite Hxy;
-      apply Hexp; try assumption; rewrite <- Hxy; rewrite Hf1; apply Zle_refl.
+      apply Hexp; try assumption; rewrite <- Hxy; rewrite Hf1; apply Z.le_refl.
 Qed.
 
 Lemma round_round_div_aux1 :

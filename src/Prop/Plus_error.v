@@ -174,7 +174,7 @@ intros _.
 rewrite <- H.
 unfold cexp.
 rewrite mag_unique with (1 := Hexy).
-apply Zle_refl.
+apply Z.le_refl.
 (* . *)
 intros H.
 elim Rle_not_lt with (1 := round_le beta _ rnd _ _ (proj1 Hexy)).
@@ -328,7 +328,7 @@ unfold F2R; simpl.
 (* *)
 destruct (ex_shift (round beta fexp rnd (x + y)) (cexp (x/IZR beta))) as (n,Hn).
 apply generic_format_round...
-apply Zle_trans with (cexp (x+y)).
+apply Z.le_trans with (cexp (x+y)).
 apply monotone_exp.
 rewrite <- mag_minus1 by easy.
 rewrite <- (mag_abs beta (x+y)).
@@ -374,7 +374,7 @@ rewrite <- mag_minus1 in H1; try assumption.
 rewrite 2!mag_abs; omega.
 (* . *)
 destruct U as [U|U].
-rewrite U; apply Zle_trans with (mag beta x).
+rewrite U; apply Z.le_trans with (mag beta x).
 omega.
 rewrite <- mag_abs.
 apply mag_le.
@@ -483,7 +483,7 @@ rewrite ulp_neq_0.
 unfold cexp.
 rewrite <- mag_minus1; try assumption.
 unfold FLT_exp; apply bpow_le.
-apply Zle_trans with (2:=Z.le_max_l _ _).
+apply Z.le_trans with (2:=Z.le_max_l _ _).
 destruct (mag beta x) as (n,Hn); simpl.
 assert (e + prec < n)%Z; try omega.
 apply lt_bpow with beta.

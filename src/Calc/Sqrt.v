@@ -51,7 +51,7 @@ Complexity is fine as long as p1 <= 2p-1.
 Lemma mag_sqrt_F2R :
   forall m1 e1,
   (0 < m1)%Z ->
-  mag beta (sqrt (F2R (Float beta m1 e1))) = Zdiv2 (Zdigits beta m1 + e1 + 1) :> Z.
+  mag beta (sqrt (F2R (Float beta m1 e1))) = Z.div2 (Zdigits beta m1 + e1 + 1) :> Z.
 Proof.
 intros m1 e1 Hm1.
 rewrite <- (mag_F2R_Zdigits beta m1 e1) by now apply Zgt_not_eq.
@@ -170,7 +170,7 @@ Qed.
 Definition Fsqrt (x : float beta) :=
   let (m1, e1) := x in
   let e' := (Zdigits beta m1 + e1 + 1)%Z in
-  let e := Zmin (fexp (Z.div2 e')) (Z.div2 e1) in
+  let e := Z.min (fexp (Z.div2 e')) (Z.div2 e1) in
   let '(m, l) := Fsqrt_core m1 e1 e in
   (m, e, l).
 
@@ -184,18 +184,18 @@ Proof.
 intros [m1 e1] Hm1.
 apply gt_0_F2R in Hm1.
 unfold Fsqrt.
-set (e := Zmin _ _).
+set (e := Z.min _ _).
 assert (2 * e <= e1)%Z as He.
-{ assert (e <= Zdiv2 e1)%Z by apply Zle_min_r.
+{ assert (e <= Z.div2 e1)%Z by apply Z.le_min_r.
   rewrite (Zdiv2_odd_eqn e1).
   destruct Z.odd ; omega. }
 generalize (Fsqrt_core_correct m1 e1 e Hm1 He).
 destruct Fsqrt_core as [m l].
 apply conj.
-apply Zle_trans with (1 := Zle_min_l _ _).
+apply Z.le_trans with (1 := Z.le_min_l _ _).
 unfold cexp.
 rewrite (mag_sqrt_F2R m1 e1 Hm1).
-apply Zle_refl.
+apply Z.le_refl.
 Qed.
 
 End Fcalc_sqrt.

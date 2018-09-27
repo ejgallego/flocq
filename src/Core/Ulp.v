@@ -244,7 +244,7 @@ apply generic_format_bpow.
 case (Zle_or_lt (e+1) (fexp (e+1))); intros H4.
 absurd (e+1 <= e)%Z.
 omega.
-apply Zle_trans with (1:=H4).
+apply Z.le_trans with (1:=H4).
 replace (fexp (e+1)) with (fexp n).
 now apply le_bpow with beta.
 now apply fexp_negligible_exp_eq.
@@ -297,11 +297,11 @@ rewrite ulp_neq_0; trivial.
 apply bpow_le; unfold cexp.
 generalize (mag beta x); intros l.
 case (Zle_or_lt l (fexp l)); intros Hl.
-rewrite (fexp_negligible_exp_eq n l); trivial; apply Zle_refl.
+rewrite (fexp_negligible_exp_eq n l); trivial; apply Z.le_refl.
 case (Zle_or_lt (fexp n) (fexp l)); trivial; intros K.
 absurd (fexp n <= fexp l)%Z.
 omega.
-apply Zle_trans with (2:= H _).
+apply Z.le_trans with (2:= H _).
 apply Zeq_le, sym_eq, valid_exp; trivial.
 omega.
 Qed.

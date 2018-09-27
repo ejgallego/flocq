@@ -166,7 +166,7 @@ now apply Z.abs_neq.
 Qed.
 
 Lemma make_bound_p:
-        Zpos (vNum (make_bound))=(Zpower_nat beta (Zabs_nat p)).
+        Zpos (vNum (make_bound))=(Zpower_nat beta (Z.abs_nat p)).
 Proof.
 unfold make_bound, vNum; simpl.
 rewrite Z2Pos.id.
@@ -213,7 +213,7 @@ Variable beta: radix.
 Variable b : Fbound.
 Variable p : Z.
 
-Hypothesis pGivesBound : Zpos (vNum b) = Zpower_nat beta (Zabs_nat p).
+Hypothesis pGivesBound : Zpos (vNum b) = Zpower_nat beta (Z.abs_nat p).
 Hypothesis precisionNotZero : (1 < p)%Z.
 
 
@@ -227,7 +227,7 @@ unfold F2R, FtoR; simpl.
 rewrite bpow_powerRZ.
 reflexivity.
 destruct Hf.
-apply Zlt_le_trans with (1:=H).
+apply Z.lt_le_trans with (1:=H).
 rewrite pGivesBound.
 rewrite Zpower_Zpower_nat; auto with zarith.
 now destruct Hf.
@@ -249,7 +249,7 @@ apply Rmult_lt_reg_r with (bpow beta ex).
 apply bpow_gt_0.
 rewrite <- bpow_plus.
 rewrite inj_abs; try omega.
-change (F2R (Float beta (Zabs mx) ex) < bpow beta (p + ex))%R.
+change (F2R (Float beta (Z.abs mx) ex) < bpow beta (p + ex))%R.
 rewrite F2R_Zabs.
 rewrite <- Hx.
 destruct (Req_dec x 0) as [Hx0|Hx0].
@@ -263,8 +263,8 @@ apply Rlt_le_trans with (1 := proj2 He).
 apply bpow_le.
 cut (ex' - p <= ex)%Z. omega.
 unfold ex, FLT_exp.
-apply Zle_max_l.
-apply Zle_max_r.
+apply Z.le_max_l.
+apply Z.le_max_r.
 Qed.
 
 
@@ -286,7 +286,7 @@ Lemma format_is_pff_format_can: forall r,
 Proof.
 intros r Hr.
 destruct (format_is_pff_format r Hr) as (f,(Hf1,Hf2)).
-exists (Fnormalize beta b (Zabs_nat p) f); split.
+exists (Fnormalize beta b (Z.abs_nat p) f); split.
 rewrite <- Hf1; apply FnormalizeCorrect.
 apply radix_gt_1.
 apply FnormalizeCanonic; try assumption.
@@ -349,13 +349,13 @@ apply Rmult_le_reg_l with (IZR beta).
 apply IZR_lt.
 apply radix_gt_0.
 rewrite <- bpow_plus_1.
-replace (p-1+1)%Z with (Z_of_nat (Zabs_nat p)).
+replace (p-1+1)%Z with (Z_of_nat (Z.abs_nat p)).
 rewrite <- IZR_Zpower_nat.
 simpl; rewrite <- pGivesBound.
 rewrite Rabs_Zabs.
 rewrite <- mult_IZR.
 apply IZR_le.
-rewrite <- (Zabs_eq (beta)).
+rewrite <- (Z.abs_eq (beta)).
 rewrite <- Zabs.Zabs_Zmult.
 assumption.
 apply Zlt_le_weak; apply radix_gt_0.
@@ -379,7 +379,7 @@ assert ((e-1) < p-dExp b)%Z;[idtac|omega].
 apply lt_bpow with beta.
 apply Rle_lt_trans with (Rabs (FtoR beta f)).
 apply He; auto.
-apply Rlt_le_trans with (FtoR beta (firstNormalPos beta b (Zabs_nat p))).
+apply Rlt_le_trans with (FtoR beta (firstNormalPos beta b (Z.abs_nat p))).
 rewrite <- Fabs_correct.
 2: apply radix_gt_0.
 apply FsubnormalLtFirstNormalPos with (3 := pGivesBound).
@@ -393,12 +393,12 @@ apply Rabs_pos.
 apply radix_gt_0.
 unfold firstNormalPos, FtoR, nNormMin.
 simpl.
-replace (IZR (Zpower_nat beta (Peano.pred (Zabs_nat p)))) with (bpow beta (p-1)).
+replace (IZR (Zpower_nat beta (Peano.pred (Z.abs_nat p)))) with (bpow beta (p-1)).
 rewrite <- (bpow_powerRZ _).
 rewrite <- bpow_plus.
 apply bpow_le.
 omega.
-replace (p-1)%Z with (Z_of_nat (Peano.pred (Zabs_nat p))).
+replace (p-1)%Z with (Z_of_nat (Peano.pred (Z.abs_nat p))).
 rewrite <- IZR_Zpower_nat.
 reflexivity.
 rewrite inj_pred; lia.
@@ -406,7 +406,7 @@ Qed.
 
 
 Lemma pff_round_NE_is_round: forall (r:R),
-   (FtoR beta (RND_EvenClosest b beta (Zabs_nat p) r)
+   (FtoR beta (RND_EvenClosest b beta (Z.abs_nat p) r)
      =  round beta (FLT_exp (-dExp b) p) rndNE r).
 Proof.
 intros.
@@ -422,7 +422,7 @@ destruct H as ((H1,H2),H3).
 destruct (format_is_pff_format _ H1) as (f,(Hf1,Hf2)).
 rewrite <- Hf1.
 apply sym_eq.
-eapply (EvenClosestUniqueP b beta (Zabs_nat p)).
+eapply (EvenClosestUniqueP b beta (Z.abs_nat p)).
 apply radix_gt_1.
 lia.
 exact pGivesBound.
@@ -433,13 +433,13 @@ rewrite Hf1.
 apply H2.
 apply pff_format_is_format; auto.
 (* *)
-case (Req_dec (FtoR beta (Fnormalize beta b (Zabs_nat p) f))  0%R); intros L.
+case (Req_dec (FtoR beta (Fnormalize beta b (Z.abs_nat p) f))  0%R); intros L.
 left.
 unfold FNeven, Feven, Even.
 exists 0%Z.
 rewrite Zmult_0_r.
 apply eq_IZR.
-apply Rmult_eq_reg_l with (powerRZ beta (Pff.Fexp (Fnormalize beta b (Zabs_nat p) f)))%R.
+apply Rmult_eq_reg_l with (powerRZ beta (Pff.Fexp (Fnormalize beta b (Z.abs_nat p) f)))%R.
 rewrite Rmult_0_r.
 rewrite <- L; unfold FtoR; simpl; ring.
 apply powerRZ_NOR; auto with zarith real.
@@ -451,8 +451,8 @@ destruct H as (g,(Hg1,(Hg2,Hg3))).
 left.
 unfold FNeven, Feven.
 apply equiv_RNDs_aux.
-replace (Pff.Fnum (Fnormalize beta b (Zabs_nat p) f)) with (Fnum g); try assumption.
-replace g with (Float beta (Pff.Fnum (Fnormalize beta b (Zabs_nat p) f)) (Pff.Fexp (Fnormalize beta b (Zabs_nat p) f))).
+replace (Pff.Fnum (Fnormalize beta b (Z.abs_nat p) f)) with (Fnum g); try assumption.
+replace g with (Float beta (Pff.Fnum (Fnormalize beta b (Z.abs_nat p) f)) (Pff.Fexp (Fnormalize beta b (Z.abs_nat p) f))).
 easy.
 apply canonical_unique with (FLT_exp (- dExp b) p).
 2: assumption.
@@ -462,7 +462,7 @@ apply radix_gt_1.
 lia.
 exact L.
 rewrite <- Hg1, <- Hf1.
-rewrite <- FnormalizeCorrect with beta b (Zabs_nat p) f; auto with zarith.
+rewrite <- FnormalizeCorrect with beta b (Z.abs_nat p) f; auto with zarith.
 unfold F2R, FtoR; simpl.
 rewrite bpow_powerRZ.
 reflexivity.
@@ -484,11 +484,11 @@ Qed.
 
 
 Lemma round_NE_is_pff_round: forall (r:R),
-   exists f:Pff.float, (Fcanonic beta b f /\ (EvenClosest b beta (Zabs_nat p) r f) /\
+   exists f:Pff.float, (Fcanonic beta b f /\ (EvenClosest b beta (Z.abs_nat p) r f) /\
     FtoR beta f =  round beta (FLT_exp (-dExp b) p) rndNE r).
 Proof.
 intros r.
-exists (RND_EvenClosest b beta (Zabs_nat p) r).
+exists (RND_EvenClosest b beta (Z.abs_nat p) r).
 split.
 apply RND_EvenClosest_canonic with (3 := pGivesBound).
 apply radix_gt_1.
@@ -561,7 +561,7 @@ Qed.
 
 
 Lemma pff_round_N_is_round: forall choice, forall (r:R),
-   (FtoR beta (RND_Closest b beta (Zabs_nat p) choice r)
+   (FtoR beta (RND_Closest b beta (Z.abs_nat p) choice r)
      =  round beta (FLT_exp (-dExp b) p) (Znearest choice) r).
 Proof with auto with typeclass_instances.
 generalize (radix_gt_1 beta); intros M.
@@ -619,7 +619,7 @@ intros choice r.
 assert (1 < Z.abs_nat p).
 apply Nat2Z.inj_lt; simpl.
 rewrite inj_abs; omega.
-exists (RND_Closest b beta (Zabs_nat p) choice r); split.
+exists (RND_Closest b beta (Z.abs_nat p) choice r); split.
 apply RND_Closest_canonic; easy.
 split.
 apply RND_Closest_correct; easy.
@@ -712,7 +712,7 @@ apply powerRZ_lt.
 apply IZR_lt, radix_gt_0.
 destruct Ff as (T1,T2).
 rewrite bpow_powerRZ.
-replace p with (Z.of_nat (Zabs_nat p)).
+replace p with (Z.of_nat (Z.abs_nat p)).
 rewrite <- Zpower_nat_Z_powerRZ.
 apply IZR_lt.
 now rewrite <- pGivesBound.
@@ -741,7 +741,7 @@ apply IZR_lt, radix_gt_0.
 rewrite <- mult_IZR.
 apply Rlt_le_trans with (IZR (Z.pos (vNum b))).
 apply IZR_lt.
-rewrite <- (Zabs_eq beta).
+rewrite <- (Z.abs_eq beta).
 now rewrite <- Zabs_Zmult.
 apply Zlt_le_weak, radix_gt_0.
 rewrite pGivesBound.
