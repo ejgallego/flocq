@@ -72,13 +72,13 @@ Lemma midpoint_beta_odd_remains_pos :
 Proof.
 intros x Px ex1 ex2 Hf2.
 set (z := (ex1 - ex2)%Z).
-assert (Hz : Z_of_nat (Zabs_nat z) = z).
+assert (Hz : Z_of_nat (Z.abs_nat z) = z).
 { rewrite Zabs2Nat.id_abs.
   rewrite <- cond_Zopp_Zlt_bool; unfold cond_Zopp.
   assert (H : (z <? 0)%Z = false); [|now rewrite H].
   apply Zlt_bool_false; unfold z; omega. }
 revert Hz.
-generalize (Zabs_nat z); intro n.
+generalize (Z.abs_nat z); intro n.
 unfold z; clear z; revert ex1 ex2 Hf2.
 induction n.
 - simpl.

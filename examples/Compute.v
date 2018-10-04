@@ -55,7 +55,7 @@ Qed.
 Definition plus (x y : float beta) :=
   let (m, e) := Fplus x y in
   let s := Zlt_bool m 0 in
-  let '(m', e', l) := truncate beta fexp (Zabs m, e, loc_Exact) in
+  let '(m', e', l) := truncate beta fexp (Z.abs m, e, loc_Exact) in
   Float beta (cond_Zopp s (choice s m' l)) e'.
 
 Theorem plus_correct :
@@ -66,7 +66,7 @@ intros x y.
 unfold plus.
 rewrite <- F2R_plus.
 destruct (Fplus x y) as [m e].
-rewrite (round_trunc_sign_any_correct beta fexp rnd choice rnd_choice _ (Zabs m) e loc_Exact).
+rewrite (round_trunc_sign_any_correct beta fexp rnd choice rnd_choice _ (Z.abs m) e loc_Exact).
 3: now right.
 destruct truncate as [[m' e'] l'].
 apply (f_equal (fun s => F2R (Float beta (cond_Zopp s (choice s _ _)) _))).
@@ -78,7 +78,7 @@ Qed.
 Definition mult (x y : float beta) :=
   let (m, e) := Fmult x y in
   let s := Zlt_bool m 0 in
-  let '(m', e', l) := truncate beta fexp (Zabs m, e, loc_Exact) in
+  let '(m', e', l) := truncate beta fexp (Z.abs m, e, loc_Exact) in
   Float beta (cond_Zopp s (choice s m' l)) e'.
 
 Theorem mult_correct :
@@ -89,7 +89,7 @@ intros x y.
 unfold mult.
 rewrite <- F2R_mult.
 destruct (Fmult x y) as [m e].
-rewrite (round_trunc_sign_any_correct beta fexp rnd choice rnd_choice _ (Zabs m) e loc_Exact).
+rewrite (round_trunc_sign_any_correct beta fexp rnd choice rnd_choice _ (Z.abs m) e loc_Exact).
 3: now right.
 destruct truncate as [[m' e'] l'].
 apply (f_equal (fun s => F2R (Float beta (cond_Zopp s (choice s _ _)) _))).

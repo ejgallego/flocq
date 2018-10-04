@@ -99,8 +99,8 @@ Qed.
 
 
 Lemma FLXN_le_exp: forall f1 f2:float beta,
-((Zpower beta (prec - 1) <= Zabs (Fnum f1) < Zpower beta prec)%Z) ->
-((Zpower beta (prec - 1) <= Zabs (Fnum f2) < Zpower beta prec))%Z ->
+((Zpower beta (prec - 1) <= Z.abs (Fnum f1) < Zpower beta prec)%Z) ->
+((Zpower beta (prec - 1) <= Z.abs (Fnum f2) < Zpower beta prec))%Z ->
 0 <= F2R f1 -> F2R f1 <= F2R f2 ->  (Fexp f1 <= Fexp f2)%Z.
 Proof.
 intros f1 f2 H1 H2 H3 H4.
@@ -132,7 +132,7 @@ apply Rmult_le_compat_r.
 apply bpow_ge_0.
 rewrite <- IZR_Zpower.
 apply IZR_le.
-apply Zle_trans with (1:=proj1 H1).
+apply Z.le_trans with (1:=proj1 H1).
 rewrite Z.abs_eq.
 auto with zarith.
 apply le_IZR.
@@ -2177,7 +2177,7 @@ apply Rmult_le_compat_r.
 apply bpow_ge_0.
 rewrite <- IZR_Zpower.
 left; apply IZR_lt.
-replace (Fnum (Fabs f)) with (Zabs (Fnum f)).
+replace (Fnum (Fabs f)) with (Z.abs (Fnum f)).
 assumption.
 destruct f; unfold Fabs; reflexivity.
 omega.

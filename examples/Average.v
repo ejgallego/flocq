@@ -74,7 +74,7 @@ rewrite H1; unfold F2R; simpl.
 rewrite bpow_plus, bpow_1.
 simpl;ring.
 easy.
-apply Zle_trans with (1:=H3).
+apply Z.le_trans with (1:=H3).
 apply Zle_succ.
 Qed.
 
