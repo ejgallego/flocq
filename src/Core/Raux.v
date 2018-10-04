@@ -62,6 +62,9 @@ apply Rabs_le.
 lra.
 Qed.
 
+Theorem Rabs_eq_R0 x : (Rabs x = 0 -> x = 0)%R.
+Proof. split_Rabs; lra. Qed.
+
 Theorem Rplus_eq_reg_r :
   forall r r1 r2 : R,
   (r1 + r = r2 + r)%R -> (r1 = r2)%R.
@@ -231,6 +234,14 @@ destruct (Req_dec x 0) as [Zx|Nzx].
   + reflexivity.
   + casetype False.
     now apply Nzx, Rle_antisym; [|apply Rge_le].
+Qed.
+
+Lemma Rsqr_le_abs_0_alt :
+  forall x y,
+  (x² <= y² -> x <= Rabs y)%R.
+Proof.
+intros x y H.
+apply (Rle_trans _ (Rabs x)); [apply Rle_abs|apply (Rsqr_le_abs_0 _ _ H)].
 Qed.
 
 Theorem Rabs_le :
@@ -1522,6 +1533,25 @@ rewrite <- Ropp_mult_distr_l_reverse.
 now rewrite <- opp_IZR.
 Qed.
 
+Lemma sqrt_bpow :
+  forall e,
+  sqrt (bpow (2 * e)) = bpow e.
+Proof.
+intro e.
+change 2%Z with (1 + 1)%Z; rewrite Z.mul_add_distr_r, Z.mul_1_l, bpow_plus.
+apply sqrt_square, bpow_ge_0.
+Qed.
+
+Lemma sqrt_bpow_ge :
+  forall e,
+  (bpow (e / 2) <= sqrt (bpow e))%R.
+Proof.
+intro e.
+rewrite <- (sqrt_square (bpow _)); [|now apply bpow_ge_0].
+apply sqrt_le_1_alt; rewrite <- bpow_plus; apply bpow_le.
+now replace (_ + _)%Z with (2 * (e / 2))%Z by ring; apply Z_mult_div_ge.
+Qed.
+
 (** Another well-used function for having the magnitude of a real number x to the base #&beta;# *)
 Record mag_prop x := {
   mag_val :> Z ;
@@ -2057,6 +2087,13 @@ split.
   apply bpow_le.
   generalize (Zdiv2_odd_eqn (e + 1)).
   destruct Z.odd ; intros ; omega.
+Qed.
+
+Lemma mag_1 : mag 1 = 1%Z :> Z.
+Proof.
+apply mag_unique_pos; rewrite bpow_1; simpl; split; [now right|apply IZR_lt].
+assert (H := Zle_bool_imp_le _ _ (radix_prop r)); revert H.
+now apply Z.lt_le_trans.
 Qed.
 
 End pow.

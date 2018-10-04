@@ -20,6 +20,7 @@ COPYING file for more details.
 (** * Floating-point format without underflow *)
 Require Import Raux Defs Round_pred Generic_fmt Float_prop.
 Require Import FIX Ulp Round_NE.
+Require Import Psatz.
 
 Section RND_FLX.
 
@@ -214,10 +215,36 @@ intros n H2; contradict H2.
 unfold FLX_exp; unfold Prec_gt_0 in prec_gt_0_; omega.
 Qed.
 
+Theorem generic_format_FLX_1 :
+  generic_format beta FLX_exp 1.
+Proof.
+unfold generic_format, scaled_mantissa, cexp, F2R; simpl.
+rewrite Rmult_1_l, (mag_unique beta 1 1).
+{ unfold FLX_exp.
+  rewrite <- IZR_Zpower; [|unfold Prec_gt_0 in prec_gt_0_; omega].
+  rewrite Ztrunc_IZR, IZR_Zpower; [|unfold Prec_gt_0 in prec_gt_0_; omega].
+  rewrite <- bpow_plus.
+  now replace (_ + _)%Z with Z0 by ring. }
+rewrite Rabs_R1; simpl; split; [now right|].
+unfold Z.pow_pos; simpl; rewrite Zmult_1_r; apply IZR_lt.
+assert (H := Zle_bool_imp_le _ _ (radix_prop beta)); omega.
+Qed.
+
 Theorem ulp_FLX_0: (ulp beta FLX_exp 0 = 0)%R.
 Proof.
 unfold ulp; rewrite Req_bool_true; trivial.
 rewrite negligible_exp_FLX; easy.
+Qed.
+
+Lemma ulp_FLX_1 : ulp beta FLX_exp 1 = bpow (-prec + 1).
+Proof.
+unfold ulp, FLX_exp, cexp; rewrite Req_bool_false; [|apply R1_neq_R0].
+rewrite mag_1; f_equal; ring.
+Qed.
+
+Lemma succ_FLX_1 : (succ beta FLX_exp 1 = 1 + bpow (-prec + 1))%R.
+Proof.
+now unfold succ; rewrite Rle_bool_true; [|apply Rle_0_1]; rewrite ulp_FLX_1.
 Qed.
 
 Theorem eq_0_round_0_FLX :
@@ -272,6 +299,45 @@ unfold Zminus; rewrite bpow_plus.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
 left; now apply bpow_mag_gt.
+Qed.
+
+Lemma ulp_FLX_exact_shift :
+  forall x e,
+  (ulp beta FLX_exp (x * bpow e) = ulp beta FLX_exp x * bpow e)%R.
+Proof.
+intros x e.
+destruct (Req_dec x 0) as [Hx|Hx].
+{ unfold ulp.
+  now rewrite !Req_bool_true, negligible_exp_FLX; rewrite ?Hx, ?Rmult_0_l. }
+unfold ulp; rewrite Req_bool_false;
+  [|now intro H; apply Hx, (Rmult_eq_reg_r (bpow e));
+    [rewrite Rmult_0_l|apply Rgt_not_eq, Rlt_gt, bpow_gt_0]].
+rewrite (Req_bool_false _ _ Hx), <- bpow_plus; f_equal; unfold cexp, FLX_exp.
+now rewrite mag_mult_bpow; [ring|].
+Qed.
+
+Lemma succ_FLX_exact_shift :
+  forall x e,
+  (succ beta FLX_exp (x * bpow e) = succ beta FLX_exp x * bpow e)%R.
+Proof.
+intros x e.
+destruct (Rle_or_lt 0 x) as [Px|Nx].
+{ rewrite succ_eq_pos; [|now apply Rmult_le_pos, bpow_ge_0].
+  rewrite (succ_eq_pos _ _ _ Px).
+  now rewrite Rmult_plus_distr_r; f_equal; apply ulp_FLX_exact_shift. }
+unfold succ.
+rewrite Rle_bool_false; [|assert (H := bpow_gt_0 beta e); nra].
+rewrite Rle_bool_false; [|now simpl].
+rewrite Ropp_mult_distr_l_reverse, <-Ropp_mult_distr_l_reverse; f_equal.
+unfold pred_pos.
+rewrite mag_mult_bpow; [|lra].
+replace (_ - 1)%Z with (mag beta (- x) - 1 + e)%Z; [|ring]; rewrite bpow_plus.
+unfold Req_bool; rewrite Rcompare_mult_r; [|now apply bpow_gt_0].
+fold (Req_bool (-x) (bpow (mag beta (-x) - 1))); case Req_bool.
+{ unfold FLX_exp.
+  replace (_ - _)%Z with (mag beta (- x) - 1 - prec + e)%Z; [|ring].
+  rewrite bpow_plus; ring. }
+rewrite ulp_FLX_exact_shift; ring.
 Qed.
 
 (** FLX is a nice format: it has a monotone exponent... *)

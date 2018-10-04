@@ -2057,6 +2057,21 @@ Qed.
 
 End rndN_opp.
 
+Lemma round_N_small :
+  forall choice,
+  forall x,
+  forall ex,
+  (Raux.bpow beta (ex - 1) <= Rabs x < Raux.bpow beta ex)%R ->
+  (ex < fexp ex)%Z ->
+  (round (Znearest choice) x = 0)%R.
+Proof.
+intros choice x ex Hx Hex.
+destruct (Rle_or_lt 0 x) as [Px|Nx].
+{ now revert Hex; apply round_N_small_pos; revert Hx; rewrite Rabs_pos_eq. }
+rewrite <-(Ropp_involutive x), round_N_opp, <-Ropp_0; f_equal.
+now revert Hex; apply round_N_small_pos; revert Hx; rewrite Rabs_left.
+Qed.
+
 End Format.
 
 (** Inclusion of a format into an extended format *)

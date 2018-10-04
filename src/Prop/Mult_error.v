@@ -148,6 +148,24 @@ rewrite <- H1.
 now apply generic_format_F2R.
 Qed.
 
+Lemma mult_bpow_exact_FLX :
+  forall x e,
+  format x ->
+  format (x * bpow e)%R.
+Proof.
+intros x e Fx.
+destruct (Req_dec x 0) as [Zx|Nzx].
+{ rewrite Zx, Rmult_0_l; apply generic_format_0. }
+rewrite Fx.
+set (mx := Ztrunc _); set (ex := cexp _).
+pose (f := {| Fnum := mx; Fexp := ex + e |} : float beta).
+apply (generic_format_F2R' _ _ _ f).
+{ now unfold F2R; simpl; rewrite bpow_plus, Rmult_assoc. }
+intro Nzmx; unfold mx, ex; rewrite <- Fx.
+unfold f, ex; simpl; unfold cexp; rewrite (mag_mult_bpow _ _ _ Nzx).
+unfold FLX_exp; omega.
+Qed.
+
 End Fprop_mult_error.
 
 Section Fprop_mult_error_FLT.
@@ -291,6 +309,27 @@ rewrite K', Rmult_0_l, Rabs_R0; apply bpow_gt_0.
 apply Hy.
 intros K'; contradict H1; apply Rlt_not_le.
 rewrite K', Rmult_0_r, Rabs_R0; apply bpow_gt_0.
+Qed.
+
+Lemma mult_bpow_exact_FLT :
+  forall x e,
+  format x ->
+  (emin + prec - mag beta x <= e)%Z ->
+  format (x * bpow e)%R.
+Proof.
+intros x e Fx He.
+destruct (Req_dec x 0) as [Zx|Nzx].
+{ rewrite Zx, Rmult_0_l; apply generic_format_0. }
+rewrite Fx.
+set (mx := Ztrunc _); set (ex := cexp _).
+pose (f := {| Fnum := mx; Fexp := ex + e |} : float beta).
+apply (generic_format_F2R' _ _ _ f).
+{ now unfold F2R; simpl; rewrite bpow_plus, Rmult_assoc. }
+intro Nzmx; unfold mx, ex; rewrite <- Fx.
+unfold f, ex; simpl; unfold cexp; rewrite (mag_mult_bpow _ _ _ Nzx).
+unfold FLT_exp; rewrite Z.max_l; [|omega]; rewrite <- Z.add_max_distr_r.
+set (n := (_ - _ + _)%Z); apply (Z.le_trans _ n); [unfold n; omega|].
+apply Z.le_max_l.
 Qed.
 
 End Fprop_mult_error_FLT.
