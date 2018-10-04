@@ -127,6 +127,7 @@ install:
 	mkdir -p @libdir@
 	for d in Core Calc Prop IEEE754 Pff; do mkdir -p @libdir@/$d; done
 	for f in $(OBJS); do cp $f @libdir@/${f#src/}; done
+	for f in $(FILES); do cp src/$f @libdir@/$f; done
 	( cd src && find . -type d -name ".coq-native" -exec cp -RT "{}" "@libdir@/{}" \; )
 
 EXTRA_DIST = \
