@@ -20,7 +20,7 @@ COPYING file for more details.
 (** * Remainder of the division and square root are in the FLX format *)
 
 Require Import Psatz.
-Require Import Core Operations Relative Sterbenz.
+Require Import Core Operations Relative Sterbenz Mult_error.
 
 Section Fprop_divsqrt_error.
 
@@ -88,7 +88,7 @@ unfold Rminus; apply generic_format_plus_prec with fx (Fopp (Fmult fr fy)); triv
 intros e; apply Z.le_refl.
 now rewrite F2R_opp, F2R_mult, <- Hr1, <- Hy1.
 (* *)
-destruct (relative_error_FLX_ex beta prec (prec_gt_0 prec) rnd (x / y)%R) as (eps,(Heps1,Heps2)).
+destruct (relative_error_FLX_ex beta prec rnd (x / y)%R) as (eps,(Heps1,Heps2)).
 rewrite Heps2.
 rewrite <- Rabs_Ropp.
 replace (-(x + - (x / y * (1 + eps) * y)))%R with (x * eps)%R by now field.
@@ -174,7 +174,7 @@ unfold Rsqr; now rewrite F2R_opp,F2R_mult, <- Hr1.
 apply Rle_lt_trans with x.
 apply Rabs_minus_le.
 apply Rle_0_sqr.
-destruct (relative_error_N_FLX_ex beta prec (prec_gt_0 prec) choice (sqrt x)) as (eps,(Heps1,Heps2)).
+destruct (relative_error_N_FLX_ex beta prec choice (sqrt x)) as (eps,(Heps1,Heps2)).
 rewrite Heps2.
 rewrite Rsqr_mult, Rsqr_sqrt, Rmult_comm. 2: now apply Rlt_le.
 apply Rmult_le_compat_r.
@@ -286,6 +286,338 @@ apply Rlt_le_trans with (1:=H).
 apply bpow_le.
 omega.
 now apply Rlt_le.
+Qed.
+
+Lemma sqrt_error_N_FLX_aux1 x (Fx : format x) (Px : (0 < x)%R) :
+  exists (mu : R) (e : Z), (format mu /\ x = mu * bpow (2 * e) :> R
+                            /\ 1 <= mu < bpow 2)%R.
+Proof.
+set (e := ((mag beta x - 1) / 2)%Z).
+set (mu := (x * bpow (-2 * e)%Z)%R).
+assert (Hbe : (bpow (-2 * e) * bpow (2 * e) = 1)%R).
+{ now rewrite <- bpow_plus; case e; simpl; [reflexivity| |]; intro p;
+    rewrite Z.pos_sub_diag. }
+assert (Fmu : format mu); [now apply mult_bpow_exact_FLX|].
+exists mu, e; split; [exact Fmu|split; [|split]].
+{ set (e2 := (2 * e)%Z); simpl; unfold mu; rewrite Rmult_assoc.
+  now unfold e2; rewrite Hbe, Rmult_1_r. }
+{ apply (Rmult_le_reg_r (bpow (2 * e))).
+  { apply bpow_gt_0. }
+  rewrite Rmult_1_l; set (e2 := (2 * e)%Z); simpl; unfold mu.
+  unfold e2; rewrite Rmult_assoc, Hbe, Rmult_1_r.
+  apply (Rle_trans _ (bpow (mag beta x - 1))).
+  { now apply bpow_le; unfold e; apply Z_mult_div_ge. }
+  set (l := mag _ _); rewrite <- (Rabs_pos_eq _ (Rlt_le _ _ Px)).
+  unfold l; apply bpow_mag_le.
+  intro Hx; revert Px; rewrite Hx; apply Rlt_irrefl. }
+simpl; unfold mu; change (IZR _) with (bpow 2).
+apply (Rmult_lt_reg_r (bpow (2 * e))); [now apply bpow_gt_0|].
+rewrite Rmult_assoc, Hbe, Rmult_1_r.
+apply (Rlt_le_trans _ (bpow (mag beta x))).
+{ rewrite <- (Rabs_pos_eq _ (Rlt_le _ _ Px)) at 1; apply bpow_mag_gt. }
+rewrite <- bpow_plus; apply bpow_le; unfold e; set (mxm1 := (_ - 1)%Z).
+replace (_ * _)%Z with (2 * (mxm1 / 2) + mxm1 mod 2 - mxm1 mod 2)%Z by ring.
+rewrite <- Z.div_mod; [|now simpl].
+apply (Zplus_le_reg_r _ _ (mxm1 mod 2 - mag beta x)%Z).
+unfold mxm1; destruct (Z.mod_bound_or (mag beta x - 1) 2); omega.
+Qed.
+
+Notation u_ro := (u_ro beta prec).
+
+Lemma sqrt_error_N_FLX_aux2 x (Fx : format x) :
+  (1 <= x)%R ->
+  (x = 1 :> R \/ x = 1 + 2 * u_ro :> R \/ 1 + 4 * u_ro <= x)%R.
+Proof.
+intro HxGe1.
+assert (Pu_ro : (0 <= u_ro)%R); [apply Rmult_le_pos; [lra|apply bpow_ge_0]|].
+destruct (Rle_or_lt x 1) as [HxLe1|HxGt1]; [now left; apply Rle_antisym|right].
+assert (F1 : format 1); [now apply generic_format_FLX_1|].
+assert (H2eps : (2 * u_ro = bpow (-prec + 1))%R).
+{ unfold u_ro; rewrite bpow_plus; field. }
+assert (HmuGe1p2eps : (1 + 2 * u_ro <= x)%R).
+{ rewrite H2eps, <- succ_FLX_1.
+  now apply succ_le_lt; [now apply FLX_exp_valid| | |]. }
+destruct (Rle_or_lt x (1 + 2 * u_ro)) as [HxLe1p2eps|HxGt1p2eps];
+  [now left; apply Rle_antisym|right].
+assert (Hulp1p2eps : (ulp beta (FLX_exp prec) (1 + 2 * u_ro) = 2 * u_ro)%R).
+{ destruct (ulp_succ_pos _ _ _ F1 Rlt_0_1) as [Hsucc|Hsucc].
+  { now rewrite H2eps, <- succ_FLX_1, <- ulp_FLX_1. }
+  exfalso; revert Hsucc; apply Rlt_not_eq.
+  rewrite succ_FLX_1, mag_1, bpow_1, <- H2eps; simpl.
+  apply (Rlt_le_trans _ 2); [apply Rplus_lt_compat_l|].
+  { unfold u_ro; rewrite <-Rmult_assoc, Rinv_r, Rmult_1_l; [|lra].
+    change R1 with (bpow 0); apply bpow_lt; omega. }
+  apply IZR_le, Zle_bool_imp_le, radix_prop. }
+assert (Hsucc1p2eps :
+          (succ beta (FLX_exp prec) (1 + 2 * u_ro) = 1 + 4 * u_ro)%R).
+{ unfold succ; rewrite Rle_bool_true; [rewrite Hulp1p2eps; ring|].
+  apply Rplus_le_le_0_compat; lra. }
+rewrite <- Hsucc1p2eps.
+apply succ_le_lt; [now apply FLX_exp_valid| |exact Fx|now simpl].
+rewrite H2eps, <- succ_FLX_1.
+now apply generic_format_succ; [apply FLX_exp_valid|].
+Qed.
+
+Lemma sqrt_error_N_FLX_aux3 :
+  (u_ro / sqrt (1 + 4 * u_ro) <= 1 - 1 / sqrt (1 + 2 * u_ro))%R.
+Proof.
+assert (Pu_ro : (0 <= u_ro)%R); [apply Rmult_le_pos; [lra|apply bpow_ge_0]|].
+unfold Rdiv; apply (Rplus_le_reg_r (/ sqrt (1 + 2 * u_ro))); ring_simplify.
+apply (Rmult_le_reg_r (sqrt (1 + 4 * u_ro) * sqrt (1 + 2 * u_ro))).
+{ apply Rmult_lt_0_compat; apply sqrt_lt_R0; lra. }
+field_simplify; [|split; apply Rgt_not_eq, Rlt_gt, sqrt_lt_R0; lra].
+unfold Rdiv; rewrite Rinv_1, !Rmult_1_r.
+apply Rsqr_incr_0_var; [|now apply Rmult_le_pos; apply sqrt_pos].
+rewrite <-sqrt_mult; [|lra|lra].
+rewrite Rsqr_sqrt; [|apply Rmult_le_pos; lra].
+unfold Rsqr; ring_simplify; unfold pow; rewrite !Rmult_1_r.
+rewrite !sqrt_def; [|lra|lra].
+apply (Rplus_le_reg_r (-u_ro * u_ro - 1 -4 * u_ro - 2 * u_ro ^ 3)).
+ring_simplify; apply Rsqr_incr_0_var.
+{ unfold Rsqr; ring_simplify.
+  unfold pow; rewrite !Rmult_1_r, !sqrt_def; [|lra|lra].
+  apply (Rplus_le_reg_r (-32 * u_ro ^ 4 - 24 * u_ro ^ 3 - 4 * u_ro ^ 2)).
+  ring_simplify.
+  replace (_ + _)%R
+    with (((4 * u_ro ^ 2 - 28 * u_ro + 9) * u_ro + 4) * u_ro ^ 3)%R by ring.
+  apply Rmult_le_pos; [|now apply pow_le].
+  assert (Heps_le_half : (u_ro <= 1 / 2)%R).
+  { unfold u_ro, Rdiv; rewrite Rmult_comm; apply Rmult_le_compat_r; [lra|].
+    change 1%R with (bpow 0); apply bpow_le; omega. }
+  apply (Rle_trans _ (-8 * u_ro + 4)); [lra|].
+  apply Rplus_le_compat_r, Rmult_le_compat_r; [apply Pu_ro|].
+  now assert (H : (0 <= u_ro ^ 2)%R); [apply pow2_ge_0|lra]. }
+assert (H : (u_ro ^ 3 <= u_ro ^ 2)%R).
+{ unfold pow; rewrite <-!Rmult_assoc, Rmult_1_r.
+  apply Rmult_le_compat_l; [now apply Rmult_le_pos; apply Pu_ro|].
+  now apply Rlt_le, u_ro_lt_1. }
+now assert (H' : (0 <= u_ro ^ 2)%R); [apply pow2_ge_0|lra].
+Qed.
+
+Lemma om1ds1p2u_ro_pos : (0 <= 1 - 1 / sqrt (1 + 2 * u_ro))%R.
+Proof.
+unfold Rdiv; rewrite Rmult_1_l, <-Rinv_1 at 1.
+apply Rle_0_minus, Rinv_le; [lra|].
+rewrite <- sqrt_1 at 1; apply sqrt_le_1_alt.
+assert (H := u_ro_pos beta prec); lra.
+Qed.
+
+Lemma om1ds1p2u_ro_le_u_rod1pu_ro :
+  (1 - 1 / sqrt (1 + 2 * u_ro) <= u_ro / (1 + u_ro))%R.
+Proof.
+assert (Pu_ro := u_ro_pos beta prec).
+apply (Rmult_le_reg_r (sqrt (1 + 2 * u_ro) * (1 + u_ro))).
+{ apply Rmult_lt_0_compat; [apply sqrt_lt_R0|]; lra. }
+field_simplify; [|lra|intro H; apply sqrt_eq_0 in H; lra].
+unfold Rdiv, Rminus; rewrite Rinv_1, !Rmult_1_r, !Rplus_assoc.
+rewrite <-(Rplus_0_r (sqrt _ * _)) at 2; apply Rplus_le_compat_l.
+apply (Rplus_le_reg_r (1 + u_ro)); ring_simplify.
+rewrite <-(sqrt_square (_ + 1)); [|lra]; apply sqrt_le_1_alt.
+assert (H : (0 <= u_ro * u_ro)%R); [apply Rmult_le_pos|]; lra.
+Qed.
+
+Lemma s1p2u_rom1_pos : (0 <= sqrt (1 + 2 * u_ro) - 1)%R.
+apply (Rplus_le_reg_r 1); ring_simplify.
+rewrite <-sqrt_1 at 1; apply sqrt_le_1_alt.
+assert (H := u_ro_pos beta prec); lra.
+Qed.
+
+Theorem sqrt_error_N_FLX x (Fx : format x) :
+  (Rabs (round beta (FLX_exp prec) (Znearest choice) (sqrt x) - sqrt x)
+   <= (1 - 1 / sqrt (1 + 2 * u_ro)) * Rabs (sqrt x))%R.
+Proof.
+assert (Peps := u_ro_pos beta prec).
+assert (Peps' : (0 < u_ro)%R).
+{ unfold u_ro; apply Rmult_lt_0_compat; [lra|apply bpow_gt_0]. }
+assert (Pb := om1ds1p2u_ro_pos).
+assert (Pb' := s1p2u_rom1_pos).
+destruct (Rle_or_lt x 0) as [Nx|Px].
+{ rewrite (sqrt_neg _ Nx), round_0, Rabs_R0, Rmult_0_r; [|apply valid_rnd_N].
+  now unfold Rminus; rewrite Rplus_0_l, Rabs_Ropp, Rabs_R0; right. }
+destruct (sqrt_error_N_FLX_aux1 _ Fx Px)
+  as (mu, (e, (Fmu, (Hmu, (HmuGe1, HmuLtsqradix))))).
+pose (t := sqrt x).
+set (rt := round _ _ _ _).
+assert (Ht : (t = sqrt mu * bpow e)%R).
+{ unfold t; rewrite Hmu, sqrt_mult_alt; [|now apply (Rle_trans _ _ _ Rle_0_1)].
+  now rewrite sqrt_bpow. }
+destruct (sqrt_error_N_FLX_aux2 _ Fmu HmuGe1) as [Hmu'|[Hmu'|Hmu']].
+{ unfold rt; fold t; rewrite Ht, Hmu', sqrt_1, Rmult_1_l.
+  rewrite round_generic; [|now apply valid_rnd_N|].
+  { rewrite Rminus_diag_eq, Rabs_R0; [|now simpl].
+    now apply Rmult_le_pos; [|apply Rabs_pos]. }
+  apply generic_format_bpow'; [now apply FLX_exp_valid|].
+  unfold FLX_exp; omega. }
+{ assert (Hsqrtmu : (1 <= sqrt mu < 1 + u_ro)%R); [rewrite Hmu'; split|].
+  { rewrite <- sqrt_1 at 1; apply sqrt_le_1_alt; lra. }
+  { rewrite <- sqrt_square; [|lra]; apply sqrt_lt_1_alt; split; [lra|].
+    ring_simplify; assert (0 < u_ro ^ 2)%R; [apply pow_lt|]; lra. }
+  assert (Fbpowe : generic_format beta (FLX_exp prec) (bpow e)).
+  { apply generic_format_bpow; unfold FLX_exp; omega. }
+  assert (Hrt : rt = bpow e :> R).
+  { unfold rt; fold t; rewrite Ht; simpl; apply Rle_antisym.
+    { apply round_N_le_midp; [now apply FLX_exp_valid|exact Fbpowe|].
+      apply (Rlt_le_trans _ ((1 + u_ro) * bpow e)).
+      { now apply Rmult_lt_compat_r; [apply bpow_gt_0|]. }
+      unfold succ; rewrite Rle_bool_true; [|now apply bpow_ge_0].
+      rewrite ulp_bpow; unfold FLX_exp.
+      unfold Z.sub, u_ro; rewrite !bpow_plus; right; field. }
+    apply round_ge_generic;
+      [now apply FLX_exp_valid|now apply valid_rnd_N|exact Fbpowe|].
+    rewrite <- (Rmult_1_l (bpow _)) at 1.
+    now apply Rmult_le_compat_r; [apply bpow_ge_0|]. }
+  fold t; rewrite Hrt, Ht, Hmu', <-(Rabs_pos_eq _ Pb), <-Rabs_mult.
+  rewrite Rabs_minus_sym; right; f_equal; field; lra. }
+assert (Hsqrtmu : (1 + u_ro < sqrt mu)%R).
+{ apply (Rlt_le_trans _ (sqrt (1 + 4 * u_ro))); [|now apply sqrt_le_1_alt].
+  assert (P1peps : (0 <= 1 + u_ro)%R)
+    by now apply Rplus_le_le_0_compat; [lra|apply Peps].
+  rewrite <- (sqrt_square (1 + u_ro)); [|lra].
+  apply sqrt_lt_1_alt; split; [now apply Rmult_le_pos|].
+  apply (Rplus_lt_reg_r (-1 - 2 * u_ro)); ring_simplify; simpl.
+  rewrite Rmult_1_r; apply Rmult_lt_compat_r; [apply Peps'|].
+  now apply (Rlt_le_trans _ 1); [apply u_ro_lt_1|lra]. }
+assert (Hulpt : (ulp beta (FLX_exp prec) t = 2 * u_ro * bpow e)%R).
+{ unfold ulp; rewrite Req_bool_false; [|apply Rgt_not_eq, Rlt_gt].
+  { unfold u_ro; rewrite <-Rmult_assoc, Rinv_r, Rmult_1_l, <-bpow_plus; [|lra].
+    f_equal; unfold cexp, FLX_exp.
+    assert (Hmagt : (mag beta t = 1 + e :> Z)%Z).
+    { apply mag_unique.
+      unfold t; rewrite (Rabs_pos_eq _ (Rlt_le _ _ (sqrt_lt_R0 _ Px))).
+      fold t; split.
+      { rewrite Ht; replace (_ - _)%Z with e by ring.
+        rewrite <- (Rmult_1_l (bpow _)) at 1; apply Rmult_le_compat_r.
+        { apply bpow_ge_0. }
+        now rewrite <- sqrt_1; apply sqrt_le_1_alt. }
+      rewrite bpow_plus, bpow_1, Ht; simpl.
+      apply Rmult_lt_compat_r; [now apply bpow_gt_0|].
+      rewrite <- sqrt_square.
+      { apply sqrt_lt_1_alt; split; [lra|].
+        apply (Rlt_le_trans _ _ _ HmuLtsqradix); right.
+        now unfold bpow, Z.pow_pos; simpl; rewrite Zmult_1_r, mult_IZR. }
+      apply IZR_le, (Z.le_trans _ 2), Zle_bool_imp_le, radix_prop; omega. }
+    rewrite Hmagt; ring. }
+  rewrite Ht; apply Rmult_lt_0_compat; [|now apply bpow_gt_0].
+  now apply (Rlt_le_trans _ 1); [lra|rewrite <- sqrt_1; apply sqrt_le_1_alt]. }
+assert (Pt : (0 < t)%R).
+{ rewrite Ht; apply Rmult_lt_0_compat; [lra|apply bpow_gt_0]. }
+assert (H : (Rabs ((rt - sqrt x) / sqrt x)
+             <= 1 - 1 / sqrt (1 + 2 * u_ro))%R).
+{ unfold Rdiv; rewrite Rabs_mult, (Rabs_pos_eq (/ _));
+    [|now left; apply Rinv_0_lt_compat].
+  apply (Rle_trans _ ((u_ro * bpow e) / t)).
+  { unfold Rdiv; apply Rmult_le_compat_r; [now left; apply Rinv_0_lt_compat|].
+    apply (Rle_trans _ _ _ (error_le_half_ulp _ _ _ _)).
+    fold t; rewrite Hulpt; right; field. }
+  apply (Rle_trans _ (u_ro / sqrt (1 + 4 * u_ro))).
+  { apply (Rle_trans _ (u_ro * bpow e / (sqrt (1 + 4 * u_ro) * bpow e))).
+    { unfold Rdiv; apply Rmult_le_compat_l;
+        [now apply Rmult_le_pos; [apply Peps|apply bpow_ge_0]|].
+      apply Rinv_le.
+      { apply Rmult_lt_0_compat; [apply sqrt_lt_R0; lra|apply bpow_gt_0]. }
+      now rewrite Ht; apply Rmult_le_compat_r;
+        [apply bpow_ge_0|apply sqrt_le_1_alt]. }
+    right; field; split; apply Rgt_not_eq, Rlt_gt;
+      [apply sqrt_lt_R0; lra|apply bpow_gt_0]. }
+  apply sqrt_error_N_FLX_aux3. }
+revert H; unfold Rdiv; rewrite Rabs_mult, Rabs_Rinv; [|fold t; lra]; intro H.
+apply (Rmult_le_reg_r (/ Rabs (sqrt x)));
+  [apply Rinv_0_lt_compat, Rabs_pos_lt; fold t; lra|].
+apply (Rle_trans _ _ _ H); right; field; split; [apply Rabs_no_R0;fold t|]; lra.
+Qed.
+
+Theorem sqrt_error_N_FLX_ex x (Fx : format x) :
+  exists eps,
+  (Rabs eps <= 1 - 1 / sqrt (1 + 2 * u_ro))%R /\
+  round beta (FLX_exp prec) (Znearest choice) (sqrt x)
+  = (sqrt x * (1 + eps))%R.
+Proof.
+now apply relative_error_le_conversion;
+  [apply valid_rnd_N|apply om1ds1p2u_ro_pos|apply sqrt_error_N_FLX].
+Qed.
+
+Lemma sqrt_error_N_round_ex_derive :
+  forall x rx,
+  (exists eps,
+   (Rabs eps <= 1 - 1 / sqrt (1 + 2 * u_ro))%R /\ rx = (x * (1 + eps))%R) ->
+  exists eps,
+  (Rabs eps <= sqrt (1 + 2 * u_ro) - 1)%R /\ x = (rx * (1 + eps))%R.
+Proof.
+intros x rx (d, (Bd, Hd)).
+assert (H := Rabs_le_inv _ _ Bd).
+assert (H' := om1ds1p2u_ro_le_u_rod1pu_ro).
+assert (H'' := u_rod1pu_ro_le_u_ro beta prec).
+assert (H''' := u_ro_lt_1 beta prec).
+assert (Hpos := s1p2u_rom1_pos).
+destruct (Req_dec rx 0) as [Zfx|Nzfx].
+{ exists 0%R; split; [now rewrite Rabs_R0|].
+  rewrite Rplus_0_r, Rmult_1_r, Zfx; rewrite Zfx in Hd.
+  destruct (Rmult_integral _ _ (sym_eq Hd)); lra. }
+destruct (Req_dec x 0) as [Zx|Nzx].
+{ now exfalso; revert Hd; rewrite Zx; rewrite Rmult_0_l. }
+set (d' := ((x - rx) / rx)%R).
+assert (Hd' : (Rabs d' <= sqrt (1 + 2 * u_ro) - 1)%R).
+{ unfold d'; rewrite Hd.
+  replace (_ / _)%R with (- d / (1 + d))%R; [|now field; split; lra].
+  unfold Rdiv; rewrite Rabs_mult, Rabs_Ropp.
+  rewrite (Rabs_pos_eq (/ _)); [|apply Rlt_le, Rinv_0_lt_compat; lra].
+  apply (Rmult_le_reg_r (1 + d)); [lra|].
+  rewrite Rmult_assoc, Rinv_l, Rmult_1_r; [|lra].
+  apply (Rle_trans _ _ _ Bd).
+  apply (Rle_trans _ ((sqrt (1 + 2 * u_ro) - 1) * (1/sqrt (1 + 2 * u_ro))));
+    [right; field|apply Rmult_le_compat_l]; lra. }
+now exists d'; split; [exact Hd'|]; unfold d'; field.
+Qed.
+
+(** sqrt(1 + 2 u_ro) - 1 <= u_ro *)
+Theorem sqrt_error_N_FLX_round_ex :
+  forall x,
+  format x ->
+  exists eps,
+  (Rabs eps <= sqrt (1 + 2 * u_ro) - 1)%R /\
+  sqrt x = (round beta (FLX_exp prec) (Znearest choice) (sqrt x) * (1 + eps))%R.
+Proof.
+now intros x Fx; apply sqrt_error_N_round_ex_derive, sqrt_error_N_FLX_ex.
+Qed.
+
+Variable emin : Z.
+Hypothesis Hemin : (emin <= 2 * (1 - prec))%Z.
+
+Theorem sqrt_error_N_FLT_ex :
+  forall x,
+  generic_format beta (FLT_exp emin prec) x ->
+  exists eps,
+  (Rabs eps <= 1 - 1 / sqrt (1 + 2 * u_ro))%R /\
+  round beta (FLT_exp emin prec) (Znearest choice) (sqrt x)
+  = (sqrt x * (1 + eps))%R.
+Proof.
+intros x Fx.
+assert (Heps := u_ro_pos).
+assert (Pb := om1ds1p2u_ro_pos).
+destruct (Rle_or_lt x 0) as [Nx|Px].
+{ exists 0%R; split; [now rewrite Rabs_R0|].
+  now rewrite (sqrt_neg x Nx), round_0, Rmult_0_l; [|apply valid_rnd_N]. }
+assert (Fx' := generic_format_FLX_FLT _ _ _ _ Fx).
+destruct (sqrt_error_N_FLX_ex _ Fx') as (d, (Bd, Hd)).
+exists d; split; [exact Bd|]; rewrite <-Hd; apply round_FLT_FLX.
+apply (Rle_trans _ (bpow (emin / 2)%Z)).
+{ apply bpow_le, Z.div_le_lower_bound; lia. }
+apply (Rle_trans _ _ _ (sqrt_bpow_ge _ _)).
+rewrite Rabs_pos_eq; [|now apply sqrt_pos]; apply sqrt_le_1_alt.
+revert Fx; apply generic_format_ge_bpow; [|exact Px].
+intro e; unfold FLT_exp; apply Z.le_max_r.
+Qed.
+
+(** sqrt(1 + 2 u_ro) - 1 <= u_ro *)
+Theorem sqrt_error_N_FLT_round_ex :
+  forall x,
+  generic_format beta (FLT_exp emin prec) x ->
+  exists eps,
+  (Rabs eps <= sqrt (1 + 2 * u_ro) - 1)%R /\
+  sqrt x
+  = (round beta (FLT_exp emin prec) (Znearest choice) (sqrt x) * (1 + eps))%R.
+Proof.
+now intros x Fx; apply sqrt_error_N_round_ex_derive, sqrt_error_N_FLT_ex.
 Qed.
 
 End Fprop_divsqrt_error.

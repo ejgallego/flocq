@@ -22,6 +22,7 @@ COPYING file for more details.
 Require Import Psatz.
 Require Import Raux Defs Float_prop Generic_fmt.
 Require Import FIX FLX FLT Ulp Operations.
+Require Import Relative.
 
 
 Section Fprop_plus_error.
@@ -264,6 +265,40 @@ rewrite H1x,H1y; unfold F2R; simpl.
 rewrite H2x, H2y.
 rewrite plus_IZR; ring.
 easy.
+Qed.
+
+Variable choice : Z -> bool.
+
+Lemma FLT_plus_error_N_ex : forall x y,
+  generic_format beta (FLT_exp emin prec) x ->
+  generic_format beta (FLT_exp emin prec) y ->
+  exists eps,
+  (Rabs eps <= u_ro beta prec / (1 + u_ro beta prec))%R /\
+  round beta (FLT_exp emin prec) (Znearest choice) (x + y)
+  = ((x + y) * (1 + eps))%R.
+Proof.
+intros x y Fx Fy.
+assert (Pb := u_rod1pu_ro_pos beta prec).
+destruct (Rle_or_lt (bpow (emin + prec - 1)) (Rabs (x + y))) as [M|M].
+{ destruct (relative_error_N_FLX'_ex beta prec choice (x + y))
+    as (d, (Bd, Hd)).
+  now exists d; split; [exact Bd|]; rewrite <- Hd; apply round_FLT_FLX. }
+exists 0%R; rewrite Rabs_R0; split; [exact Pb|]; rewrite Rplus_0_r, Rmult_1_r.
+apply round_generic; [apply valid_rnd_N|].
+apply FLT_format_plus_small; [exact Fx|exact Fy|].
+apply Rlt_le, (Rlt_le_trans _ _ _ M), bpow_le; lia.
+Qed.
+
+Lemma FLT_plus_error_N_round_ex : forall x y,
+  generic_format beta (FLT_exp emin prec) x ->
+  generic_format beta (FLT_exp emin prec) y ->
+  exists eps,
+  (Rabs eps <= u_ro beta prec)%R /\
+  (x + y
+   = round beta (FLT_exp emin prec) (Znearest choice) (x + y) * (1 + eps))%R.
+Proof.
+intros x y Fx Fy.
+now apply relative_error_N_round_ex_derive, FLT_plus_error_N_ex.
 Qed.
 
 End Fprop_plus_FLT.
@@ -544,3 +579,28 @@ apply radix_pos.
 Qed.
 
 End Fprop_plus_ge_ulp.
+
+Section Fprop_plus_le_ops.
+
+Variable beta : radix.
+Variable fexp : Z -> Z.
+Context { valid_exp : Valid_exp fexp }.
+Variable choice : Z -> bool.
+
+Lemma plus_error_le_l :
+  forall x y,
+  generic_format beta fexp x -> generic_format beta fexp y ->
+  (Rabs (round beta fexp (Znearest choice) (x + y) - (x + y)) <= Rabs x)%R.
+Proof.
+intros x y Fx Fy.
+apply (Rle_trans _ (Rabs (y - (x + y)))); [now apply round_N_pt|].
+rewrite Rabs_minus_sym; right; f_equal; ring.
+Qed.
+
+Lemma plus_error_le_r :
+  forall x y,
+  generic_format beta fexp x -> generic_format beta fexp y ->
+  (Rabs (round beta fexp (Znearest choice) (x + y) - (x + y)) <= Rabs y)%R.
+Proof. now intros x y Fx Fy; rewrite Rplus_comm; apply plus_error_le_l. Qed.
+
+End Fprop_plus_le_ops.
