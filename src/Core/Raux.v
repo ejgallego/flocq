@@ -519,6 +519,13 @@ now apply Rcompare_Eq.
 now apply Rcompare_Lt.
 Qed.
 
+Lemma Rcompare_Ropp x y : Rcompare (- x) (- y) = Rcompare y x.
+Proof.
+destruct (Rcompare_spec y x);
+  destruct (Rcompare_spec (- x) (- y));
+  try reflexivity; exfalso; lra.
+Qed.
+
 Theorem Rcompare_plus_r :
   forall z x y,
   Rcompare (x + z) (y + z) = Rcompare x y.
@@ -744,6 +751,9 @@ intros x y Hxy.
 rewrite <- negb_Rlt_bool.
 now rewrite Rle_bool_true.
 Qed.
+
+Lemma Rlt_bool_Ropp x y : Rlt_bool (- x) (- y) = Rlt_bool y x.
+Proof. now unfold Rlt_bool; rewrite Rcompare_Ropp. Qed.
 
 End Rlt_bool.
 
