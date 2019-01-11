@@ -418,7 +418,7 @@ End Fprop_relative_generic.
 Section Fprop_relative_FLX.
 
 Variable prec : Z.
-Context { prec_gt_0_ : Prec_gt_0 prec }.
+Variable Hp : Z.lt 0 prec.
 
 Lemma relative_error_FLX_aux :
   forall k, (prec <= k - FLX_exp prec k)%Z.
@@ -505,7 +505,7 @@ Proof.
 unfold u_ro; apply (Rmult_lt_reg_l 2); [lra|].
 rewrite <-Rmult_assoc, Rinv_r, Rmult_1_l, Rmult_1_r; [|lra].
 apply (Rle_lt_trans _ (bpow 0));
-  [apply bpow_le; unfold Prec_gt_0 in prec_gt_0_; omega|simpl; lra].
+  [apply bpow_le; omega|simpl; lra].
 Qed.
 
 Lemma u_rod1pu_ro_pos : (0 <= u_ro / (1 + u_ro))%R.
@@ -537,7 +537,8 @@ set (ufpx := bpow (mag beta x - 1)%Z).
 set (rx := round _ _ _ _).
 assert (Pufpx : (0 <= ufpx)%R); [now apply bpow_ge_0|].
 assert (H_2_1 : (Rabs (rx - x) <= u_ro * ufpx)%R).
-{ apply (Rle_trans _ _ _ (error_le_half_ulp _ _ _ _)); right.
+{ refine (Rle_trans _ _ _ (error_le_half_ulp _ _ _ _) _);
+    [now apply FLX_exp_valid|right].
   unfold ulp, cexp, FLX_exp, u_ro, ufpx; rewrite (Req_bool_false _ _ Nzx).
   rewrite Rmult_assoc, <-bpow_plus; do 2 f_equal; ring. }
 assert (H_2_3 : (ufpx + Rabs (rx - x) <= Rabs x)%R).
@@ -545,16 +546,14 @@ assert (H_2_3 : (ufpx + Rabs (rx - x) <= Rabs x)%R).
   destruct (Rle_or_lt 0 x) as [Sx|Sx].
   { apply (Rle_trans _ (Rabs (ufpx - x))).
     { apply round_N_pt; [now apply FLX_exp_valid|].
-      apply generic_format_bpow; unfold FLX_exp.
-      unfold Prec_gt_0 in prec_gt_0_; lia. }
+      apply generic_format_bpow; unfold FLX_exp; lia. }
     rewrite Rabs_minus_sym, Rabs_pos_eq.
     { now rewrite Rabs_pos_eq; [right; ring|]. }
     apply (Rplus_le_reg_r ufpx); ring_simplify.
     now rewrite <-(Rabs_pos_eq _ Sx); apply bpow_mag_le. }
   apply (Rle_trans _ (Rabs (- ufpx - x))).
   { apply round_N_pt; [now apply FLX_exp_valid|].
-    apply generic_format_opp, generic_format_bpow; unfold FLX_exp.
-    unfold Prec_gt_0 in prec_gt_0_; lia. }
+    apply generic_format_opp, generic_format_bpow; unfold FLX_exp; lia. }
   rewrite Rabs_pos_eq; [now rewrite Rabs_left; [right|]|].
   apply (Rplus_le_reg_r x); ring_simplify.
   rewrite <-(Ropp_involutive x); apply Ropp_le_contravar; unfold ufpx.
@@ -652,7 +651,7 @@ End Fprop_relative_FLX.
 Section Fprop_relative_FLT.
 
 Variable emin prec : Z.
-Context { prec_gt_0_ : Prec_gt_0 prec }.
+Variable Hp : Z.lt 0 prec.
 
 Lemma relative_error_FLT_aux :
   forall k, (emin + prec - 1 < k)%Z -> (prec <= k - FLT_exp emin prec k)%Z.
@@ -894,13 +893,14 @@ intro x.
 set (rx := round _ _ _ x).
 assert (Pb := u_rod1pu_ro_pos prec).
 destruct (Rle_or_lt (bpow (emin + prec - 1)) (Rabs x)) as [MX|Mx].
-{ destruct (relative_error_N_FLX'_ex prec choice x) as (d, (Bd, Hd)).
+{ destruct (relative_error_N_FLX'_ex prec Hp choice x) as (d, (Bd, Hd)).
   exists d, 0%R; split; [exact Bd|]; split.
   { rewrite Rabs_R0; apply Rmult_le_pos; [lra|apply bpow_ge_0]. }
   rewrite Rplus_0_r, Rmult_0_r; split; [reflexivity|].
   now rewrite <- Hd; apply round_FLT_FLX. }
 assert (H : (Rabs (rx - x) <= /2 * bpow emin)%R).
-{ apply (Rle_trans _ _ _ (error_le_half_ulp _ _ _ _)).
+{ refine (Rle_trans _ _ _ (error_le_half_ulp _ _ _ _) _);
+    [now apply FLT_exp_valid|].
   rewrite ulp_FLT_small; [now right|now simpl|].
   apply (Rlt_le_trans _ _ _ Mx), bpow_le; lia. }
 exists 0%R, (rx - x)%R; split; [now rewrite Rabs_R0|]; split; [exact H|].
