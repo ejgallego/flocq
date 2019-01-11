@@ -88,7 +88,7 @@ unfold Rminus; apply generic_format_plus_prec with fx (Fopp (Fmult fr fy)); triv
 intros e; apply Z.le_refl.
 now rewrite F2R_opp, F2R_mult, <- Hr1, <- Hy1.
 (* *)
-destruct (relative_error_FLX_ex beta prec rnd (x / y)%R) as (eps,(Heps1,Heps2)).
+destruct (relative_error_FLX_ex beta prec (prec_gt_0 prec) rnd (x / y)%R) as (eps,(Heps1,Heps2)).
 rewrite Heps2.
 rewrite <- Rabs_Ropp.
 replace (-(x + - (x / y * (1 + eps) * y)))%R with (x * eps)%R by now field.
@@ -174,7 +174,7 @@ unfold Rsqr; now rewrite F2R_opp,F2R_mult, <- Hr1.
 apply Rle_lt_trans with x.
 apply Rabs_minus_le.
 apply Rle_0_sqr.
-destruct (relative_error_N_FLX_ex beta prec choice (sqrt x)) as (eps,(Heps1,Heps2)).
+destruct (relative_error_N_FLX_ex beta prec (prec_gt_0 prec) choice (sqrt x)) as (eps,(Heps1,Heps2)).
 rewrite Heps2.
 rewrite Rsqr_mult, Rsqr_sqrt, Rmult_comm. 2: now apply Rlt_le.
 apply Rmult_le_compat_r.
@@ -547,7 +547,7 @@ intros x rx (d, (Bd, Hd)).
 assert (H := Rabs_le_inv _ _ Bd).
 assert (H' := om1ds1p2u_ro_le_u_rod1pu_ro).
 assert (H'' := u_rod1pu_ro_le_u_ro beta prec).
-assert (H''' := u_ro_lt_1 beta prec).
+assert (H''' := u_ro_lt_1 beta prec prec_gt_0_).
 assert (Hpos := s1p2u_rom1_pos).
 destruct (Req_dec rx 0) as [Zfx|Nzfx].
 { exists 0%R; split; [now rewrite Rabs_R0|].

@@ -2037,7 +2037,7 @@ rewrite Rlt_bool_false by apply sqrt_ge_0.
 rewrite Rlt_bool_true.
 easy.
 rewrite Rabs_pos_eq.
-refine (_ (relative_error_FLT_ex radix2 emin prec (round_mode m) (sqrt (F2R (Float radix2 (Zpos mx) ex))) _)).
+refine (_ (relative_error_FLT_ex radix2 emin prec (prec_gt_0 prec) (round_mode m) (sqrt (F2R (Float radix2 (Zpos mx) ex))) _)).
 fold fexp.
 intros (eps, (Heps, Hr)).
 rewrite Hr.

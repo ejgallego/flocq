@@ -280,7 +280,7 @@ Proof.
 intros x y Fx Fy.
 assert (Pb := u_rod1pu_ro_pos beta prec).
 destruct (Rle_or_lt (bpow (emin + prec - 1)) (Rabs (x + y))) as [M|M].
-{ destruct (relative_error_N_FLX'_ex beta prec choice (x + y))
+{ destruct (relative_error_N_FLX'_ex beta prec prec_gt_0_ choice (x + y))
     as (d, (Bd, Hd)).
   now exists d; split; [exact Bd|]; rewrite <- Hd; apply round_FLT_FLX. }
 exists 0%R; rewrite Rabs_R0; split; [exact Pb|]; rewrite Rplus_0_r, Rmult_1_r.
