@@ -1,3 +1,4 @@
+/* -*- mode: C++; indent-tabs-mode: t; c-basic-offset: 8; -*- */
 /**
 @mainpage Remake, a build system that bridges the gap between make and redo.
 
@@ -19,7 +20,7 @@ provided by the rule.
 
 As with <b>redo</b>, <b>remake</b> supports dynamic dependencies in
 addition to these static dependencies. Whenever a script executes
-<tt>remake prerequisite4 prerequisite5 ...</tt>, these prerequisites are
+`remake prerequisite4 prerequisite5 ...`, these prerequisites are
 rebuilt if they are obsolete. (So <b>remake</b> acts like
 <b>redo-ifchange</b>.) Moreover, all the dependencies are stored in file
 <b>.remake</b> so that they are remembered in subsequent runs. Note that
@@ -74,21 +75,21 @@ Usage: <tt>remake <i>options</i> <i>targets</i></tt>
 
 Options:
 
-- <tt>-B</tt>, <tt>--always-make</tt>: Unconditionally make all targets.
-- <tt>-d</tt>: Echo script commands.
-- <tt>-f FILE</tt>: Read <tt>FILE</tt> as <b>Remakefile</b>.
-- <tt>-j[N]</tt>, <tt>--jobs=[N]</tt>: Allow <tt>N</tt> jobs at once;
+- `-B`, `--always-make`: Unconditionally make all targets.
+- `-d`: Echo script commands.
+- `-f FILE`: Read `FILE` as <b>Remakefile</b>.
+- `-j[N]`, `--jobs=[N]`: Allow `N` jobs at once;
   infinite jobs with no argument.
-- <tt>-k</tt>, <tt>--keep-going</tt>: Keep going when some targets cannot be made.
-- <tt>-r</tt>: Look up targets from the dependencies on standard input.
-- <tt>-s</tt>, <tt>--silent</tt>, <tt>--quiet</tt>: Do not echo targets.
+- `-k`, `--keep-going`: Keep going when some targets cannot be made.
+- `-r`: Look up targets from the dependencies on standard input.
+- `-s`, `--silent`, `--quiet`: Do not echo targets.
 
 \section sec-syntax Syntax
 
 Lines starting with a space character or a tabulation are assumed to be rule
 scripts. They are only allowed after a rule header.
 
-Lines starting with <tt>#</tt> are considered to be comments and are ignored.
+Lines starting with `#` are considered to be comments and are ignored.
 They do interrupt rule scripts though.
 
 Any other line is either a variable definition or a rule header. If such a
@@ -107,9 +108,9 @@ targets : prerequisites
 	shell script
 @endverbatim
 
-List of names are space-separated sequences of names. If a name contains a
-space character, it should be put into double quotes. Names can not be any
-of the following special characters <tt>:$(),="</tt>. Again, quotation
+List of names are space-separated sequences of names. If a name contains
+a space character, it should be put into double quotes. Names can not be
+any of the following special characters `:$(),="`. Again, quotation
 should be used. Quotation marks can be escaped by a backslash inside
 quoted names.
 
@@ -139,24 +140,24 @@ foo.o: CFLAGS += -DBAR
 @endverbatim
 
 Note: contrarily to <b>make</b>, variable names have to be enclosed in
-parentheses. For instance, <tt>$y</tt> is not a shorthand for <tt>\$(y)</tt> and
+parentheses. For instance, `$y` is not a shorthand for <tt>\$(y)</tt> and
 is left unexpanded.
 
 \subsection sec-autovars Automatic variables
 
 The following special symbols can appear inside scripts:
 
-- <tt>$&lt;</tt> expands to the first static prerequisite of the rule.
-- <tt>$^</tt> expands to all the static prerequisites of the rule, including
+- `$<` expands to the first static prerequisite of the rule.
+- `$^` expands to all the static prerequisites of the rule, including
   duplicates if any.
-- <tt>$\@</tt> expands to the first target of the rule.
-- <tt>$*</tt> expands to the string that matched <tt>%</tt> in a generic rule.
-- <tt>$$</tt> expands to a single dollar symbol.
+- `$@` expands to the first target of the rule.
+- `$*` expands to the string that matched `%` in a generic rule.
+- `$$` expands to a single dollar symbol.
 
-Note: contrarily to <b>make</b>, there are no corresponding variables. For
-instance, <tt>$^</tt> is not a shorthand for <tt>$(^)</tt>. Another
-difference is that <tt>$\@</tt> is always the first target, not the one that
-triggered the rule.
+Note: contrarily to <b>make</b>, there are no corresponding variables.
+For instance, `$^` is not a shorthand for `$(^)`. Another difference is
+that `$@` is always the first target, not the one that triggered the
+rule.
 
 \subsection sec-functions Built-in functions
 
@@ -187,14 +188,14 @@ parser.c parser.h: parser.y
 
 \subsection sec-special-tgt Special targets
 
-Target <tt>.PHONY</tt> marks its prerequisites as being always obsolete.
+Target `.PHONY` marks its prerequisites as being always obsolete.
 
 \subsection sec-special-var Special variables
 
-Variable <tt>.OPTIONS</tt> is handled specially. Its content enables some
+Variable `.OPTIONS` is handled specially. Its content enables some
 features of <b>remake</b> that are not enabled by default.
 
-- <tt>variable-propagation</tt>: When a variable is set in the prerequisite
+- `variable-propagation`: When a variable is set in the prerequisite
   part of a rule, it is propagated to the rules of all the targets this rule
   depends on. This option also enables variables to be set on the command
   line. Note that, as in <b>make</b>, this features introduces non-determinism:
@@ -224,12 +225,12 @@ config.h stamp-config_h: config.h.in config.status
 	touch stamp-config_h
 @endverbatim
 
-A <tt>config.status</tt> file generally does not update header files (here
-<tt>config.h</tt>) if they would not change. As a consequence, if not for the
-<tt>stamp-config_h</tt> file above, a header would always be considered obsolete
-once one of its prerequisites is modified. Note that touching <tt>config.h</tt>
-rather than <tt>stamp-config_h</tt> would defeat the point of not updating it
-in the first place, since the program files would need to be rebuilt.
+A `config.status` file generally does not update header files (here
+`config.h`) if they would not change. As a consequence, if not for the
+`stamp-config_h` file above, a header would always be considered obsolete
+once one of its prerequisites is modified. Note that touching `config.h`
+rather than `stamp-config_h` would defeat the point of not updating it in
+the first place, since the program files would need to be rebuilt.
 
 Once all the static prerequisites of a target have been rebuilt, <b>remake</b>
 checks whether the target still needs to be built. If it was obsolete only
@@ -239,14 +240,14 @@ target is assumed to be up-to-date.
 \subsection sec-rules How are targets (re)built?
 
 There are two kinds of rules. If any of the targets or prerequisites contains
-a <tt>%</tt> character, the rule is said to be <em>generic</em>. All the
-targets of the rule shall then contain a single <tt>%</tt> character. All the
+a `%` character, the rule is said to be <em>generic</em>. All the
+targets of the rule shall then contain a single `%` character. All the
 other rules are said to be <em>specific</em>.
 
 A rule is said to <em>match</em> a given target:
 
 - if it is specific and the target appears inside its target list,
-- if it is generic and there is a way to replace the <tt>%</tt> character
+- if it is generic and there is a way to replace the `%` character
   from one of its targets so that it matches the given target.
 
 When <b>remake</b> tries to build a given target, it looks for a specific rule
@@ -255,10 +256,10 @@ rebuild the target.
 
 Otherwise, it looks for a generic rule that matches the target. If there are
 several matching rules, it chooses the one with the shortest pattern (and if
-there are several ones, the earliest one). <b>remake</b> then looks for
-specific rules that match each target of the generic rule. All the
-prerequisites of these specific rules are added to those of the generic rule.
-The script of the generic rule is used to build the target.
+there are several ones, the earliest one). It then looks for specific rules
+that match each target of the generic rule. All the prerequisites of these
+specific rules are added to those of the generic rule. The script of the
+generic rule is used to build the target.
 
 Example:
 
@@ -283,8 +284,8 @@ The set of rules from <b>Remakefile</b> is ill-formed:
 
 \section sec-compilation Compilation
 
-- On Linux, MacOSX, and BSD: <tt>g++ -o remake remake.cpp</tt>
-- On Windows: <tt>g++ -o remake.exe remake.cpp -lws2_32</tt>
+- On Linux, MacOSX, and BSD: `g++ -o remake remake.cpp`
+- On Windows: `g++ -o remake.exe remake.cpp -lws2_32`
 
 Installing <b>remake</b> is needed only if <b>Remakefile</b> does not
 specify the path to the executable for its recursive calls. Thanks to its
@@ -302,11 +303,11 @@ Differences with <b>make</b>:
   rules, this is similar to the behavior of pattern rules from <b>gmake</b>.
 - As with <b>redo</b>, only one shell is run when executing a script,
   rather than one per script line. Note that the shells are run with
-  option <tt>-e</tt>, thus causing them to exit as soon as an error is
+  option `-e`, thus causing them to exit as soon as an error is
   encountered.
-- The prerequisites of generic rules (known as implicit rules in make lingo)
-  are not used to decide between several of them. <b>remake</b> does not
-  select one for which it could satisfy the dependencies.
+- The prerequisites of generic rules (known as implicit rules in <b>make</b>
+  lingo) are not used to decide between several of them, which means that
+  <b>remake</b> does not select one for which it could satisfy the dependencies.
 - Variables and built-in functions are expanded as they are encountered
   during <b>Remakefile</b> parsing.
 - Target-specific variables are not propagated, unless specifically enabled,
@@ -334,7 +335,7 @@ Remakefile: Remakefile.in ./config.status
 
 - If a rule script calls <b>remake</b>, the current working directory should
   be the directory containing <b>Remakefile</b> (or the working directory
-  from the original <b>remake</b> if it was called with option <b>-f</b>).
+  from the original <b>remake</b> if it was called with option `-f`).
 - As with <b>make</b>, variables passed on the command line should keep
   the same values, to ensure deterministic builds.
 - Some cases of ill-formed rules are not caught by <b>remake</b> and can
@@ -348,8 +349,8 @@ https://github.com/apenwarr/redo for an implementation and some comprehensive do
 \section sec-licensing Licensing
 
 @author Guillaume Melquiond
-@version 0.12
-@date 2012-2014
+@version 0.13
+@date 2012-2018
 @copyright
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -741,6 +742,8 @@ static bool propagate_vars = false;
 static bool obsolete_targets = false;
 
 #ifndef WINDOWS
+static sigset_t old_sigmask;
+
 static volatile sig_atomic_t got_SIGCHLD = 0;
 
 static void sigchld_handler(int)
@@ -1451,7 +1454,7 @@ static void load_dependencies(std::istream &in)
 }
 
 /**
- * Load known dependencies from file <tt>.remake</tt>.
+ * Load known dependencies from file `.remake`.
  */
 static void load_dependencies()
 {
@@ -1467,7 +1470,7 @@ static void load_dependencies()
 
 
 /**
- * Save all the dependencies in file <tt>.remake</tt>.
+ * Save all the dependencies in file `.remake`.
  */
 static void save_dependencies()
 {
@@ -2297,6 +2300,7 @@ static status_e run_script(int job_id, job_t const &job)
 		dup2(pfd[0], 0);
 		close(pfd[0]);
 	}
+	sigprocmask(SIG_SETMASK, &old_sigmask, NULL);
 	execve("/bin/sh", (char **)argv, environ);
 	_exit(EXIT_FAILURE);
 #endif
@@ -2421,8 +2425,8 @@ static bool has_free_slots()
  * @invariant New free slots cannot appear during a run, since the only way to
  *            decrease #running_jobs is #finalize_job and the only way to
  *            increase #waiting_jobs is #accept_client. None of these functions
- *            are called during a run. So breaking out as soon as there no free
- *            slots left is fine.
+ *            are called during a run. So breaking out as soon as there are no
+ *            free slots left is fine.
  */
 static bool handle_clients()
 {
@@ -2431,8 +2435,9 @@ static bool handle_clients()
 	bool need_restart = false;
 
 	for (client_list::iterator i = clients.begin(), i_next = i,
-	     i_end = clients.end(); i != i_end && has_free_slots(); i = i_next)
+	     i_end = clients.end(); i != i_end; i = i_next)
 	{
+		if (!has_free_slots()) break;
 		++i_next;
 		DEBUG_open << "Handling client from job " << i->job_id << "... ";
 
@@ -2451,7 +2456,7 @@ static bool handle_clients()
 			case Failed:
 				i->failed = true;
 				if (!keep_going) goto complete;
-				// no break
+				// fallthrough
 			case Uptodate:
 			case Remade:
 				i->running.erase(j);
@@ -2477,7 +2482,7 @@ static bool handle_clients()
 				pending_failed:
 				i->failed = true;
 				if (!keep_going) goto complete;
-				// no break
+				// fallthrough
 			case Uptodate:
 			case Remade:
 				break;
@@ -2580,7 +2585,7 @@ static void create_server()
 	sigset_t sigmask;
 	sigemptyset(&sigmask);
 	sigaddset(&sigmask, SIGCHLD);
-	if (sigprocmask(SIG_BLOCK, &sigmask, NULL) == -1) goto error;
+	if (sigprocmask(SIG_BLOCK, &sigmask, &old_sigmask) == -1) goto error;
 	struct sigaction sa;
 	sa.sa_flags = 0;
 	sigemptyset(&sa.sa_mask);
