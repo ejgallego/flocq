@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
-Require Import Reals Fourier Psatz.
+Require Import Reals Psatz.
 From Flocq Require Import Core Plus_error.
 
 Open Scope R_scope.
@@ -270,7 +270,7 @@ rewrite <- (Rmult_1_l (ulp_flt f)) at 2.
 apply Rmult_lt_compat_r.
 rewrite ulp_neq_0; try now apply Rgt_not_eq.
 apply bpow_gt_0.
-fourier.
+lra.
 rewrite <- (round_UP_plus_eps_pos radix2 (FLT_exp emin prec) f) with (eps:=h); try assumption.
 apply round_UP_pt...
 now left.
@@ -279,7 +279,7 @@ apply Rle_trans with (1:=Hh).
 rewrite <- (Rmult_1_l (ulp_flt f)) at 2.
 apply Rmult_le_compat_r.
 apply ulp_ge_0.
-fourier.
+lra.
 apply Rplus_lt_reg_l with (-f); ring_simplify.
 apply Rlt_le_trans with (/2*ulp_flt f).
 2: right; field.
@@ -287,7 +287,7 @@ apply Rle_lt_trans with (1:=Hh).
 apply Rmult_lt_compat_r.
 rewrite ulp_neq_0; try now apply Rgt_not_eq.
 apply bpow_gt_0.
-fourier.
+lra.
 (* h = 0 *)
 rewrite <- H, Rplus_0_r.
 apply round_generic...
@@ -432,13 +432,13 @@ apply Rle_trans with (1:=Hh).
 apply Rle_trans with (/2*ulp_flt f).
 apply Rmult_le_compat_r.
 apply ulp_ge_0.
-fourier.
+lra.
 case H0.
 intros Y; rewrite Y.
 rewrite <- (Rmult_1_l (ulp_flt f)) at 2.
 apply Rmult_le_compat_r.
 apply ulp_ge_0.
-fourier.
+lra.
 intros Y; rewrite (proj1 Y); now right.
 replace (f+h) with (pred_flt f + (f-pred_flt f+h)) by ring.
 pattern f at 4; rewrite <- (round_UP_pred_plus_eps_pos radix2 (FLT_exp emin prec) f) with (eps:=(f - pred_flt f + h)); try assumption.
@@ -452,12 +452,12 @@ rewrite Y.
 rewrite <- (Rmult_1_l (ulp_flt f)) at 2.
 apply Rmult_lt_compat_r.
 rewrite ulp_neq_0;[apply bpow_gt_0|now apply Rgt_not_eq].
-fourier.
+lra.
 apply Rlt_le_trans with (1:=Y2).
 rewrite Y1.
 apply Rmult_le_compat_r.
 apply ulp_ge_0.
-fourier.
+lra.
 apply Rplus_le_reg_l with (-ulp_flt (pred_flt f)); ring_simplify.
 now left.
 rewrite pred_eq_pos; try now left.
@@ -478,7 +478,7 @@ apply Rle_lt_trans with (1:=Hh).
 rewrite Y.
 apply Rmult_lt_compat_r.
 rewrite ulp_neq_0; try apply bpow_gt_0; now apply Rgt_not_eq.
-fourier.
+lra.
 apply Rlt_le_trans with (1:=Y2).
 rewrite Y1.
 right; field.
@@ -502,19 +502,19 @@ auto with real.
 rewrite T3, T1.
 apply Rmult_le_compat_r.
 apply ulp_ge_0.
-fourier.
+lra.
 assert (round radix2 (FLT_exp emin prec) Zceil (f+h) = f).
 replace (f+h) with (pred_flt f + /2*ulp_flt (pred_flt f)).
 apply round_UP_pred_plus_eps_pos...
 split.
 apply Rmult_lt_0_compat.
-fourier.
+lra.
 rewrite ulp_neq_0; try now apply Rgt_not_eq.
 apply bpow_gt_0.
 rewrite <- (Rmult_1_l (ulp_flt (pred_flt f))) at 2.
 apply Rmult_le_compat_r.
 apply ulp_ge_0.
-fourier.
+lra.
 rewrite T1, H0, <- T2.
 replace h with (--h) by ring; rewrite T3.
 replace (bpow (mag radix2 f - 1 - prec)) with (/2*ulp_flt f).
@@ -543,11 +543,11 @@ rewrite bpow_opp.
 rewrite <- ulp_neq_0; try now apply Rgt_not_eq.
 rewrite T1.
 rewrite Rinv_mult_distr.
-2: apply Rgt_not_eq; fourier.
+2: apply Rgt_not_eq; lra.
 2: apply Rgt_not_eq; rewrite ulp_neq_0; try apply bpow_gt_0.
 2: now apply Rgt_not_eq.
 rewrite Rinv_involutive.
-2: apply Rgt_not_eq; fourier.
+2: apply Rgt_not_eq; lra.
 rewrite T2 at 2.
 rewrite ulp_bpow.
 rewrite <- bpow_opp.
@@ -794,9 +794,9 @@ unfold Rdiv; rewrite Rabs_mult.
 unfold Zminus; rewrite bpow_plus.
 simpl; rewrite (Rabs_pos_eq (/2)).
 apply (Rmult_le_compat_r (/2)).
-fourier.
+lra.
 now left.
-fourier.
+lra.
 assert (K2:bpow (prec+emin-1) <= / 4 * ulp_flt (x / 2)).
 assert (Z: x/2 <> 0).
 intros K; contradict H0.
@@ -816,9 +816,9 @@ unfold Rdiv; rewrite Rabs_mult.
 unfold Zminus; rewrite bpow_plus.
 simpl; rewrite (Rabs_right (/2)).
 apply Rmult_le_compat_r.
-fourier.
+lra.
 exact Hx.
-fourier.
+lra.
 apply He; trivial.
 rewrite Z.max_l.
 omega.
@@ -1390,7 +1390,7 @@ now apply IZR_le.
 rewrite ulp_neq_0.
 2: apply Rmult_integral_contrapositive_currified.
 2: apply Rgt_not_eq, bpow_gt_0.
-2: apply Rinv_neq_0_compat, Rgt_not_eq; fourier.
+2: apply Rinv_neq_0_compat, Rgt_not_eq; lra.
 apply bpow_le.
 unfold cexp, FLT_exp.
 apply Z.le_max_r.
@@ -1426,7 +1426,7 @@ now apply IZR_le.
 rewrite ulp_neq_0.
 2: apply Rmult_integral_contrapositive_currified.
 2: apply Rgt_not_eq, bpow_gt_0.
-2: apply Rinv_neq_0_compat, Rgt_not_eq; fourier.
+2: apply Rinv_neq_0_compat, Rgt_not_eq; lra.
 apply bpow_le.
 unfold cexp, FLT_exp.
 apply Z.le_max_r.
