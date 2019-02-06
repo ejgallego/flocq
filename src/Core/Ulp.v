@@ -2503,14 +2503,16 @@ rewrite Rnd_DN_pt_unique with F x (round beta fexp Zfloor x) d; try assumption.
 apply round_DN_pt...
 Qed.
 
-Lemma plus_ulp_rnd_ge : forall { Hm : Monotone_exp fexp } choice x,
-  let rx := round beta fexp (Znearest choice) x in
-  (x <= round beta fexp (Znearest choice) (rx + ulp rx))%R.
+Lemma round_N_plus_ulp_ge :
+  forall { Hm : Monotone_exp fexp } choice1 choice2 x,
+  let rx := round beta fexp (Znearest choice2) x in
+  (x <= round beta fexp (Znearest choice1) (rx + ulp rx))%R.
 Proof.
-intros Hm choice x.
+intros Hm choice1 choice2 x.
 simpl.
 set (rx := round _ _ _ x).
-assert (Vrnd : Valid_rnd (Znearest choice)); [now apply valid_rnd_N|].
+assert (Vrnd1 : Valid_rnd (Znearest choice1)) by now apply valid_rnd_N.
+assert (Vrnd2 : Valid_rnd (Znearest choice2)) by now apply valid_rnd_N.
 apply (Rle_trans _ (succ rx)); [now apply succ_round_ge_id|].
 rewrite round_generic; [now apply succ_le_plus_ulp|now simpl|].
 now apply generic_format_plus_ulp, generic_format_round.

@@ -2794,7 +2794,7 @@ intros pred_nan x Fx.
 assert (Fox : is_finite (Bopp pred_nan x) = true).
 { now rewrite is_finite_Bopp. }
 rewrite <-(Ropp_involutive (B2R x)), <-(B2R_Bopp pred_nan).
-rewrite pred_opp, Rlt_bool_Ropp.
+rewrite pred_opp, Rlt_bool_opp.
 generalize (Bsucc_correct pred_nan _ Fox).
 case (Rlt_bool _ _).
 - intros (HR, (HF, HS)); unfold Bpred.
