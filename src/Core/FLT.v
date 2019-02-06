@@ -226,6 +226,18 @@ omega.
 apply Z.le_refl.
 Qed.
 
+Lemma negligible_exp_FLT :
+  exists n, negligible_exp FLT_exp = Some n /\ (n <= emin)%Z.
+Proof.
+case (negligible_exp_spec FLT_exp).
+{ intro H; exfalso; specialize (H emin); revert H.
+  apply Zle_not_lt, Z.le_max_r. }
+intros n Hn; exists n; split; [now simpl|].
+destruct (Z.max_spec (n - prec) emin) as [(Hm, Hm')|(Hm, Hm')].
+{ now revert Hn; unfold FLT_exp; rewrite Hm'. }
+revert Hn prec_gt_0_; unfold FLT_exp, Prec_gt_0; rewrite Hm'; lia.
+Qed.
+
 Theorem generic_format_FLT_1 (Hemin : (emin <= 0)%Z) :
   generic_format beta FLT_exp 1.
 Proof.

@@ -1864,6 +1864,17 @@ apply round_UP_pt...
 now apply Rlt_le.
 Qed.
 
+Lemma error_le_ulp_round :
+  forall { Hm : Monotone_exp fexp } rnd { Zrnd : Valid_rnd rnd } x,
+  (Rabs (round beta fexp rnd x - x) <= ulp (round beta fexp rnd x))%R.
+Proof.
+intros Mexp rnd Vrnd x.
+destruct (Req_dec x 0) as [Zx|Nzx].
+{ rewrite Zx, round_0; [|exact Vrnd].
+  unfold Rminus; rewrite Ropp_0, Rplus_0_l, Rabs_R0; apply ulp_ge_0. }
+now apply Rlt_le, error_lt_ulp_round.
+Qed.
+
 (** allows both x and rnd x to be 0 *)
 Theorem error_le_half_ulp_round :
   forall { Hm : Monotone_exp fexp },
@@ -2007,6 +2018,94 @@ apply Rnot_le_lt.
 intros H.
 apply Rgt_not_le with (1 := Hxy).
 now apply succ_le_inv.
+Qed.
+
+(** Adding [ulp] is a, somewhat reasonable, overapproximation of [succ]. *)
+Lemma succ_le_plus_ulp :
+  forall { Hm : Monotone_exp fexp } x,
+  (succ x <= x + ulp x)%R.
+Proof.
+intros Mexp x.
+destruct (Rle_or_lt 0 x) as [Px|Nx]; [now right; apply succ_eq_pos|].
+replace (_ + _)%R with (- (-x - ulp x))%R by ring.
+unfold succ; rewrite (Rle_bool_false _ _ Nx), <-ulp_opp.
+apply Ropp_le_contravar; unfold pred_pos.
+destruct (Req_dec (-x) (bpow (mag beta (-x) - 1))) as [Hx|Hx].
+{ rewrite (Req_bool_true _ _ Hx).
+   apply (Rplus_le_reg_r x); ring_simplify; apply Ropp_le_contravar.
+   unfold ulp; rewrite Req_bool_false; [|lra].
+   apply bpow_le, Mexp; lia. }
+ now rewrite (Req_bool_false _ _ Hx); right.
+Qed.
+
+(** And it also lies in the format. *)
+Lemma generic_format_plus_ulp :
+  forall { Hm : Monotone_exp fexp } x,
+  generic_format beta fexp x ->
+  generic_format beta fexp (x + ulp x).
+Proof.
+intros Mexp x Fx.
+destruct (Rle_or_lt 0 x) as [Px|Nx].
+{ now rewrite <-(succ_eq_pos _ Px); apply generic_format_succ. }
+apply generic_format_opp in Fx.
+replace (_ + _)%R with (- (-x - ulp x))%R by ring.
+apply generic_format_opp; rewrite <-ulp_opp.
+destruct (Req_dec (-x) (bpow (mag beta (-x) - 1))) as [Hx|Hx].
+{ unfold ulp; rewrite Req_bool_false; [|lra].
+  rewrite Hx at 1.
+  unfold cexp.
+  set (e := mag _ _).
+  assert (Hfe : (fexp e < e)%Z).
+  { now apply mag_generic_gt; [|lra|]. }
+  replace (e - 1)%Z with (e - 1 - fexp e + fexp e)%Z by ring.
+  rewrite bpow_plus.
+  set (m := bpow (_ - _)).
+  replace (_ - _)%R with ((m - 1) * bpow (fexp e))%R; [|unfold m; ring].
+  case_eq (e - 1 - fexp e)%Z.
+  { intro He; unfold m; rewrite He; simpl; ring_simplify (1 - 1)%R.
+    rewrite Rmult_0_l; apply generic_format_0. }
+  { intros p Hp; unfold m; rewrite Hp; simpl.
+    pose (f := {| Defs.Fnum := (Z.pow_pos beta p - 1)%Z;
+                  Defs.Fexp := fexp e |} : Defs.float beta).
+    apply (generic_format_F2R' _ _ _ f); [|intro Hm'; unfold f; simpl].
+    { now unfold Defs.F2R; simpl; rewrite minus_IZR. }
+    unfold cexp.
+    replace (IZR _) with (bpow (Z.pos p)); [|now simpl].
+    rewrite <-Hp.
+    assert (He : (1 <= e - 1 - fexp e)%Z); [lia|].
+    set (e' := mag _ (_ * _)).
+    assert (H : (e' = e - 1 :> Z)%Z); [|rewrite H; apply Mexp; lia].
+    unfold e'; apply mag_unique.
+    rewrite Rabs_mult, (Rabs_pos_eq (bpow _)); [|apply bpow_ge_0].
+    rewrite Rabs_pos_eq;
+      [|apply (Rplus_le_reg_r 1); ring_simplify;
+        change 1%R with (bpow 0); apply bpow_le; lia].
+    assert (beta_pos : (0 < IZR beta)%R).
+    { apply (Rlt_le_trans _ 2); [lra|].
+      apply IZR_le, Z.leb_le, radix_prop. }
+    split.
+    { replace (e - 1 - 1)%Z with (e - 1 - fexp e + -1  + fexp e)%Z by ring.
+      rewrite bpow_plus.
+      apply Rmult_le_compat_r; [apply bpow_ge_0|].
+      rewrite bpow_plus; simpl; unfold Z.pow_pos; simpl.
+      rewrite Zmult_1_r.
+      apply (Rmult_le_reg_r _ _ _ beta_pos).
+      rewrite Rmult_assoc, Rinv_l; [|lra]; rewrite Rmult_1_r.
+      apply (Rplus_le_reg_r (IZR beta)); ring_simplify.
+      apply (Rle_trans _ (2 * bpow (e - 1 - fexp e))).
+      { change 2%R with (1 + 1)%R; rewrite Rmult_plus_distr_r, Rmult_1_l.
+        apply Rplus_le_compat_l.
+        rewrite <-bpow_1; apply bpow_le; lia. }
+      rewrite Rmult_comm; apply Rmult_le_compat_l; [apply bpow_ge_0|].
+      apply IZR_le, Z.leb_le, radix_prop. }
+    apply (Rmult_lt_reg_r (bpow (- fexp e))); [apply bpow_gt_0|].
+    rewrite Rmult_assoc, <-!bpow_plus.
+    replace (fexp e + - fexp e)%Z with 0%Z by ring; simpl.
+    rewrite Rmult_1_r; unfold Zminus; lra. }
+  intros p Hp; exfalso; lia. }
+replace (_ - _)%R with (pred_pos (-x)).
+{ now apply generic_format_pred_pos; [|lra]. }
+now unfold pred_pos; rewrite Req_bool_false.
 Qed.
 
 Theorem round_DN_ge_UP_gt :
@@ -2262,7 +2361,17 @@ apply generic_format_0...
 now apply Rlt_le.
 Qed.
 
-
+Lemma succ_round_ge_id :
+  forall rnd { Zrnd : Valid_rnd rnd } x,
+  (x <= succ (round beta fexp rnd x))%R.
+Proof.
+intros rnd Vrnd x.
+apply (Rle_trans _ (round beta fexp Raux.Zceil x)).
+{ now apply round_UP_pt. }
+destruct (round_DN_or_UP beta fexp rnd x) as [Hr|Hr]; rewrite Hr.
+{ now apply UP_le_succ_DN. }
+apply succ_ge_id.
+Qed.
 
 (** Properties of rounding to nearest and ulp *)
 
@@ -2392,6 +2501,19 @@ apply round_N_eq_UP.
 rewrite <- H0.
 rewrite Rnd_DN_pt_unique with F x (round beta fexp Zfloor x) d; try assumption.
 apply round_DN_pt...
+Qed.
+
+Lemma plus_ulp_rnd_ge : forall { Hm : Monotone_exp fexp } choice x,
+  let rx := round beta fexp (Znearest choice) x in
+  (x <= round beta fexp (Znearest choice) (rx + ulp rx))%R.
+Proof.
+intros Hm choice x.
+simpl.
+set (rx := round _ _ _ x).
+assert (Vrnd : Valid_rnd (Znearest choice)); [now apply valid_rnd_N|].
+apply (Rle_trans _ (succ rx)); [now apply succ_round_ge_id|].
+rewrite round_generic; [now apply succ_le_plus_ulp|now simpl|].
+now apply generic_format_plus_ulp, generic_format_round.
 Qed.
 
 End Fcore_ulp.
