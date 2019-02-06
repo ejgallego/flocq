@@ -1,3 +1,13 @@
+Version 3.1.0
+-------------
+
+* changed matching order in `Bcompare`
+* improved behavior of `Binary.v` functions with respect to NaNs
+* ensured compatibility from Coq 8.7 to 8.9
+* added functions `Bpred` and `Bsucc`
+* added theorems on optimal relative error bounds for plus and square root
+* made installation also install source files
+
 Version 3.0.0
 -------------
 
