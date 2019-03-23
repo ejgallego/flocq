@@ -3964,12 +3964,9 @@ rewrite FSuccSimpl2; auto with arith.
 rewrite FSuccSimpl2; auto with arith.
 unfold Fshift in |- *; simpl in |- *.
 rewrite Z.mul_1_r; auto.
-unfold pPred in |- *;
+rewrite H'1; unfold pPred in |- *;
  rewrite (PosNormMin radix) with (precision := precision);
- auto with zarith; rewrite H'1.
-rewrite Zopp_mult_distr_l_reverse.
-rewrite (Zmult_comm radix).
-apply Zopp_Zpred_Zs.
+ auto with zarith.
 unfold Fshift in |- *; simpl in |- *.
 replace (Zpos (P_of_succ_nat (Z.abs_nat (Fexp q - Fexp p))))
  with (Z.succ (Fexp q - Fexp p)).
@@ -20202,8 +20199,7 @@ unfold Zminus; rewrite plus_IZR; rewrite Ropp_Ropp_IZR; replace (Fexp dp') with 
 rewrite H4'; rewrite <- H1; auto with zarith.
 rewrite dpEq; rewrite dqEq; rewrite <- H3; rewrite <- H3'.
 elim H; unfold Rabs; case (Rcase_abs dp'); case (Rcase_abs dq'); intros.
-exists (Float 0%Z 0%Z); split;[split; auto with zarith|idtac].
-simpl; case (dExp bo); auto with zarith.
+exists (Float 0%Z 0%Z); split;[split; unfold Fexp;auto with zarith|idtac].
 apply trans_eq with (-(-dp')+-dq')%R;[rewrite H0; rewrite H6; unfold FtoRradix, FtoR;simpl|idtac];ring.
 exists (Float (-2)%Z (Z.pred (Fexp p))); split;[split; simpl; auto with zarith|idtac].
 rewrite pGivesBound; apply Z.le_lt_trans with (Zpower_nat radix 1); auto with zarith.
@@ -20215,8 +20211,7 @@ rewrite pGivesBound; apply Z.le_lt_trans with (Zpower_nat radix 1); auto with za
 apply Zpower_nat_monotone_lt; auto with zarith.
 apply Z.le_trans with (Fexp dp'); auto with zarith; apply H2.
 unfold Rminus;rewrite H0; rewrite H6; unfold FtoRradix, FtoR;simpl; ring.
-exists (Float 0%Z 0%Z); split;[split; auto with zarith|idtac].
-simpl; case (dExp bo); auto with zarith.
+exists (Float 0%Z 0%Z); split;[split; unfold Fexp;auto with zarith|idtac].
 rewrite H0; rewrite H6; unfold FtoRradix, FtoR; simpl;ring.
 Qed.
 
@@ -23339,8 +23334,7 @@ apply Rle_trans with (Rsqr (FtoR 2 b)) ; auto with real.
 2:unfold delta; apply discri9 with p q t dp dq s; auto.
 exists (Float 0%Z 0%Z).
 split.
-unfold Fbounded; split; auto with zarith.
-simpl; case (dExp bo); auto with zarith.
+unfold Fbounded; split; unfold Fexp; auto with zarith.
 apply trans_eq with 0%R.
 unfold FtoR; simpl; ring.
 fold radix; fold FtoRradix.
