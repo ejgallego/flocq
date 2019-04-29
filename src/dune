@@ -1,0 +1,8 @@
+(coqlib
+ (name Flocq)
+ (public_name flocq)
+ (modules :standard \
+    Translate.Missing_theos
+    Translate.Ftranslate_flocq2Pff))
+
+(include_subdirs qualified)
