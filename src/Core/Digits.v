@@ -20,7 +20,7 @@ COPYING file for more details.
 From Coq Require Import Lia ZArith Zquot.
 
 Require Import Zaux.
-Require Import SpecFloatCompat.
+Require Import Coq.Floats.SpecFloat.
 
 Notation digits2_pos := digits2_pos (only parsing).
 Notation Zdigits2 := Zdigits2 (only parsing).

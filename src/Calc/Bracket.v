@@ -21,7 +21,7 @@ COPYING file for more details.
 
 From Coq Require Import Lia.
 Require Import Raux Defs Float_prop.
-Require Import SpecFloatCompat.
+Require Import Coq.Floats.SpecFloat.
 
 Notation location := location (only parsing).
 Notation loc_Exact := loc_Exact (only parsing).

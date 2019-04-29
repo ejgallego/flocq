@@ -1,0 +1,9 @@
+(coq.theory
+ (name Flocq)
+ (package flocq)
+ (modules :standard)
+ (flags
+   -w -ambiguous-paths
+   -w -deprecated-syntactic-definition))
+
+(include_subdirs qualified)

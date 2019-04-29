@@ -19,7 +19,7 @@ COPYING file for more details.
 
 From Coq Require Import ZArith Lia Zquot.
 
-Require Import SpecFloatCompat.
+Require Import Coq.Floats.SpecFloat.
 
 Notation cond_Zopp := cond_Zopp (only parsing).
 Notation iter_pos := iter_pos (only parsing).
