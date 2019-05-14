@@ -4,7 +4,7 @@ Installation instructions
 Prerequisites
 -------------
 
-You will need the [Coq proof assistant](https://coq.inria.fr/) (>= 8.4)
+You will need the [Coq proof assistant](https://coq.inria.fr/) (>= 8.7)
 with the `Reals` theory compiled in.
 
 The `.tar.gz` file is distributed with a working set of configure files. They
