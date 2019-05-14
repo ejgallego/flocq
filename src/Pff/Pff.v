@@ -430,8 +430,7 @@ Let nMoreThanOne := Zlt_1_O _ (Zlt_le_weak _ _ nMoreThan1).
 
 
 Theorem Zpower_nat_less : forall q : nat, (0 < Zpower_nat n q)%Z.
-intros q; elim q; simpl in |- *; auto with zarith.
-intros; apply Z.mul_pos_pos; auto with zarith.
+  intros q; elim q; simpl in |- *; [|intros ; apply Z.mul_pos_pos ]; auto with zarith.
 Qed.
 
 
@@ -13011,9 +13010,9 @@ rewrite Z.abs_eq; auto with zarith.
 rewrite PosNormMin with radix b p; auto with zarith.
 cut (nNormMin radix p <= Fnum f)%Z; auto with zarith.
 elim H5; intros.
+rewrite Z.abs_eq in H7 by auto with zarith.
 apply Zmult_le_reg_r with radix; auto with zarith.
 rewrite Zmult_comm; rewrite <- PosNormMin with radix b p; auto with zarith.
-rewrite Z.abs_eq in H7; auto with zarith.
 elim H5; intros T1 T2; elim T1; elim T2; clear T1 T2; intros.
 right; split; split; simpl; auto with zarith.
 apply Z.le_lt_trans with (2:=H7); rewrite Z.abs_eq; auto with zarith.
@@ -13080,7 +13079,8 @@ Hypothesis Nq:  Fnormal radix b q.
 Hypothesis Nx:  Fnormal radix b x.
 
 Lemma p'GivesBound: Zpos (vNum b')=(Zpower_nat radix (minus t s)).
-unfold b' in |- *; unfold vNum in |- *.
+clear SGe.
+  unfold b' in |- *; unfold vNum in |- *.
 apply
  trans_eq
   with
@@ -17484,11 +17484,11 @@ split.
 unfold Fmult; split; simpl; auto with zarith.
 rewrite Zabs_Zmult.
 elim Fx1; elim Fy1; intros.
-apply Z.lt_le_trans with (Zpos (vNum b')*Zpos (vNum b'))%Z; auto with zarith.
-case (Zle_lt_or_eq 0%Z (Z.abs (Fnum x1))); auto with zarith.
+apply Z.lt_le_trans with (Zpos (vNum b')*Zpos (vNum b'))%Z.
+case (Zle_lt_or_eq 0%Z (Z.abs (Fnum x1)));[auto with zarith| |].
 intros I; apply Z.lt_le_trans with  (Z.abs (Fnum x1) * Zpos (vNum b'))%Z; auto with zarith.
 apply Zmult_lt_compat_l; auto with zarith.
-intros I; rewrite <- I, Zmult_0_l; auto with zarith.
+intros I; rewrite <- I, Zmult_0_l.
 apply Z.mul_pos_pos; auto with zarith.
 unfold b'; rewrite p'GivesBound; auto with zarith.
 rewrite <- Zpower_nat_is_exp.
@@ -17496,6 +17496,9 @@ rewrite pGivesBound; auto with zarith.
 apply Zpower_nat_monotone_le; omega.
 simpl; auto.
 Qed.
+
+
+
 
 Lemma Boundedx1y1: (exists x':float, (FtoRradix x'=x1*y1)%R /\ (Fbounded b x')).
 elim Boundedx1y1_aux; intros f T; elim T ; intros T1 T2; elim T2; intros.
@@ -17511,11 +17514,11 @@ unfold Fmult; split; simpl; auto with zarith.
 rewrite Zabs_Zmult.
 elim Fx1; elim Fy2; intros.
 apply Z.lt_le_trans with (Zpos (vNum b')*Zpos (vNum bt))%Z; auto with zarith.
-case (Zle_lt_or_eq 0%Z (Z.abs (Fnum x1))); auto with zarith.
+case (Zle_lt_or_eq 0%Z (Z.abs (Fnum x1))); [auto with zarith| |
+                                            ].
 intros I; apply Z.lt_le_trans with  (Z.abs (Fnum x1) * Zpos (vNum bt))%Z; auto with zarith.
 apply Zmult_lt_compat_l; auto with zarith.
-intros I; rewrite <- I; auto with zarith.
-rewrite Zmult_0_l.
+intros I; rewrite <- I; rewrite Zmult_0_l.
 apply Z.mul_pos_pos; auto with zarith.
 unfold b'; rewrite p'GivesBound; auto with zarith.
 rewrite p''GivesBound; auto with zarith.
@@ -17539,11 +17542,10 @@ unfold Fmult; split; simpl; auto with zarith.
 rewrite Zabs_Zmult.
 elim Fx2; elim Fy1; intros.
 apply Z.lt_le_trans with (Zpos (vNum bt)*Zpos (vNum b'))%Z; auto with zarith.
-case (Zle_lt_or_eq 0%Z (Z.abs (Fnum x2))); auto with zarith.
+case (Zle_lt_or_eq 0%Z (Z.abs (Fnum x2))); [auto with zarith| |].
 intros I; apply Z.lt_le_trans with  (Z.abs (Fnum x2) * Zpos (vNum b'))%Z; auto with zarith.
 apply Zmult_lt_compat_l; auto with zarith.
-intros I; rewrite <- I; auto with zarith.
-rewrite Zmult_0_l.
+intros I; rewrite <- I; rewrite Zmult_0_l;
 apply Z.mul_pos_pos; auto with zarith.
 unfold b'; rewrite p'GivesBound; auto with zarith.
 rewrite p''GivesBound; auto with zarith.
@@ -18006,9 +18008,8 @@ elim Veltkamp with radix b s t y p' q' hy; auto with zarith arith.
 intros T1 T; elim T; intros hy' T'; elim T'; intros G1 T''; elim T''; intros ; clear T1 T T' T''.
 unfold FtoRradix; rewrite <- G1.
  apply ClosestZero with (Bound (P_of_succ_nat (pred (Z.abs_nat (Zpower_nat radix (t - s)))))
-            (dExp b)) (t-s) (FtoR radix y)%R; auto with zarith.
-apply p'GivesBound; auto with zarith.
-apply SGe; auto.
+                               (dExp b)) (t-s) (FtoR radix y)%R; auto with zarith.
+apply p'GivesBound; solve [auto with zarith].
 cut (s <= t-2)%nat ;[idtac | apply SGe; auto].
 unfold s; auto with zarith.
 unfold FtoRradix; apply ClosestZero with b t (x*y)%R; auto with zarith.
@@ -18261,7 +18262,6 @@ unfold FtoRradix; rewrite <- G1.
  apply ClosestZero with (Bound (P_of_succ_nat (pred (Z.abs_nat (Zpower_nat radix (t - s)))))
             (dExp b)) (t-s) (FtoR radix x)%R; auto with zarith.
 apply p'GivesBound; auto with zarith.
-apply SGe; auto.
 cut  (s <= t - 2)%nat; [unfold s; auto with zarith| apply SGe; auto].
 unfold FtoRradix; apply ClosestZero with b t (x*y)%R; auto with zarith.
 rewrite <- Ny; ring.
@@ -18955,7 +18955,6 @@ unfold FtoRradix; rewrite <- G1.
 apply ClosestZero with (Bound (P_of_succ_nat (pred (Z.abs_nat (Zpower_nat radix (t - s)))))
             (dExp b)) (t-s) (FtoR radix x)%R; auto with zarith.
 apply p'GivesBound; auto with zarith.
-apply SGe; auto.
 cut (s <= t-2)%nat; [unfold s; auto with zarith | apply SGe; auto].
 unfold FtoRradix; apply ClosestZero with b t (x*y)%R; auto with zarith.
 rewrite <- Ny; ring.
@@ -19007,7 +19006,6 @@ unfold FtoRradix; rewrite <- G1.
 apply ClosestZero with (Bound (P_of_succ_nat (pred (Z.abs_nat (Zpower_nat radix (t - s)))))
             (dExp b)) (t-s) (FtoR radix y)%R; auto with zarith.
 apply p'GivesBound; auto with zarith.
-apply SGe; auto.
 cut (s <= t-2)%nat; [unfold s; auto with zarith | apply SGe; auto].
 unfold FtoRradix; apply ClosestZero with b t (x*y)%R; auto with zarith.
 rewrite <- Nx; ring.

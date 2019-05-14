@@ -451,7 +451,6 @@ replace (Z.abs_nat (prec - s)) with (Z.abs_nat prec - Z.abs_nat s)%nat.
 rewrite <- (p'GivesBound beta (make_bound beta prec emin) (Z.abs_nat s) (Z.abs_nat prec)) at 2.
 simpl; easy.
 apply radix_gt_1.
-apply ZleLe; rewrite inj_abs; auto with zarith.
 apply Nat2Z.inj.
 rewrite inj_minus; repeat rewrite inj_abs; omega.
 apply N2Z.inj.
