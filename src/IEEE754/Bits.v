@@ -623,6 +623,12 @@ Proof.
 apply refl_equal.
 Qed.
 
+Let Hemax : (3 <= 128)%Z.
+Proof.
+intros H.
+discriminate H.
+Qed.
+
 Definition default_nan_pl32 : { nan : binary32 | is_nan 24 128 nan = true } :=
   exist _ (@B754_nan 24 128 false (iter_nat xO 22 xH) (refl_equal true)) (refl_equal true).
 
@@ -639,15 +645,27 @@ Definition binop_nan_pl32 (f1 f2 : binary32) : { nan : binary32 | is_nan 24 128 
   | _, _ => default_nan_pl32
   end.
 
+Definition ternop_nan_pl32 (f1 f2 f3 : binary32) : { nan : binary32 | is_nan 24 128 nan = true } :=
+  match f1, f2, f3 with
+  | B754_nan s1 pl1 Hpl1, _, _ => exist _ (B754_nan s1 pl1 Hpl1) (refl_equal true)
+  | _, B754_nan s2 pl2 Hpl2, _ => exist _ (B754_nan s2 pl2 Hpl2) (refl_equal true)
+  | _, _, B754_nan s3 pl3 Hpl3 => exist _ (B754_nan s3 pl3 Hpl3) (refl_equal true)
+  | _, _, _ => default_nan_pl32
+  end.
+
 Definition b32_erase : binary32 -> binary32 := erase 24 128.
 Definition b32_opp : binary32 -> binary32 := Bopp 24 128 unop_nan_pl32.
 Definition b32_abs : binary32 -> binary32 := Babs 24 128 unop_nan_pl32.
-Definition b32_sqrt :  mode -> binary32 -> binary32 := Bsqrt  _ _ Hprec Hprec_emax unop_nan_pl32.
+Definition b32_pred : binary32 -> binary32 := Bpred _ _ Hprec Hprec_emax Hemax unop_nan_pl32.
+Definition b32_succ : binary32 -> binary32 := Bsucc _ _ Hprec Hprec_emax Hemax unop_nan_pl32.
+Definition b32_sqrt : mode -> binary32 -> binary32 := Bsqrt  _ _ Hprec Hprec_emax unop_nan_pl32.
 
 Definition b32_plus :  mode -> binary32 -> binary32 -> binary32 := Bplus  _ _ Hprec Hprec_emax binop_nan_pl32.
 Definition b32_minus : mode -> binary32 -> binary32 -> binary32 := Bminus _ _ Hprec Hprec_emax binop_nan_pl32.
 Definition b32_mult :  mode -> binary32 -> binary32 -> binary32 := Bmult  _ _ Hprec Hprec_emax binop_nan_pl32.
 Definition b32_div :   mode -> binary32 -> binary32 -> binary32 := Bdiv   _ _ Hprec Hprec_emax binop_nan_pl32.
+
+Definition b32_fma :   mode -> binary32 -> binary32 -> binary32 -> binary32 := Bfma _ _ Hprec Hprec_emax ternop_nan_pl32.
 
 Definition b32_compare : binary32 -> binary32 -> option comparison := Bcompare 24 128.
 Definition b32_of_bits : Z -> binary32 := binary_float_of_bits 23 8 (refl_equal _) (refl_equal _) (refl_equal _).
@@ -672,6 +690,12 @@ Proof.
 apply refl_equal.
 Qed.
 
+Let Hemax : (3 <= 1024)%Z.
+Proof.
+intros H.
+discriminate H.
+Qed.
+
 Definition default_nan_pl64 : { nan : binary64 | is_nan 53 1024 nan = true } :=
   exist _ (@B754_nan 53 1024 false (iter_nat xO 51 xH) (refl_equal true)) (refl_equal true).
 
@@ -688,15 +712,27 @@ Definition binop_nan_pl64 (f1 f2 : binary64) : { nan : binary64 | is_nan 53 1024
   | _, _ => default_nan_pl64
   end.
 
+Definition ternop_nan_pl64 (f1 f2 f3 : binary64) : { nan : binary64 | is_nan 53 1024 nan = true } :=
+  match f1, f2, f3 with
+  | B754_nan s1 pl1 Hpl1, _, _ => exist _ (B754_nan s1 pl1 Hpl1) (refl_equal true)
+  | _, B754_nan s2 pl2 Hpl2, _ => exist _ (B754_nan s2 pl2 Hpl2) (refl_equal true)
+  | _, _, B754_nan s3 pl3 Hpl3 => exist _ (B754_nan s3 pl3 Hpl3) (refl_equal true)
+  | _, _, _ => default_nan_pl64
+  end.
+
 Definition b64_erase : binary64 -> binary64 := erase 53 1024.
 Definition b64_opp : binary64 -> binary64 := Bopp 53 1024 unop_nan_pl64.
 Definition b64_abs : binary64 -> binary64 := Babs 53 1024 unop_nan_pl64.
+Definition b64_pred : binary64 -> binary64 := Bpred _ _ Hprec Hprec_emax Hemax unop_nan_pl64.
+Definition b64_succ : binary64 -> binary64 := Bsucc _ _ Hprec Hprec_emax Hemax unop_nan_pl64.
 Definition b64_sqrt : mode -> binary64 -> binary64 := Bsqrt _ _ Hprec Hprec_emax unop_nan_pl64.
 
 Definition b64_plus  : mode -> binary64 -> binary64 -> binary64 := Bplus  _ _ Hprec Hprec_emax binop_nan_pl64.
 Definition b64_minus : mode -> binary64 -> binary64 -> binary64 := Bminus _ _ Hprec Hprec_emax binop_nan_pl64.
 Definition b64_mult  : mode -> binary64 -> binary64 -> binary64 := Bmult  _ _ Hprec Hprec_emax binop_nan_pl64.
 Definition b64_div   : mode -> binary64 -> binary64 -> binary64 := Bdiv   _ _ Hprec Hprec_emax binop_nan_pl64.
+
+Definition b64_fma :   mode -> binary64 -> binary64 -> binary64 -> binary64 := Bfma _ _ Hprec Hprec_emax ternop_nan_pl64.
 
 Definition b64_compare : binary64 -> binary64 -> option comparison := Bcompare 53 1024.
 Definition b64_of_bits : Z -> binary64 := binary_float_of_bits 52 11 (refl_equal _) (refl_equal _) (refl_equal _).
