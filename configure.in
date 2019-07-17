@@ -51,7 +51,7 @@ fi
 AC_MSG_RESULT([$COQDOC])
 
 if test "$libdir" = '${exec_prefix}/lib'; then
-  libdir="`$COQC -where`/user-contrib/Flocq"
+  libdir="`$COQC -where | tr -d '\r' | tr '\\\\' '/'`/user-contrib/Flocq"
 fi
 
 AC_MSG_NOTICE([building remake...])
