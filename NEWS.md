@@ -1,3 +1,9 @@
+Version 3.2.0
+-------------
+
+* added function `Bfma`
+* ensured compatibility from Coq 8.7 to 8.10
+
 Version 3.1.0
 -------------
 
