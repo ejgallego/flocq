@@ -8,7 +8,7 @@ multi-precision fixed- and floating-point arithmetic for the
 PROJECT HOME
 ------------
 
-Homepage: http://flocg.gforge.inria.fr/
+Homepage: http://flocq.gforge.inria.fr/
 
 Repository: https://gitlab.inria.fr/flocq/flocq
 
