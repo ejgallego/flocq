@@ -457,9 +457,8 @@ easy.
 apply canonical_unique with (FLT_exp (- dExp b) p).
 2: assumption.
 apply pff_canonic_is_canonic.
-apply FnormalizeCanonic; auto with zarith real.
+apply FnormalizeCanonic. 2-3: lia. 2: auto with real.
 apply radix_gt_1.
-lia.
 exact L.
 rewrite <- Hg1, <- Hf1.
 rewrite <- FnormalizeCorrect with beta b (Z.abs_nat p) f; auto with zarith.
