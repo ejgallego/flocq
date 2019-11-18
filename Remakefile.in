@@ -28,8 +28,7 @@ FILES = \
 	Prop/Double_rounding.v \
 	IEEE754/Binary.v \
 	IEEE754/Bits.v \
-	PrimitiveFloats/SpecLayer.v \
-	PrimitiveFloats/NativeLayer.v \
+        @PRIM_FLOAT@ \
 	Pff/Pff.v \
 	Pff/Pff2FlocqAux.v \
 	Pff/Pff2Flocq.v
