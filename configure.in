@@ -29,6 +29,25 @@ if test ! "$COQC"; then
 fi
 AC_MSG_RESULT([$COQC])
 
+AC_MSG_CHECKING(Coq version)
+coq_version=`$COQC -v | grep version | sed -e 's/^.*version \([[0-9.]]*\).*$/\1/'`
+maj=`echo "$coq_version" | cut -d . -f 1`
+min=`echo "$coq_version" | cut -d . -f 2`
+if test "v$maj" = "v" -o "v$min" = "v" ; then
+  AC_MSG_ERROR([Unknown Coq version $coq_version])
+fi
+if test "$maj" -lt "8" || test "$maj" = "8" -a "$min" -lt "7" ; then
+  AC_MSG_ERROR([Coq version must be at least 8.7 (you have version $coq_version).])
+fi
+AC_MSG_RESULT($coq_version)
+
+if test "$maj" = "8" -a "$min" -lt "11" ; then
+  PRIM_FLOAT=""
+else
+  PRIM_FLOAT="PrimitiveFloats/SpecLayer.v PrimitiveFloats/NativeLayer.v"
+fi
+AC_SUBST(PRIM_FLOAT)
+
 AC_ARG_VAR(COQDEP, [Coq dependency analyzer command [coqdep]])
 AC_MSG_CHECKING([for coqdep])
 if test ! "$COQDEP"; then
