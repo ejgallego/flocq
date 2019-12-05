@@ -838,8 +838,8 @@ Qed.
 
 Theorem Zpower_NR1 :
  forall (e : Z) (n : nat), (1 <= e)%Z -> (1 <= Zpower_nat e n)%Z.
-intros e n; elim n; simpl in |- *;
- auto with zarith.
+intros e n; elim n; simpl in |- *.
+auto with zarith.
 intros m H1 H2; rewrite <- (Zmult_1_l 1).
 apply Z.mul_le_mono_nonneg; auto with zarith.
 Qed.
@@ -13377,9 +13377,10 @@ apply IZR_le, LeR0Fnum with radix; auto with real zarith.
 apply Rplus_le_compat_l; apply IZR_le; omega.
 exists (Float (Fnum x +radix) (Fexp x + s)).
 elim Nx; elim Fx; intros.
-repeat split; simpl; auto with zarith.
-rewrite Z.abs_eq; auto with zarith.
-rewrite Z.abs_eq in H3; auto with zarith.
+repeat split; simpl.
+1,2 : auto with zarith.
+rewrite Z.abs_eq by  auto with zarith.
+rewrite Z.abs_eq in H3 by auto with zarith.
 apply Z.le_trans with (1:=H3); auto with zarith.
 unfold FtoRradix, FtoR; simpl; rewrite plus_IZR; simpl; ring.
 cut (FtoRradix p <= powerRZ radix (Fexp x+t+s) + powerRZ radix (Fexp x+t))%R;[intros J1|idtac].
@@ -13634,8 +13635,6 @@ rewrite <- Zabs_absolu; rewrite Z.abs_eq; auto with zarith.
 apply IZR_neq; omega.
 apply IZR_neq; omega.
 Qed.
-
-
 
 
 Lemma eqGe: (s+ Fexp x <= Fexp q)%Z.
@@ -17815,11 +17814,12 @@ elim J3; elim G3; replace  (Zpos
              (Bound
                 (P_of_succ_nat (pred (Z.abs_nat (Zpower_nat radix (s - 1)))))
                 (dExp b))))%Z with (Zpower_nat radix (s - 1)); intros.
-apply Z.lt_le_trans with (Zpower_nat radix (s - 1)*Zpower_nat radix (s - 1))%Z; auto with zarith.
-case (Zle_lt_or_eq 0%Z (Z.abs (Fnum x2))); auto with zarith.
+apply Z.lt_le_trans with (Zpower_nat radix (s - 1)*Zpower_nat radix (s - 1))%Z.
+case (Zle_lt_or_eq 0%Z (Z.abs (Fnum x2))).
+auto with zarith.
 intros I; apply Z.lt_le_trans with  (Z.abs (Fnum x2) * Zpower_nat radix (s-1))%Z; auto with zarith.
 apply Zmult_lt_compat_l; auto with zarith.
-intros I; rewrite <- I; auto with zarith.
+intros I; rewrite <- I.
 rewrite Zmult_0_l; apply Z.mul_pos_pos; apply Zpower_nat_less; omega.
 rewrite pGivesBound; rewrite <- Zpower_nat_is_exp; auto with zarith.
 apply Zpower_nat_monotone_le; auto with zarith.
@@ -17873,11 +17873,12 @@ elim J3; elim G3; replace  (Zpos
              (Bound
                 (P_of_succ_nat (pred (Z.abs_nat (Zpower_nat radix (s)))))
                 (dExp b))))%Z with (Zpower_nat radix (s)); intros.
-apply Z.lt_le_trans with (Zpower_nat radix s*Zpower_nat radix s)%Z; auto with zarith.
-case (Zle_lt_or_eq 0%Z (Z.abs (Fnum x2))); auto with zarith.
+apply Z.lt_le_trans with (Zpower_nat radix s*Zpower_nat radix s)%Z.
+case (Zle_lt_or_eq 0%Z (Z.abs (Fnum x2))).
+auto with zarith.
 intros I; apply Z.lt_le_trans with  (Z.abs (Fnum x2) * Zpower_nat radix s)%Z; auto with zarith.
 apply Zmult_lt_compat_l; auto with zarith.
-intros I; rewrite <- I; auto with zarith.
+intros I; rewrite <- I.
 rewrite Zmult_0_l; apply Z.mul_pos_pos; apply Zpower_nat_less; omega.
 rewrite <- Zpower_nat_is_exp; rewrite pGivesBound; auto with zarith.
 apply Zpower_nat_monotone_le; auto with zarith.
@@ -23661,7 +23662,7 @@ apply Rmult_le_reg_l with 2%R; auto with real.
 apply Rle_trans with 5%R;[simpl; right; field; auto with real|idtac].
 apply Rle_trans with 8%R; [auto with real zarith|simpl; right; ring].
 rewrite <- mult_IZR; apply IZR_le.
-apply Z.le_trans with (2*2)%Z; auto with zarith.
+apply Z.le_trans with (2*2)%Z. auto with zarith.
 apply Zmult_le_compat; auto with zarith.
 unfold Z.succ, Zminus; repeat rewrite powerRZ_add; try apply IZR_neq; auto with real zarith.
 simpl; right; ring.
@@ -23733,7 +23734,7 @@ apply Rmult_le_reg_l with 2%R; auto with real.
 apply Rle_trans with 7%R;[simpl; right; field; auto with real|idtac].
 apply Rle_trans with 8%R; [auto with real zarith|simpl; right; ring].
 rewrite <- mult_IZR; apply IZR_le.
-apply Z.le_trans with (2*2)%Z; auto with zarith.
+apply Z.le_trans with (2*2)%Z. auto with zarith.
 apply Zmult_le_compat; auto with zarith.
 unfold Z.succ, Zminus; repeat rewrite powerRZ_add; auto with real zarith.
 simpl; right; field.
@@ -25274,7 +25275,7 @@ apply IZR_le; omega.
 simpl; ring_simplify (radix*1)%R.
 apply Rle_Rinv; auto with real.
 rewrite <- mult_IZR; apply IZR_le.
-apply Z.le_trans with (2*2)%Z; auto with zarith.
+apply Z.le_trans with (2*2)%Z. auto with zarith.
 apply Zmult_le_compat; auto with zarith.
 apply Rmult_le_reg_l with 4%R; auto with real.
 apply Rle_trans with 13%R;[right; field; auto with real|idtac].
@@ -25325,7 +25326,7 @@ apply IZR_le; omega.
 simpl; ring_simplify (radix*1)%R; auto with real zarith.
 apply Rle_Rinv; auto with real.
 rewrite <- mult_IZR; apply IZR_le.
-apply Z.le_trans with (2*2)%Z; auto with zarith.
+apply Z.le_trans with (2*2)%Z. auto with zarith.
 apply Zmult_le_compat; auto with zarith.
 apply Rmult_le_reg_l with 4%R; auto with real.
 apply Rle_trans with 10%R;[right; field; auto with real|idtac].
@@ -25375,8 +25376,9 @@ apply Z.le_trans with (Zpos (vNum bo)+ Zpos (vNum bo))%Z; auto with zarith.
 assert (4*radix <= Zpos (vNum bo))%Z; auto with zarith.
 rewrite pGivesBound; apply Z.le_trans with (Zpower_nat radix 3); auto with zarith.
 unfold Zpower_nat; simpl (nat_rect _ _ _ _).
-ring_simplify (radix*1)%Z; rewrite Zmult_assoc; apply Zmult_le_compat_r; auto with zarith.
+ring_simplify (radix*1)%Z; rewrite Zmult_assoc; apply Zmult_le_compat_r.
 apply Z.le_trans with (2*radix)%Z; auto with zarith.
+auto with zarith.
 apply Zpower_nat_monotone_le; omega.
 fold FtoRradix; apply Rplus_le_reg_l with (2*powerRZ radix (Fexp ph))%R.
 apply Rle_trans with (Rabs (ph + b)+Rabs b)%R; auto with real.
@@ -25476,8 +25478,9 @@ apply Z.le_lt_trans with (Z.abs (3*radix)); auto with zarith.
 rewrite Zabs_Zmult; repeat rewrite Z.abs_eq; auto with zarith.
 rewrite pGivesBound; apply Z.lt_le_trans with (Zpower_nat radix 3); auto with zarith.
 unfold Zpower_nat; simpl (nat_rect _ _ _ _)%Z.
-rewrite Zmult_comm; ring_simplify (radix*1)%Z; apply Zmult_lt_compat_l; auto with zarith.
-apply Z.lt_le_trans with (2*2)%Z; auto with zarith.
+rewrite Zmult_comm; ring_simplify (radix*1)%Z; apply Zmult_lt_compat_l.
+auto with zarith.
+apply Z.lt_le_trans with (2*2)%Z. auto with zarith.
 apply Z.le_trans with (2*radix)%Z; auto with zarith.
 apply Zpower_nat_monotone_le; omega.
 apply Z.le_trans with (Fexp (Float (3*radix) (Fexp ph-1))); auto with zarith.
@@ -25767,9 +25770,9 @@ apply Rle_trans with (powerRZ radix (2+Z.succ (-p))); auto with real zarith.
 rewrite powerRZ_add; try apply IZR_neq; auto with real zarith; simpl.
 apply Rmult_le_compat_r; auto with real zarith.
 apply powerRZ_le, IZR_lt; omega.
-ring_simplify (radix*1)%R; apply Rle_trans with 4%R; auto with real zarith.
+ring_simplify (radix*1)%R; apply Rle_trans with 4%R. auto with real zarith.
 rewrite <- mult_IZR; apply IZR_le.
-apply Z.le_trans with (2*2)%Z; auto with zarith.
+apply Z.le_trans with (2*2)%Z. auto with zarith.
 apply Zmult_le_compat; auto with zarith.
 simpl; auto with real.
 apply Rmult_le_compat_r; auto with real.
@@ -26268,9 +26271,10 @@ apply Z.lt_le_trans with (2*radix+radix)%Z; auto with zarith.
 apply Z.le_trans with (3*radix)%Z; auto with zarith.
 rewrite pGivesBound; apply Z.le_trans with (Zpower_nat radix 3); auto with zarith.
 unfold Zpower_nat; simpl (nat_rect _ _ _ _)%Z.
-rewrite Zmult_comm; apply Zmult_le_compat_l; auto with zarith.
-ring_simplify (radix*1)%Z; apply Z.le_trans with (2*2)%Z; auto with zarith.
+rewrite Zmult_comm; apply Zmult_le_compat_l.
+ring_simplify (radix*1)%Z; apply Z.le_trans with (2*2)%Z. auto with zarith.
 apply Zmult_le_compat; auto with zarith.
+auto with zarith.
 apply Zpower_nat_monotone_le; omega.
 fold FtoRradix; rewrite <- H.
 apply Rle_trans with (Rabs t+Rabs v)%R;[apply Rabs_triang|idtac].
