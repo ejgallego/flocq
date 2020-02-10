@@ -2373,6 +2373,18 @@ destruct (round_DN_or_UP beta fexp rnd x) as [Hr|Hr]; rewrite Hr.
 apply succ_ge_id.
 Qed.
 
+Lemma pred_round_le_id :
+  forall rnd { Zrnd : Valid_rnd rnd } x,
+  (pred (round beta fexp rnd x) <= x)%R.
+Proof.
+intros rnd Vrnd x.
+apply (Rle_trans _ (round beta fexp Raux.Zfloor x)).
+2:{ now apply round_DN_pt. }
+destruct (round_DN_or_UP beta fexp rnd x) as [Hr|Hr]; rewrite Hr.
+2:{ now apply pred_UP_le_DN. }
+apply pred_le_id.
+Qed.
+
 (** Properties of rounding to nearest and ulp *)
 
 Theorem round_N_le_midp: forall choice u v,
