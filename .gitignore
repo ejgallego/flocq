@@ -16,8 +16,12 @@ remake.exe
 html/
 src/Version.v
 *.vo
+*.vos
+*.vok
 *.glob
 .*.aux
+.lia.cache
+.nra.cache
 N*.cm*
 N*.native
 N*.o
