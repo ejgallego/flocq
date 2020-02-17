@@ -318,3 +318,14 @@ Lemma is_finite_spec : forall x, is_finite (B2Prim x) = Binary.is_finite prec em
   rewrite is_infinity_spec.
   destruct x; reflexivity.
 Qed.
+
+(** A dummy nan, useful to apply above lemmas *)
+
+Definition nan_pl :
+  { pl: bool * positive | Binary.nan_pl prec (snd pl) = true } :=
+  exist _ (false, 1%positive) (eq_refl true).
+
+Definition ex_nan :
+  { f : Binary.binary_float prec emax | Binary.is_nan prec emax f = true} :=
+  exist _ (Binary.B754_nan (fst (proj1_sig nan_pl)) (snd (proj1_sig nan_pl))
+                           (proj2_sig nan_pl)) (eq_refl true).
