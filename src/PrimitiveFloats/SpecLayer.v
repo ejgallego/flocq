@@ -1,3 +1,5 @@
+(** Intermediate specification layer, use of
+    PrimitiveFloats.NativeLayer should be preferred. *)
 Require Import ZArith Core.Core IEEE754.Binary SpecFloat.
 
 Arguments B754_finite {prec} {emax}.

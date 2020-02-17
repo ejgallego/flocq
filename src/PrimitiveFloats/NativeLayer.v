@@ -1,3 +1,30 @@
+(** * Interface Flocq with Coq (>= 8.11) primitive floats. *)
+
+(** This file provides a link between Coq primitive floats and
+    [binary_float] as defined in IEEE754.Binary.
+
+    Simple use case: assume we have [(x + y)%float] in a goal,
+    one can first
+
+    Coq < rewrite <-(B2Prim_Prim2B nan_pl x).
+
+    Coq < rewrite <-(B2Prim_Prim2B nan_pl y).
+
+    giving [(B2Prim (Prim2B nan_pl x) + B2Prim (Prim2B nan_pl y))%float],
+    then
+
+    Coq < rewrite (FBapp_Bplus (fun _  _ => ex_nan)).
+
+    giving [(B2Prim
+       (Bplus FloatOps.prec emax prec_gt_0 Hmax
+          (fun _ _ : binary_float FloatOps.prec emax => ex_nan) mode_NE
+          (Prim2B nan_pl x) (Prim2B nan_pl y))]. Finally, it can the be
+    useful to do something like
+
+    Coq < Require Import Flocq.IEEE754.Binary.
+
+    Coq < generalize (Bplus_correct _ _ prec_gt_0 Hmax (fun _ _ => ex_nan) mode_NE (Prim2B nan_pl x) (Prim2B nan_pl y)). *)
+
 Require Import ZArith IEEE754.Binary Core.Zaux Floats SpecLayer.
 
 Lemma can_inj : forall {A} {B} {f : A -> B} {g : B -> A}, (forall x, g (f x) = x) -> (forall x y, f x = f y -> x = y).
