@@ -627,6 +627,52 @@ Proof.
   now rewrite Pcompare_antisym.
 Qed.
 
+Theorem bounded_le_emax_minus_prec :
+  forall mx ex,
+  bounded mx ex = true ->
+  (F2R (Float radix2 (Zpos mx) ex)
+   <= bpow radix2 emax - bpow radix2 (emax - prec))%R.
+Proof.
+intros mx ex Hx.
+destruct (andb_prop _ _ Hx) as (H1,H2).
+generalize (Zeq_bool_eq _ _ H1). clear H1. intro H1.
+generalize (Zle_bool_imp_le _ _ H2). clear H2. intro H2.
+generalize (mag_F2R_Zdigits radix2 (Zpos mx) ex).
+destruct (mag radix2 (F2R (Float radix2 (Zpos mx) ex))) as (e',Ex).
+unfold mag_val.
+intros H.
+elim Ex; [|now apply Rgt_not_eq, F2R_gt_0]; intros _.
+rewrite <-F2R_Zabs; simpl; clear Ex; intros Ex.
+generalize (Rmult_lt_compat_r (bpow radix2 (-ex)) _ _ (bpow_gt_0 _ _) Ex).
+unfold F2R; simpl; rewrite Rmult_assoc, <-!bpow_plus.
+rewrite H; [|intro H'; discriminate H'].
+rewrite <-Z.add_assoc, Z.add_opp_diag_r, Z.add_0_r, Rmult_1_r.
+rewrite <-(IZR_Zpower _ _ (Zdigits_ge_0 _ _)); clear Ex; intro Ex.
+generalize (Zlt_le_succ _ _ (lt_IZR _ _ Ex)); clear Ex; intro Ex.
+generalize (IZR_le _ _ Ex).
+rewrite succ_IZR; clear Ex; intro Ex.
+generalize (Rplus_le_compat_r (-1) _ _ Ex); clear Ex; intro Ex.
+ring_simplify in Ex; revert Ex.
+rewrite (IZR_Zpower _ _ (Zdigits_ge_0 _ _)); intro Ex.
+generalize (Rmult_le_compat_r (bpow radix2 ex) _ _ (bpow_ge_0 _ _) Ex).
+intro H'; apply (Rle_trans _ _ _ H').
+rewrite Rmult_minus_distr_r, Rmult_1_l, <-bpow_plus.
+revert H1; unfold fexp, FLT_exp; intro H1.
+generalize (Z.le_max_l (Z.pos (digits2_pos mx) + ex - prec) emin).
+rewrite H1; intro H1'.
+generalize (proj1 (Z.le_sub_le_add_r _ _ _) H1').
+rewrite Zpos_digits2_pos; clear H1'; intro H1'.
+apply (Rle_trans _ _ _ (Rplus_le_compat_r _ _ _ (bpow_le _ _ _ H1'))).
+replace emax with (emax - prec - ex + (ex + prec))%Z at 1 by ring.
+replace (emax - prec)%Z with (emax - prec - ex + ex)%Z at 2 by ring.
+do 2 rewrite (bpow_plus _ (emax - prec - ex)).
+rewrite <-Rmult_minus_distr_l.
+rewrite <-(Rmult_1_l (_ + _)).
+apply Rmult_le_compat_r.
+{ apply Rle_0_minus, bpow_le; unfold Prec_gt_0 in prec_gt_0_; lia. }
+change 1%R with (bpow radix2 0); apply bpow_le; lia.
+Qed.
+
 Theorem bounded_lt_emax :
   forall mx ex,
   bounded mx ex = true ->
@@ -680,6 +726,17 @@ clear -prec_gt_0_.
 unfold Prec_gt_0 in prec_gt_0_.
 clearbody emin.
 intros ; zify ; omega.
+Qed.
+
+Theorem abs_B2R_le_emax_minus_prec :
+  forall x,
+  (Rabs (B2R x) <= bpow radix2 emax - bpow radix2 (emax - prec))%R.
+Proof.
+intros [sx|sx|sx plx Hx|sx mx ex Hx] ; simpl ;
+  [rewrite Rabs_R0 ; apply Rle_0_minus, bpow_le ;
+   revert prec_gt_0_; unfold Prec_gt_0; lia..|].
+rewrite <- F2R_Zabs, abs_cond_Zopp.
+now apply bounded_le_emax_minus_prec.
 Qed.
 
 Theorem abs_B2R_lt_emax :

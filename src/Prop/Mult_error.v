@@ -332,4 +332,25 @@ set (n := (_ - _ + _)%Z); apply (Z.le_trans _ n); [unfold n; omega|].
 apply Z.le_max_l.
 Qed.
 
+Lemma mult_bpow_pos_exact_FLT :
+  forall x e,
+  format x ->
+  (0 <= e)%Z ->
+  format (x * bpow e)%R.
+Proof.
+intros x e Fx He.
+destruct (Req_dec x 0) as [Zx|Nzx].
+{ rewrite Zx, Rmult_0_l; apply generic_format_0. }
+rewrite Fx.
+set (mx := Ztrunc _); set (ex := cexp _).
+pose (f := {| Fnum := mx; Fexp := ex + e |} : float beta).
+apply (generic_format_F2R' _ _ _ f).
+{ now unfold F2R; simpl; rewrite bpow_plus, Rmult_assoc. }
+intro Nzmx; unfold mx, ex; rewrite <- Fx.
+unfold f, ex; simpl; unfold cexp; rewrite (mag_mult_bpow _ _ _ Nzx).
+unfold FLT_exp; rewrite <-Z.add_max_distr_r.
+replace (_ - _ + e)%Z with (mag beta x + e - prec)%Z; [ |ring].
+apply Z.max_le_compat_l; omega.
+Qed.
+
 End Fprop_mult_error_FLT.

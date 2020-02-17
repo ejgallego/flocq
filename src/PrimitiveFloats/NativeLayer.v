@@ -1,3 +1,51 @@
+(**
+This file is part of the Flocq formalization of floating-point
+arithmetic in Coq: http://flocq.gforge.inria.fr/
+
+Copyright (C) 2018 Guillaume Bertholon
+#<br />#
+Copyright (C) 2018-2020 Érik Martin-Dorel
+#<br />#
+Copyright (C) 2018-2020 Pierre Roux
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 3 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+COPYING file for more details.
+*)
+
+(** * Interface Flocq with Coq (>= 8.11) primitive floats. *)
+
+(** This file provides a link between Coq primitive floats and
+    [binary_float] as defined in IEEE754.Binary.
+
+    Simple use case: assume we have [(x + y)%float] in a goal,
+    one can first
+
+    Coq < rewrite <-(B2Prim_Prim2B nan_pl x).
+
+    Coq < rewrite <-(B2Prim_Prim2B nan_pl y).
+
+    giving [(B2Prim (Prim2B nan_pl x) + B2Prim (Prim2B nan_pl y))%float],
+    then
+
+    Coq < rewrite (FBapp_Bplus (fun _  _ => ex_nan)).
+
+    giving [(B2Prim
+       (Bplus FloatOps.prec emax prec_gt_0 Hmax
+          (fun _ _ : binary_float FloatOps.prec emax => ex_nan) mode_NE
+          (Prim2B nan_pl x) (Prim2B nan_pl y))]. Finally, it can the be
+    useful to do something like
+
+    Coq < Require Import Flocq.IEEE754.Binary.
+
+    Coq < generalize (Bplus_correct _ _ prec_gt_0 Hmax (fun _ _ => ex_nan) mode_NE (Prim2B nan_pl x) (Prim2B nan_pl y)). *)
+
 Require Import ZArith IEEE754.Binary Core.Zaux Floats SpecLayer.
 
 Lemma can_inj : forall {A} {B} {f : A -> B} {g : B -> A}, (forall x, g (f x) = x) -> (forall x y, f x = f y -> x = y).
@@ -177,23 +225,23 @@ Theorem FPcompare_Bcompare : forall x y,
   rewrite !Prim2SF_SF2Prim by apply valid_binary_B2SF. reflexivity.
 Qed.
 
-Theorem FPmul_Bmult : forall mult_nan x y, ((B2Prim x)*(B2Prim y))%float = B2Prim (Bmult prec emax eq_refl eq_refl mult_nan mode_NE x y).
+Theorem FPmul_Bmult : forall mult_nan x y, ((B2Prim x)*(B2Prim y))%float = B2Prim (Bmult prec emax prec_gt_0 Hmax mult_nan mode_NE x y).
   prove_FP2B @SFmul_Bmult mul_spec mult_nan.
 Qed.
 
-Theorem FPadd_Bplus : forall plus_nan x y, ((B2Prim x)+(B2Prim y))%float = B2Prim (Bplus prec emax eq_refl eq_refl plus_nan mode_NE x y).
+Theorem FPadd_Bplus : forall plus_nan x y, ((B2Prim x)+(B2Prim y))%float = B2Prim (Bplus prec emax prec_gt_0 Hmax plus_nan mode_NE x y).
   prove_FP2B @SFadd_Bplus add_spec plus_nan.
 Qed.
 
-Theorem FPsub_Bminus : forall minus_nan x y, ((B2Prim x)-(B2Prim y))%float = B2Prim (Bminus prec emax eq_refl eq_refl minus_nan mode_NE x y).
+Theorem FPsub_Bminus : forall minus_nan x y, ((B2Prim x)-(B2Prim y))%float = B2Prim (Bminus prec emax prec_gt_0 Hmax minus_nan mode_NE x y).
   prove_FP2B @SFsub_Bminus sub_spec minus_nan.
 Qed.
 
-Theorem FPdiv_Bdiv : forall div_nan x y, ((B2Prim x)/(B2Prim y))%float = B2Prim (Bdiv prec emax eq_refl eq_refl div_nan mode_NE x y).
+Theorem FPdiv_Bdiv : forall div_nan x y, ((B2Prim x)/(B2Prim y))%float = B2Prim (Bdiv prec emax prec_gt_0 Hmax div_nan mode_NE x y).
   prove_FP2B @SFdiv_Bdiv div_spec div_nan.
 Qed.
 
-Theorem FPsqrt_Bsqrt : forall sqrt_nan x, sqrt (B2Prim x) = B2Prim (Bsqrt prec emax eq_refl eq_refl sqrt_nan mode_NE x).
+Theorem FPsqrt_Bsqrt : forall sqrt_nan x, sqrt (B2Prim x) = B2Prim (Bsqrt prec emax prec_gt_0 Hmax sqrt_nan mode_NE x).
   prove_FP2B @SFsqrt_Bsqrt sqrt_spec sqrt_nan.
 Qed.
 
@@ -318,3 +366,14 @@ Lemma is_finite_spec : forall x, is_finite (B2Prim x) = Binary.is_finite prec em
   rewrite is_infinity_spec.
   destruct x; reflexivity.
 Qed.
+
+(** A dummy nan, useful to apply above lemmas *)
+
+Definition nan_pl :
+  { pl: bool * positive | Binary.nan_pl prec (snd pl) = true } :=
+  exist _ (false, 1%positive) (eq_refl true).
+
+Definition ex_nan :
+  { f : Binary.binary_float prec emax | Binary.is_nan prec emax f = true} :=
+  exist _ (Binary.B754_nan (fst (proj1_sig nan_pl)) (snd (proj1_sig nan_pl))
+                           (proj2_sig nan_pl)) (eq_refl true).
