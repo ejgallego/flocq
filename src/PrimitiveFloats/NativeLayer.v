@@ -177,23 +177,23 @@ Theorem FPcompare_Bcompare : forall x y,
   rewrite !Prim2SF_SF2Prim by apply valid_binary_B2SF. reflexivity.
 Qed.
 
-Theorem FPmul_Bmult : forall mult_nan x y, ((B2Prim x)*(B2Prim y))%float = B2Prim (Bmult prec emax eq_refl eq_refl mult_nan mode_NE x y).
+Theorem FPmul_Bmult : forall mult_nan x y, ((B2Prim x)*(B2Prim y))%float = B2Prim (Bmult prec emax prec_gt_0 Hmax mult_nan mode_NE x y).
   prove_FP2B @SFmul_Bmult mul_spec mult_nan.
 Qed.
 
-Theorem FPadd_Bplus : forall plus_nan x y, ((B2Prim x)+(B2Prim y))%float = B2Prim (Bplus prec emax eq_refl eq_refl plus_nan mode_NE x y).
+Theorem FPadd_Bplus : forall plus_nan x y, ((B2Prim x)+(B2Prim y))%float = B2Prim (Bplus prec emax prec_gt_0 Hmax plus_nan mode_NE x y).
   prove_FP2B @SFadd_Bplus add_spec plus_nan.
 Qed.
 
-Theorem FPsub_Bminus : forall minus_nan x y, ((B2Prim x)-(B2Prim y))%float = B2Prim (Bminus prec emax eq_refl eq_refl minus_nan mode_NE x y).
+Theorem FPsub_Bminus : forall minus_nan x y, ((B2Prim x)-(B2Prim y))%float = B2Prim (Bminus prec emax prec_gt_0 Hmax minus_nan mode_NE x y).
   prove_FP2B @SFsub_Bminus sub_spec minus_nan.
 Qed.
 
-Theorem FPdiv_Bdiv : forall div_nan x y, ((B2Prim x)/(B2Prim y))%float = B2Prim (Bdiv prec emax eq_refl eq_refl div_nan mode_NE x y).
+Theorem FPdiv_Bdiv : forall div_nan x y, ((B2Prim x)/(B2Prim y))%float = B2Prim (Bdiv prec emax prec_gt_0 Hmax div_nan mode_NE x y).
   prove_FP2B @SFdiv_Bdiv div_spec div_nan.
 Qed.
 
-Theorem FPsqrt_Bsqrt : forall sqrt_nan x, sqrt (B2Prim x) = B2Prim (Bsqrt prec emax eq_refl eq_refl sqrt_nan mode_NE x).
+Theorem FPsqrt_Bsqrt : forall sqrt_nan x, sqrt (B2Prim x) = B2Prim (Bsqrt prec emax prec_gt_0 Hmax sqrt_nan mode_NE x).
   prove_FP2B @SFsqrt_Bsqrt sqrt_spec sqrt_nan.
 Qed.
 
