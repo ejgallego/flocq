@@ -13079,7 +13079,7 @@ Hypothesis Nq:  Fnormal radix b q.
 Hypothesis Nx:  Fnormal radix b x.
 
 Lemma p'GivesBound: Zpos (vNum b')=(Zpower_nat radix (minus t s)).
-clear SGe.
+clear SGe SLe.
   unfold b' in |- *; unfold vNum in |- *.
 apply
  trans_eq
