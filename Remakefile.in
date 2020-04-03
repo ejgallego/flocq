@@ -119,8 +119,12 @@ deps.png: deps.dot
 deps.map: deps.dot
 	dot -T cmap deps.dot | sed -e 's,>$,/>,' > deps.map
 
-
 doc: html/index.html
+
+public: deps.png deps.map html/index.html
+	mkdir -p public
+	sed -e '/#include deps.map/r deps.map' misc/template.html > public/index.html
+	cp -r html deps.png public/
 
 install:
 	prefix=@prefix@

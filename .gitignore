@@ -12,7 +12,8 @@ Remakefile
 .remake
 remake
 remake.exe
-html/
+/html/
+/public/
 src/Version.v
 *.vo
 *.vos

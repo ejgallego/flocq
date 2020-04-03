@@ -1,6 +1,7 @@
 stages:
   - docker
   - build
+  - deploy
 
 variables:
   BUILD_IMAGE: "$CI_REGISTRY_IMAGE:ci-master-2020-04-03"
@@ -43,3 +44,18 @@ build-latest:
   before_script:
     - opam switch latest
   <<: *build_definition
+
+pages:
+  stage: deploy
+  script:
+    - opam switch latest
+    - eval `opam env`
+    - autoconf
+    - ./configure
+    - ./remake public
+  artifacts:
+    paths:
+    - public
+  only:
+    - master
+  <<: *docker_definition
