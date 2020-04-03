@@ -1,6 +1,7 @@
 stages:
   - docker
   - build
+  - test
   - deploy
 
 variables:
@@ -44,6 +45,23 @@ build-latest:
   before_script:
     - opam switch latest
   <<: *build_definition
+
+.opam_template: &opam_definition
+  stage: test
+  script:
+    - opam pin -y -n add coq-flocq .
+    - opam install -v coq-flocq
+  <<: *docker_definition
+
+opam-minimal:
+  before_script:
+    - opam switch minimal
+  <<: *opam_definition
+
+opam-latest:
+  before_script:
+    - opam switch latest
+  <<: *opam_definition
 
 pages:
   stage: deploy
