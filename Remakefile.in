@@ -133,20 +133,9 @@ install:
 EXTRA_DIST = \
 	configure
 
-REMOVE_FROM_DIST =
-
 dist: $(EXTRA_DIST)
 	PACK=@PACKAGE_TARNAME@-@PACKAGE_VERSION@
-	DIRS=`git ls-tree -d -r --name-only HEAD`
-	FILES=`git ls-tree -r --name-only HEAD`
-	rm -rf $PACK.tar.gz $PACK
-	mkdir $PACK
-	for d in $DIRS; do mkdir $PACK/$d; done
-	for f in $FILES $(EXTRA_DIST); do cp $f $PACK/$f; done
-	for f in $(REMOVE_FROM_DIST) ; do rm -rf $PACK/$f; done
-	git log --pretty="format:%ad %s" --date=short > $PACK/ChangeLog
-	cat /dev/null > $PACK/ChangeLog
-	rm $PACK/.mailmap
-	rm `find $PACK -name .gitignore`
-	tar czf $PACK.tar.gz $PACK
-	rm -rf $PACK
+	rm -f $PACK.tar.gz
+	git archive --format=tar --prefix=$PACK/ -o $PACK.tar HEAD
+	tar rf $PACK.tar --transform="s,^,$PACK/," --mtime="`git show -s --format=%ci`" $(EXTRA_DIST)
+	gzip -n -f --best $PACK.tar
