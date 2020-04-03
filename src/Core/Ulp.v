@@ -2379,9 +2379,9 @@ Lemma pred_round_le_id :
 Proof.
 intros rnd Vrnd x.
 apply (Rle_trans _ (round beta fexp Raux.Zfloor x)).
-2:{ now apply round_DN_pt. }
+2: now apply round_DN_pt.
 destruct (round_DN_or_UP beta fexp rnd x) as [Hr|Hr]; rewrite Hr.
-2:{ now apply pred_UP_le_DN. }
+2: now apply pred_UP_le_DN.
 apply pred_le_id.
 Qed.
 
