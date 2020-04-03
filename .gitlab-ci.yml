@@ -1,5 +1,6 @@
 stages:
   - docker
+  - build
 
 variables:
   BUILD_IMAGE: "$CI_REGISTRY_IMAGE:ci-master-2020-04-03"
@@ -13,6 +14,9 @@ build-image:
     - docker build --force-rm -t "$BUILD_IMAGE" - < misc/Dockerfile
     - docker push "$BUILD_IMAGE"
     - docker rmi "$BUILD_IMAGE"
+  only:
+    variables:
+      - $NEW_BUILD_IMAGE
   tags:
     - shell
 
@@ -20,3 +24,22 @@ build-image:
   image: "$BUILD_IMAGE"
   tags:
     - docker
+
+.build_template: &build_definition
+  stage: build
+  script:
+    - eval `opam env`
+    - autoconf
+    - ./configure
+    - ./remake all check
+  <<: *docker_definition
+
+build-minimal:
+  before_script:
+    - opam switch minimal
+  <<: *build_definition
+
+build-latest:
+  before_script:
+    - opam switch latest
+  <<: *build_definition
