@@ -161,9 +161,8 @@ induction n.
     unfold ex2'; rewrite Zplus_comm; rewrite bpow_plus.
     rewrite <- Rmult_assoc; apply Rmult_eq_compat_r.
     rewrite (Rmult_eq_reg_l 2 _ (IZR nb + / 2)); [reflexivity| |lra].
-    field_simplify; apply Rmult_eq_compat_r.
-    rewrite bpow_1.
-    now rewrite <- mult_IZR; rewrite <- plus_IZR; apply f_equal.
+    rewrite bpow_1, Hb, plus_IZR, mult_IZR.
+    field.
 Qed.
 
 Lemma midpoint_beta_odd_remains :
