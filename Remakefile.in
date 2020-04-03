@@ -105,7 +105,7 @@ deps.dot: $(addprefix src/,$(FILES)) Remakefile.in
 	(cd src ; @COQDEP@ -R . Flocq $(FILES)) |
 	  sed -n -e 's,/,.,g;s/[.]vo.*: [^ ]*[.]v//p' |
 	  while read src dst; do
-	    color=$$(echo "$src" | sed -e 's,Core.*,turquoise,;s,Calc.*,plum,;s,Prop.*,lightcoral,;s,Pff.*,yellow,;s,IEEE754.*,cornflowerblue,;s,Version.*,white,')
+	    color=$$(echo "$src" | sed -e 's,Core.*,turquoise,;s,Calc.*,plum,;s,Prop.*,lightcoral,;s,Pff.*,yellow,;s,IEEE754.*,cornflowerblue,;s,PrimitiveFloats.*,cornflowerblue,;s,Version.*,white,')
 	    echo "\"$src\" [fillcolor=$color];"
 	    for d in $dst; do
 	      echo "\"$src\" -> \"${d%.vo}\" ;"
