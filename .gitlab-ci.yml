@@ -1,0 +1,63 @@
+stages:
+  - docker
+  - build
+  - test
+
+variables:
+  BUILD_IMAGE: "$CI_REGISTRY_IMAGE:ci-master-2020-04-03"
+  GIT_CLEAN_FLAGS: "-ffdxq"
+
+build-image:
+  stage: docker
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
+    - if docker pull "$BUILD_IMAGE"; then echo "Image already exists!"; exit 1; fi
+    - docker build --force-rm -t "$BUILD_IMAGE" - < misc/Dockerfile
+    - docker push "$BUILD_IMAGE"
+    - docker rmi "$BUILD_IMAGE"
+  only:
+    variables:
+      - $NEW_BUILD_IMAGE
+  tags:
+    - shell
+
+.docker_template: &docker_definition
+  image: "$BUILD_IMAGE"
+  tags:
+    - docker
+
+.build_template: &build_definition
+  stage: build
+  script:
+    - eval `opam env`
+    - autoconf
+    - ./configure
+    - ./remake all check
+  <<: *docker_definition
+
+build-minimal:
+  before_script:
+    - opam switch minimal
+  <<: *build_definition
+
+build-latest:
+  before_script:
+    - opam switch latest
+  <<: *build_definition
+
+.opam_template: &opam_definition
+  stage: test
+  script:
+    - opam pin -y -n add coq-flocq .
+    - opam install -v coq-flocq
+  <<: *docker_definition
+
+opam-minimal:
+  before_script:
+    - opam switch minimal
+  <<: *opam_definition
+
+opam-latest:
+  before_script:
+    - opam switch latest
+  <<: *opam_definition
