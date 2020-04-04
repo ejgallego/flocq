@@ -1,3 +1,8 @@
+Version 3.2.1
+-------------
+
+* ensured compatibility from Coq 8.7 to 8.11
+
 Version 3.2.0
 -------------
 
