@@ -907,6 +907,18 @@ rewrite Ropp_involutive.
 apply Zfloor_lb.
 Qed.
 
+Theorem Zceil_lb :
+  forall x : R,
+  (IZR (Zceil x) < x + 1)%R.
+Proof.
+intros x.
+unfold Zceil.
+rewrite opp_IZR.
+rewrite <-(Ropp_involutive (x + 1)), Ropp_plus_distr.
+apply Ropp_lt_contravar, (Rplus_lt_reg_r 1); ring_simplify.
+apply Zfloor_ub.
+Qed.
+
 Theorem Zceil_glb :
   forall n x,
   (x <= IZR n)%R ->
