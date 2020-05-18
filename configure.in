@@ -37,11 +37,6 @@ AX_VERSION_GE([$coq_version], 8.7, [],
   [AC_MSG_ERROR([must be at least 8.7 (you have version $coq_version).])])
 AC_MSG_RESULT($coq_version)
 
-AX_VERSION_GE([$coq_version], 8.11,
-  [PRIM_FLOAT="PrimitiveFloats/SpecLayer.v PrimitiveFloats/NativeLayer.v"],
-  [PRIM_FLOAT=""])
-AC_SUBST(PRIM_FLOAT)
-
 AC_ARG_VAR(COQDEP, [Coq dependency analyzer command [coqdep]])
 AC_MSG_CHECKING([for coqdep])
 if test ! "$COQDEP"; then
