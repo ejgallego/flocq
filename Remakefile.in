@@ -28,6 +28,7 @@ FILES = \
 	Prop/Double_rounding.v \
 	@PRIM_FLOAT@ \
 	IEEE754/SpecFloat.v \
+	IEEE754/BinarySingleNaN.v \
 	IEEE754/Binary.v \
 	IEEE754/Bits.v \
 	Pff/Pff.v \
