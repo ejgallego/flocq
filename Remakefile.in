@@ -26,6 +26,8 @@ FILES = \
 	Prop/Sterbenz.v \
 	Prop/Round_odd.v \
 	Prop/Double_rounding.v \
+	@PRIM_FLOAT@ \
+	IEEE754/SpecFloat.v \
 	IEEE754/Binary.v \
 	IEEE754/Bits.v \
 	Pff/Pff.v \

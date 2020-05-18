@@ -20,13 +20,16 @@ COPYING file for more details.
 (** * Locations: where a real number is positioned with respect to its rounded-down value in an arbitrary format. *)
 
 Require Import Raux Defs Float_prop.
+Require IEEE754.SpecFloat.
+
+Notation location := (IEEE754.SpecFloat.location).
+Notation loc_Exact := (IEEE754.SpecFloat.loc_Exact).
+Notation loc_Inexact := (IEEE754.SpecFloat.loc_Inexact).
 
 Section Fcalc_bracket.
 
 Variable d u : R.
 Hypothesis Hdu : (d < u)%R.
-
-Inductive location := loc_Exact | loc_Inexact : comparison -> location.
 
 Variable x : R.
 
