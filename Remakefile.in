@@ -60,17 +60,16 @@ check: $(EOBJS)
 
 check-more: $(MOBJS)
 
-Remakefile: Remakefile.in config.status
-	./config.status Remakefile
+CONFIGURED_FILES = Remakefile src/Version.v src/IEEE754/SpecFloat.v
 
-src/Version.v: src/Version.v.in config.status
-	./config.status src/Version.v
+$(CONFIGURED_FILES): %: %.in config.status
+	./config.status $@
 
 configure config.status: configure.in
 	autoconf
 	./config.status --recheck
 
-%.vo: %.v
+%.vo: %.v | src/IEEE754/SpecFloat.v
 	@COQDEP@ -R src Flocq $< | @REMAKE@ -r $@
 	@COQC@ -R src Flocq $<
 
