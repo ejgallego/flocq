@@ -1,19 +1,15 @@
 (** * Interface Flocq with Coq (>= 8.11) primitive floating-point numbers. *)
 
-Require Import ZArith IEEE754.Binary Core.Zaux Floats.Floats Floats.SpecFloat BinarySingleNaN.
+From Coq Require Import ZArith Floats SpecFloat.
+Require Import Zaux BinarySingleNaN.
 
 (** Conversions from/to Flocq binary_float *)
 
-Program Definition Prim2B (x : float) : binary_float prec emax :=
-  SF2B prec emax (Prim2SF x) _.
-Next Obligation.
-remember (Prim2SF x). destruct s; auto.
-rewrite Heqs.
-apply Prim2SF_valid.
-Qed.
+Definition Prim2B (x : float) : binary_float prec emax :=
+  SF2B (Prim2SF x) (Prim2SF_valid x).
 
 Definition B2Prim (x : binary_float prec emax) : float :=
-  SF2Prim (B2SF prec emax x).
+  SF2Prim (B2SF x).
 
 Lemma B2Prim_Prim2B : forall x, B2Prim (Prim2B x) = x.
 Proof.
@@ -28,7 +24,8 @@ intro x.
 unfold Prim2B, B2Prim.
 apply B2SF_inj.
 rewrite B2SF_SF2B.
-now rewrite Prim2SF_SF2Prim; [|apply valid_binary_B2SF].
+apply Prim2SF_SF2Prim.
+apply valid_binary_B2SF.
 Qed.
 
 Lemma Prim2B_inj : forall x y, Prim2B x = Prim2B y -> x = y.
@@ -45,7 +42,7 @@ generalize (f_equal Prim2B Heq).
 now rewrite 2!Prim2B_B2Prim.
 Qed.
 
-Lemma B2SF_Prim2B : forall x, B2SF prec emax (Prim2B x) = Prim2SF x.
+Lemma B2SF_Prim2B : forall x, B2SF (Prim2B x) = Prim2SF x.
 Proof.
 intros x.
 apply SF2Prim_inj.
@@ -55,7 +52,7 @@ apply SF2Prim_inj.
 - apply Prim2SF_valid.
 Qed.
 
-Lemma Prim2SF_B2Prim : forall x, Prim2SF (B2Prim x) = B2SF prec emax x.
+Lemma Prim2SF_B2Prim : forall x, Prim2SF (B2Prim x) = B2SF x.
 Proof.
 intro x; unfold B2Prim.
 now rewrite Prim2SF_SF2Prim; [|apply valid_binary_B2SF].
@@ -63,9 +60,9 @@ Qed.
 
 (** Basic properties of the Binary64 format *)
 
-Definition Hprec : FLX.Prec_gt_0 prec := eq_refl _.
+Local Instance Hprec : FLX.Prec_gt_0 prec := eq_refl _.
 
-Definition Hmax : (prec < emax)%Z := eq_refl _.
+Local Instance Hmax : Prec_lt_emax prec emax := eq_refl _.
 
 Lemma Hemax : (3 <= emax)%Z.
 Proof.
@@ -75,7 +72,7 @@ Defined.
 
 (** Equivalence between prim_float and Flocq binary_float operations *)
 
-Theorem opp_equiv : forall x, Prim2B (- x) = Bopp prec emax (Prim2B x).
+Theorem opp_equiv : forall x, Prim2B (- x) = Bopp (Prim2B x).
 Proof.
 intro x.
 apply B2Prim_inj.
@@ -87,7 +84,7 @@ rewrite <-B2SF_Prim2B.
 now case Prim2B as [sx|sx| |sx mx ex Bx].
 Qed.
 
-Theorem abs_equiv : forall x, Prim2B (abs x) = Babs prec emax (Prim2B x).
+Theorem abs_equiv : forall x, Prim2B (abs x) = Babs (Prim2B x).
 Proof.
 intro x.
 apply B2Prim_inj.
@@ -101,7 +98,7 @@ Qed.
 
 Theorem compare_equiv :
   forall x y,
-  (x ?= y)%float = flatten_cmp_opt (Bcompare prec emax (Prim2B x) (Prim2B y)).
+  (x ?= y)%float = flatten_cmp_opt (Bcompare (Prim2B x) (Prim2B y)).
 Proof.
 intros x y.
 rewrite compare_spec.
@@ -130,7 +127,7 @@ Qed.
 
 Theorem mul_equiv :
   forall x y,
-  Prim2B (x * y) = Bmult prec emax Hprec Hmax mode_NE (Prim2B x) (Prim2B y).
+  Prim2B (x * y) = Bmult mode_NE (Prim2B x) (Prim2B y).
 Proof.
 intros x y.
 apply B2Prim_inj.
@@ -158,7 +155,7 @@ Qed.
 
 Lemma binary_normalize_equiv m e szero :
   SpecFloat.binary_normalize prec emax m e szero
-  = B2SF prec emax (binary_normalize prec emax Hprec Hmax mode_NE m e szero).
+  = B2SF (binary_normalize prec emax Hprec Hmax mode_NE m e szero).
 Proof.
 case m as [|p|p].
 - now simpl.
@@ -168,7 +165,7 @@ Qed.
 
 Theorem add_equiv :
   forall x y,
-  Prim2B (x + y) = Bplus prec emax Hprec Hmax mode_NE (Prim2B x) (Prim2B y).
+  Prim2B (x + y) = Bplus mode_NE (Prim2B x) (Prim2B y).
 Proof.
 intros x y.
 apply B2Prim_inj.
@@ -185,7 +182,7 @@ Qed.
 
 Theorem sub_equiv :
   forall x y,
-  Prim2B (x - y) = Bminus prec emax Hprec Hmax mode_NE (Prim2B x) (Prim2B y).
+  Prim2B (x - y) = Bminus mode_NE (Prim2B x) (Prim2B y).
 Proof.
 intros x y.
 apply B2Prim_inj.
@@ -202,7 +199,7 @@ Qed.
 
 Theorem div_equiv :
   forall x y,
-  Prim2B (x / y) = Bdiv prec emax Hprec Hmax mode_NE (Prim2B x) (Prim2B y).
+  Prim2B (x / y) = Bdiv mode_NE (Prim2B x) (Prim2B y).
 Proof.
 intros x y.
 apply B2Prim_inj.
@@ -222,7 +219,7 @@ apply binary_round_aux_equiv.
 Qed.
 
 Theorem sqrt_equiv :
-  forall x, Prim2B (sqrt x) = Bsqrt prec emax Hprec Hmax mode_NE (Prim2B x).
+  forall x, Prim2B (sqrt x) = Bsqrt mode_NE (Prim2B x).
 Proof.
 intro x.
 apply B2Prim_inj.
@@ -242,7 +239,7 @@ Qed.
 
 Theorem normfr_mantissa_equiv :
   forall x,
-  Int63.to_Z (normfr_mantissa x) = Z.of_N (Bnormfr_mantissa prec emax (Prim2B x)).
+  Int63.to_Z (normfr_mantissa x) = Z.of_N (Bnormfr_mantissa (Prim2B x)).
 Proof.
 intro x.
 rewrite normfr_mantissa_spec.
@@ -252,7 +249,7 @@ Qed.
 
 Theorem ldexp_equiv :
   forall x e,
-  Prim2B (ldexp x e) = Bldexp prec emax Hprec Hmax mode_NE (Prim2B x) e.
+  Prim2B (ldexp x e) = Bldexp mode_NE (Prim2B x) e.
 Proof.
 intros x e.
 apply B2Prim_inj.
@@ -269,16 +266,16 @@ Qed.
 
 Theorem frexp_equiv :
   forall x : float,
-    let (m, e) := frexp x in
-    (Prim2B m, e) = Bfrexp prec emax Hprec Hemax (Prim2B x).
+  let (m, e) := frexp x in
+  (Prim2B m, e) = Bfrexp Hemax (Prim2B x).
 Proof.
 intro x.
 generalize (frexp_spec x).
 destruct frexp as [f e].
 rewrite <-(B2SF_Prim2B x).
 replace (SFfrexp _ _ _)
-  with (let (f, e) := Bfrexp prec emax Hprec Hemax (Prim2B x) in
-        (B2SF prec emax f, e)).
+  with (let (f, e) := Bfrexp Hemax (Prim2B x) in
+        (B2SF f, e)).
 - case Bfrexp; intros f' e' [= H ->]; f_equal.
   now apply B2SF_inj; rewrite B2SF_Prim2B.
 - case (Prim2B x) as [s|s| |s m e' Hme] ; try easy.
@@ -289,26 +286,26 @@ replace (SFfrexp _ _ _)
   now destruct Pos.leb.
 Qed.
 
-Theorem one_equiv : one = B2Prim (Bone prec emax Hprec Hmax).
+Theorem one_equiv : one = B2Prim Bone.
 Proof.
 apply Prim2SF_inj.
 now rewrite Prim2SF_B2Prim; compute.
 Qed.
 
 Theorem ulp_equiv :
-  forall x, Prim2B (ulp x) = Bulp prec emax Hprec Hmax Hemax (Prim2B x).
+  forall x, Prim2B (ulp x) = Bulp Hemax (Prim2B x).
 Proof.
 intro x.
 unfold ulp, Bulp.
 rewrite one_equiv, ldexp_equiv, Prim2B_B2Prim.
 generalize (frexp_equiv x).
 case frexp; intros f e.
-rewrite (surjective_pairing (Bfrexp _ _ _ _ _)) at 1.
+destruct Bfrexp as [f' e'].
 now intros [= _ <-].
 Qed.
 
 Theorem next_up_equiv :
-  forall x, Prim2B (next_up x) = Bsucc prec emax Hprec Hmax Hemax (Prim2B x).
+  forall x, Prim2B (next_up x) = Bsucc Hemax (Prim2B x).
 Proof.
 intro x.
 apply B2Prim_inj.
@@ -317,8 +314,7 @@ apply Prim2SF_inj.
 rewrite Prim2SF_B2Prim.
 rewrite next_up_spec.
 rewrite <-B2SF_Prim2B.
-assert (Hsndfrexp : forall x, snd (SFfrexp prec emax (B2SF prec emax x))
-                              = snd (Bfrexp prec emax Hprec Hemax x)).
+assert (Hsndfrexp : forall x, snd (SFfrexp prec emax (B2SF x)) = snd (Bfrexp Hemax x)).
 { intro x'.
   generalize (frexp_spec (B2Prim x')).
   generalize (frexp_equiv (B2Prim x')).
@@ -326,35 +322,30 @@ assert (Hsndfrexp : forall x, snd (SFfrexp prec emax (B2SF prec emax x))
   rewrite Prim2B_B2Prim, Prim2SF_B2Prim.
   intros H H'; generalize (f_equal snd H'); generalize (f_equal snd H); simpl.
   now intros ->. }
-assert (Hldexp :
-          forall x e, SFldexp prec emax (B2SF prec emax x) e
-                      = B2SF prec emax (Bldexp prec emax Hprec Hmax mode_NE x e)).
+assert (Hldexp : forall x e, SFldexp prec emax (B2SF x) e = B2SF (Bldexp mode_NE x e)).
 { intros x' e'.
   rewrite <-(Prim2B_B2Prim x'), B2SF_Prim2B, <-ldexp_spec.
   now rewrite <-B2SF_Prim2B, ldexp_equiv. }
-assert (Hulp : forall x, SFulp prec emax (B2SF prec emax x)
-                         = B2SF prec emax (Bulp prec emax Hprec Hmax Hemax x)).
+assert (Hulp : forall x, SFulp prec emax (B2SF x) = B2SF (Bulp Hemax x)).
 { intro x'.
   unfold SFulp, Bulp.
   now rewrite Hsndfrexp, <-Hldexp. }
-assert (Hpred_pos :
-          forall x, SFpred_pos prec emax (B2SF prec emax x)
-                    = B2SF prec emax (Bpred_pos prec emax Hprec Hmax Hemax x)).
+assert (Hpred_pos : forall x, SFpred_pos prec emax (B2SF x) = B2SF (Bpred_pos prec emax Hprec Hmax Hemax x)).
 { intro x'.
   unfold SFpred_pos, Bpred_pos.
   rewrite Hsndfrexp.
   set (fe := fexp _ _ _).
-  change (SFone _ _) with (B2SF prec emax (Bone prec emax Hprec Hmax)).
+  change (SFone _ _) with (B2SF Bone).
   rewrite Hldexp, Hulp.
   case x' as [sx|sx| |sx mx ex Bx]; [now trivial..|].
   unfold B2SF at 1.
-  set (y := Bldexp _ _ _ _ _ _ _).
-  set (z := Bulp _ _ _ _ _ _).
+  set (y := Bldexp _ _ _).
+  set (z := Bulp _ _).
   case Pos.eqb.
-  - rewrite <-(Prim2B_B2Prim (B754_finite _ _ _ _ _ _)).
+  - rewrite <-(Prim2B_B2Prim (B754_finite _ _ _ _)).
     rewrite <-(Prim2B_B2Prim y).
     now rewrite <-sub_equiv, !B2SF_Prim2B, sub_spec.
-  - rewrite <-(Prim2B_B2Prim (B754_finite _ _ _ _ _ _)).
+  - rewrite <-(Prim2B_B2Prim (B754_finite _ _ _ _)).
     rewrite <-(Prim2B_B2Prim z).
     now rewrite <-sub_equiv, !B2SF_Prim2B, sub_spec. }
 case Prim2B as [sx|sx| |sx mx ex Bx]; [reflexivity|now case sx|reflexivity|].
@@ -364,14 +355,14 @@ case sx.
   rewrite <-(Prim2B_B2Prim (Bpred_pos _ _ _ _ _ _)).
   now rewrite <-opp_equiv, B2SF_Prim2B, opp_spec, Prim2SF_B2Prim, <-Hpred_pos.
 - rewrite Hulp.
-  rewrite <-(Prim2B_B2Prim (B754_finite _ _ _ _ _ _)).
-  rewrite <-(Prim2B_B2Prim (Bulp _ _ _ _ _ _)).
+  rewrite <-(Prim2B_B2Prim (B754_finite _ _ _ _)).
+  rewrite <-(Prim2B_B2Prim (Bulp _ _)).
   rewrite <-add_equiv, !B2SF_Prim2B, add_spec, !Prim2SF_B2Prim.
   now unfold SF64add.
 Qed.
 
 Theorem next_down_equiv :
-  forall x, Prim2B (next_down x) = Bpred prec emax Hprec Hmax Hemax (Prim2B x).
+  forall x, Prim2B (next_down x) = Bpred Hemax (Prim2B x).
 Proof.
 intro x.
 apply B2Prim_inj.
@@ -381,7 +372,7 @@ rewrite Prim2SF_B2Prim.
 rewrite next_down_spec.
 rewrite <-B2SF_Prim2B.
 unfold Bpred.
-rewrite <-(Prim2B_B2Prim (Bopp prec emax (Prim2B x))).
+rewrite <-(Prim2B_B2Prim (Bopp (Prim2B x))).
 rewrite <-next_up_equiv, <-opp_equiv, !B2SF_Prim2B, opp_spec, next_up_spec.
 unfold SF64pred, SFpred, SF64succ.
 do 2 f_equal.
@@ -389,7 +380,7 @@ now rewrite <-opp_equiv, B2Prim_Prim2B, opp_spec.
 Qed.
 
 Theorem is_nan_equiv :
-  forall x, PrimFloat.is_nan x = is_nan prec emax (Prim2B x).
+  forall x, PrimFloat.is_nan x = is_nan (Prim2B x).
 Proof.
 intro x.
 unfold PrimFloat.is_nan.
@@ -405,7 +396,7 @@ Qed.
 
 Theorem is_zero_equiv :
   forall x,
-    is_zero x = match Prim2B x with B754_zero _ _ _ => true | _ => false end.
+  is_zero x = match Prim2B x with B754_zero _ => true | _ => false end.
 Proof.
 intro x.
 unfold is_zero.
@@ -416,7 +407,7 @@ Qed.
 
 Theorem is_infinity_equiv :
   forall x,
-    is_infinity x = match Prim2B x with B754_infinity _ _ _ => true | _ => false end.
+  is_infinity x = match Prim2B x with B754_infinity _ => true | _ => false end.
 Proof.
 intro x.
 unfold is_infinity.
@@ -427,7 +418,7 @@ rewrite <-B2SF_Prim2B.
 now case Prim2B.
 Qed.
 
-Theorem get_sign_equiv : forall x, get_sign x = Bsign prec emax (Prim2B x).
+Theorem get_sign_equiv : forall x, get_sign x = Bsign (Prim2B x).
 Proof.
 intro x.
 unfold get_sign.
@@ -442,7 +433,7 @@ case (Prim2B x) as [sx|sx| |sx mx ex Bx]; rewrite Prim2B_B2Prim.
 Qed.
 
 Theorem is_finite_equiv :
-  forall x, PrimFloat.is_finite x = is_finite prec emax (Prim2B x).
+  forall x, PrimFloat.is_finite x = is_finite (Prim2B x).
 Proof.
 intro x.
 unfold PrimFloat.is_finite.

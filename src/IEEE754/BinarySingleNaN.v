@@ -18,8 +18,9 @@ COPYING file for more details.
 *)
 
 (** * IEEE-754 arithmetic *)
+
+From Coq Require Import Psatz.
 Require Import Core Digits Round Bracket Operations Div Sqrt Relative IEEE754.SpecFloat.
-Require Import Psatz.
 
 Definition SF2R beta x :=
   match x with
@@ -27,16 +28,17 @@ Definition SF2R beta x :=
   | _ => 0%R
   end.
 
-Section Binary.
+Class Prec_lt_emax prec emax := prec_lt_emax : (prec < emax)%Z.
+Arguments prec_lt_emax prec emax {Prec_lt_emax}.
 
-Arguments exist {A} {P}.
+Section Binary.
 
 (** [prec] is the number of bits of the mantissa including the implicit one;
     [emax] is the exponent of the infinities.
     For instance, binary32 is defined by [prec = 24] and [emax = 128]. *)
 Variable prec emax : Z.
 Context (prec_gt_0_ : Prec_gt_0 prec).
-Hypothesis Hmax : (prec < emax)%Z.
+Context (prec_lt_emax_ : Prec_lt_emax prec emax).
 
 Notation emin := (emin prec emax).
 Notation fexp := (fexp prec emax).
@@ -710,8 +712,8 @@ apply Ex.
 apply Rgt_not_eq.
 now apply F2R_gt_0.
 unfold emin.
-generalize (prec_gt_0 prec).
-clear -Hmax ; omega.
+generalize (prec_gt_0 prec) (prec_lt_emax prec emax).
+clear ; lia.
 Qed.
 
 (** Truncation *)
@@ -1025,8 +1027,8 @@ apply Zeq_bool_true.
 rewrite Zpos_digits2_pos.
 replace (Zdigits radix2 (Zpos (match (Zpower 2 prec - 1)%Z with Zpos p => p | _ => xH end))) with prec.
 unfold fexp, FLT_exp, emin.
-generalize (prec_gt_0 prec).
-clear -Hmax ; zify ; omega.
+generalize (prec_gt_0 prec) (prec_lt_emax prec emax).
+clear ; zify ; lia.
 change 2%Z with (radix_val radix2).
 case_eq (Zpower radix2 prec - 1)%Z.
 simpl Zdigits.
@@ -1205,8 +1207,8 @@ apply Zeq_bool_true.
 rewrite Zpos_digits2_pos.
 replace (Zdigits radix2 (Zpos (match (Zpower 2 prec - 1)%Z with Zpos p => p | _ => xH end))) with prec.
 unfold fexp, FLT_exp, emin.
-generalize (prec_gt_0 prec).
-clear -Hmax ; zify ; omega.
+generalize (prec_gt_0 prec) (prec_lt_emax prec emax).
+clear ; zify ; lia.
 change 2%Z with (radix_val radix2).
 case_eq (Zpower radix2 prec - 1)%Z.
 simpl Zdigits.
@@ -1301,11 +1303,10 @@ unfold fexp, FLT_exp.
 refine (_ (Zdigits_mult_ge radix2 (Zpos mx) (Zpos my) _ _)) ; try discriminate.
 refine (_ (Zdigits_gt_0 radix2 (Zpos mx) _) (Zdigits_gt_0 radix2 (Zpos my) _)) ; try discriminate.
 generalize (Zdigits radix2 (Zpos mx)) (Zdigits radix2 (Zpos my)) (Zdigits radix2 (Zpos mx * Zpos my)).
-clear -Hmax.
-unfold emin.
 intros dx dy dxy Hx Hy Hxy.
-zify ; intros ; subst.
-omega.
+unfold emin.
+generalize (prec_lt_emax prec emax).
+lia.
 (* *)
 case sx ; case sy.
 apply Rlt_bool_false.
@@ -2117,8 +2118,8 @@ apply (Rabs_lt_inv _ _ Heps').
 now apply IZR_le.
 change 4%R with (bpow radix2 2).
 apply bpow_le.
-generalize (prec_gt_0 prec).
-clear -Hmax ; omega.
+generalize (prec_gt_0 prec) (prec_lt_emax prec emax).
+clear ; lia.
 apply Rmult_le_pos.
 apply sqrt_ge_0.
 rewrite <- (Rplus_opp_r 1).
@@ -2137,7 +2138,8 @@ unfold Rsqr.
 rewrite <- bpow_plus.
 apply bpow_le.
 unfold emin.
-clear -Hmax ; omega.
+generalize (prec_lt_emax prec emax).
+clear ; lia.
 apply generic_format_ge_bpow with fexp.
 intros.
 apply Z.le_max_r.
@@ -2210,10 +2212,13 @@ rewrite round_generic; [|now apply valid_rnd_N|].
   + now intros (Hr, Hr'); rewrite Hr.
   + rewrite Rabs_pos_eq; [|lra].
     change 1%R with (bpow radix2 0); apply bpow_lt.
-    unfold Prec_gt_0 in prec_gt_0_; lia.
+    generalize (prec_gt_0 prec) (prec_lt_emax prec emax).
+    lia.
 - apply generic_format_F2R; intros _.
   unfold cexp, fexp, FLT_exp, F2R; simpl; rewrite Rmult_1_r, mag_1.
-  unfold emin; unfold Prec_gt_0 in prec_gt_0_; lia.
+  unfold emin.
+  generalize (prec_gt_0 prec) (prec_lt_emax prec emax).
+  lia.
 Qed.
 
 Lemma is_finite_Bone : is_finite Bone = true.
@@ -2265,7 +2270,9 @@ unfold valid_binary, bounded; apply andb_true_intro; split.
       change 1%Z with (2 ^ 0)%Z; change 2%Z with (radix2 : Z).
       apply Zpower_lt; unfold Prec_gt_0 in prec_gt_0_; lia. }
   unfold fexp, FLT_exp; rewrite H, Z.max_l; [ring|].
-  unfold Prec_gt_0 in prec_gt_0_; unfold emin; lia.
+  unfold emin.
+  generalize (prec_gt_0 prec) (prec_lt_emax prec emax).
+  lia.
 - apply Zle_bool_true; unfold emin; unfold Prec_gt_0 in prec_gt_0_; lia.
 Qed.
 
@@ -2834,3 +2841,38 @@ case (Rlt_bool _ _).
 Qed.
 
 End Binary.
+
+Arguments B754_zero {prec} {emax}.
+Arguments B754_infinity {prec} {emax}.
+Arguments B754_nan {prec} {emax}.
+Arguments B754_finite {prec} {emax}.
+
+Arguments SF2B {prec} {emax}.
+Arguments B2SF {prec} {emax}.
+Arguments B2R {prec} {emax}.
+
+Arguments is_finite_strict {prec} {emax}.
+Arguments is_finite {prec} {emax}.
+Arguments is_nan {prec} {emax}.
+
+Arguments erase {prec} {emax}.
+Arguments Bsign {prec} {emax}.
+Arguments Bcompare {prec} {emax}.
+Arguments Bopp {prec} {emax}.
+Arguments Babs {prec} {emax}.
+Arguments Bone {prec} {emax} {prec_gt_0_} {prec_lt_emax_}.
+Arguments Bmax_float {prec} {emax} {prec_gt_0_} {prec_lt_emax_}.
+
+Arguments Bplus {prec} {emax} {prec_gt_0_} {prec_lt_emax_}.
+Arguments Bminus {prec} {emax} {prec_gt_0_} {prec_lt_emax_}.
+Arguments Bmult {prec} {emax} {prec_gt_0_} {prec_lt_emax_}.
+Arguments Bfma {prec} {emax} {prec_gt_0_} {prec_lt_emax_}.
+Arguments Bdiv {prec} {emax} {prec_gt_0_} {prec_lt_emax_}.
+Arguments Bsqrt {prec} {emax} {prec_gt_0_} {prec_lt_emax_}.
+
+Arguments Bldexp {prec} {emax} {prec_gt_0_} {prec_lt_emax_}.
+Arguments Bnormfr_mantissa {prec} {emax}.
+Arguments Bfrexp {prec} {emax} {prec_gt_0_}.
+Arguments Bulp {prec} {emax} {prec_gt_0_} {prec_lt_emax_}.
+Arguments Bsucc {prec} {emax} {prec_gt_0_} {prec_lt_emax_}.
+Arguments Bpred {prec} {emax} {prec_gt_0_} {prec_lt_emax_}.
