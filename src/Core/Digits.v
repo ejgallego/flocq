@@ -19,6 +19,7 @@ COPYING file for more details.
 
 Require Import ZArith Zquot.
 Require Import Zaux.
+Require IEEE754.SpecFloat.
 
 (** Number of bits (radix 2) of a positive integer.
 
@@ -1118,12 +1119,7 @@ rewrite <- Zpower_nat_Z.
 apply digits2_Pnat_correct.
 Qed.
 
-Fixpoint digits2_pos (n : positive) : positive :=
-  match n with
-  | xH => xH
-  | xO p => Pos.succ (digits2_pos p)
-  | xI p => Pos.succ (digits2_pos p)
-  end.
+Local Notation digits2_pos := (IEEE754.SpecFloat.digits2_pos) (only parsing).
 
 Theorem Zpos_digits2_pos :
   forall m : positive,
@@ -1137,12 +1133,7 @@ induction m ; simpl ; try easy ;
   apply f_equal, IHm.
 Qed.
 
-Definition Zdigits2 n :=
-  match n with
-  | Z0 => n
-  | Zpos p => Zpos (digits2_pos p)
-  | Zneg p => Zpos (digits2_pos p)
-  end.
+Local Notation Zdigits2 := (IEEE754.SpecFloat.Zdigits2) (only parsing).
 
 Lemma Zdigits2_Zdigits :
   forall n, Zdigits2 n = Zdigits radix2 n.
@@ -1152,3 +1143,6 @@ intros [|p|p] ; try easy ;
 Qed.
 
 End Zdigits2.
+
+Notation digits2_pos := (IEEE754.SpecFloat.digits2_pos) (only parsing).
+Notation Zdigits2 := (IEEE754.SpecFloat.Zdigits2) (only parsing).

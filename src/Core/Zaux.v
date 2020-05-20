@@ -19,6 +19,7 @@ COPYING file for more details.
 
 Require Import ZArith Omega.
 Require Import Zquot.
+Require IEEE754.SpecFloat.
 
 Section Zmissing.
 
@@ -702,7 +703,7 @@ End Zcompare.
 
 Section cond_Zopp.
 
-Definition cond_Zopp (b : bool) m := if b then Z.opp m else m.
+Local Notation cond_Zopp := (IEEE754.SpecFloat.cond_Zopp) (only parsing).
 
 Theorem cond_Zopp_negb :
   forall x y, cond_Zopp (negb x) y = Z.opp (cond_Zopp x y).
@@ -734,6 +735,8 @@ now apply Z.abs_eq.
 Qed.
 
 End cond_Zopp.
+
+Notation cond_Zopp := (IEEE754.SpecFloat.cond_Zopp) (only parsing).
 
 Section fast_pow_pos.
 
@@ -921,12 +924,7 @@ intros x.
 apply IHp.
 Qed.
 
-Fixpoint iter_pos (n : positive) (x : A) {struct n} : A :=
-  match n with
-  | xI n' => iter_pos n' (iter_pos n' (f x))
-  | xO n' => iter_pos n' (iter_pos n' x)
-  | xH => f x
-  end.
+Local Notation iter_pos := (IEEE754.SpecFloat.iter_pos f) (only parsing).
 
 Lemma iter_pos_nat :
   forall (p : positive) (x : A),
@@ -949,3 +947,5 @@ easy.
 Qed.
 
 End Iter.
+
+Notation iter_pos := (IEEE754.SpecFloat.iter_pos) (only parsing).
