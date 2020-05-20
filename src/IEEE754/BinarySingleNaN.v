@@ -451,38 +451,7 @@ Proof. now intros [| | |]. Qed.
 [Some c] means ordered as per [c]; [None] means unordered. *)
 
 Definition Bcompare (f1 f2 : binary_float) : option comparison :=
-  match f1, f2 with
-  | B754_nan,_ | _,B754_nan => None
-  | B754_infinity s1, B754_infinity s2 =>
-    Some match s1, s2 with
-    | true, true => Eq
-    | false, false => Eq
-    | true, false => Lt
-    | false, true => Gt
-    end
-  | B754_infinity s, _ => Some (if s then Lt else Gt)
-  | _, B754_infinity s => Some (if s then Gt else Lt)
-  | B754_finite s _ _ _, B754_zero _ => Some (if s then Lt else Gt)
-  | B754_zero _, B754_finite s _ _ _ => Some (if s then Gt else Lt)
-  | B754_zero _, B754_zero _ => Some Eq
-  | B754_finite s1 m1 e1 _, B754_finite s2 m2 e2 _ =>
-    Some match s1, s2 with
-    | true, false => Lt
-    | false, true => Gt
-    | false, false =>
-      match Z.compare e1 e2 with
-      | Lt => Lt
-      | Gt => Gt
-      | Eq => Pcompare m1 m2 Eq
-      end
-    | true, true =>
-      match Z.compare e1 e2 with
-      | Lt => Gt
-      | Gt => Lt
-      | Eq => CompOpp (Pcompare m1 m2 Eq)
-      end
-    end
-  end.
+  SFcompare (B2SF f1) (B2SF f2).
 
 Theorem Bcompare_correct :
   forall f1 f2,
@@ -495,7 +464,7 @@ Proof.
       | [ |- Eq = Rcompare _ _ ] => symmetry; apply Rcompare_Eq
       | [ |- Gt = Rcompare _ _ ] => symmetry; apply Rcompare_Gt
     end.
-  unfold Bcompare; intros f1 f2 H1 H2.
+  unfold Bcompare, SFcompare; intros f1 f2 H1 H2.
   destruct f1, f2; try easy; apply f_equal; clear H1 H2.
   now rewrite Rcompare_Eq.
   destruct s0 ; apply_Rcompare.
@@ -537,6 +506,7 @@ Theorem Bcompare_swap :
   Bcompare y x = match Bcompare x y with Some c => Some (CompOpp c) | None => None end.
 Proof.
   intros.
+  unfold Bcompare.
   destruct x as [ ? | [] | | [] mx ex Bx ];
   destruct y as [ ? | [] | | [] my ey By ]; simpl; try easy.
 - rewrite <- (Zcompare_antisym ex ey). destruct (ex ?= ey)%Z; try easy.
@@ -2280,12 +2250,7 @@ Definition Bmax_float := SF2B _ Bmax_float_proof.
 
 (** Extraction/modification of mantissa/exponent *)
 
-Definition Bnormfr_mantissa x :=
-  match x with
-  | B754_finite _ mx ex _ =>
-    if Z.eqb ex (-prec)%Z then Npos mx else 0%N
-  | _ => 0%N
-  end.
+Definition Bnormfr_mantissa x := SFnormfr_mantissa prec (B2SF x).
 
 Definition Bldexp mode f e :=
   match f with
