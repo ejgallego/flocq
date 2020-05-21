@@ -211,6 +211,14 @@ Definition is_finite_strict f :=
   | _ => false
   end.
 
+Theorem is_finite_strict_B2R :
+  forall x,
+  B2R x <> 0%R ->
+  is_finite_strict x = true.
+Proof.
+now intros [sx|sx| | sx mx ex Bx] Hx.
+Qed.
+
 Theorem B2R_inj:
   forall x y : binary_float,
   is_finite_strict x = true ->
@@ -2544,13 +2552,14 @@ Theorem Bulp'_correct :
   (2 < emax)%Z ->
   forall x,
   is_finite x = true ->
-  B2R (Bulp' x) = ulp radix2 fexp (B2R x) /\
-  is_finite (Bulp' x) = true /\
-  Bsign (Bulp' x) = false.
+  Bulp' x = Bulp x.
 Proof.
-intros Hp x; case x.
-- intros s _; unfold Bulp'.
-  replace (fexp _) with emin.
+intros Hp x Fx.
+assert (B2R (Bulp' x) = ulp radix2 fexp (B2R x) /\
+        is_finite (Bulp' x) = true /\
+        Bsign (Bulp' x) = false) as [H1 [H2 H3]].
+{ destruct x as [sx|sx| |sx mx ex Hx] ; unfold Bulp'.
+- replace (fexp _) with emin.
   + generalize (Bldexp_correct mode_NE Bone emin).
     rewrite Bone_correct, Rmult_1_l, round_generic;
       [|now apply valid_rnd_N|apply generic_format_bpow; unfold fexp, FLT_exp;
@@ -2568,9 +2577,9 @@ intros Hp x; case x.
   + simpl; change (fexp _) with (fexp (-2 * emax - prec)).
     unfold fexp, FLT_exp; rewrite Z.max_r; [reflexivity|].
     unfold emin; unfold Prec_gt_0 in prec_gt_0_; lia.
-- intro; discriminate.
 - discriminate.
-- intros s m e Hme _; unfold Bulp', ulp, cexp.
+- discriminate.
+- unfold ulp, cexp.
   set (f := B754_finite _ _ _ _).
   rewrite Req_bool_false.
   + destruct (Bfrexp_correct f (eq_refl _)) as (Hfr1, (Hfr2, Hfr3)).
@@ -2585,18 +2594,34 @@ intros Hp x; case x.
         now split; [|split; [apply is_finite_Bone|apply Bsign_Bone]].
       - rewrite Rabs_pos_eq; [|now apply bpow_ge_0].
         unfold e', fexp, FLT_exp.
+        apply bpow_lt.
         case (Z.max_spec (mag radix2 (B2R f) - prec) emin)
-          as [(_, Hm)|(_, Hm)]; rewrite Hm; apply bpow_lt;
+          as [(_, Hm)|(_, Hm)]; rewrite Hm;
           [now unfold emin; unfold Prec_gt_0 in prec_gt_0_; lia|].
         apply (Zplus_lt_reg_r _ _ prec); ring_simplify.
         assert (mag radix2 (B2R f) <= emax)%Z;
           [|now unfold Prec_gt_0 in prec_gt_0_; lia].
         apply mag_le_bpow; [|now apply abs_B2R_lt_emax].
-        now unfold f, B2R; apply F2R_neq_0; case s. }
+        now unfold f, B2R; apply F2R_neq_0; case sx. }
     apply generic_format_bpow, Z.max_lub.
     * unfold Prec_gt_0 in prec_gt_0_; lia.
     * apply Z.le_max_r.
-  + now unfold f, B2R; apply F2R_neq_0; case s.
+  + now unfold f, B2R; apply F2R_neq_0; case sx. }
+destruct (Bulp_correct x Fx) as [H4 [H5 H6]].
+assert (ulp radix2 fexp (B2R x) <> 0%R).
+{ apply Rgt_not_eq.
+  change fexp with (FLT_exp emin prec).
+  eapply Rle_lt_trans.
+  2: now apply ulp_FLT_gt.
+  apply Rmult_le_pos.
+  apply Rabs_pos.
+  apply bpow_ge_0. }
+apply B2R_inj.
+- apply is_finite_strict_B2R.
+  now rewrite H1.
+- apply is_finite_strict_B2R.
+  now rewrite H4.
+- now rewrite H4.
 Qed.
 
 (** Successor (and predecessor) *)
@@ -2648,8 +2673,8 @@ case x.
     rewrite <-(Rmult_0_l (bpow radix2 ex)); intro H.
     apply Rmult_eq_reg_r in H; [|apply Rgt_not_eq, bpow_gt_0].
     apply eq_IZR in H; lia. }
-  assert (Hulp := Bulp'_correct Hp x').
-  specialize (Hulp (eq_refl _)).
+  assert (Hulp := Bulp_correct x' (eq_refl _)).
+  rewrite <- (Bulp'_correct Hp x') in Hulp by easy.
   assert (Hldexp := Bldexp_correct mode_NE Bone (fexp (mag radix2 xr - 1))).
   rewrite Bone_correct, Rmult_1_l in Hldexp.
   assert (Fbpowxr : generic_format radix2 fexp
@@ -2793,7 +2818,7 @@ Definition Bsucc x :=
   | B754_infinity false => x
   | B754_infinity true => Bopp Bmax_float
   | B754_nan => B754_nan
-  | B754_finite false _ _ _ => Bplus mode_NE x (Bulp' x)
+  | B754_finite false _ _ _ => Bplus mode_NE x (Bulp x)
   | B754_finite true _ _ _ => Bopp (Bpred_pos (Bopp x))
   end.
 
@@ -2860,8 +2885,8 @@ intros [s|s| |sx mx ex Hmex]; try discriminate; intros _.
       rewrite Hsucc; apply bpow_lt.
       unfold emin; unfold Prec_gt_0 in prec_gt_0_; lia.
   + set (x := B754_finite _ _ _ _).
-    assert (Hulp := Bulp'_correct Hp x (eq_refl _)).
-    assert (Hplus := Bplus_correct mode_NE x (Bulp' x) (eq_refl _)).
+    assert (Hulp := Bulp_correct x (eq_refl _)).
+    assert (Hplus := Bplus_correct mode_NE x (Bulp x) (eq_refl _)).
     rewrite (proj1 (proj2 Hulp)) in Hplus; specialize (Hplus (eq_refl _)).
     assert (Px : (0 <= B2R x)%R).
     { now apply Rmult_le_pos; [apply IZR_le|apply bpow_ge_0]. }

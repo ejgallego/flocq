@@ -370,8 +370,9 @@ case sx.
   rewrite <-(Prim2B_B2Prim (Bpred_pos _ _ _ _ _)).
   now rewrite <-opp_equiv, B2SF_Prim2B, opp_spec, Prim2SF_B2Prim, <-Hpred_pos.
 - rewrite Hulp.
+  rewrite Bulp'_correct by easy.
   rewrite <-(Prim2B_B2Prim (B754_finite _ _ _ _)).
-  rewrite <-(Prim2B_B2Prim (Bulp' _)).
+  rewrite <-(Prim2B_B2Prim (Bulp _)).
   rewrite <-add_equiv, !B2SF_Prim2B, add_spec, !Prim2SF_B2Prim.
   now unfold SF64add.
 Qed.
