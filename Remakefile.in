@@ -101,8 +101,7 @@ deps.dot: $(addprefix src/,$(FILES)) Remakefile.in
 	echo '{ rank=same; "Core.FLX"; "Core.FIX"; "Core.Round_NE"; "Calc.Operations"; }'
 	echo '{ rank=same; "Core.FLT"; "Core.FTZ"; }'
 	echo '{ rank=same; "Core.Generic_fmt"; "Core.Ulp"; }'
-	echo '{ rank=same; "IEEE754.Binary"; "IEEE754.Bits"; }'
-	echo '{ rank=same; "Pff.Pff2FlocqAux"; "Pff.Pff2Flocq"; }'
+	echo '{ rank=same; "IEEE754.Binary"; "IEEE754.BinarySingleNaN"; }'
 	(cd src ; @COQDEP@ -R . Flocq $(FILES)) |
 	  sed -n -e 's,/,.,g;s/[.]vo.*: [^ ]*[.]v//p' |
 	  while read src dst; do
