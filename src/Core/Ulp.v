@@ -198,6 +198,17 @@ rewrite V.
 apply generic_format_0.
 Qed.
 
+Theorem ulp_canonical :
+  forall m e,
+  m <> 0%Z ->
+  canonical beta fexp (Float beta m e) ->
+  ulp (F2R (Float beta m e)) = bpow e.
+Proof.
+intros m e Hm Hc.
+rewrite ulp_neq_0 by now apply F2R_neq_0.
+apply f_equal.
+now apply sym_eq.
+Qed.
 
 Theorem ulp_bpow :
   forall e, ulp (bpow e) = bpow (fexp (e + 1)).
@@ -215,7 +226,6 @@ apply Zlt_succ.
 apply bpow_ge_0.
 apply Rgt_not_eq, Rlt_gt, bpow_gt_0.
 Qed.
-
 
 Lemma generic_format_ulp_0 :
   F (ulp 0).
@@ -373,8 +383,6 @@ intros (n,(Hn1,Hn2)).
 rewrite Hn1 in H; discriminate.
 now apply bpow_mag_le.
 Qed.
-
-
 
 (** Definition and properties of pred and succ *)
 
@@ -1105,7 +1113,6 @@ rewrite <- P, round_0; trivial.
 apply valid_rnd_DN.
 Qed.
 
-
 Theorem round_UP_plus_eps_pos :
   forall x, (0 <= x)%R -> F x ->
   forall eps, (0 < eps <= ulp x)%R ->
@@ -1172,7 +1179,6 @@ apply round_generic...
 apply generic_format_ulp_0.
 Qed.
 
-
 Theorem round_UP_pred_plus_eps_pos :
   forall x, (0 < x)%R -> F x ->
   forall eps, (0 < eps <= ulp (pred x) )%R ->
@@ -1210,7 +1216,6 @@ apply Ropp_lt_contravar.
 now apply Heps.
 Qed.
 
-
 Theorem round_DN_plus_eps:
   forall x, F x ->
   forall eps, (0 <= eps < if (Rle_bool 0 x) then (ulp x)
@@ -1247,7 +1252,6 @@ ring.
 now apply Ropp_0_gt_lt_contravar.
 now apply generic_format_opp.
 Qed.
-
 
 Theorem round_UP_plus_eps :
   forall x, F x ->
@@ -2252,7 +2256,6 @@ rewrite Hn1; easy.
 now apply ulp_ge_ulp_0.
 Qed.
 
-
 Lemma ulp_succ_pos : forall x, F x -> (0 < x)%R ->
    ulp (succ x) = ulp x \/ succ x = bpow (mag beta x).
 Proof with auto with typeclass_instances.
@@ -2280,7 +2283,6 @@ rewrite <- (Rplus_0_r x) at 1; apply Rplus_le_compat_l.
 apply ulp_ge_0.
 now apply sym_eq, mag_unique_pos.
 Qed.
-
 
 Lemma ulp_round_pos :
   forall { Not_FTZ_ : Exp_not_FTZ fexp},
@@ -2332,7 +2334,6 @@ apply Rlt_le...
 replace (fexp n) with (fexp e); try assumption.
 now apply fexp_negligible_exp_eq.
 Qed.
-
 
 Theorem ulp_round : forall { Not_FTZ_ : Exp_not_FTZ fexp},
    forall rnd { Zrnd : Valid_rnd rnd } x,
