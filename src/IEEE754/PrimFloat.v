@@ -308,10 +308,10 @@ now rewrite Prim2SF_B2Prim; compute.
 Qed.
 
 Theorem ulp_equiv :
-  forall x, Prim2B (ulp x) = Bulp (Prim2B x).
+  forall x, Prim2B (ulp x) = Bulp' (Prim2B x).
 Proof.
 intro x.
-unfold ulp, Bulp.
+unfold ulp, Bulp'.
 rewrite one_equiv, ldexp_equiv, Prim2B_B2Prim.
 generalize (frexp_equiv x).
 case frexp; intros f e.
@@ -341,9 +341,9 @@ assert (Hldexp : forall x e, SFldexp prec emax (B2SF x) e = B2SF (Bldexp mode_NE
 { intros x' e'.
   rewrite <-(Prim2B_B2Prim x'), B2SF_Prim2B, <-ldexp_spec.
   now rewrite <-B2SF_Prim2B, ldexp_equiv. }
-assert (Hulp : forall x, SFulp prec emax (B2SF x) = B2SF (Bulp x)).
+assert (Hulp : forall x, SFulp prec emax (B2SF x) = B2SF (Bulp' x)).
 { intro x'.
-  unfold SFulp, Bulp.
+  unfold SFulp, Bulp'.
   now rewrite Hsndfrexp, <-Hldexp. }
 assert (Hpred_pos : forall x, SFpred_pos prec emax (B2SF x) = B2SF (Bpred_pos prec emax Hprec Hmax x)).
 { intro x'.
@@ -355,7 +355,7 @@ assert (Hpred_pos : forall x, SFpred_pos prec emax (B2SF x) = B2SF (Bpred_pos pr
   case x' as [sx|sx| |sx mx ex Bx]; [now trivial..|].
   unfold B2SF at 1.
   set (y := Bldexp _ _ _).
-  set (z := Bulp _).
+  set (z := Bulp' _).
   case Pos.eqb.
   - rewrite <-(Prim2B_B2Prim (B754_finite _ _ _ _)).
     rewrite <-(Prim2B_B2Prim y).
@@ -371,7 +371,7 @@ case sx.
   now rewrite <-opp_equiv, B2SF_Prim2B, opp_spec, Prim2SF_B2Prim, <-Hpred_pos.
 - rewrite Hulp.
   rewrite <-(Prim2B_B2Prim (B754_finite _ _ _ _)).
-  rewrite <-(Prim2B_B2Prim (Bulp _)).
+  rewrite <-(Prim2B_B2Prim (Bulp' _)).
   rewrite <-add_equiv, !B2SF_Prim2B, add_spec, !Prim2SF_B2Prim.
   now unfold SF64add.
 Qed.

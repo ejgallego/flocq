@@ -2458,18 +2458,98 @@ Qed.
 
 (** Ulp *)
 
-Definition Bulp x := Bldexp mode_NE Bone (fexp (snd (Bfrexp x))).
+Definition Bulp x :=
+  match x with
+  | B754_zero _ => binary_normalize mode_ZR 1 emin false
+  | B754_infinity _ => B754_infinity false
+  | B754_nan => B754_nan
+  | B754_finite _ _ e _ => binary_normalize mode_ZR 1 e false
+  end.
 
 Theorem Bulp_correct :
-  (2 < emax)%Z ->
   forall x,
   is_finite x = true ->
   B2R (Bulp x) = ulp radix2 fexp (B2R x) /\
   is_finite (Bulp x) = true /\
   Bsign (Bulp x) = false.
 Proof.
+intros [sx|sx| |sx mx ex Hx] Fx ; try easy.
+- simpl.
+  destruct (binary_round_correct mode_ZR false 1 emin) as [H1 H2].
+  revert H2.
+  simpl.
+  replace (round _ _ _ _) with (bpow radix2 emin).
+  rewrite Rlt_bool_true.
+  intros [H2 [H3 H4]].
+  split ; [|split].
+  + rewrite B2R_SF2B.
+    change fexp with (FLT_exp emin prec).
+    rewrite ulp_FLT_small ; try easy.
+    rewrite Rabs_R0.
+    apply bpow_gt_0.
+  + now rewrite is_finite_SF2B.
+  + now rewrite Bsign_SF2B.
+  + rewrite Rabs_pos_eq by apply bpow_ge_0.
+    apply bpow_lt.
+    unfold emin.
+    generalize (prec_gt_0 prec) (prec_lt_emax prec emax).
+    lia.
+  + rewrite F2R_bpow.
+    apply sym_eq, round_generic.
+    typeclasses eauto.
+    apply generic_format_bpow.
+    unfold fexp.
+    rewrite Z.max_r.
+    apply Z.le_refl.
+    generalize (prec_gt_0 prec).
+    lia.
+- simpl.
+  destruct (binary_round_correct mode_ZR false 1 ex) as [H1 H2].
+  revert H2.
+  simpl.
+  destruct (andb_prop _ _ Hx) as [H5 H6].
+  replace (round _ _ _ _) with (bpow radix2 ex).
+  rewrite Rlt_bool_true.
+  intros [H2 [H3 H4]].
+  split ; [|split].
+  + rewrite B2R_SF2B.
+    rewrite ulp_canonical.
+    exact H2.
+    now case sx.
+    now apply canonical_canonical_mantissa.
+  + now rewrite is_finite_SF2B.
+  + now rewrite Bsign_SF2B.
+  + rewrite Rabs_pos_eq by apply bpow_ge_0.
+    apply bpow_lt.
+    generalize (prec_gt_0 prec) (Zle_bool_imp_le _ _ H6).
+    clear ; lia.
+  + rewrite F2R_bpow.
+    apply sym_eq, round_generic.
+    typeclasses eauto.
+    apply generic_format_bpow.
+    apply (canonical_canonical_mantissa false) in H5.
+    rewrite H5 at 2.
+    simpl.
+    unfold cexp.
+    apply monotone_exp.
+    apply FLT_exp_monotone.
+    rewrite mag_F2R_Zdigits by easy.
+    generalize (Zdigits_gt_0 radix2 (Zpos mx)).
+    lia.
+Qed.
+
+Definition Bulp' x := Bldexp mode_NE Bone (fexp (snd (Bfrexp x))).
+
+Theorem Bulp'_correct :
+  (2 < emax)%Z ->
+  forall x,
+  is_finite x = true ->
+  B2R (Bulp' x) = ulp radix2 fexp (B2R x) /\
+  is_finite (Bulp' x) = true /\
+  Bsign (Bulp' x) = false.
+Proof.
 intros Hp x; case x.
-- intros s _; unfold Bulp.
+- intros s _; unfold Bulp'.
   replace (fexp _) with emin.
   + generalize (Bldexp_correct mode_NE Bone emin).
     rewrite Bone_correct, Rmult_1_l, round_generic;
@@ -2490,7 +2570,7 @@ intros Hp x; case x.
     unfold emin; unfold Prec_gt_0 in prec_gt_0_; lia.
 - intro; discriminate.
 - discriminate.
-- intros s m e Hme _; unfold Bulp, ulp, cexp.
+- intros s m e Hme _; unfold Bulp', ulp, cexp.
   set (f := B754_finite _ _ _ _).
   rewrite Req_bool_false.
   + destruct (Bfrexp_correct f (eq_refl _)) as (Hfr1, (Hfr2, Hfr3)).
@@ -2528,7 +2608,7 @@ Definition Bpred_pos x :=
       if (mx~0 =? shift_pos (Z.to_pos prec) 1)%positive then
         Bldexp mode_NE Bone (fexp (snd (Bfrexp x) - 1))
       else
-        Bulp x in
+        Bulp' x in
     Bminus mode_NE x d
   | _ => x
   end.
@@ -2568,7 +2648,7 @@ case x.
     rewrite <-(Rmult_0_l (bpow radix2 ex)); intro H.
     apply Rmult_eq_reg_r in H; [|apply Rgt_not_eq, bpow_gt_0].
     apply eq_IZR in H; lia. }
-  assert (Hulp := Bulp_correct Hp x').
+  assert (Hulp := Bulp'_correct Hp x').
   specialize (Hulp (eq_refl _)).
   assert (Hldexp := Bldexp_correct mode_NE Bone (fexp (mag radix2 xr - 1))).
   rewrite Bone_correct, Rmult_1_l in Hldexp.
@@ -2713,7 +2793,7 @@ Definition Bsucc x :=
   | B754_infinity false => x
   | B754_infinity true => Bopp Bmax_float
   | B754_nan => B754_nan
-  | B754_finite false _ _ _ => Bplus mode_NE x (Bulp x)
+  | B754_finite false _ _ _ => Bplus mode_NE x (Bulp' x)
   | B754_finite true _ _ _ => Bopp (Bpred_pos (Bopp x))
   end.
 
@@ -2780,8 +2860,8 @@ intros [s|s| |sx mx ex Hmex]; try discriminate; intros _.
       rewrite Hsucc; apply bpow_lt.
       unfold emin; unfold Prec_gt_0 in prec_gt_0_; lia.
   + set (x := B754_finite _ _ _ _).
-    assert (Hulp := Bulp_correct Hp x (eq_refl _)).
-    assert (Hplus := Bplus_correct mode_NE x (Bulp x) (eq_refl _)).
+    assert (Hulp := Bulp'_correct Hp x (eq_refl _)).
+    assert (Hplus := Bplus_correct mode_NE x (Bulp' x) (eq_refl _)).
     rewrite (proj1 (proj2 Hulp)) in Hplus; specialize (Hplus (eq_refl _)).
     assert (Px : (0 <= B2R x)%R).
     { now apply Rmult_le_pos; [apply IZR_le|apply bpow_ge_0]. }
@@ -2873,5 +2953,6 @@ Arguments Bldexp {prec} {emax} {prec_gt_0_} {prec_lt_emax_}.
 Arguments Bnormfr_mantissa {prec} {emax}.
 Arguments Bfrexp {prec} {emax} {prec_gt_0_}.
 Arguments Bulp {prec} {emax} {prec_gt_0_} {prec_lt_emax_}.
+Arguments Bulp' {prec} {emax} {prec_gt_0_} {prec_lt_emax_}.
 Arguments Bsucc {prec} {emax} {prec_gt_0_} {prec_lt_emax_}.
 Arguments Bpred {prec} {emax} {prec_gt_0_} {prec_lt_emax_}.
