@@ -2466,9 +2466,24 @@ Qed.
 
 (** Ulp *)
 
+Lemma Bulp_correct_aux :
+  bounded 1 emin = true.
+Proof.
+unfold bounded, canonical_mantissa.
+rewrite Zeq_bool_true.
+apply Zle_bool_true.
+unfold emin.
+generalize (prec_gt_0 prec) (prec_lt_emax prec emax).
+lia.
+apply Z.max_r.
+simpl digits2_pos.
+generalize (prec_gt_0 prec).
+lia.
+Qed.
+
 Definition Bulp x :=
   match x with
-  | B754_zero _ => binary_normalize mode_ZR 1 emin false
+  | B754_zero _ => B754_finite false 1 emin Bulp_correct_aux
   | B754_infinity _ => B754_infinity false
   | B754_nan => B754_nan
   | B754_finite _ _ e _ => binary_normalize mode_ZR 1 e false
@@ -2481,38 +2496,15 @@ Theorem Bulp_correct :
   is_finite (Bulp x) = true /\
   Bsign (Bulp x) = false.
 Proof.
-intros [sx|sx| |sx mx ex Hx] Fx ; try easy.
-- simpl.
-  destruct (binary_round_correct mode_ZR false 1 emin) as [H1 H2].
-  revert H2.
-  simpl.
-  replace (round _ _ _ _) with (bpow radix2 emin).
-  rewrite Rlt_bool_true.
-  intros [H2 [H3 H4]].
-  split ; [|split].
-  + rewrite B2R_SF2B.
-    change fexp with (FLT_exp emin prec).
-    rewrite ulp_FLT_small ; try easy.
-    rewrite Rabs_R0.
-    apply bpow_gt_0.
-  + now rewrite is_finite_SF2B.
-  + now rewrite Bsign_SF2B.
-  + rewrite Rabs_pos_eq by apply bpow_ge_0.
-    apply bpow_lt.
-    unfold emin.
-    generalize (prec_gt_0 prec) (prec_lt_emax prec emax).
-    lia.
-  + rewrite F2R_bpow.
-    apply sym_eq, round_generic.
-    typeclasses eauto.
-    apply generic_format_bpow.
-    unfold fexp.
-    rewrite Z.max_r.
-    apply Z.le_refl.
-    generalize (prec_gt_0 prec).
-    lia.
-- simpl.
-  destruct (binary_round_correct mode_ZR false 1 ex) as [H1 H2].
+intros [sx|sx| |sx mx ex Hx] Fx ; try easy ; simpl.
+- repeat split.
+  change fexp with (FLT_exp emin prec).
+  rewrite ulp_FLT_small.
+  apply F2R_bpow.
+  easy.
+  rewrite Rabs_R0.
+  apply bpow_gt_0.
+- destruct (binary_round_correct mode_ZR false 1 ex) as [H1 H2].
   revert H2.
   simpl.
   destruct (andb_prop _ _ Hx) as [H5 H6].
