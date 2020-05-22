@@ -2293,6 +2293,22 @@ case f.
     now revert Hover; unfold B2R, F2R; simpl; rewrite Rmult_assoc, bpow_plus.
 Qed.
 
+Lemma Bldexp_Bopp_NE x e : Bldexp mode_NE (Bopp x) e = Bopp (Bldexp mode_NE x e).
+Proof.
+case x as [s|s| |s m e' B]; [now simpl..| ].
+apply B2SF_inj.
+replace (B2SF (Bopp _)) with (SFopp (B2SF (Bldexp mode_NE (B754_finite s m e' B) e))).
+{ unfold Bldexp, Bopp; rewrite !B2SF_SF2B.
+  unfold binary_round.
+  set (shl := shl_align_fexp _ _); case shl; intros mz ez.
+  unfold binary_round_aux.
+  set (shr := shr_fexp _ _ _); case shr; intros mrs e''.
+  unfold choice_mode.
+  set (shr' := shr_fexp _ _ _); case shr'; intros mrs' e'''.
+  now case (shr_m mrs') as [|p|p]; [|case Z.leb|]. }
+now case Bldexp as [s'|s'| |s' m' e'' B'].
+Qed.
+
 Definition Ffrexp_core_binary s m e :=
   if Zlt_bool (-prec) emin then
     (S754_finite s m e, 0%Z)
