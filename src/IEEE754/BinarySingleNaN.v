@@ -875,14 +875,90 @@ Definition overflow_to_inf m s :=
 
 Definition binary_overflow m s :=
   if overflow_to_inf m s then S754_infinity s
-  else S754_finite s (match (Zpower 2 prec - 1)%Z with Zpos p => p | _ => xH end) (emax - prec).
+  else S754_finite s (Z.to_pos (Zpower 2 prec - 1)%Z) (emax - prec).
+
+Theorem binary_overflow_correct :
+  forall m s,
+  valid_binary (binary_overflow m s) = true.
+Proof.
+intros m s.
+unfold binary_overflow.
+case overflow_to_inf.
+easy.
+unfold valid_binary, bounded.
+rewrite Zle_bool_refl.
+rewrite Bool.andb_true_r.
+apply Zeq_bool_true.
+rewrite Zpos_digits2_pos.
+replace (Zdigits radix2 _) with prec.
+unfold fexp, FLT_exp, emin.
+generalize (prec_gt_0 prec) (prec_lt_emax prec emax).
+clear ; zify ; lia.
+change 2%Z with (radix_val radix2).
+assert (H: (0 < radix2 ^ prec - 1)%Z).
+  apply Zlt_succ_pred.
+  now apply Zpower_gt_1.
+rewrite Z2Pos.id by exact H.
+apply Zle_antisym.
+- apply Z.lt_pred_le.
+  apply Zdigits_gt_Zpower.
+  rewrite Z.abs_eq by now apply Zlt_le_weak.
+  apply Z.lt_le_pred.
+  apply Zpower_lt.
+  now apply Zlt_le_weak.
+  apply Z.lt_pred_l.
+- apply Zdigits_le_Zpower.
+  rewrite Z.abs_eq by now apply Zlt_le_weak.
+  apply Z.lt_pred_l.
+Qed.
+
+Definition binary_fit_aux mode sx mx ex :=
+  if Zle_bool ex (emax - prec) then S754_finite sx mx ex
+  else binary_overflow mode sx.
+
+Theorem binary_fit_aux_correct :
+  forall mode sx mx ex,
+  canonical_mantissa mx ex = true ->
+  let x := SF2R radix2 (S754_finite sx mx ex) in
+  let z := binary_fit_aux mode sx mx ex in
+  valid_binary z = true /\
+  if Rlt_bool (Rabs x) (bpow radix2 emax) then
+    SF2R radix2 z = x /\ is_finite_SF z = true /\ sign_SF z = sx
+  else
+    z = binary_overflow mode sx.
+Proof.
+intros m sx mx ex Cx.
+unfold binary_fit_aux.
+simpl.
+rewrite F2R_cond_Zopp.
+rewrite abs_cond_Ropp.
+rewrite Rabs_pos_eq by now apply F2R_ge_0.
+destruct Zle_bool eqn:He.
+- assert (Hb: bounded mx ex = true).
+  { unfold bounded. now rewrite Cx. }
+  apply (conj Hb).
+  rewrite Rlt_bool_true.
+  repeat split.
+  apply F2R_cond_Zopp.
+  now apply bounded_lt_emax.
+- rewrite Rlt_bool_false.
+  { repeat split.
+    apply binary_overflow_correct. }
+  apply Rnot_lt_le.
+  intros Hx.
+  apply bounded_canonical_lt_emax in Hx.
+  revert Hx.
+  unfold bounded.
+  now rewrite Cx, He.
+  now apply (canonical_canonical_mantissa false).
+Qed.
 
 Definition binary_round_aux mode sx mx ex lx :=
   let '(mrs', e') := shr_fexp mx ex lx in
   let '(mrs'', e'') := shr_fexp (choice_mode mode sx (shr_m mrs') (loc_of_shr_record mrs')) e' loc_Exact in
   match shr_m mrs'' with
   | Z0 => S754_zero sx
-  | Zpos m => if Zle_bool e'' (emax - prec) then S754_finite sx m e'' else binary_overflow mode sx
+  | Zpos m => binary_fit_aux mode sx m e''
   | _ => S754_nan
   end.
 
@@ -974,70 +1050,15 @@ destruct m2 as [|m2|m2].
 elim Rgt_not_eq with (2 := H3).
 rewrite F2R_0.
 now apply F2R_gt_0.
-rewrite F2R_cond_Zopp, H3, abs_cond_Ropp, <- F2R_abs.
-simpl Z.abs.
-case_eq (Zle_bool e2 (emax - prec)) ; intros He2.
-assert (bounded m2 e2 = true).
-apply andb_true_intro.
-split.
-unfold canonical_mantissa.
-apply Zeq_bool_true.
-rewrite Zpos_digits2_pos.
-rewrite <- mag_F2R_Zdigits.
-apply sym_eq.
-now rewrite H3 in H4.
-discriminate.
-exact He2.
-apply (conj H).
-rewrite Rlt_bool_true.
-repeat split.
-apply F2R_cond_Zopp.
-now apply bounded_lt_emax.
-rewrite (Rlt_bool_false _ (bpow radix2 emax)).
-refine (conj _ (refl_equal _)).
-unfold binary_overflow.
-case overflow_to_inf.
-apply refl_equal.
-unfold valid_binary, bounded.
-rewrite Zle_bool_refl.
-rewrite Bool.andb_true_r.
-apply Zeq_bool_true.
-rewrite Zpos_digits2_pos.
-replace (Zdigits radix2 (Zpos (match (Zpower 2 prec - 1)%Z with Zpos p => p | _ => xH end))) with prec.
-unfold fexp, FLT_exp, emin.
-generalize (prec_gt_0 prec) (prec_lt_emax prec emax).
-clear ; zify ; lia.
-change 2%Z with (radix_val radix2).
-case_eq (Zpower radix2 prec - 1)%Z.
-simpl Zdigits.
-generalize (Zpower_gt_1 radix2 prec (prec_gt_0 prec)).
-clear ; omega.
-intros p Hp.
-apply Zle_antisym.
-cut (prec - 1 < Zdigits radix2 (Zpos p))%Z. clear ; omega.
-apply Zdigits_gt_Zpower.
-simpl Z.abs. rewrite <- Hp.
-cut (Zpower radix2 (prec - 1) < Zpower radix2 prec)%Z. clear ; omega.
-apply lt_IZR.
-rewrite 2!IZR_Zpower. 2: now apply Zlt_le_weak.
-apply bpow_lt.
-apply Zlt_pred.
-now apply Zlt_0_le_0_pred.
-apply Zdigits_le_Zpower.
-simpl Z.abs. rewrite <- Hp.
-apply Zlt_pred.
-intros p Hp.
-generalize (Zpower_gt_1 radix2 _ (prec_gt_0 prec)).
-clear -Hp ; zify ; omega.
-apply Rnot_lt_le.
-intros Hx.
-generalize (refl_equal (bounded m2 e2)).
-unfold bounded at 2.
-rewrite He2.
-rewrite Bool.andb_false_r.
-rewrite bounded_canonical_lt_emax with (2 := Hx).
-discriminate.
-unfold canonical.
+destruct (binary_fit_aux_correct m (Rlt_bool x 0) m2 e2) as [H5 H6].
+  apply Zeq_bool_true.
+  rewrite Zpos_digits2_pos.
+  rewrite <- mag_F2R_Zdigits by easy.
+  now rewrite <- H3.
+apply (conj H5).
+revert H6.
+simpl.
+rewrite 2!F2R_cond_Zopp.
 now rewrite <- H3.
 elim Rgt_not_eq with (2 := H3).
 apply Rlt_trans with R0.
@@ -1154,70 +1175,15 @@ destruct m2 as [|m2|m2].
 elim Rgt_not_eq with (2 := H3).
 rewrite F2R_0.
 now apply F2R_gt_0.
-rewrite F2R_cond_Zopp, H3, abs_cond_Ropp, <- F2R_abs.
-simpl Z.abs.
-case_eq (Zle_bool e2 (emax - prec)) ; intros He2.
-assert (bounded m2 e2 = true).
-apply andb_true_intro.
-split.
-unfold canonical_mantissa.
-apply Zeq_bool_true.
-rewrite Zpos_digits2_pos.
-rewrite <- mag_F2R_Zdigits.
-apply sym_eq.
-now rewrite H3 in H4.
-discriminate.
-exact He2.
-apply (conj H).
-rewrite Rlt_bool_true.
-repeat split.
-apply F2R_cond_Zopp.
-now apply bounded_lt_emax.
-rewrite (Rlt_bool_false _ (bpow radix2 emax)).
-refine (conj _ (refl_equal _)).
-unfold binary_overflow.
-case overflow_to_inf.
-apply refl_equal.
-unfold valid_binary, bounded.
-rewrite Zle_bool_refl.
-rewrite Bool.andb_true_r.
-apply Zeq_bool_true.
-rewrite Zpos_digits2_pos.
-replace (Zdigits radix2 (Zpos (match (Zpower 2 prec - 1)%Z with Zpos p => p | _ => xH end))) with prec.
-unfold fexp, FLT_exp, emin.
-generalize (prec_gt_0 prec) (prec_lt_emax prec emax).
-clear ; zify ; lia.
-change 2%Z with (radix_val radix2).
-case_eq (Zpower radix2 prec - 1)%Z.
-simpl Zdigits.
-generalize (Zpower_gt_1 radix2 prec (prec_gt_0 prec)).
-clear ; omega.
-intros p Hp.
-apply Zle_antisym.
-cut (prec - 1 < Zdigits radix2 (Zpos p))%Z. clear ; omega.
-apply Zdigits_gt_Zpower.
-simpl Z.abs. rewrite <- Hp.
-cut (Zpower radix2 (prec - 1) < Zpower radix2 prec)%Z. clear ; omega.
-apply lt_IZR.
-rewrite 2!IZR_Zpower. 2: now apply Zlt_le_weak.
-apply bpow_lt.
-apply Zlt_pred.
-now apply Zlt_0_le_0_pred.
-apply Zdigits_le_Zpower.
-simpl Z.abs. rewrite <- Hp.
-apply Zlt_pred.
-intros p Hp.
-generalize (Zpower_gt_1 radix2 _ (prec_gt_0 prec)).
-clear -Hp ; zify ; omega.
-apply Rnot_lt_le.
-intros Hx.
-generalize (refl_equal (bounded m2 e2)).
-unfold bounded at 2.
-rewrite He2.
-rewrite Bool.andb_false_r.
-rewrite bounded_canonical_lt_emax with (2 := Hx).
-discriminate.
-unfold canonical.
+destruct (binary_fit_aux_correct m (Rlt_bool x 0) m2 e2) as [H5 H6].
+  apply Zeq_bool_true.
+  rewrite Zpos_digits2_pos.
+  rewrite <- mag_F2R_Zdigits by easy.
+  now rewrite <- H3.
+apply (conj H5).
+revert H6.
+simpl.
+rewrite 2!F2R_cond_Zopp.
 now rewrite <- H3.
 elim Rgt_not_eq with (2 := H3).
 apply Rlt_trans with R0.
@@ -2313,6 +2279,7 @@ replace (B2SF (Bopp _)) with (SFopp (B2SF (Bldexp mode_NE (B754_finite s m e' B)
   set (shr := shr_fexp _ _ _); case shr; intros mrs e''.
   unfold choice_mode.
   set (shr' := shr_fexp _ _ _); case shr'; intros mrs' e'''.
+  unfold binary_fit_aux.
   now case (shr_m mrs') as [|p|p]; [|case Z.leb|]. }
 now case Bldexp as [s'|s'| |s' m' e'' B'].
 Qed.
