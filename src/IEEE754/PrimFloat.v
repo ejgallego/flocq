@@ -455,3 +455,15 @@ unfold PrimFloat.is_finite.
 rewrite is_nan_equiv, is_infinity_equiv.
 now case (Prim2B x) as [sx|sx| |sx mx ex Bx].
 Qed.
+
+Theorem of_int63_equiv :
+  forall i,
+  Prim2B (of_int63 i)
+  = binary_normalize prec emax Hprec Hmax mode_NE (Int63.to_Z i) 0 false.
+Proof.
+intro i.
+apply B2SF_inj.
+rewrite B2SF_Prim2B.
+rewrite of_int63_spec.
+apply binary_normalize_equiv.
+Qed.
