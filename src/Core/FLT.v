@@ -99,7 +99,6 @@ apply Z.le_max_l.
 apply Z.le_max_r.
 Qed.
 
-
 Theorem FLT_format_bpow :
   forall e, (emin <= e)%Z -> generic_format beta FLT_exp (bpow e).
 Proof.
@@ -108,9 +107,6 @@ apply generic_format_bpow; unfold FLT_exp.
 apply Z.max_case; try assumption.
 unfold Prec_gt_0 in prec_gt_0_; omega.
 Qed.
-
-
-
 
 Theorem FLT_format_satisfies_any :
   satisfies_any FLT_format.
@@ -140,6 +136,34 @@ cut (emin + prec - 1 < ex)%Z. omega.
 apply (lt_bpow beta).
 apply Rle_lt_trans with (1 := Hx).
 apply He.
+Qed.
+
+(** FLT is a nice format: it has a monotone exponent... *)
+Global Instance FLT_exp_monotone : Monotone_exp FLT_exp.
+Proof.
+intros ex ey.
+unfold FLT_exp.
+zify ; omega.
+Qed.
+
+(** and it allows a rounding to nearest, ties to even. *)
+Global Instance exists_NE_FLT :
+  (Z.even beta = false \/ (1 < prec)%Z) ->
+  Exists_NE beta FLT_exp.
+Proof.
+intros [H|H].
+now left.
+right.
+intros e.
+unfold FLT_exp.
+destruct (Zmax_spec (e - prec) emin) as [(H1,H2)|(H1,H2)] ;
+  rewrite H2 ; clear H2.
+generalize (Zmax_spec (e + 1 - prec) emin).
+generalize (Zmax_spec (e - prec + 1 - prec) emin).
+omega.
+generalize (Zmax_spec (e + 1 - prec) emin).
+generalize (Zmax_spec (emin + 1 - prec) emin).
+omega.
 Qed.
 
 (** Links between FLT and FLX *)
@@ -254,29 +278,45 @@ rewrite IZR_Zpower_pos; simpl; rewrite Rmult_1_r; apply IZR_lt.
 apply (Z.lt_le_trans _ 2); [omega|]; apply Zle_bool_imp_le, beta.
 Qed.
 
-Theorem ulp_FLT_small: forall x, (Rabs x < bpow (emin+prec))%R ->
-    ulp beta FLT_exp x = bpow emin.
-Proof with auto with typeclass_instances.
+Theorem ulp_FLT_0 :
+  ulp beta FLT_exp 0 = bpow emin.
+Proof.
+unfold ulp.
+rewrite Req_bool_true by easy.
+case negligible_exp_spec.
+- intros T.
+  elim Zle_not_lt with (2 := T emin).
+  apply Z.le_max_r.
+- intros n Hn.
+  apply f_equal.
+  assert (H: FLT_exp emin = emin).
+    apply Z.max_r.
+    generalize (prec_gt_0 prec).
+    clear ; lia.
+  rewrite <- H.
+  apply fexp_negligible_exp_eq.
+  apply FLT_exp_valid.
+  exact Hn.
+  rewrite H.
+  apply Z.le_refl.
+Qed.
+
+Theorem ulp_FLT_small :
+  forall x, (Rabs x < bpow (emin + prec))%R ->
+  ulp beta FLT_exp x = bpow emin.
+Proof.
 intros x Hx.
-unfold ulp; case Req_bool_spec; intros Hx2.
-(* x = 0 *)
-case (negligible_exp_spec FLT_exp).
-intros T; specialize (T (emin-1)%Z); contradict T.
-apply Zle_not_lt; unfold FLT_exp.
-apply Z.le_trans with (2:=Z.le_max_r _ _); omega.
-assert (V:FLT_exp emin = emin).
-unfold FLT_exp; apply Z.max_r.
-unfold Prec_gt_0 in prec_gt_0_; omega.
-intros n H2; rewrite <-V.
-apply f_equal, fexp_negligible_exp_eq...
-omega.
-(* x <> 0 *)
-apply f_equal; unfold cexp, FLT_exp.
+destruct (Req_dec x 0%R) as [Zx|Zx].
+{ rewrite Zx.
+  apply ulp_FLT_0. }
+rewrite ulp_neq_0 by easy.
+apply f_equal.
 apply Z.max_r.
-assert (mag beta x-1 < emin+prec)%Z;[idtac|omega].
-destruct (mag beta x) as (e,He); simpl.
+destruct (mag beta x) as [e He].
+simpl.
+cut (e - 1 < emin + prec)%Z. lia.
 apply lt_bpow with beta.
-apply Rle_lt_trans with (2:=Hx).
+apply Rle_lt_trans with (2 := Hx).
 now apply He.
 Qed.
 
@@ -373,34 +413,6 @@ fold (Req_bool (-x) (bpow (mag beta (-x) - 1))); case Req_bool.
   replace (_ - _)%Z with (mag beta x - 1 - prec + e)%Z; [|ring].
   rewrite bpow_plus; ring. }
 rewrite ulp_FLT_exact_shift; [ring|lra| |]; rewrite mag_opp; lia.
-Qed.
-
-(** FLT is a nice format: it has a monotone exponent... *)
-Global Instance FLT_exp_monotone : Monotone_exp FLT_exp.
-Proof.
-intros ex ey.
-unfold FLT_exp.
-zify ; omega.
-Qed.
-
-(** and it allows a rounding to nearest, ties to even. *)
-Hypothesis NE_prop : Z.even beta = false \/ (1 < prec)%Z.
-
-Global Instance exists_NE_FLT : Exists_NE beta FLT_exp.
-Proof.
-destruct NE_prop as [H|H].
-now left.
-right.
-intros e.
-unfold FLT_exp.
-destruct (Zmax_spec (e - prec) emin) as [(H1,H2)|(H1,H2)] ;
-  rewrite H2 ; clear H2.
-generalize (Zmax_spec (e + 1 - prec) emin).
-generalize (Zmax_spec (e - prec + 1 - prec) emin).
-omega.
-generalize (Zmax_spec (e + 1 - prec) emin).
-generalize (Zmax_spec (emin + 1 - prec) emin).
-omega.
 Qed.
 
 End RND_FLT.
