@@ -997,10 +997,9 @@ case m ;
 assert (Hr: Rabs (round radix2 fexp (round_mode m) x) = F2R (Float radix2 m1' e1)).
 (* . *)
 rewrite <- (Z.abs_eq m1').
-replace (Z.abs m1') with (Z.abs (cond_Zopp (Rlt_bool x 0) m1')).
+rewrite <- (abs_cond_Zopp (Rlt_bool x 0) m1').
 rewrite F2R_Zabs.
 now apply f_equal.
-apply abs_cond_Zopp.
 apply Z.le_trans with (2 := Hm).
 apply Zlt_succ_le.
 apply gt_0_F2R with radix2 e1.
@@ -1122,10 +1121,9 @@ case m ;
 assert (Hr: Rabs (round radix2 fexp (round_mode m) x) = F2R (Float radix2 m1' e1)).
 (* . *)
 rewrite <- (Z.abs_eq m1').
-replace (Z.abs m1') with (Z.abs (cond_Zopp (Rlt_bool x 0) m1')).
+rewrite <- (abs_cond_Zopp (Rlt_bool x 0) m1').
 rewrite F2R_Zabs.
 now apply f_equal.
-apply abs_cond_Zopp.
 apply Z.le_trans with (2 := Hm).
 apply Zlt_succ_le.
 apply gt_0_F2R with radix2 e1.
@@ -1428,17 +1426,19 @@ Definition binary_normalize mode m e szero :=
 
 Theorem binary_normalize_correct :
   forall m mx ex szero,
-  if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (F2R (Float radix2 mx ex)))) (bpow radix2 emax) then
-    B2R (binary_normalize m mx ex szero) = round radix2 fexp (round_mode m) (F2R (Float radix2 mx ex)) /\
-    is_finite (binary_normalize m mx ex szero) = true /\
-    Bsign (binary_normalize m mx ex szero) =
-      match Rcompare (F2R (Float radix2 mx ex)) 0 with
+  let x := F2R (Float radix2 mx ex) in
+  let z := binary_normalize m mx ex szero in
+  if Rlt_bool (Rabs (round radix2 fexp (round_mode m) x)) (bpow radix2 emax) then
+    B2R z = round radix2 fexp (round_mode m) x /\
+    is_finite z = true /\
+    Bsign z =
+      match Rcompare x 0 with
         | Eq => szero
         | Lt => true
         | Gt => false
       end
   else
-    B2SF (binary_normalize m mx ex szero) = binary_overflow m (Rlt_bool (F2R (Float radix2 mx ex)) 0).
+    B2SF z = binary_overflow m (Rlt_bool x 0).
 Proof with auto with typeclass_instances.
 intros m mx ez szero.
 destruct mx as [|mz|mz] ; simpl.
@@ -1645,22 +1645,28 @@ apply Rplus_le_compat_l.
 now apply F2R_le_0.
 (* . *)
 generalize (binary_normalize_correct m mz ez szero).
-case Rlt_bool_spec.
-split; try easy. split; try easy.
-destruct (Rcompare_spec (F2R (beta:=radix2) {| Fnum := mz; Fexp := ez |}) 0); try easy.
-rewrite H1 in Hp.
+simpl.
+case Rlt_bool_spec ; intros Hz.
+intros [H1 [H2 H3]].
+apply (conj H1).
+apply (conj H2).
+rewrite H3.
+case Rcompare_spec ; try easy.
+intros Hz'.
+rewrite Hz' in Hp.
 apply Rplus_opp_r_uniq in Hp.
 rewrite <- F2R_Zopp in Hp.
 eapply canonical_unique in Hp.
-inversion Hp. destruct sy, sx, m; try discriminate H3; easy.
+inversion Hp.
+clear -H0.
+destruct sy, sx, m ; easy.
 apply canonical_canonical_mantissa.
 apply Bool.andb_true_iff in Hy. easy.
-replace (-cond_Zopp sx (Z.pos mx))%Z with (cond_Zopp (negb sx) (Z.pos mx))
-  by (destruct sx; auto).
+rewrite <- cond_Zopp_negb.
 apply canonical_canonical_mantissa.
 apply Bool.andb_true_iff in Hx. easy.
-intros Hz' Vz.
-specialize (Sz Hz').
+intros Vz.
+specialize (Sz Hz).
 split.
 rewrite Vz.
 now apply f_equal.
