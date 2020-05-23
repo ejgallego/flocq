@@ -415,4 +415,38 @@ fold (Req_bool (-x) (bpow (mag beta (-x) - 1))); case Req_bool.
 rewrite ulp_FLT_exact_shift; [ring|lra| |]; rewrite mag_opp; lia.
 Qed.
 
+Theorem ulp_FLT_pred_pos :
+  forall x,
+  generic_format beta FLT_exp x ->
+  (0 <= x)%R ->
+  ulp beta FLT_exp (pred beta FLT_exp x) = ulp beta FLT_exp x \/ x = bpow (mag beta x - 1).
+Proof.
+intros x Fx [Hx|Hx] ; cycle 1.
+{ rewrite <- Hx.
+  rewrite pred_0.
+  rewrite ulp_opp.
+  left.
+  apply ulp_ulp_0.
+  apply FLT_exp_valid.
+  typeclasses eauto. }
+destruct (Req_dec (pred beta FLT_exp x) 0) as [Hp|Hp].
+- right.
+  rewrite <- (succ_pred beta FLT_exp x) by easy.
+  rewrite Hp.
+  rewrite succ_0.
+  rewrite ulp_FLT_0.
+  apply f_equal, eq_sym.
+  rewrite mag_bpow.
+  apply Z.pred_succ.
+- apply ulp_pred_pos.
+  apply FLT_exp_valid.
+  exact Fx.
+  apply Rnot_le_lt.
+  contradict Hp.
+  apply Rle_antisym with (1 := Hp).
+  apply pred_ge_gt ; try easy.
+  apply FLT_exp_valid.
+  apply generic_format_0.
+Qed.
+
 End RND_FLT.
