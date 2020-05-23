@@ -2256,8 +2256,9 @@ rewrite Hn1; easy.
 now apply ulp_ge_ulp_0.
 Qed.
 
-Lemma ulp_succ_pos : forall x, F x -> (0 < x)%R ->
-   ulp (succ x) = ulp x \/ succ x = bpow (mag beta x).
+Lemma ulp_succ_pos :
+  forall x, F x -> (0 < x)%R ->
+  ulp (succ x) = ulp x \/ succ x = bpow (mag beta x).
 Proof with auto with typeclass_instances.
 intros x Fx Hx.
 generalize (Rlt_le _ _ Hx); intros Hx'.
@@ -2282,6 +2283,40 @@ apply Rle_trans with (1:=proj1 He).
 rewrite <- (Rplus_0_r x) at 1; apply Rplus_le_compat_l.
 apply ulp_ge_0.
 now apply sym_eq, mag_unique_pos.
+Qed.
+
+Theorem ulp_pred_pos :
+  forall x, F x -> (0 < pred x)%R ->
+  ulp (pred x) = ulp x \/ x = bpow (mag beta x - 1).
+Proof.
+intros x Fx Hx.
+assert (Hx': (0 < x)%R).
+  apply Rlt_le_trans with (1 := Hx).
+  apply pred_le_id.
+assert (Zx : x <> 0%R).
+  now apply Rgt_not_eq.
+rewrite (ulp_neq_0 x) by easy.
+unfold cexp.
+destruct (mag beta x) as [e He].
+simpl.
+assert (bpow (e - 1) <= x < bpow e)%R.
+  rewrite <- (Rabs_pos_eq x) by now apply Rlt_le.
+  now apply He.
+destruct (proj1 H) as [H1|H1].
+2: now right.
+left.
+apply pred_ge_gt with (2 := Fx) in H1.
+rewrite ulp_neq_0 by now apply Rgt_not_eq.
+apply (f_equal (fun e => bpow (fexp e))).
+apply mag_unique_pos.
+apply (conj H1).
+apply Rle_lt_trans with (2 := proj2 H).
+apply pred_le_id.
+apply generic_format_bpow.
+apply Z.lt_le_pred.
+replace (_ + 1)%Z with e by ring.
+rewrite <- (mag_unique_pos _ _ _ H).
+now apply mag_generic_gt.
 Qed.
 
 Lemma ulp_round_pos :
