@@ -440,6 +440,17 @@ unfold pred.
 now rewrite Ropp_involutive.
 Qed.
 
+Theorem pred_bpow :
+  forall e, pred (bpow e) = (bpow e - bpow (fexp e))%R.
+Proof.
+intros e.
+rewrite pred_eq_pos by apply bpow_ge_0.
+unfold pred_pos.
+rewrite mag_bpow.
+replace (e + 1 - 1)%Z with e by ring.
+now rewrite Req_bool_true.
+Qed.
+
 (** pred and succ are in the format *)
 
 (* cannont be x <> ulp 0, due to the counter-example 1-bit FP format fexp: e -> e-1 *)
