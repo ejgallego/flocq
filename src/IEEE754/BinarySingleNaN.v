@@ -2472,11 +2472,8 @@ Proof.
 intros [sx|sx| |sx mx ex Hx] Fx ; try easy ; simpl.
 - repeat split.
   change fexp with (FLT_exp emin prec).
-  rewrite ulp_FLT_small.
+  rewrite ulp_FLT_0 by easy.
   apply F2R_bpow.
-  easy.
-  rewrite Rabs_R0.
-  apply bpow_gt_0.
 - destruct (binary_round_correct mode_ZR false 1 ex) as [H1 H2].
   revert H2.
   simpl.
@@ -2499,16 +2496,11 @@ intros [sx|sx| |sx mx ex Hx] Fx ; try easy ; simpl.
   + rewrite F2R_bpow.
     apply sym_eq, round_generic.
     typeclasses eauto.
-    apply generic_format_bpow.
-    apply (canonical_canonical_mantissa false) in H5.
-    rewrite H5 at 2.
-    simpl.
-    unfold cexp.
-    apply monotone_exp.
-    apply FLT_exp_monotone.
-    rewrite mag_F2R_Zdigits by easy.
-    generalize (Zdigits_gt_0 radix2 (Zpos mx)).
-    lia.
+    apply generic_format_FLT_bpow.
+    easy.
+    rewrite (canonical_canonical_mantissa false _ _ H5).
+    apply Z.max_le_iff.
+    now right.
 Qed.
 
 Definition Bulp' x := Bldexp mode_NE Bone (fexp (snd (Bfrexp x))).

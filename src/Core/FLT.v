@@ -99,13 +99,21 @@ apply Z.le_max_l.
 apply Z.le_max_r.
 Qed.
 
-Theorem FLT_format_bpow :
+Theorem generic_format_FLT_bpow :
   forall e, (emin <= e)%Z -> generic_format beta FLT_exp (bpow e).
 Proof.
 intros e He.
 apply generic_format_bpow; unfold FLT_exp.
 apply Z.max_case; try assumption.
 unfold Prec_gt_0 in prec_gt_0_; omega.
+Qed.
+
+Theorem FLT_format_bpow :
+  forall e, (emin <= e)%Z -> FLT_format (bpow e).
+Proof.
+intros e He.
+apply FLT_format_generic.
+now apply generic_format_FLT_bpow.
 Qed.
 
 Theorem FLT_format_satisfies_any :
@@ -262,20 +270,12 @@ destruct (Z.max_spec (n - prec) emin) as [(Hm, Hm')|(Hm, Hm')].
 revert Hn prec_gt_0_; unfold FLT_exp, Prec_gt_0; rewrite Hm'; lia.
 Qed.
 
-Theorem generic_format_FLT_1 (Hemin : (emin <= 0)%Z) :
+Theorem generic_format_FLT_1 :
+  (emin <= 0)%Z ->
   generic_format beta FLT_exp 1.
 Proof.
-unfold generic_format, scaled_mantissa, cexp, F2R; simpl.
-rewrite Rmult_1_l, (mag_unique beta 1 1).
-{ unfold FLT_exp.
-  destruct (Z.max_spec_le (1 - prec) emin) as [(H,Hm)|(H,Hm)]; rewrite Hm;
-    (rewrite <- IZR_Zpower; [|unfold Prec_gt_0 in prec_gt_0_; omega]);
-    (rewrite Ztrunc_IZR, IZR_Zpower, <-bpow_plus;
-     [|unfold Prec_gt_0 in prec_gt_0_; omega]);
-    now replace (_ + _)%Z with Z0 by ring. }
-rewrite Rabs_R1; simpl; split; [now right|].
-rewrite IZR_Zpower_pos; simpl; rewrite Rmult_1_r; apply IZR_lt.
-apply (Z.lt_le_trans _ 2); [omega|]; apply Zle_bool_imp_le, beta.
+intros Hemin.
+now apply (generic_format_FLT_bpow 0).
 Qed.
 
 Theorem ulp_FLT_0 :
