@@ -21,7 +21,7 @@ COPYING file for more details.
 
 (** * Interface Flocq with Coq (>= 8.11) primitive floating-point numbers. *)
 
-From Coq Require Import ZArith Floats SpecFloat.
+From Coq Require Import ZArith Reals Floats SpecFloat.
 Require Import Zaux BinarySingleNaN.
 
 (** Conversions from/to Flocq binary_float *)
@@ -345,14 +345,15 @@ assert (Hulp : forall x, SFulp prec emax (B2SF x) = B2SF (Bulp' x)).
 { intro x'.
   unfold SFulp, Bulp'.
   now rewrite Hsndfrexp, <-Hldexp. }
-assert (Hpred_pos : forall x, SFpred_pos prec emax (B2SF x) = B2SF (Bpred_pos' prec emax Hprec Hmax x)).
-{ intro x'.
+assert (Hpred_pos : forall x, (0 < B2R x)%R -> SFpred_pos prec emax (B2SF x) = B2SF (Bpred_pos prec emax Hprec Hmax x)).
+{ intros x' Fx'.
+  rewrite <- (Bpred_pos'_correct prec emax Hprec Hmax eq_refl x' Fx').
   unfold SFpred_pos, Bpred_pos'.
   rewrite Hsndfrexp.
   set (fe := fexp _ _ _).
   change (SFone _ _) with (B2SF Bone).
   rewrite Hldexp, Hulp.
-  case x' as [sx|sx| |sx mx ex Bx]; [now trivial..|].
+  case x' as [sx|sx| |sx mx ex Bx]; try easy.
   unfold B2SF at 1.
   set (y := Bldexp _ _ _).
   set (z := Bulp' _).
@@ -367,8 +368,11 @@ case Prim2B as [sx|sx| |sx mx ex Bx]; [reflexivity|now case sx|reflexivity|].
 unfold SF64succ, SFsucc, B2SF at 1, Bsucc.
 case sx.
 - unfold B2SF at 1, SFopp at 2.
-  rewrite <-(Prim2B_B2Prim (Bpred_pos' _ _ _ _ _)).
-  now rewrite <-opp_equiv, B2SF_Prim2B, opp_spec, Prim2SF_B2Prim, <-Hpred_pos.
+  rewrite <-(Prim2B_B2Prim (Bpred_pos _ _ _ _ _)).
+  rewrite <- opp_equiv, B2SF_Prim2B, opp_spec, Prim2SF_B2Prim.
+  rewrite <- Hpred_pos.
+  easy.
+  now apply Float_prop.F2R_gt_0.
 - rewrite Hulp.
   rewrite Bulp'_correct by easy.
   rewrite <-(Prim2B_B2Prim (B754_finite _ _ _ _)).
