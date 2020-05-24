@@ -419,7 +419,8 @@ Theorem ulp_FLT_pred_pos :
   forall x,
   generic_format beta FLT_exp x ->
   (0 <= x)%R ->
-  ulp beta FLT_exp (pred beta FLT_exp x) = ulp beta FLT_exp x \/ x = bpow (mag beta x - 1).
+  ulp beta FLT_exp (pred beta FLT_exp x) = ulp beta FLT_exp x \/
+  (x = bpow (mag beta x - 1) /\ ulp beta FLT_exp (pred beta FLT_exp x) = (ulp beta FLT_exp x / IZR beta)%R).
 Proof.
 intros x Fx [Hx|Hx] ; cycle 1.
 { rewrite <- Hx.
@@ -429,24 +430,91 @@ intros x Fx [Hx|Hx] ; cycle 1.
   apply ulp_ulp_0.
   apply FLT_exp_valid.
   typeclasses eauto. }
-destruct (Req_dec (pred beta FLT_exp x) 0) as [Hp|Hp].
-- right.
-  rewrite <- (succ_pred beta FLT_exp x) by easy.
-  rewrite Hp.
-  rewrite succ_0.
-  rewrite ulp_FLT_0.
-  apply f_equal, eq_sym.
-  rewrite mag_bpow.
-  apply Z.pred_succ.
-- apply ulp_pred_pos.
+assert (Hp: (0 <= pred beta FLT_exp x)%R).
+{ apply pred_ge_gt ; try easy.
   apply FLT_exp_valid.
-  exact Fx.
-  apply Rnot_le_lt.
-  contradict Hp.
-  apply Rle_antisym with (1 := Hp).
-  apply pred_ge_gt ; try easy.
-  apply FLT_exp_valid.
-  apply generic_format_0.
+  apply generic_format_0. }
+destruct (Rle_or_lt (bpow (emin + prec)) x) as [Hs|Hs].
+- unfold ulp.
+  rewrite Req_bool_false ; cycle 1.
+  { intros Zp.
+    apply Rle_not_lt with (1 := Hs).
+    generalize (f_equal (succ beta FLT_exp) Zp).
+    rewrite succ_pred.
+    rewrite succ_0, ulp_FLT_0.
+    intros H.
+    rewrite H.
+    apply bpow_lt.
+    generalize (prec_gt_0 prec).
+    lia.
+    apply FLT_exp_valid.
+    exact Fx. }
+  rewrite Req_bool_false by now apply Rgt_not_eq.
+  unfold cexp.
+  destruct (mag beta x) as [e He].
+  simpl.
+  specialize (He (Rgt_not_eq _ _ Hx)).
+  rewrite Rabs_pos_eq in He by now apply Rlt_le.
+  destruct (proj1 He) as [Hb|Hb].
+  + left.
+    apply (f_equal (fun v => bpow (FLT_exp v))).
+    apply mag_unique.
+    rewrite Rabs_pos_eq by easy.
+    split.
+    * apply pred_ge_gt ; try easy.
+      apply FLT_exp_valid.
+      apply generic_format_FLT_bpow.
+      apply Z.lt_le_pred.
+      apply lt_bpow with beta.
+      apply Rle_lt_trans with (2 := proj2 He).
+      apply Rle_trans with (2 := Hs).
+      apply bpow_le.
+      generalize (prec_gt_0 prec).
+      lia.
+    * apply pred_lt_le.
+      now apply Rgt_not_eq.
+      now apply Rlt_le.
+  + right.
+    split.
+    easy.
+    replace (FLT_exp _) with (FLT_exp e + -1)%Z.
+    rewrite bpow_plus.
+    now rewrite <- (Zmult_1_r beta).
+    rewrite <- Hb.
+    unfold FLT_exp at 1 2.
+    replace (mag_val _ _ (mag _ _)) with (e - 1)%Z.
+    rewrite <- Hb in Hs.
+    apply le_bpow in Hs.
+    zify ; lia.
+    apply eq_sym, mag_unique.
+    rewrite Hb.
+    rewrite Rabs_pos_eq by easy.
+    split ; cycle 1.
+    { apply pred_lt_id.
+      now apply Rgt_not_eq. }
+    apply pred_ge_gt.
+    apply FLT_exp_valid.
+    apply generic_format_FLT_bpow.
+    cut (emin + 1 < e)%Z. lia.
+    apply lt_bpow with beta.
+    apply Rle_lt_trans with (2 := proj2 He).
+    apply Rle_trans with (2 := Hs).
+    apply bpow_le.
+    generalize (prec_gt_0 prec).
+    lia.
+    exact Fx.
+    apply Rlt_le_trans with (2 := proj1 He).
+    apply bpow_lt.
+    apply Z.lt_pred_l.
+- left.
+  rewrite (ulp_FLT_small x).
+  apply ulp_FLT_small.
+  rewrite Rabs_pos_eq by easy.
+  apply pred_lt_le.
+  now apply Rgt_not_eq.
+  now apply Rlt_le.
+  rewrite Rabs_pos_eq by now apply Rlt_le.
+  exact Hs.
 Qed.
 
 End RND_FLT.
