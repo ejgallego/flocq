@@ -2585,6 +2585,86 @@ Qed.
 
 Definition Bpred_pos x :=
   match x with
+  | B754_finite false mx ex _ =>
+    SF2B _ (proj1 (binary_round_correct mode_ZR false (xO mx - 1) (ex - 1)))
+  | _ => x
+  end.
+
+Theorem Bpred_pos_correct :
+  forall x,
+  (0 < B2R x)%R ->
+  B2R (Bpred_pos x) = pred radix2 fexp (B2R x) /\
+  is_finite (Bpred_pos x) = true /\
+  Bsign (Bpred_pos x) = false.
+Proof.
+intros [sx|sx| | [|] mx ex Bx] Hx ; try elim Rlt_irrefl with (1 := Hx).
+  elim Rlt_not_le with (1 := Hx).
+  now apply F2R_le_0.
+simpl.
+rewrite B2R_SF2B, is_finite_SF2B, Bsign_SF2B.
+generalize (binary_round_correct mode_ZR false (xO mx - 1) (ex - 1)).
+set (z := binary_round _ _ _ _).
+simpl.
+assert (H: F2R (Float radix2 (Zpos (xO mx - 1)) (ex - 1)) = (F2R (Float radix2 (Zpos mx) ex) - F2R (Float radix2 1 (ex - 1)))%R).
+{ rewrite (F2R_change_exp _ (ex - 1) _ ex) by apply Z.le_pred_l.
+  rewrite <- F2R_minus, Fminus_same_exp.
+  apply F2R_eq.
+  replace (ex - (ex - 1))%Z with 1%Z by ring.
+  now rewrite Zmult_comm. }
+rewrite round_ZR_DN by now apply F2R_ge_0.
+rewrite Rlt_bool_true.
+- intros [_ [H1 [H2 H3]]].
+  split.
+  2: now split.
+  rewrite H1, H.
+  apply round_DN_minus_eps_pos.
+    now apply FLT_exp_valid.
+    exact Hx.
+    apply (generic_format_B2R (B754_finite false mx ex Bx)).
+  split.
+    now apply F2R_gt_0.
+  rewrite F2R_bpow.
+  change fexp with (FLT_exp emin prec).
+  destruct (ulp_FLT_pred_pos radix2 emin prec (F2R (Float radix2 (Zpos mx) ex))) as [Hu|[Hu1 Hu2]].
+  + apply (generic_format_B2R (B754_finite false mx ex Bx)).
+  + now apply F2R_ge_0.
+  + rewrite Hu.
+    rewrite ulp_canonical.
+    apply bpow_le.
+    apply Z.le_pred_l.
+    easy.
+    clear -Bx.
+    apply andb_prop in Bx.
+    now apply (canonical_canonical_mantissa false).
+  + rewrite Hu2.
+    rewrite ulp_canonical.
+    rewrite <- (Zmult_1_r radix2).
+    change (_ / _)%R with (bpow radix2 ex * bpow radix2 (-1))%R.
+    rewrite <- bpow_plus.
+    apply Rle_refl.
+    easy.
+    clear -Bx.
+    apply andb_prop in Bx.
+    now apply (canonical_canonical_mantissa false).
+- rewrite Rabs_pos_eq.
+  eapply Rle_lt_trans.
+  2: apply bounded_lt_emax with (1 := Bx).
+  apply Rle_trans with (F2R (Float radix2 (Zpos (xO mx - 1)) (ex - 1))).
+  apply round_DN_pt.
+  now apply FLT_exp_valid.
+  rewrite H.
+  rewrite <- (Rminus_0_r (F2R _)) at 2.
+  apply Rplus_le_compat_l.
+  apply Ropp_le_contravar.
+  now apply F2R_ge_0.
+  apply round_DN_pt.
+  now apply FLT_exp_valid.
+  apply generic_format_0.
+  now apply F2R_ge_0.
+Qed.
+
+Definition Bpred_pos' x :=
+  match x with
   | B754_finite _ mx _ _ =>
     let d :=
       if (mx~0 =? shift_pos (Z.to_pos prec) 1)%positive then
@@ -2595,13 +2675,13 @@ Definition Bpred_pos x :=
   | _ => x
   end.
 
-Theorem Bpred_pos_correct :
+Theorem Bpred_pos'_correct :
   (2 < emax)%Z ->
   forall x,
   (0 < B2R x)%R ->
-  B2R (Bpred_pos x) = pred_pos radix2 fexp (B2R x) /\
-  is_finite (Bpred_pos x) = true /\
-  Bsign (Bpred_pos x) = false.
+  B2R (Bpred_pos' x) = pred_pos radix2 fexp (B2R x) /\
+  is_finite (Bpred_pos' x) = true /\
+  Bsign (Bpred_pos' x) = false.
 Proof.
 intros Hp x.
 generalize (Bfrexp_correct x).
@@ -2620,7 +2700,7 @@ case x.
   simpl in Hfrexpx; rewrite B2R_SF2B in Hfrexpx.
   destruct Hfrexpx as (Hfrexpx_bounds, (Hfrexpx_eq, Hfrexpx_exp)).
   apply Hp.
-  unfold Bpred_pos, Bfrexp.
+  unfold Bpred_pos', Bfrexp.
   simpl (snd (_, snd _)).
   rewrite Hfrexpx_exp.
   set (x' := B754_finite _ _ _ _).
@@ -2776,7 +2856,7 @@ Definition Bsucc x :=
   | B754_infinity true => Bopp Bmax_float
   | B754_nan => B754_nan
   | B754_finite false _ _ _ => Bplus mode_NE x (Bulp x)
-  | B754_finite true _ _ _ => Bopp (Bpred_pos (Bopp x))
+  | B754_finite true _ _ _ => Bopp (Bpred_pos' (Bopp x))
   end.
 
 Lemma Bsucc_correct :
@@ -2819,7 +2899,7 @@ intros [s|s| |sx mx ex Hmex]; try discriminate; intros _.
     * rewrite B2R_Bopp; simpl (Bopp (B754_finite _ _ _ _)).
       rewrite is_finite_Bopp.
       set (ox := B754_finite false mx ex Hmex).
-      assert (Hpred := Bpred_pos_correct Hp ox).
+      assert (Hpred := Bpred_pos'_correct Hp ox).
       assert (Hox : (0 < B2R ox)%R); [|specialize (Hpred Hox); clear Hox].
       { now apply Rmult_lt_0_compat; [apply IZR_lt|apply bpow_gt_0]. }
       rewrite (proj1 Hpred), (proj1 (proj2 Hpred)).
@@ -2828,7 +2908,7 @@ intros [s|s| |sx mx ex Hmex]; try discriminate; intros _.
       { now simpl. }
       { simpl (Bsign (B754_finite _ _ _ _)); simpl (true && _)%bool.
         rewrite Bsign_Bopp, (proj2 (proj2 Hpred)); [now simpl|].
-        now destruct Hpred as (_, (H, _)); revert H; case (Bpred_pos _). }
+        now destruct Hpred as (_, (H, _)); revert H; case (Bpred_pos' _). }
       unfold B2R, F2R; simpl; change (Z.neg mx) with (- Z.pos mx)%Z.
       rewrite opp_IZR, <-Ropp_mult_distr_l, <-Ropp_0; apply Ropp_lt_contravar.
       now apply Rmult_lt_0_compat; [apply IZR_lt|apply bpow_gt_0].
