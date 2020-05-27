@@ -2444,6 +2444,73 @@ unfold pred.
 right; field.
 Qed.
 
+Lemma round_N_ge_ge_midp : forall choice u v,
+       F u ->
+       (u <= round beta fexp (Znearest choice) v)%R ->
+       ((u + pred u) / 2 <= v)%R.
+Proof with auto with typeclass_instances.
+intros choice u v Hu H2.
+assert (K: ((u=0)%R /\ negligible_exp = None) \/ (pred u < u)%R).
+case (Req_dec u 0); intros Zu.
+case_eq (negligible_exp).
+intros n Hn; right.
+rewrite Zu, pred_0.
+unfold ulp; rewrite Req_bool_true, Hn; try easy.
+rewrite <- Ropp_0.
+apply Ropp_lt_contravar, bpow_gt_0.
+intros _; left; split; easy.
+right.
+apply pred_lt_id...
+(* *)
+case K.
+intros (K1,K2).
+(* . *)
+rewrite K1, pred_0.
+unfold ulp; rewrite Req_bool_true, K2; try easy.
+replace ((0+-0)/2)%R with 0%R by field.
+case (Rle_or_lt 0 v); try easy.
+intros H3; contradict H2.
+rewrite K1; apply Rlt_not_le.
+assert (H4: (round beta fexp (Znearest choice) v <= 0)%R).
+apply round_le_generic...
+apply generic_format_0...
+now left.
+case H4; try easy.
+intros H5.
+absurd (v=0)%R; try auto with real.
+apply eq_0_round_0_negligible_exp with (Znearest choice)...
+(* . *)
+intros K1.
+case (Rle_or_lt ((u + pred u) / 2) v); try easy.
+intros H3.
+absurd (u <= round beta fexp (Znearest choice) v)%R; try easy.
+apply Rlt_not_le.
+apply Rle_lt_trans with (2:=K1).
+apply round_N_le_midp...
+apply generic_format_pred...
+rewrite succ_pred...
+apply Rlt_le_trans with (1:=H3).
+right; f_equal; ring.
+Qed.
+
+
+Lemma round_N_le_le_midp : forall choice u v,
+       F u ->
+       (round beta fexp (Znearest choice) v <= u)%R ->
+       (v <= (u + succ u) / 2)%R.
+Proof with auto with typeclass_instances.
+intros choice u v Hu H2.
+apply Ropp_le_cancel.
+apply Rle_trans with (((-u)+pred (-u))/2)%R.
+rewrite pred_opp; right; field.
+apply round_N_ge_ge_midp with
+   (choice := fun t:Z => negb (choice (- (t + 1))%Z))...
+apply generic_format_opp...
+rewrite <- (Ropp_involutive (round _ _ _ _)).
+rewrite <- round_N_opp, Ropp_involutive.
+apply Ropp_le_contravar; easy.
+Qed.
+
 
 Lemma round_N_eq_DN: forall choice x,
        let d:=round beta fexp Zfloor x in
@@ -2528,6 +2595,20 @@ assert (Vrnd2 : Valid_rnd (Znearest choice2)) by now apply valid_rnd_N.
 apply (Rle_trans _ (succ rx)); [now apply succ_round_ge_id|].
 rewrite round_generic; [now apply succ_le_plus_ulp|now simpl|].
 now apply generic_format_plus_ulp, generic_format_round.
+Qed.
+
+
+Lemma round_N_eq_ties: forall c1 c2 x,
+   (x - round beta fexp Zfloor x <> round beta fexp Zceil x - x)%R ->
+   (round beta fexp (Znearest c1) x = round beta fexp (Znearest c2) x)%R.
+Proof with auto with typeclass_instances.
+intros c1 c2 x.
+pose (d:=round beta fexp Zfloor x); pose (u:=round beta fexp Zceil x); fold d; fold u; intros H.
+case (Rle_or_lt ((d+u)/2) x); intros L.
+2:rewrite 2!round_N_eq_DN...
+destruct L as [L|L].
+rewrite 2!round_N_eq_UP...
+contradict H; rewrite <- L; field.
 Qed.
 
 End Fcore_ulp.

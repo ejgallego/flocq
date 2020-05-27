@@ -403,4 +403,134 @@ generalize (Zmax_spec (emin + 1 - prec) emin).
 omega.
 Qed.
 
+Notation u := (bpow (1-prec) / 2)%R.
+
+Lemma error_le_opt_FLT : forall choice x,
+    (bpow (emin+prec-1) <= Rabs x)%R ->
+    (Rabs (round beta FLT_exp (Znearest choice) x -x) <= (u/(1+u)) * Rabs x)%R.
+Proof with auto with typeclass_instances.
+intros choice x Hx.
+case_eq (mag beta x); intros e He1 He2.
+assert (Y1 : (x <> 0)%R).
+intros K; contradict Hx; apply Rlt_not_le.
+rewrite K, Rabs_R0; apply bpow_gt_0.
+assert (Y2 : (0 < u)%R).
+apply Rdiv_lt_0_compat; try apply bpow_gt_0; now auto with real.
+assert (Y3 : (0 < u / (1 + u))%R).
+apply Rdiv_lt_0_compat; try easy.
+apply Rplus_lt_0_compat; try easy; now auto with real.
+assert (Y4:(emin+prec-1 < e)%Z).
+apply lt_bpow with beta.
+apply Rle_lt_trans with (1:=Hx).
+apply He1...
+(* *)
+case (Rle_or_lt ((1+u)*bpow (e-1)) (Rabs x)); intros H.
+(* big mantissa *)
+apply Rle_trans with (/2*ulp beta FLT_exp x)%R.
+apply error_le_half_ulp...
+rewrite ulp_neq_0...
+unfold cexp, FLT_exp; rewrite He2.
+simpl (mag_val _ _ (Build_mag_prop beta x e He1)).
+rewrite Z.max_l.
+apply Rle_trans with (u*bpow (e - 1))%R.
+unfold u; rewrite (Rmult_comm _ (/2)).
+rewrite Rmult_assoc; right; f_equal.
+rewrite <- bpow_plus; f_equal; ring.
+apply Rle_trans with
+ ((u / (1 + u))*((1 + u) * bpow (e - 1)))%R.
+right; field.
+apply Rgt_not_eq, Rlt_gt.
+apply Rplus_lt_0_compat.
+auto with real.
+apply bpow_gt_0.
+apply Rmult_le_compat_l; try easy.
+now left.
+omega.
+(* small mantissa *)
+apply Rle_trans with (Rabs x - bpow (e-1))%R.
+(* . *)
+assert (T: (Rabs (round beta FLT_exp (Znearest choice) x) = bpow (e - 1))%R).
+apply Rle_antisym.
+assert (T: exists c, Rabs (round beta FLT_exp (Znearest choice) x) =
+    round beta FLT_exp (Znearest c) (Rabs x)).
+case (Rle_or_lt 0 x); intros Zx.
+exists choice.
+rewrite Rabs_right; try easy.
+rewrite Rabs_right; try easy.
+now apply Rle_ge.
+apply Rle_ge, round_ge_generic...
+apply generic_format_0...
+exists (fun t : Z => negb (choice (- (t + 1))%Z)).
+rewrite <- (Ropp_involutive (round _ _ _ (Rabs x))).
+rewrite <- round_N_opp...
+rewrite Rabs_left1.
+rewrite Rabs_left; try easy.
+f_equal; f_equal; ring.
+apply round_le_generic...
+apply generic_format_0...
+now left.
+destruct T as (c,Hc); rewrite Hc.
+apply round_N_le_midp...
+apply generic_format_bpow...
+unfold FLT_exp; rewrite Z.max_l; try omega.
+unfold Prec_gt_0 in prec_gt_0_; omega.
+apply Rlt_le_trans with (1:=H).
+rewrite succ_eq_pos.
+2: apply bpow_ge_0.
+rewrite ulp_bpow.
+unfold FLT_exp; rewrite Z.max_l; try omega.
+replace (e-1+1-prec)%Z with ((e-1)+(1-prec))%Z by ring.
+rewrite bpow_plus.
+right; unfold u; field.
+apply abs_round_ge_generic...
+apply generic_format_bpow...
+unfold FLT_exp.
+rewrite Z.max_l; try omega.
+unfold Prec_gt_0 in prec_gt_0_; omega.
+apply He1...
+case (Rle_or_lt 0 x); intros Zx.
+(* . *)
+rewrite Rabs_minus_sym.
+rewrite Rabs_right in T.
+rewrite Rabs_right; try easy.
+rewrite Rabs_right; try easy.
+rewrite T; right; ring.
+auto with real.
+apply Rle_ge.
+apply Rle_0_minus.
+rewrite T.
+rewrite <- (Rabs_right x).
+apply He1...
+auto with real.
+apply Rle_ge, round_ge_generic...
+apply generic_format_0...
+(* . *)
+rewrite Rabs_left1 in T.
+rewrite Rabs_right.
+rewrite Rabs_left; try easy.
+rewrite <- T; right; ring.
+apply Rle_ge.
+apply Rle_0_minus.
+apply Ropp_le_cancel.
+rewrite T.
+rewrite <- (Rabs_left x); try easy.
+apply He1...
+apply round_le_generic...
+apply generic_format_0...
+now left.
+(* . *)
+apply Rplus_le_reg_l with
+ (bpow (e - 1) - ((u / (1 + u) * Rabs x)))%R.
+apply Rle_trans with (bpow (e-1));[idtac|right;ring].
+apply Rle_trans with (Rabs x * (1-u/(1+u)))%R;[right; ring|idtac].
+apply Rmult_le_reg_l with (1+u)%R.
+apply Rplus_lt_0_compat; try easy; now auto with real.
+left; apply Rle_lt_trans with (2:=H).
+right; field.
+apply Rgt_not_eq, Rlt_gt.
+apply Rplus_lt_0_compat.
+auto with real.
+apply bpow_gt_0.
+Qed.
+
 End RND_FLT.

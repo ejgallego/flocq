@@ -2012,6 +2012,68 @@ Qed.
 
 End rndNA.
 
+Notation Znearest0 := (Znearest (fun x => (Zlt_bool x 0))).
+
+Section rndN0.
+
+Global Instance valid_rnd_N0 : Valid_rnd Znearest0 := valid_rnd_N _.
+
+Theorem round_N0_pt :
+  forall x,
+  Rnd_N0_pt generic_format x (round Znearest0 x).
+Proof.
+intros x.
+generalize (round_N_pt (fun t => Zlt_bool t 0) x).
+set (f := round (Znearest (fun t => Zlt_bool t 0)) x).
+intros Rxf.
+destruct (Req_dec (x - round Zfloor x) (round Zceil x - x)) as [Hm|Hm].
+(* *)
+apply Rnd_N0_pt_N.
+apply generic_format_0.
+exact Rxf.
+destruct (Rle_or_lt 0 x) as [Hx|Hx].
+(* . *)
+rewrite Rabs_pos_eq with (1 := Hx).
+rewrite Rabs_pos_eq.
+unfold f.
+rewrite round_N_middle with (1 := Hm).
+rewrite Zlt_bool_false.
+now apply round_DN_pt.
+apply Zfloor_lub.
+apply Rmult_le_pos with (1 := Hx).
+apply bpow_ge_0.
+apply Rnd_N_pt_ge_0 with (2 := Hx) (3 := Rxf).
+apply generic_format_0.
+(* . *)
+rewrite Rabs_left with (1 := Hx).
+rewrite Rabs_left1.
+apply Ropp_le_contravar.
+unfold f.
+rewrite round_N_middle with (1 := Hm).
+rewrite Zlt_bool_true.
+now apply round_UP_pt.
+apply lt_IZR.
+apply Rle_lt_trans with (scaled_mantissa x).
+apply Zfloor_lb.
+simpl.
+rewrite <- (Rmult_0_l (bpow (- (cexp x))%Z)%R).
+apply Rmult_lt_compat_r with (2 := Hx).
+apply bpow_gt_0.
+apply Rnd_N_pt_le_0 with (3 := Rxf).
+apply generic_format_0.
+now apply Rlt_le.
+(* *)
+split.
+apply Rxf.
+intros g Rxg.
+rewrite Rnd_N_pt_unique with (3 := Hm) (4 := Rxf) (5 := Rxg).
+apply Rle_refl.
+apply round_DN_pt; easy.
+apply round_UP_pt; easy.
+Qed.
+
+End rndN0.
+
 Section rndN_opp.
 
 Theorem Znearest_opp :
@@ -2053,6 +2115,31 @@ rewrite scaled_mantissa_opp.
 rewrite Znearest_opp.
 rewrite opp_IZR.
 now rewrite Ropp_mult_distr_l_reverse.
+Qed.
+
+Lemma round_N0_opp :
+  forall x,
+  (round Znearest0 (- x) = - round Znearest0 x)%R.
+Proof.
+intros x.
+rewrite round_N_opp.
+apply Ropp_eq_compat.
+apply round_ext.
+clear x; intro x.
+unfold Znearest.
+case_eq (Rcompare (x - IZR (Zfloor x)) (/ 2)); intro C;
+[|reflexivity|reflexivity].
+apply Rcompare_Eq_inv in C.
+assert (H : negb (- (Zfloor x + 1) <? 0)%Z = (Zfloor x <? 0)%Z);
+  [|now rewrite H].
+rewrite negb_Zlt_bool.
+case_eq (Zfloor x <? 0)%Z; intro C'.
+apply Zlt_is_lt_bool in C'.
+apply Zle_bool_true.
+omega.
+apply Z.ltb_ge in C'.
+apply Zle_bool_false.
+omega.
 Qed.
 
 End rndN_opp.

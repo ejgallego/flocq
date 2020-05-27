@@ -91,4 +91,11 @@ intros n _; reflexivity.
 reflexivity.
 Qed.
 
+Global Instance exists_NE_FIX :
+      Exists_NE beta FIX_exp.
+Proof.
+unfold Exists_NE, FIX_exp; simpl.
+right; split; auto.
+Qed.
+
 End RND_FIX.
