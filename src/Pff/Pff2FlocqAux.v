@@ -19,8 +19,8 @@ COPYING file for more details.
 
 (** Translation from Flocq to Pff *)
 
-Require Import Lia.
-Require Import Pff Core Binary.
+From Coq Require Import Lia.
+Require Import Pff Core.
 
 Section RND_Closest_c.
 (* extension of pff for rounding function with arbitrary tie *)

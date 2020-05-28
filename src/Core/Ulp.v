@@ -198,6 +198,17 @@ rewrite V.
 apply generic_format_0.
 Qed.
 
+Theorem ulp_canonical :
+  forall m e,
+  m <> 0%Z ->
+  canonical beta fexp (Float beta m e) ->
+  ulp (F2R (Float beta m e)) = bpow e.
+Proof.
+intros m e Hm Hc.
+rewrite ulp_neq_0 by now apply F2R_neq_0.
+apply f_equal.
+now apply sym_eq.
+Qed.
 
 Theorem ulp_bpow :
   forall e, ulp (bpow e) = bpow (fexp (e + 1)).
@@ -215,7 +226,6 @@ apply Zlt_succ.
 apply bpow_ge_0.
 apply Rgt_not_eq, Rlt_gt, bpow_gt_0.
 Qed.
-
 
 Lemma generic_format_ulp_0 :
   F (ulp 0).
@@ -374,8 +384,6 @@ rewrite Hn1 in H; discriminate.
 now apply bpow_mag_le.
 Qed.
 
-
-
 (** Definition and properties of pred and succ *)
 
 Definition pred_pos x :=
@@ -430,6 +438,17 @@ Proof.
 intros x.
 unfold pred.
 now rewrite Ropp_involutive.
+Qed.
+
+Theorem pred_bpow :
+  forall e, pred (bpow e) = (bpow e - bpow (fexp e))%R.
+Proof.
+intros e.
+rewrite pred_eq_pos by apply bpow_ge_0.
+unfold pred_pos.
+rewrite mag_bpow.
+replace (e + 1 - 1)%Z with e by ring.
+now rewrite Req_bool_true.
 Qed.
 
 (** pred and succ are in the format *)
@@ -1105,7 +1124,6 @@ rewrite <- P, round_0; trivial.
 apply valid_rnd_DN.
 Qed.
 
-
 Theorem round_UP_plus_eps_pos :
   forall x, (0 <= x)%R -> F x ->
   forall eps, (0 < eps <= ulp x)%R ->
@@ -1172,7 +1190,6 @@ apply round_generic...
 apply generic_format_ulp_0.
 Qed.
 
-
 Theorem round_UP_pred_plus_eps_pos :
   forall x, (0 < x)%R -> F x ->
   forall eps, (0 < eps <= ulp (pred x) )%R ->
@@ -1210,7 +1227,6 @@ apply Ropp_lt_contravar.
 now apply Heps.
 Qed.
 
-
 Theorem round_DN_plus_eps:
   forall x, F x ->
   forall eps, (0 <= eps < if (Rle_bool 0 x) then (ulp x)
@@ -1247,7 +1263,6 @@ ring.
 now apply Ropp_0_gt_lt_contravar.
 now apply generic_format_opp.
 Qed.
-
 
 Theorem round_UP_plus_eps :
   forall x, F x ->
@@ -2252,9 +2267,9 @@ rewrite Hn1; easy.
 now apply ulp_ge_ulp_0.
 Qed.
 
-
-Lemma ulp_succ_pos : forall x, F x -> (0 < x)%R ->
-   ulp (succ x) = ulp x \/ succ x = bpow (mag beta x).
+Lemma ulp_succ_pos :
+  forall x, F x -> (0 < x)%R ->
+  ulp (succ x) = ulp x \/ succ x = bpow (mag beta x).
 Proof with auto with typeclass_instances.
 intros x Fx Hx.
 generalize (Rlt_le _ _ Hx); intros Hx'.
@@ -2281,6 +2296,39 @@ apply ulp_ge_0.
 now apply sym_eq, mag_unique_pos.
 Qed.
 
+Theorem ulp_pred_pos :
+  forall x, F x -> (0 < pred x)%R ->
+  ulp (pred x) = ulp x \/ x = bpow (mag beta x - 1).
+Proof.
+intros x Fx Hx.
+assert (Hx': (0 < x)%R).
+  apply Rlt_le_trans with (1 := Hx).
+  apply pred_le_id.
+assert (Zx : x <> 0%R).
+  now apply Rgt_not_eq.
+rewrite (ulp_neq_0 x) by easy.
+unfold cexp.
+destruct (mag beta x) as [e He].
+simpl.
+assert (bpow (e - 1) <= x < bpow e)%R.
+  rewrite <- (Rabs_pos_eq x) by now apply Rlt_le.
+  now apply He.
+destruct (proj1 H) as [H1|H1].
+2: now right.
+left.
+apply pred_ge_gt with (2 := Fx) in H1.
+rewrite ulp_neq_0 by now apply Rgt_not_eq.
+apply (f_equal (fun e => bpow (fexp e))).
+apply mag_unique_pos.
+apply (conj H1).
+apply Rle_lt_trans with (2 := proj2 H).
+apply pred_le_id.
+apply generic_format_bpow.
+apply Z.lt_le_pred.
+replace (_ + 1)%Z with e by ring.
+rewrite <- (mag_unique_pos _ _ _ H).
+now apply mag_generic_gt.
+Qed.
 
 Lemma ulp_round_pos :
   forall { Not_FTZ_ : Exp_not_FTZ fexp},
@@ -2332,7 +2380,6 @@ apply Rlt_le...
 replace (fexp n) with (fexp e); try assumption.
 now apply fexp_negligible_exp_eq.
 Qed.
-
 
 Theorem ulp_round : forall { Not_FTZ_ : Exp_not_FTZ fexp},
    forall rnd { Zrnd : Valid_rnd rnd } x,

@@ -26,9 +26,11 @@ FILES = \
 	Prop/Sterbenz.v \
 	Prop/Round_odd.v \
 	Prop/Double_rounding.v \
+	@PRIM_FLOAT@ \
+	IEEE754/SpecFloat.v \
+	IEEE754/BinarySingleNaN.v \
 	IEEE754/Binary.v \
 	IEEE754/Bits.v \
-        @PRIM_FLOAT@ \
 	Pff/Pff.v \
 	Pff/Pff2FlocqAux.v \
 	Pff/Pff2Flocq.v
@@ -58,17 +60,16 @@ check: $(EOBJS)
 
 check-more: $(MOBJS)
 
-Remakefile: Remakefile.in config.status
-	./config.status Remakefile
+CONFIGURED_FILES = Remakefile src/Version.v src/IEEE754/SpecFloat.v
 
-src/Version.v: src/Version.v.in config.status
-	./config.status src/Version.v
+$(CONFIGURED_FILES): %: %.in config.status
+	./config.status $@
 
 configure config.status: configure.in
 	autoconf
 	./config.status --recheck
 
-%.vo: %.v
+%.vo: %.v | src/IEEE754/SpecFloat.v
 	@COQDEP@ -R src Flocq $< | @REMAKE@ -r $@
 	@COQC@ -R src Flocq $<
 
@@ -100,8 +101,7 @@ deps.dot: $(addprefix src/,$(FILES)) Remakefile.in
 	echo '{ rank=same; "Core.FLX"; "Core.FIX"; "Core.Round_NE"; "Calc.Operations"; }'
 	echo '{ rank=same; "Core.FLT"; "Core.FTZ"; }'
 	echo '{ rank=same; "Core.Generic_fmt"; "Core.Ulp"; }'
-	echo '{ rank=same; "IEEE754.Binary"; "IEEE754.Bits"; }'
-	echo '{ rank=same; "Pff.Pff2FlocqAux"; "Pff.Pff2Flocq"; }'
+	echo '{ rank=same; "IEEE754.Binary"; "IEEE754.BinarySingleNaN"; }'
 	(cd src ; @COQDEP@ -R . Flocq $(FILES)) |
 	  sed -n -e 's,/,.,g;s/[.]vo.*: [^ ]*[.]v//p' |
 	  while read src dst; do
