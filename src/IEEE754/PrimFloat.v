@@ -345,9 +345,8 @@ assert (Hulp : forall x, SFulp prec emax (B2SF x) = B2SF (Bulp' x)).
 { intro x'.
   unfold SFulp, Bulp'.
   now rewrite Hsndfrexp, <-Hldexp. }
-assert (Hpred_pos : forall x, (0 < B2R x)%R -> SFpred_pos prec emax (B2SF x) = B2SF (Bpred_pos prec emax Hprec Hmax x)).
+assert (Hpred_pos : forall x, (0 < B2R x)%R -> SFpred_pos prec emax (B2SF x) = B2SF (Bpred_pos' x)).
 { intros x' Fx'.
-  rewrite <- (Bpred_pos'_correct prec emax Hprec Hmax eq_refl x' Fx').
   unfold SFpred_pos, Bpred_pos'.
   rewrite Hsndfrexp.
   set (fe := fexp _ _ _).
@@ -365,10 +364,11 @@ assert (Hpred_pos : forall x, (0 < B2R x)%R -> SFpred_pos prec emax (B2SF x) = B
     rewrite <-(Prim2B_B2Prim z).
     now rewrite <-sub_equiv, !B2SF_Prim2B, sub_spec. }
 case Prim2B as [sx|sx| |sx mx ex Bx]; [reflexivity|now case sx|reflexivity|].
-unfold SF64succ, SFsucc, B2SF at 1, Bsucc.
+rewrite <- Bsucc'_correct by easy.
+unfold SF64succ, SFsucc, B2SF at 1, Bsucc'.
 case sx.
 - unfold B2SF at 1, SFopp at 2.
-  rewrite <-(Prim2B_B2Prim (Bpred_pos _ _ _ _ _)).
+  rewrite <-(Prim2B_B2Prim (Bpred_pos' _)).
   rewrite <- opp_equiv, B2SF_Prim2B, opp_spec, Prim2SF_B2Prim.
   rewrite <- Hpred_pos.
   easy.
