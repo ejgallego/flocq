@@ -73,8 +73,8 @@ if test "$libdir" = '${exec_prefix}/lib'; then
 fi
 
 AC_MSG_NOTICE([building remake...])
-case `uname -s` in
-MINGW*)
+case `$CXX -v 2>&1 | grep -e "^Target:"` in
+*mingw*)
 	$CXX -Wall -O2 -o remake.exe remake.cpp -lws2_32
 	if test $? != 0; then AC_MSG_FAILURE([failed]); fi
 	AC_SUBST([REMAKE], [./remake.exe])
