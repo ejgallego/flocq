@@ -68,6 +68,8 @@ if test ! "$COQDOC"; then
 fi
 AC_MSG_RESULT([$COQDOC])
 
+AC_ARG_VAR(COQEXTRAFLAGS, [extra flags passed to Coq compiler [empty]])
+
 if test "$libdir" = '${exec_prefix}/lib'; then
   libdir="`$COQC -where | tr -d '\r' | tr '\\\\' '/'`/user-contrib/Flocq"
 fi

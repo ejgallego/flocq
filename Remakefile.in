@@ -71,7 +71,7 @@ configure config.status: configure.in
 
 %.vo: %.v | src/IEEE754/SpecFloat.v
 	@COQDEP@ -R src Flocq $< | @REMAKE@ -r $@
-	@COQC@ -R src Flocq $<
+	@COQC@ @COQEXTRAFLAGS@ -R src Flocq $<
 
 examples/%.vo: examples/%.v
 	@COQDEP@ -R src Flocq -R examples FlocqEx $< | @REMAKE@ -r $@
