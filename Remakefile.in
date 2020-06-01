@@ -105,7 +105,7 @@ deps.dot: $(addprefix src/,$(FILES)) Remakefile.in
 	(cd src ; @COQDEP@ -R . Flocq $(FILES)) |
 	  sed -n -e 's,/,.,g;s/[.]vo.*: [^ ]*[.]v//p' |
 	  while read src dst; do
-	    color=$$(echo "$src" | sed -e 's,Core.*,turquoise,;s,Calc.*,plum,;s,Prop.*,lightcoral,;s,Pff.*,yellow,;s,IEEE754.*,cornflowerblue,;s,PrimitiveFloats.*,cornflowerblue,;s,Version.*,white,')
+	    color=$$(echo "$src" | sed -e 's,Core.*,turquoise,;s,Calc.*,plum,;s,Prop.*,lightcoral,;s,Pff.*,yellow,;s,IEEE754.*,cornflowerblue,;s,Version.*,white,')
 	    echo "\"$src\" [fillcolor=$color];"
 	    for d in $dst; do
 	      echo "\"$src\" -> \"${d%.vo}\" ;"
@@ -130,7 +130,7 @@ install:
 	prefix=@prefix@
 	exec_prefix=@exec_prefix@
 	mkdir -p @libdir@
-	for d in Core Calc Prop IEEE754 Pff PrimitiveFloats; do mkdir -p @libdir@/$d; done
+	for d in Core Calc Prop IEEE754 Pff; do mkdir -p @libdir@/$d; done
 	for f in $(OBJS); do cp $f @libdir@/${f#src/}; done
 	for f in $(FILES); do cp src/$f @libdir@/$f; done
 	( cd src && find . -type d -name ".coq-native" -exec cp -RT "{}" "@libdir@/{}" \; )
