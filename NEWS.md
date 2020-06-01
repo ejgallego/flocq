@@ -1,3 +1,10 @@
+Version 3.3.0
+-------------
+
+* added `IEEE754.BinarySingleNaN` where NaN have no payload
+* proved adequacy of Coq 8.11 floating-point numbers in `IEEE754.PrimFloat`
+* added theorems about rounding to nearest, tie breaking to zero
+
 Version 3.2.1
 -------------
 
