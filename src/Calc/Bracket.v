@@ -20,11 +20,11 @@ COPYING file for more details.
 (** * Locations: where a real number is positioned with respect to its rounded-down value in an arbitrary format. *)
 
 Require Import Raux Defs Float_prop.
-Require IEEE754.SpecFloat.
+Require Import SpecFloatCompat.
 
-Notation location := (IEEE754.SpecFloat.location).
-Notation loc_Exact := (IEEE754.SpecFloat.loc_Exact).
-Notation loc_Inexact := (IEEE754.SpecFloat.loc_Inexact).
+Notation location := location (only parsing).
+Notation loc_Exact := loc_Exact (only parsing).
+Notation loc_Inexact := loc_Inexact (only parsing).
 
 Section Fcalc_bracket.
 

@@ -17,9 +17,12 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
-Require Import ZArith Omega.
-Require Import Zquot.
-Require IEEE754.SpecFloat.
+From Coq Require Import ZArith Lia Zquot.
+
+Require Import SpecFloatCompat.
+
+Notation cond_Zopp := cond_Zopp (only parsing).
+Notation iter_pos := iter_pos (only parsing).
 
 Section Zmissing.
 
@@ -703,8 +706,6 @@ End Zcompare.
 
 Section cond_Zopp.
 
-Local Notation cond_Zopp := (IEEE754.SpecFloat.cond_Zopp) (only parsing).
-
 Theorem cond_Zopp_negb :
   forall x y, cond_Zopp (negb x) y = Z.opp (cond_Zopp x y).
 Proof.
@@ -735,8 +736,6 @@ now apply Z.abs_eq.
 Qed.
 
 End cond_Zopp.
-
-Notation cond_Zopp := (IEEE754.SpecFloat.cond_Zopp) (only parsing).
 
 Section fast_pow_pos.
 
@@ -924,11 +923,9 @@ intros x.
 apply IHp.
 Qed.
 
-Local Notation iter_pos := (IEEE754.SpecFloat.iter_pos f) (only parsing).
-
 Lemma iter_pos_nat :
   forall (p : positive) (x : A),
-  iter_pos p x = iter_nat (Pos.to_nat p) x.
+  iter_pos f p x = iter_nat (Pos.to_nat p) x.
 Proof.
 induction p ; intros x.
 rewrite Pos2Nat.inj_xI.
@@ -947,5 +944,3 @@ easy.
 Qed.
 
 End Iter.
-
-Notation iter_pos := (IEEE754.SpecFloat.iter_pos) (only parsing).

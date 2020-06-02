@@ -17,9 +17,13 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
-Require Import ZArith Zquot.
+From Coq Require Import ZArith Zquot.
+
 Require Import Zaux.
-Require IEEE754.SpecFloat.
+Require Import SpecFloatCompat.
+
+Notation digits2_pos := digits2_pos (only parsing).
+Notation Zdigits2 := Zdigits2 (only parsing).
 
 (** Number of bits (radix 2) of a positive integer.
 
@@ -1119,8 +1123,6 @@ rewrite <- Zpower_nat_Z.
 apply digits2_Pnat_correct.
 Qed.
 
-Local Notation digits2_pos := (IEEE754.SpecFloat.digits2_pos) (only parsing).
-
 Theorem Zpos_digits2_pos :
   forall m : positive,
   Zpos (digits2_pos m) = Zdigits radix2 (Zpos m).
@@ -1133,8 +1135,6 @@ induction m ; simpl ; try easy ;
   apply f_equal, IHm.
 Qed.
 
-Local Notation Zdigits2 := (IEEE754.SpecFloat.Zdigits2) (only parsing).
-
 Lemma Zdigits2_Zdigits :
   forall n, Zdigits2 n = Zdigits radix2 n.
 Proof.
@@ -1143,6 +1143,3 @@ intros [|p|p] ; try easy ;
 Qed.
 
 End Zdigits2.
-
-Notation digits2_pos := (IEEE754.SpecFloat.digits2_pos) (only parsing).
-Notation Zdigits2 := (IEEE754.SpecFloat.Zdigits2) (only parsing).

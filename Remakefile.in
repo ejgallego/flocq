@@ -27,7 +27,7 @@ FILES = \
 	Prop/Round_odd.v \
 	Prop/Double_rounding.v \
 	@PRIM_FLOAT@ \
-	IEEE754/SpecFloat.v \
+	IEEE754/SpecFloatCompat.v \
 	IEEE754/BinarySingleNaN.v \
 	IEEE754/Binary.v \
 	IEEE754/Bits.v \
@@ -60,7 +60,7 @@ check: $(EOBJS)
 
 check-more: $(MOBJS)
 
-CONFIGURED_FILES = Remakefile src/Version.v src/IEEE754/SpecFloat.v
+CONFIGURED_FILES = Remakefile src/Version.v src/IEEE754/SpecFloatCompat.v
 
 $(CONFIGURED_FILES): %: %.in config.status
 	./config.status $@
@@ -69,7 +69,7 @@ configure config.status: configure.in
 	autoconf
 	./config.status --recheck
 
-%.vo: %.v | src/IEEE754/SpecFloat.v
+%.vo: %.v | src/IEEE754/SpecFloatCompat.v
 	@COQDEP@ -R src Flocq $< | @REMAKE@ -r $@
 	@COQC@ @COQEXTRAFLAGS@ -R src Flocq $<
 

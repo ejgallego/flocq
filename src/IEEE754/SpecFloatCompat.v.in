@@ -1,0 +1,8 @@
+(* Generated from SpecFloatCompat.v.in, *do not edit*. *)
+
+(* This is a compatibility module for Coq < 8.11 which does not provide
+   Coq.Floats.SpecFloat. It should ideally be called SpecFloat but
+   this is not supported by extraction. It is bound to disappear once
+   Flocq requires Coq >= 8.11. *)
+
+Require Export @SPEC_FLOAT_MODULE@.

@@ -1,6 +1,0 @@
-(* Generated from SpecFloat.v.in, *do not edit*. *)
-
-Require @SPEC_FLOAT_MODULE@.
-
-Module SpecFloat := @SPEC_FLOAT_MODULE@.
-Include SpecFloat.

@@ -88,5 +88,5 @@ case `$CXX -v 2>&1 | grep -e "^Target:"` in
 	;;
 esac
 
-AC_CONFIG_FILES([Remakefile src/Version.v src/IEEE754/SpecFloat.v])
+AC_CONFIG_FILES([Remakefile src/Version.v src/IEEE754/SpecFloatCompat.v])
 AC_OUTPUT
