@@ -1,3 +1,8 @@
+Version 3.3.1
+-------------
+
+* fixed failure when extracting to OCaml
+
 Version 3.3.0
 -------------
 
