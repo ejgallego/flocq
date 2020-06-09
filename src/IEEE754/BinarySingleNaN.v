@@ -2266,7 +2266,7 @@ rewrite <-Digits.Zpos_digits2_pos.
 intro He; replace e with (e - 0)%Z by ring; rewrite <-He.
 cut (Z.pos (digits2_pos m) = prec)%Z.
 { now intro H; split; [ |exact H]; ring_simplify; rewrite H. }
-revert B; unfold SpecFloat.bounded, canonical_mantissa.
+revert B; unfold bounded, canonical_mantissa.
 intro H; generalize (andb_prop _ _ H); clear H; intros [H _]; revert H.
 intro H; generalize (Zeq_bool_eq _ _ H); clear H.
 unfold fexp, emin.
