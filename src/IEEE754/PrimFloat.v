@@ -279,6 +279,23 @@ rewrite B2SF_SF2B.
 apply binary_round_equiv.
 Qed.
 
+Theorem ldshiftexp_equiv :
+  forall x e,
+  Prim2B (ldshiftexp x e) = Bldexp mode_NE (Prim2B x) (Int63.to_Z e - shift).
+Proof.
+intros x e.
+apply B2Prim_inj.
+rewrite B2Prim_Prim2B.
+apply Prim2SF_inj.
+rewrite Prim2SF_B2Prim.
+rewrite ldshiftexp_spec.
+rewrite <-!B2SF_Prim2B.
+case (Prim2B x) as [sx|sx| |sx mx ex Bx]; [now trivial..|].
+simpl.
+rewrite B2SF_SF2B.
+apply binary_round_equiv.
+Qed.
+
 Theorem frexp_equiv :
   forall x : float,
   let (m, e) := frexp x in
@@ -299,6 +316,17 @@ replace (SFfrexp _ _ _)
   unfold Ffrexp_core_binary.
   change (digits2_pos m) with (Digits.digits2_pos m).
   now destruct Pos.leb.
+Qed.
+
+Theorem frshiftexp_equiv :
+  forall x : float,
+  let (m, e) := frshiftexp x in
+  (Prim2B m, (Int63.to_Z e - shift)%Z) = Bfrexp (Prim2B x).
+Proof.
+intro x.
+generalize (frexp_equiv x).
+unfold frexp.
+now case frshiftexp.
 Qed.
 
 Theorem one_equiv : one = B2Prim Bone.
@@ -472,3 +500,48 @@ rewrite B2SF_Prim2B.
 rewrite of_int63_spec.
 apply binary_normalize_equiv.
 Qed.
+
+Theorem eqb_equiv :
+  forall x y,
+  (x == y)%float
+  = match Bcompare (Prim2B x) (Prim2B y) with
+    | Some Eq => true
+    | _ => false
+    end.
+Proof.
+intros x y.
+rewrite eqb_spec.
+unfold Bcompare.
+now rewrite !B2SF_Prim2B.
+Qed.
+
+Theorem ltb_equiv :
+  forall x y,
+  (x < y)%float
+  = match Bcompare (Prim2B x) (Prim2B y) with
+    | Some Lt => true
+    | _ => false
+    end.
+Proof.
+intros x y.
+rewrite ltb_spec.
+unfold Bcompare.
+now rewrite !B2SF_Prim2B.
+Qed.
+
+(* Commented out due to an error in Coq 8.11
+   c.f. https://github.com/coq/coq/issues/12483
+Theorem leb_equiv :
+  forall x y,
+  (x <= y)%float
+  = match Bcompare (Prim2B x) (Prim2B y) with
+    | Some (Lt | Eq) => true
+    | _ => false
+    end.
+Proof.
+intros x y.
+rewrite leb_spec.
+unfold Bcompare.
+now rewrite !B2SF_Prim2B.
+Qed.
+*)
