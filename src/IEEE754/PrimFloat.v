@@ -518,45 +518,30 @@ Qed.
 
 Theorem eqb_equiv :
   forall x y,
-  (x == y)%float
-  = match Bcompare (Prim2B x) (Prim2B y) with
-    | Some Eq => true
-    | _ => false
-    end.
+  (x == y)%float = Beqb (Prim2B x) (Prim2B y).
 Proof.
 intros x y.
 rewrite eqb_spec.
-unfold Bcompare.
+unfold Beqb.
 now rewrite !B2SF_Prim2B.
 Qed.
 
 Theorem ltb_equiv :
   forall x y,
-  (x < y)%float
-  = match Bcompare (Prim2B x) (Prim2B y) with
-    | Some Lt => true
-    | _ => false
-    end.
+  (x < y)%float = Bltb (Prim2B x) (Prim2B y).
 Proof.
 intros x y.
 rewrite ltb_spec.
-unfold Bcompare.
+unfold Bltb.
 now rewrite !B2SF_Prim2B.
 Qed.
 
-(* Commented out due to an error in Coq 8.11
-   c.f. https://github.com/coq/coq/issues/12483
 Theorem leb_equiv :
   forall x y,
-  (x <= y)%float
-  = match Bcompare (Prim2B x) (Prim2B y) with
-    | Some (Lt | Eq) => true
-    | _ => false
-    end.
+  (x <= y)%float = Bleb (Prim2B x) (Prim2B y).
 Proof.
 intros x y.
 rewrite leb_spec.
-unfold Bcompare.
+unfold Bleb.
 now rewrite !B2SF_Prim2B.
 Qed.
-*)

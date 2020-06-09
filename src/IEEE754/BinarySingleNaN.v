@@ -530,6 +530,51 @@ Proof.
   now rewrite Pcompare_antisym.
 Qed.
 
+Definition Beqb (f1 f2 : binary_float) : bool := SFeqb (B2SF f1) (B2SF f2).
+
+Theorem Beqb_correct :
+  forall f1 f2,
+  is_finite f1 = true -> is_finite f2 = true ->
+  Beqb f1 f2 = Req_bool (B2R f1) (B2R f2).
+Proof.
+intros f1 f2 F1 F2.
+generalize (Bcompare_correct _ _ F1 F2).
+unfold Beqb, SFeqb, Bcompare.
+intros ->.
+case Rcompare_spec; intro H; case Req_bool_spec; intro H'; try reflexivity; lra.
+Qed.
+
+Definition Bltb (f1 f2 : binary_float) : bool := SFltb (B2SF f1) (B2SF f2).
+
+Theorem Bltb_correct :
+  forall f1 f2,
+  is_finite f1 = true -> is_finite f2 = true ->
+  Bltb f1 f2 = Rlt_bool (B2R f1) (B2R f2).
+Proof.
+intros f1 f2 F1 F2.
+generalize (Bcompare_correct _ _ F1 F2).
+unfold Bltb, SFltb, Bcompare.
+intros ->.
+case Rcompare_spec; intro H; case Rlt_bool_spec; intro H'; try reflexivity; lra.
+Qed.
+
+Definition Bleb (f1 f2 : binary_float) : bool := SFleb (B2SF f1) (B2SF f2).
+
+(* Commented out due to an error in Coq 8.11
+   c.f. https://github.com/coq/coq/issues/12483
+Theorem Bleb_correct :
+  forall f1 f2,
+  is_finite f1 = true -> is_finite f2 = true ->
+  Bleb f1 f2 = Rle_bool (B2R f1) (B2R f2).
+Proof.
+intros f1 f2 F1 F2.
+generalize (Bcompare_correct _ _ F1 F2).
+unfold Bleb, SFleb, Bcompare.
+intros ->.
+case Rcompare_spec; intro H; case Rle_bool_spec; intro H'; try reflexivity; lra.
+Qed.
+*)
+
 Theorem bounded_le_emax_minus_prec :
   forall mx ex,
   bounded mx ex = true ->
@@ -3168,6 +3213,9 @@ Arguments is_nan {prec} {emax}.
 Arguments erase {prec} {emax}.
 Arguments Bsign {prec} {emax}.
 Arguments Bcompare {prec} {emax}.
+Arguments Beqb {prec} {emax}.
+Arguments Bltb {prec} {emax}.
+Arguments Bleb {prec} {emax}.
 Arguments Bopp {prec} {emax}.
 Arguments Babs {prec} {emax}.
 Arguments Bone {prec} {emax} {prec_gt_0_} {prec_lt_emax_}.
