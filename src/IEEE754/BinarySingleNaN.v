@@ -2239,6 +2239,41 @@ Definition Bmax_float := SF2B _ Bmax_float_proof.
 
 Definition Bnormfr_mantissa x := SFnormfr_mantissa prec (B2SF x).
 
+Lemma Bnormfr_mantissa_correct :
+  forall x,
+  (/ 2 <= Rabs (B2R x) < 1)%R ->
+  match x with
+  | B754_finite _ m e _ =>
+    Bnormfr_mantissa x = N.pos m
+    /\ Z.pos (digits2_pos m) = prec /\ (e = - prec)%Z
+  | _ => False
+  end.
+Proof.
+intro x.
+destruct x as [s|s| |s m e B]; [now simpl; rewrite Rabs_R0; lra..| ].
+unfold Bnormfr_mantissa, SFnormfr_mantissa; simpl.
+intro Hx.
+cut (e = -prec /\ Z.pos (digits2_pos m) = prec)%Z.
+{ now intros [-> ->]; rewrite Z.eqb_refl. }
+revert Hx.
+change (/ 2)%R with (bpow radix2 (0 - 1)); change 1%R with (bpow radix2 0).
+intro H; generalize (mag_unique _ _ _ H); clear H.
+rewrite Float_prop.mag_F2R_Zdigits; [ |now case s].
+replace (Digits.Zdigits _ _)
+  with (Digits.Zdigits radix2 (Z.pos m)); [ |now case s].
+clear s.
+rewrite <-Digits.Zpos_digits2_pos.
+intro He; replace e with (e - 0)%Z by ring; rewrite <-He.
+cut (Z.pos (digits2_pos m) = prec)%Z.
+{ now intro H; split; [ |exact H]; ring_simplify; rewrite H. }
+revert B; unfold SpecFloat.bounded, canonical_mantissa.
+intro H; generalize (andb_prop _ _ H); clear H; intros [H _]; revert H.
+intro H; generalize (Zeq_bool_eq _ _ H); clear H.
+unfold fexp, emin.
+unfold Prec_gt_0 in prec_gt_0_; unfold Prec_lt_emax in prec_lt_emax_.
+lia.
+Qed.
+
 Definition Bldexp mode f e :=
   match f with
   | B754_finite sx mx ex _ =>
