@@ -329,11 +329,26 @@ unfold frexp.
 now case frshiftexp.
 Qed.
 
+Theorem infinity_equiv : infinity = B2Prim (B754_infinity false).
+Proof. now compute. Qed.
+
+Theorem neg_infinity_equiv : neg_infinity = B2Prim (B754_infinity true).
+Proof. now compute. Qed.
+
+Theorem nan_equiv : nan = B2Prim B754_nan.
+Proof. now compute. Qed.
+
+Theorem zero_equiv : zero = B2Prim (B754_zero false).
+Proof. now compute. Qed.
+
+Theorem neg_zero_equiv : neg_zero = B2Prim (B754_zero true).
+Proof. now compute. Qed.
+
 Theorem one_equiv : one = B2Prim Bone.
-Proof.
-apply Prim2SF_inj.
-now rewrite Prim2SF_B2Prim; compute.
-Qed.
+Proof. now compute. Qed.
+
+Theorem two_equiv : two = B2Prim (Bplus mode_NE Bone Bone).
+Proof. now compute. Qed.
 
 Theorem ulp_equiv :
   forall x, Prim2B (ulp x) = Bulp' (Prim2B x).
