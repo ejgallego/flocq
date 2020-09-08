@@ -26,5 +26,5 @@ RUN opam init -y --no-setup -j1 --bare --disable-sandboxing && \
     opam switch create minimal ocaml-system && opam install -y $OPAM_PACKAGES && \
     opam switch create latest  ocaml-system && opam install -y $OPAM_PACKAGES && \
     opam install -y --switch=minimal coq.8.7.2 && \
-    opam install -y --switch=latest  coq.8.11.0 && \
+    opam install -y --switch=latest  coq.8.12.0 && \
     opam clean -a -c -r -s --logs
