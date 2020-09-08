@@ -211,12 +211,25 @@ Definition is_finite_strict f :=
   | _ => false
   end.
 
+Definition is_finite_strict_SF f :=
+  match f with
+  | S754_finite _ _ _ => true
+  | _ => false
+  end.
+
 Theorem is_finite_strict_B2R :
   forall x,
   B2R x <> 0%R ->
   is_finite_strict x = true.
 Proof.
-now intros [sx|sx| | sx mx ex Bx] Hx.
+now intros [sx|sx| |sx mx ex Bx] Hx.
+Qed.
+
+Theorem is_finite_strict_SF2B :
+  forall x Hx,
+  is_finite_strict (SF2B x Hx) = is_finite_strict_SF x.
+Proof.
+now intros [sx|sx| |sx mx ex] Hx.
 Qed.
 
 Theorem B2R_inj:
@@ -402,6 +415,13 @@ rewrite <- F2R_opp.
 now case sx.
 Qed.
 
+Theorem is_nan_Bopp :
+  forall x,
+  is_nan (Bopp x) = is_nan x.
+Proof.
+now intros [| | |].
+Qed.
+
 Theorem is_finite_Bopp :
   forall x,
   is_finite (Bopp x) = is_finite x.
@@ -438,28 +458,47 @@ intros [sx|sx| |sx mx ex Hx]; apply sym_eq ; try apply Rabs_R0.
 simpl. rewrite <- F2R_abs. now destruct sx.
 Qed.
 
+Theorem is_nan_Babs :
+  forall x,
+  is_nan (Babs x) = is_nan x.
+Proof.
+now intros [| | |].
+Qed.
+
 Theorem is_finite_Babs :
   forall x,
   is_finite (Babs x) = is_finite x.
-Proof. now intros [| | |]. Qed.
+Proof.
+now intros [| | |].
+Qed.
+
+Theorem is_finite_strict_Babs :
+  forall x,
+  is_finite_strict (Babs x) = is_finite_strict x.
+Proof.
+now intros [| | |].
+Qed.
 
 Theorem Bsign_Babs :
   forall x,
-  is_nan x = false ->
   Bsign (Babs x) = false.
-Proof. now intros [| | |]. Qed.
+Proof.
+now intros [| | |].
+Qed.
 
 Theorem Babs_idempotent :
   forall (x: binary_float),
-  is_nan x = false ->
   Babs (Babs x) = Babs x.
-Proof. now intros [sx|sx| |sx mx ex Hx]. Qed.
+Proof.
+now intros [sx|sx| |sx mx ex Hx].
+Qed.
 
 Theorem Babs_Bopp :
   forall x,
-  is_nan x = false ->
   Babs (Bopp x) = Babs x.
-Proof. now intros [| | |]. Qed.
+Proof.
+now intros [| | |].
+Qed.
 
 (** Comparison
 
@@ -560,7 +599,7 @@ Qed.
 
 Definition Bleb (f1 f2 : binary_float) : bool := SFleb (B2SF f1) (B2SF f2).
 
-(* Commented out due to an error in Coq 8.11
+(* FIXME: Commented out due to an error in Coq 8.11
    c.f. https://github.com/coq/coq/issues/12483
 Theorem Bleb_correct :
   forall f1 f2,
@@ -928,6 +967,15 @@ Definition overflow_to_inf m s :=
 Definition binary_overflow m s :=
   if overflow_to_inf m s then S754_infinity s
   else S754_finite s (Z.to_pos (Zpower 2 prec - 1)%Z) (emax - prec).
+
+Theorem is_nan_binary_overflow :
+  forall mode s,
+  is_nan_SF (binary_overflow mode s) = false.
+Proof.
+intros mode s.
+unfold binary_overflow.
+now destruct overflow_to_inf.
+Qed.
 
 Theorem binary_overflow_correct :
   forall m s,
@@ -1468,6 +1516,20 @@ apply Rlt_bool_false.
 now apply F2R_ge_0.
 Qed.
 
+Theorem is_nan_binary_round :
+  forall mode sx mx ex,
+  is_nan_SF (binary_round mode sx mx ex) = false.
+Proof.
+intros mode sx mx ex.
+generalize (binary_round_correct mode sx mx ex).
+simpl.
+destruct binary_round ; try easy.
+intros [_ H].
+destruct Rlt_bool ; try easy.
+unfold binary_overflow in H.
+now destruct overflow_to_inf.
+Qed.
+
 (* TODO: lemme equivalence pour le cas mode_NE *)
 Definition binary_normalize mode m e szero :=
   match m with
@@ -1536,6 +1598,23 @@ apply f_equal.
 apply sym_eq.
 apply Rlt_bool_true.
 now apply F2R_lt_0.
+Qed.
+
+Theorem is_nan_binary_normalize :
+  forall mode m e szero,
+  is_nan (binary_normalize mode m e szero) = false.
+Proof.
+intros mode m e szero.
+generalize (binary_normalize_correct mode m e szero).
+simpl.
+destruct Rlt_bool.
+- intros [_ [H _]].
+  now destruct binary_normalize.
+- intros H.
+  rewrite <- is_nan_SF_B2SF.
+  rewrite H.
+  unfold binary_overflow.
+  now destruct overflow_to_inf.
 Qed.
 
 (** Addition *)
@@ -1828,10 +1907,10 @@ Definition Bfma m (x y z: binary_float) :=
 
 Theorem Bfma_correct:
   forall m x y z,
-  let res := (B2R x * B2R y + B2R z)%R in
   is_finite x = true ->
   is_finite y = true ->
   is_finite z = true ->
+  let res := (B2R x * B2R y + B2R z)%R in
   if Rlt_bool (Rabs (round radix2 fexp (round_mode m) res)) (bpow radix2 emax) then
     B2R (Bfma m x y z) = round radix2 fexp (round_mode m) res /\
     is_finite (Bfma m x y z) = true /\
@@ -2223,21 +2302,38 @@ rewrite round_generic; [|now apply valid_rnd_N|].
   lia.
 Qed.
 
-Lemma is_finite_Bone : is_finite Bone = true.
+Theorem is_finite_strict_Bone :
+  is_finite_strict Bone = true.
 Proof.
-generalize Bone_correct; case Bone; simpl;
- try (intros; reflexivity); intros; exfalso; lra.
+apply is_finite_strict_B2R.
+rewrite Bone_correct.
+apply R1_neq_R0.
 Qed.
 
-Lemma Bsign_Bone : Bsign Bone = false.
+Theorem is_nan_Bone :
+  is_nan Bone = false.
 Proof.
-generalize Bone_correct; case Bone; simpl;
-  try (intros; exfalso; lra); intros s' m e _.
-case s'; [|now intro]; unfold F2R; simpl.
-intro H; exfalso; revert H; apply Rlt_not_eq, (Rle_lt_trans _ 0); [|lra].
-rewrite <-Ropp_0, <-(Ropp_involutive (_ * _)); apply Ropp_le_contravar.
-rewrite Ropp_mult_distr_l; apply Rmult_le_pos; [|now apply bpow_ge_0].
-unfold IZR; rewrite <-INR_IPR; generalize (INR_pos m); lra.
+unfold Bone.
+rewrite is_nan_SF2B.
+apply is_nan_binary_round.
+Qed.
+
+Theorem is_finite_Bone :
+  is_finite Bone = true.
+Proof.
+generalize is_finite_strict_Bone.
+now destruct Bone.
+Qed.
+
+Theorem Bsign_Bone :
+  Bsign Bone = false.
+Proof.
+generalize Bone_correct is_finite_strict_Bone.
+destruct Bone as [sx|sx| |[|] mx ex Bx] ; try easy.
+intros H _.
+contradict H.
+apply Rlt_not_eq, Rlt_trans with (2 := Rlt_0_1).
+now apply F2R_lt_0.
 Qed.
 
 Lemma Bmax_float_proof :
@@ -2325,6 +2421,16 @@ Definition Bldexp mode f e :=
     SF2B _ (proj1 (binary_round_correct mode sx mx (ex+e)))
   | _ => f
   end.
+
+Theorem is_nan_Bldexp :
+  forall mode x e,
+  is_nan (Bldexp mode x e) = is_nan x.
+Proof.
+intros mode [sx|sx| |sx mx ex Bx] e ; try easy.
+unfold Bldexp.
+rewrite is_nan_SF2B.
+apply is_nan_binary_round.
+Qed.
 
 Theorem Bldexp_correct :
   forall m (f : binary_float) e,
@@ -2502,6 +2608,18 @@ Definition Bfrexp f :=
   | _ => (f, (-2*emax-prec)%Z)
   end.
 
+Theorem is_nan_Bfrexp :
+  forall x,
+  is_nan (fst (Bfrexp x)) = is_nan x.
+Proof.
+intros [sx|sx| |sx mx ex Bx] ; try easy.
+simpl.
+rewrite is_nan_SF2B.
+unfold Ffrexp_core_binary.
+destruct Zlt_bool ; try easy.
+now destruct Pos.leb.
+Qed.
+
 Theorem Bfrexp_correct :
   forall f,
   is_finite_strict f = true ->
@@ -2549,6 +2667,15 @@ Definition Bulp x :=
   | B754_finite _ _ e _ => binary_normalize mode_ZR 1 e false
   end.
 
+Theorem is_nan_Bulp :
+  forall x,
+  is_nan (Bulp x) = is_nan x.
+Proof.
+intros [sx|sx| |sx mx ex Bx] ; try easy.
+unfold Bulp.
+apply is_nan_binary_normalize.
+Qed.
+
 Theorem Bulp_correct :
   forall x,
   is_finite x = true ->
@@ -2588,6 +2715,22 @@ intros [sx|sx| |sx mx ex Hx] Fx ; try easy ; simpl.
     rewrite (canonical_canonical_mantissa false _ _ H5).
     apply Z.max_le_iff.
     now right.
+Qed.
+
+Theorem is_finite_strict_Bulp :
+  forall x,
+  is_finite_strict (Bulp x) = is_finite x.
+Proof.
+intros [sx|sx| |sx mx ex Bx] ; try easy.
+generalize (Bulp_correct (B754_finite sx mx ex Bx) eq_refl).
+destruct Bulp as [sy| | |] ; try easy.
+intros [H _].
+contradict H.
+rewrite ulp_neq_0.
+apply Rlt_not_eq.
+apply bpow_gt_0.
+apply F2R_neq_0.
+now destruct sx.
 Qed.
 
 Definition Bulp' x := Bldexp mode_NE Bone (fexp (snd (Bfrexp x))).
@@ -2670,6 +2813,18 @@ Definition Bsucc x :=
   | B754_finite true mx ex _ =>
     SF2B _ (proj1 (binary_round_correct mode_ZR true (xO mx - 1) (ex - 1)))
   end.
+
+Theorem is_nan_Bsucc :
+  forall x,
+  is_nan (Bsucc x) = is_nan x.
+Proof.
+unfold Bsucc.
+intros [sx|[|]| |[|] mx ex Bx] ; try easy.
+rewrite is_nan_SF2B.
+apply is_nan_binary_round.
+rewrite is_nan_SF2B.
+apply is_nan_binary_round.
+Qed.
 
 Theorem Bsucc_correct :
   forall x,
@@ -2821,6 +2976,16 @@ intros [sx|sx| | [|] mx ex Bx] Hx ; try easy ; clear Hx.
 Qed.
 
 Definition Bpred x := Bopp (Bsucc (Bopp x)).
+
+Theorem is_nan_Bpred :
+  forall x,
+  is_nan (Bpred x) = is_nan x.
+Proof.
+intros x.
+unfold Bpred.
+rewrite is_nan_Bopp, is_nan_Bsucc.
+apply is_nan_Bopp.
+Qed.
 
 Theorem Bpred_correct :
   forall x,
