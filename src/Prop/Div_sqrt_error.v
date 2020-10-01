@@ -42,9 +42,7 @@ rewrite H; apply generic_format_0.
 rewrite Hx, Hy, <- F2R_plus.
 apply generic_format_F2R.
 intros _.
-case_eq (Fplus fx fy).
-intros mz ez Hz.
-rewrite <- Hz.
+change (F2R _) with (F2R (Fplus fx fy)).
 apply Z.le_trans with (Z.min (Fexp fx) (Fexp fy)).
 rewrite F2R_plus, <- Hx, <- Hy.
 unfold cexp.
@@ -52,7 +50,7 @@ apply Z.le_trans with (1:=Hfexp _).
 apply Zplus_le_reg_l with prec; ring_simplify.
 apply mag_le_bpow with (1 := H).
 now apply Z.min_case.
-rewrite <- Fexp_Fplus, Hz.
+rewrite <- Fexp_Fplus.
 apply Z.le_refl.
 Qed.
 
