@@ -625,7 +625,7 @@ rewrite 2!Hr.
 rewrite Zmult_plus_distr_l, Zmult_1_l.
 unfold F2R at 2. simpl.
 rewrite plus_IZR, Rmult_plus_distr_r.
-apply new_location_correct.
+apply new_location_correct; unfold F2R; simpl.
 apply bpow_gt_0.
 now apply Zpower_gt_1.
 now apply Z_mod_lt.
