@@ -8,8 +8,6 @@ if test "$ac_init_help" = "long"; then
 fi
 m4_divert_pop(99)
 
-AC_PROG_CXX
-
 AC_DEFUN([AX_VERSION_GE], [AS_VERSION_COMPARE([$1],[$2],[$4],[$3],[$3])])
 
 AC_ARG_VAR(COQBIN, [path to Coq executables [empty]])
@@ -71,19 +69,25 @@ if test -z "$COQUSERCONTRIB"; then
   COQUSERCONTRIB="`$COQC -where | tr -d '\r' | tr '\\\\' '/'`/user-contrib"
 fi
 
+AC_ARG_VAR(REMAKE, [Remake [vendored version]])
+
+if test -z "$REMAKE"; then
+AC_PROG_CXX
+
 AC_MSG_NOTICE([building remake...])
 case `$CXX -v 2>&1 | grep -e "^Target:"` in
 *mingw*)
 	$CXX -Wall -O2 -o remake.exe remake.cpp -lws2_32
 	if test $? != 0; then AC_MSG_FAILURE([failed]); fi
-	AC_SUBST([REMAKE], [./remake.exe])
+	REMAKE=./remake.exe
 	;;
 *)
 	$CXX -Wall -O2 -o remake remake.cpp
 	if test $? != 0; then AC_MSG_FAILURE([failed]); fi
-	AC_SUBST([REMAKE], [./remake])
+	REMAKE=./remake
 	;;
 esac
+fi
 
 AC_CONFIG_FILES([Remakefile src/Version.v src/IEEE754/SpecFloatCompat.v])
 AC_OUTPUT
