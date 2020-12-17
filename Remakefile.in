@@ -127,13 +127,12 @@ public: deps.png deps.map html/index.html
 	cp -r html deps.png public/
 
 install:
-	prefix=@prefix@
-	exec_prefix=@exec_prefix@
-	mkdir -p @libdir@
-	for d in Core Calc Prop IEEE754 Pff; do mkdir -p @libdir@/$d; done
-	for f in $(OBJS); do cp $f @libdir@/${f#src/}; done
-	for f in $(FILES); do cp src/$f @libdir@/$f; done
-	( cd src && find . -type d -name ".coq-native" -exec cp -RT "{}" "@libdir@/{}" \; )
+	dir="${DESTDIR}@COQUSERCONTRIB@/Flocq"
+	mkdir -p $dir
+	for d in Core Calc Prop IEEE754 Pff; do mkdir -p $dir/$d; done
+	for f in $(OBJS); do cp $f $dir/${f#src/}; done
+	for f in $(FILES); do cp src/$f $dir/$f; done
+	( cd src && find . -type d -name ".coq-native" -exec cp -RT "{}" "$dir/{}" \; )
 
 EXTRA_DIST = \
 	configure

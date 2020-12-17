@@ -8,11 +8,6 @@ if test "$ac_init_help" = "long"; then
 fi
 m4_divert_pop(99)
 
-m4_divert_push([HELP_ENABLE])
-Fine tuning of the installation directory:
-AS_HELP_STRING([--libdir=DIR], [library @<:@DIR=`$COQC -where`/user-contrib/Flocq@:>@])
-m4_divert_pop([HELP_ENABLE])
-
 AC_PROG_CXX
 
 AC_DEFUN([AX_VERSION_GE], [AS_VERSION_COMPARE([$1],[$2],[$4],[$3],[$3])])
@@ -70,8 +65,10 @@ AC_MSG_RESULT([$COQDOC])
 
 AC_ARG_VAR(COQEXTRAFLAGS, [extra flags passed to Coq compiler [empty]])
 
-if test "$libdir" = '${exec_prefix}/lib'; then
-  libdir="`$COQC -where | tr -d '\r' | tr '\\\\' '/'`/user-contrib/Flocq"
+AC_ARG_VAR(COQUSERCONTRIB, [installation directory [`$COQC -where`/user-contrib]])
+
+if test -z "$COQUSERCONTRIB"; then
+  COQUSERCONTRIB="`$COQC -where | tr -d '\r' | tr '\\\\' '/'`/user-contrib"
 fi
 
 AC_MSG_NOTICE([building remake...])

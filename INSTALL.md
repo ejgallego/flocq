@@ -24,8 +24,8 @@ to set the Coq compiler command. The configure script defaults to `coqc`.
 Similarly, `COQDEP` can be used to specify the location of `coqdep`. The
 `COQBIN` environment variable can be used to set both variables at once.
 
-The option `--libdir=DIR` can be set to the directory where the compiled
-library files should be installed by `./remake install`. By default, the
-target directory is `` `$COQC -where`/user-contrib/Flocq ``.
-
-The files are compiled at a logical location starting with `Flocq`.
+The library files are compiled at the logical location `Flocq`. The
+`COQUSERCONTRIB` environment variable can be used to override the
+physical location where the `Flocq` directory containing these files will
+be installed by `./remake install`. By default, the target directory is
+`` `$COQC -where`/user-contrib ``.
