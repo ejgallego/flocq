@@ -15,8 +15,10 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
-Require Import Reals Flocq.Core.Core.
-Require Import Gappa.Gappa_tactic Interval.Interval_tactic.
+From Coq Require Import Reals.
+From Flocq Require Import Core.
+From Gappa Require Import Gappa_tactic.
+From Interval Require Import Tactic.
 
 Open Scope R_scope.
 
@@ -92,7 +94,7 @@ Lemma method_error :
 Proof.
 intros t t2 p q f Ht.
 unfold f, q, p, t2, p0, p1, p2, q0, q1, q2 ;
-interval with (i_bisect_taylor t 9, i_prec 70).
+interval with (i_bisect t, i_taylor t, i_degree 9, i_prec 70).
 Qed.
 
 Lemma argument_reduction :

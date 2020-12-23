@@ -15,9 +15,9 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
-Require Import Reals Psatz.
+From Coq Require Import Reals Psatz.
 From Flocq Require Import Core Relative Sterbenz Operations.
-Require Import Interval.Interval_tactic.
+From Interval Require Import Tactic.
 
 Section Delta_FLX.
 Open Scope R_scope.
@@ -114,7 +114,7 @@ apply Rlt_le_trans with (IZR(Zpower beta  prec)*bpow (Fexp f2))%R.
 apply Rmult_lt_compat_r.
 apply bpow_gt_0.
 apply IZR_lt.
-apply Zle_lt_trans with (2:=proj2 H2).
+apply Z.le_lt_trans with (2:=proj2 H2).
 rewrite Z.abs_eq.
 auto with zarith.
 apply le_IZR.
@@ -522,9 +522,10 @@ assert (0 <= h <= 1).
 apply Rabs_le_inv in H1.
 lra.
 rewrite 2!Rabs_pos_eq.
-interval with (i_bisect_diff h).
+apply Rminus_le.
+interval with (i_autodiff h, i_prec 30).
 apply Sh.
-interval.
+interval with (i_prec 30).
 assert (-1/2 <= h <= 0).
 apply Rabs_le_inv in H1.
 lra.
@@ -535,7 +536,7 @@ apply Rle_trans with (-h/2 * 0%R).
 2: right ; field.
 apply Rmult_le_compat_l.
 lra.
-interval with (i_bisect_diff h).
+interval with (i_autodiff h, i_prec 30).
 assert (0 < (sqrt (1 + h) + 1)).
 interval.
 replace (sqrt (1 + h) - 1) with (h / (sqrt (1 + h) + 1)).
@@ -642,15 +643,9 @@ apply Rle_trans with (1:=H).
 apply Rle_trans with (1*Rabs y).
 apply Rmult_le_compat_r.
 apply Rabs_pos.
-apply Rle_trans with (1:=He).
-apply Rle_trans with (/1).
-apply Interval_missing.Rle_Rinv_pos.
-apply Rlt_0_1.
-auto with real.
-right; apply Rinv_1.
-rewrite Rabs_right.
+lra.
+rewrite Rabs_pos_eq by easy.
 right; now field.
-apply Rle_ge, Hy.
 Qed.
 
 
@@ -984,7 +979,7 @@ exists (Float radix10 25 (-2)).
 change (F2R (Float radix10 25 (-2))) with (25 / 100)%R.
 field.
 simpl.
-apply Zlt_le_trans with (10^2)%Z.
+apply Z.lt_le_trans with (10^2)%Z.
 unfold Zpower, Zpower_pos; simpl; omega.
 change 10%Z with (radix_val radix10).
 now apply Zpower_le.
@@ -1376,10 +1371,10 @@ rewrite <- bpow_plus.
 apply bpow_le.
 assert (emin <= Fexp (Fplus f g))%Z.
 rewrite Fexp_Fplus.
-now apply Zmin_case.
+now apply Z.min_case.
 omega.
 rewrite Fexp_Fplus.
-now apply Zmin_case.
+now apply Z.min_case.
 Qed.
 
 
@@ -1477,7 +1472,7 @@ replace (bpow (emin + prec - 1)) with (round_flt ((bpow (emin + prec - 1)))).
 apply round_NE_pt...
 apply round_generic...
 apply generic_format_bpow'...
-unfold FLT_exp; apply Zmax_case; omega.
+unfold FLT_exp; apply Z.max_case; omega.
 exact Y.
 left.
 replace (round_flt (x1 * x2) - y1*y2) with ((round_flt (x1 * x2) - x1*x2)+(x1*x2-y1*y2)) by ring.
@@ -1546,7 +1541,7 @@ apply Rle_not_lt.
 apply round_le_generic...
 apply generic_format_bpow.
 unfold FLT_exp.
-rewrite Zmax_l.
+rewrite Z.max_l.
 omega.
 assert (emin + prec-1 <= Zceil (IZR (emin + prec - 1) / 2))%Z;[idtac|omega].
 rewrite <- (Zceil_IZR (emin+prec-1)) at 1.
@@ -1600,7 +1595,7 @@ apply round_le_generic...
 apply generic_format_bpow.
 unfold FLT_exp.
 replace (emin + prec - 1 + 1 - prec)%Z with emin by ring.
-rewrite Zmax_l; omega.
+rewrite Z.max_l; omega.
 now left.
 apply f_equal; apply f_equal; ring.
 rewrite Rmult_plus_distr_r.
@@ -1676,15 +1671,9 @@ apply Rle_trans with (1:=H).
 apply Rle_trans with (1*Rabs y).
 apply Rmult_le_compat_r.
 apply Rabs_pos.
-apply Rle_trans with (1:=He).
-apply Rle_trans with (/1).
-apply Interval_missing.Rle_Rinv_pos.
-apply Rlt_0_1.
-auto with real.
-right; apply Rinv_1.
-rewrite Rabs_right.
+lra.
+rewrite Rabs_pos_eq by easy.
 right; now field.
-apply Rle_ge, Hy.
 Qed.
 
 
@@ -2036,7 +2025,7 @@ contradict Y; apply Rle_not_lt.
 apply round_le_generic...
 apply generic_format_bpow.
 unfold FLT_exp.
-rewrite Zmax_l.
+rewrite Z.max_l.
 omega.
 assert (emin+prec+1 <= Zceil (IZR (emin + prec - 1) / 2))%Z;[idtac|omega].
 apply le_IZR.
@@ -2202,7 +2191,7 @@ replace (/4)%R with (bpow radix2 (-2)).
 rewrite <- bpow_plus.
 apply generic_format_bpow...
 unfold FLT_exp.
-apply Zmax_case.
+apply Z.max_case.
 omega.
 omega.
 reflexivity.
@@ -2219,7 +2208,7 @@ unfold Zminus; rewrite bpow_plus.
 change (bpow radix10 (-(2))) with (/100)%R.
 field.
 simpl.
-apply Zlt_le_trans with (10^2)%Z.
+apply Z.lt_le_trans with (10^2)%Z.
 unfold Zpower, Zpower_pos; simpl; omega.
 change 10%Z with (radix_val radix10).
 now apply Zpower_le.
