@@ -126,7 +126,7 @@ apply H4.
 rewrite IZR_Zpower, <-bpow_plus.
 apply Rle_trans with (bpow ((prec-1)+Fexp f1)).
 apply bpow_le.
-omega.
+lia.
 rewrite bpow_plus.
 apply Rmult_le_compat_r.
 apply bpow_ge_0.
@@ -140,8 +140,8 @@ apply Rmult_le_reg_r with (bpow (Fexp f1)).
 apply bpow_gt_0.
 rewrite Rmult_0_l.
 exact H3.
-omega.
-omega.
+lia.
+lia.
 Qed.
 
 
@@ -225,7 +225,7 @@ exists (Float beta n (Fexp f)).
 exact Hg3.
 apply lt_IZR.
 rewrite IZR_Zpower.
-2: omega.
+2: lia.
 apply Rmult_lt_reg_r with (bpow (Fexp f)).
 apply bpow_gt_0.
 apply Rle_lt_trans with (F2R f).
@@ -243,7 +243,7 @@ rewrite <- F2R_Zabs.
 unfold F2R; apply Rmult_lt_compat_r.
 apply bpow_gt_0.
 rewrite <- IZR_Zpower.
-2: omega.
+2: lia.
 apply IZR_lt.
 now simpl.
 apply Rle_ge; apply Rle_trans with (1:=Hg1); assumption.
@@ -283,7 +283,7 @@ field.
 apply Rgt_not_eq.
 apply bpow_gt_0.
 assert (Fexp fc <= Fexp fb)%Z.
-2: omega.
+2: lia.
 apply FLXN_le_exp.
 apply Hfc2.
 now apply Rgt_not_eq.
@@ -303,7 +303,7 @@ apply Rle_trans with b; assumption.
 rewrite <- Hfc1; assumption.
 rewrite <- Hfc1, <-Hfa1.
 apply Rle_trans with b; assumption.
-omega.
+lia.
 unfold Rminus; rewrite <-K, Rplus_0_l.
 rewrite round_NE_opp.
 apply f_equal.
@@ -942,7 +942,7 @@ apply Rle_trans with (/2* bpow radix2 (-6))%R.
 apply Rmult_le_compat_l.
 lra.
 apply bpow_le.
-omega.
+lia.
 rewrite <- (Rmult_1_l (bpow _ _)).
 interval.
 Qed.
@@ -956,7 +956,7 @@ apply Rle_trans with (/2* bpow radix10 (-2))%R.
 apply Rmult_le_compat_l.
 lra.
 apply bpow_le.
-omega.
+lia.
 rewrite bpow_exp.
 change (IZR radix10) with 10%R.
 interval.
@@ -968,7 +968,7 @@ intros prec Hprec.
 change (/4)%R with (bpow radix2 (-2)).
 apply generic_format_bpow'...
 unfold FLX_exp.
-omega.
+lia.
 Qed.
 
 Lemma fourth_format_10: forall prec:Z, (2 <= prec)%Z -> generic_format radix10 (FLX_exp prec) (/4).
@@ -980,7 +980,7 @@ change (F2R (Float radix10 25 (-2))) with (25 / 100)%R.
 field.
 simpl.
 apply Z.lt_le_trans with (10^2)%Z.
-unfold Zpower, Zpower_pos; simpl; omega.
+unfold Zpower, Zpower_pos; simpl; lia.
 change 10%Z with (radix_val radix10).
 now apply Zpower_le.
 Qed.
@@ -1015,7 +1015,7 @@ Lemma fourth_format: format (/4).
 Proof.
 replace (/4) with (/4*bpow 0).
 apply fourth_format_gen.
-omega.
+lia.
 simpl; ring.
 Qed.
 
@@ -1131,7 +1131,7 @@ exists (Float beta n (Fexp f)).
 exact Hg3.
 apply lt_IZR.
 rewrite IZR_Zpower.
-2: omega.
+2: lia.
 apply Rmult_lt_reg_r with (bpow (Fexp f)).
 apply bpow_gt_0.
 apply Rle_lt_trans with (F2R f).
@@ -1149,7 +1149,7 @@ rewrite <- F2R_Zabs.
 unfold F2R; apply Rmult_lt_compat_r.
 apply bpow_gt_0.
 rewrite <- IZR_Zpower.
-2: omega.
+2: lia.
 apply IZR_lt.
 now simpl.
 apply Rle_ge; apply Rle_trans with (1:=Hg1); assumption.
@@ -1196,7 +1196,7 @@ field.
 apply Rgt_not_eq.
 apply bpow_gt_0.
 assert (Fexp fc <= Fexp fb)%Z.
-2: omega.
+2: lia.
 apply FLXN_le_exp with prec...
 apply Hfc2.
 now apply Rgt_not_eq.
@@ -1216,7 +1216,7 @@ apply Rle_trans with b; assumption.
 rewrite <- Hfc1; assumption.
 rewrite <- Hfc1, <-Hfa1.
 apply Rle_trans with b; assumption.
-omega.
+lia.
 assumption.
 (* subnormal *)
 assert (exists f:float beta, c = F2R f /\ Fexp f = emin /\ (Z.abs (Fnum f) < beta ^ prec)%Z).
@@ -1230,13 +1230,13 @@ unfold Zminus; rewrite bpow_plus, bpow_opp.
 field.
 apply Rgt_not_eq.
 apply bpow_gt_0.
-omega.
+lia.
 split.
 reflexivity.
 simpl.
 apply lt_IZR.
 rewrite abs_IZR, mult_IZR, IZR_Zpower.
-2: omega.
+2: lia.
 unfold Zminus; rewrite bpow_plus, <- Rmult_assoc.
 replace (IZR (Fnum ffc) * bpow (Fexp ffc)) with (F2R ffc) by reflexivity.
 rewrite <- Hffc1.
@@ -1249,7 +1249,7 @@ rewrite Rabs_right.
 2: apply Rle_ge, bpow_ge_0.
 replace 1 with (bpow 0) by reflexivity.
 apply bpow_le.
-omega.
+lia.
 rewrite Rmult_1_r.
 rewrite <- abs_IZR.
 apply IZR_lt.
@@ -1281,9 +1281,9 @@ rewrite bpow_opp.
 field.
 apply Rgt_not_eq.
 apply bpow_gt_0.
-omega.
-omega.
-omega.
+lia.
+lia.
+lia.
 (* *)
 unfold Rminus; rewrite <-K, Rplus_0_l.
 rewrite round_NE_opp.
@@ -1372,7 +1372,7 @@ apply bpow_le.
 assert (emin <= Fexp (Fplus f g))%Z.
 rewrite Fexp_Fplus.
 now apply Z.min_case.
-omega.
+lia.
 rewrite Fexp_Fplus.
 now apply Z.min_case.
 Qed.
@@ -1472,7 +1472,7 @@ replace (bpow (emin + prec - 1)) with (round_flt ((bpow (emin + prec - 1)))).
 apply round_NE_pt...
 apply round_generic...
 apply generic_format_bpow'...
-unfold FLT_exp; apply Z.max_case; omega.
+unfold FLT_exp; apply Z.max_case; lia.
 exact Y.
 left.
 replace (round_flt (x1 * x2) - y1*y2) with ((round_flt (x1 * x2) - x1*x2)+(x1*x2-y1*y2)) by ring.
@@ -1542,8 +1542,8 @@ apply round_le_generic...
 apply generic_format_bpow.
 unfold FLT_exp.
 rewrite Z.max_l.
-omega.
-assert (emin + prec-1 <= Zceil (IZR (emin + prec - 1) / 2))%Z;[idtac|omega].
+lia.
+assert (emin + prec-1 <= Zceil (IZR (emin + prec - 1) / 2))%Z;[idtac|lia].
 rewrite <- (Zceil_IZR (emin+prec-1)) at 1.
 apply Zceil_le.
 apply Rmult_le_reg_l with 2%R.
@@ -1552,7 +1552,7 @@ apply Rplus_le_reg_l with (-IZR (emin+prec-1)).
 apply Rle_trans with (IZR (emin + prec - 1));[right; ring|idtac].
 apply Rle_trans with 0%R;[idtac|right;simpl;field].
 apply IZR_le.
-omega.
+lia.
 apply Rle_trans with (sqrt (bpow (emin + prec - 1))).
 now apply sqrt_le_1_alt.
 apply Rle_trans with (sqrt (bpow (2*Zceil (IZR (emin + prec - 1) / 2)))).
@@ -1595,7 +1595,7 @@ apply round_le_generic...
 apply generic_format_bpow.
 unfold FLT_exp.
 replace (emin + prec - 1 + 1 - prec)%Z with emin by ring.
-rewrite Z.max_l; omega.
+rewrite Z.max_l; lia.
 now left.
 apply f_equal; apply f_equal; ring.
 rewrite Rmult_plus_distr_r.
@@ -1697,7 +1697,7 @@ apply H1.
 apply Rle_trans with (1:=H3).
 apply Rle_trans with (bpow 0).
 apply bpow_le.
-omega.
+lia.
 now apply Rle_refl.
 Qed.
 
@@ -1883,7 +1883,7 @@ rewrite Rinv_l.
 rewrite Rmult_1_r.
 rewrite <- mult_IZR.
 apply IZR_le.
-omega.
+lia.
 apply Rgt_not_eq; intuition.
 replace (round_flt (/ 4)) with (/4).
 apply Rmult_le_compat_l.
@@ -1934,7 +1934,7 @@ apply Rplus_le_reg_l with (-IZR (emin+prec-1)).
 apply Rle_trans with (IZR (emin + prec - 1));[right; ring|idtac].
 apply Rle_trans with 0%R;[idtac|right;simpl;field].
 apply IZR_le.
-omega.
+lia.
 rewrite Rabs_right.
 apply Rle_lt_trans with (2:=Y).
 apply Rmult_le_reg_l with 4.
@@ -1962,7 +1962,7 @@ rewrite Rinv_l.
 rewrite Rmult_1_r.
 rewrite <- mult_IZR.
 apply IZR_le.
-omega.
+lia.
 apply Rgt_not_eq.
 intuition.
 apply Rgt_not_eq.
@@ -2026,8 +2026,8 @@ apply round_le_generic...
 apply generic_format_bpow.
 unfold FLT_exp.
 rewrite Z.max_l.
-omega.
-assert (emin+prec+1 <= Zceil (IZR (emin + prec - 1) / 2))%Z;[idtac|omega].
+lia.
+assert (emin+prec+1 <= Zceil (IZR (emin + prec - 1) / 2))%Z;[idtac|lia].
 apply le_IZR.
 apply Rle_trans with (2:=Zceil_ub _).
 apply Rmult_le_reg_r with 2%R.
@@ -2037,7 +2037,7 @@ rewrite Rinv_l.
 rewrite Rmult_1_r.
 rewrite <- mult_IZR.
 apply IZR_le.
-omega.
+lia.
 apply Rgt_not_eq; intuition.
 replace (round_flt (/ 4)) with (/4).
 unfold Zminus; rewrite Rmult_comm, bpow_plus.
@@ -2087,7 +2087,7 @@ apply Rplus_le_reg_l with (-IZR (emin+prec-1)).
 apply Rle_trans with (IZR (emin + prec - 1));[right; ring|idtac].
 apply Rle_trans with 0%R;[idtac|right;simpl;field].
 apply IZR_le.
-omega.
+lia.
 (* *)
 generalize prec_suff (epsPos beta prec).
 cut (0 < eps).
@@ -2141,7 +2141,7 @@ rewrite Hradix; apply f_equal.
 simpl; ring.
 now simpl.
 simpl.
-assert (emin+1+prec < prec+Fexp f)%Z;[idtac|omega].
+assert (emin+1+prec < prec+Fexp f)%Z;[idtac|lia].
 apply lt_bpow with beta.
 apply Rle_lt_trans with  (bpow (Zceil (IZR (emin + prec - 1) / 2))).
 apply bpow_le.
@@ -2154,7 +2154,7 @@ rewrite Rinv_l.
 rewrite Rmult_1_r.
 rewrite <- mult_IZR.
 apply IZR_le.
-omega.
+lia.
 apply Rgt_not_eq; intuition.
 apply Rlt_le_trans with (1:=H).
 rewrite Hf1.
@@ -2169,7 +2169,7 @@ left; apply IZR_lt.
 replace (Fnum (Fabs f)) with (Z.abs (Fnum f)).
 assumption.
 destruct f; unfold Fabs; reflexivity.
-omega.
+lia.
 destruct f; unfold Fabs; reflexivity.
 apply f_equal.
 apply f_equal2.
@@ -2192,8 +2192,8 @@ rewrite <- bpow_plus.
 apply generic_format_bpow...
 unfold FLT_exp.
 apply Z.max_case.
-omega.
-omega.
+lia.
+lia.
 reflexivity.
 Qed.
 
@@ -2209,11 +2209,11 @@ change (bpow radix10 (-(2))) with (/100)%R.
 field.
 simpl.
 apply Z.lt_le_trans with (10^2)%Z.
-unfold Zpower, Zpower_pos; simpl; omega.
+unfold Zpower, Zpower_pos; simpl; lia.
 change 10%Z with (radix_val radix10).
 now apply Zpower_le.
 simpl.
-omega.
+lia.
 Qed.
 
 End Hyp_ok_.
