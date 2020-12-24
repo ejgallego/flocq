@@ -15,9 +15,9 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 COPYING file for more details.
 *)
 
-Require Import Reals Psatz.
-Require Import Flocq.Core.Core.
-Require Import Interval.Interval_tactic.
+From Coq Require Import Reals Psatz.
+From Flocq Require Import Core.
+From Interval Require Import Tactic.
 
 Section Sec1.
 
@@ -274,7 +274,7 @@ apply succ_le_lt...
 apply generic_format_FLX.
 exists (Float beta 2 (e-1)).
 unfold F2R; now simpl.
-apply Zlt_le_trans with (4^1)%Z.
+apply Z.lt_le_trans with (4^1)%Z.
 simpl; unfold Z.pow_pos; simpl; omega.
 rewrite Hb.
 apply (Zpower_le (Build_radix 4 eq_refl)).
@@ -615,7 +615,7 @@ assert (2 <= beta)%Z.
 clear; destruct beta as (v, Hr); simpl.
 now apply Zle_bool_imp_le.
 apply IZR_le in H.
-simpl in H; interval.
+simpl in H; interval with (i_prec 30).
 intros Hb.
 apply Rle_lt_trans with (sqrt (IZR beta) * bpow (mag beta x - 1)
     - IZR k * ulp_flx x).
@@ -671,7 +671,7 @@ apply Rle_trans with (bpow 0).
 apply bpow_le.
 omega.
 right; reflexivity.
-interval.
+interval with (i_prec 30).
 intros Hb'.
 apply Rle_trans with ((1 - / IZR beta) *1 +1).
 apply Rplus_le_compat_r.
@@ -729,7 +729,7 @@ rewrite ulp_neq_0; try now apply Rgt_not_eq.
 apply Rmult_comm; apply f_equal.
 simpl.
 rewrite Z.abs_eq.
-apply Zle_lt_trans with (Ztrunc (scaled_mantissa beta (FLX_exp prec) x) - 0)%Z.
+apply Z.le_lt_trans with (Ztrunc (scaled_mantissa beta (FLX_exp prec) x) - 0)%Z.
 apply Zplus_le_compat_l.
 omega.
 rewrite Zminus_0_r.
@@ -1009,7 +1009,7 @@ apply succ_le_lt...
 apply generic_format_FLX.
 exists (Float beta 2 (mag beta x -1)).
 easy.
-rewrite H; apply Zlt_le_trans with (4^1)%Z.
+rewrite H; apply Z.lt_le_trans with (4^1)%Z.
 simpl; unfold Z.pow_pos; simpl; omega.
 apply (Zpower_le (Build_radix 4 eq_refl)).
 now apply Zlt_le_weak.
@@ -1187,7 +1187,7 @@ interval.
 apply IZR_le; omega.
 apply Rmult_le_compat_l.
 left; apply radix_pos.
-interval.
+interval with (i_prec 30).
 assert (sqrt (IZR beta) <> 0).
 apply Rgt_not_eq.
 apply sqrt_lt_R0, radix_pos.
@@ -1298,6 +1298,7 @@ simpl; unfold Z.pow_pos; simpl.
 rewrite Zmult_1_r, mult_IZR.
 right; field.
 generalize kpos; unfold k; intros Y.
+assert (round_flx_sqr_sqrt_snd_deg := round_flx_sqr_sqrt_snd_deg).
 destruct (mag beta x) as (e,He).
 simpl (mag_val beta x (Build_mag_prop beta x e He)) in *.
 apply Rle_lt_trans with (bpow (e-1)*(/4*bpow (3-prec) + (IZR beta) / 2)).
@@ -1664,8 +1665,8 @@ clear.
 change 125%Z with (Z_of_nat 125).
 induction (125).
 intros _ mx [H1 H2].
-elim (Zlt_irrefl 0).
-now apply Zle_lt_trans with mx.
+elim (Z.lt_irrefl 0).
+now apply Z.le_lt_trans with mx.
 simpl g.
 rewrite inj_S.
 intros H mx [H1 H2].
