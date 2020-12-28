@@ -1,3 +1,9 @@
+Version 3.4.0
+-------------
+
+* added some comparison functions to `IEEE754.BinarySingleNaN`
+* proved the corresponding adequacy lemmas in `IEEE754.PrimFloat`
+
 Version 3.3.1
 -------------
 
@@ -25,7 +31,7 @@ Version 3.1.0
 -------------
 
 * changed matching order in `Bcompare`
-* improved behavior of `Binary.v` functions with respect to NaNs
+* improved behavior of `IEEE754.Binary` functions with respect to NaNs
 * ensured compatibility from Coq 8.7 to 8.9
 * added functions `Bpred` and `Bsucc`
 * added theorems on optimal relative error bounds for plus and square root
