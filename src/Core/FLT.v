@@ -46,7 +46,7 @@ intros k.
 unfold FLT_exp.
 generalize (prec_gt_0 prec).
 repeat split ;
-  intros ; zify ; omega.
+  intros ; zify ; lia.
 Qed.
 
 Theorem generic_format_FLT :
@@ -93,7 +93,7 @@ simpl in ex.
 specialize (He Hx0).
 apply Rlt_le_trans with (1 := proj2 He).
 apply bpow_le.
-cut (ex' - prec <= ex)%Z. omega.
+cut (ex' - prec <= ex)%Z. lia.
 unfold ex, FLT_exp.
 apply Z.le_max_l.
 apply Z.le_max_r.
@@ -105,7 +105,7 @@ Proof.
 intros e He.
 apply generic_format_bpow; unfold FLT_exp.
 apply Z.max_case; try assumption.
-unfold Prec_gt_0 in prec_gt_0_; omega.
+unfold Prec_gt_0 in prec_gt_0_; lia.
 Qed.
 
 Theorem FLT_format_bpow :
@@ -140,7 +140,7 @@ apply Zmax_left.
 destruct (mag beta x) as (ex, He).
 unfold FLX_exp. simpl.
 specialize (He Hx0).
-cut (emin + prec - 1 < ex)%Z. omega.
+cut (emin + prec - 1 < ex)%Z. lia.
 apply (lt_bpow beta).
 apply Rle_lt_trans with (1 := Hx).
 apply He.
@@ -151,7 +151,7 @@ Global Instance FLT_exp_monotone : Monotone_exp FLT_exp.
 Proof.
 intros ex ey.
 unfold FLT_exp.
-zify ; omega.
+zify ; lia.
 Qed.
 
 (** and it allows a rounding to nearest, ties to even. *)
@@ -168,10 +168,10 @@ destruct (Zmax_spec (e - prec) emin) as [(H1,H2)|(H1,H2)] ;
   rewrite H2 ; clear H2.
 generalize (Zmax_spec (e + 1 - prec) emin).
 generalize (Zmax_spec (e - prec + 1 - prec) emin).
-omega.
+lia.
 generalize (Zmax_spec (e + 1 - prec) emin).
 generalize (Zmax_spec (emin + 1 - prec) emin).
-omega.
+lia.
 Qed.
 
 (** Links between FLT and FLX *)
@@ -224,7 +224,7 @@ apply Zmax_right.
 unfold FIX_exp.
 destruct (mag beta x) as (ex, Hex).
 simpl.
-cut (ex - 1 < emin + prec)%Z. omega.
+cut (ex - 1 < emin + prec)%Z. lia.
 apply (lt_bpow beta).
 apply Rle_lt_trans with (2 := Hx).
 now apply Hex.
@@ -254,7 +254,7 @@ apply generic_inclusion_le...
 intros e He.
 unfold FIX_exp.
 apply Z.max_lub.
-omega.
+lia.
 apply Z.le_refl.
 Qed.
 
@@ -336,7 +336,7 @@ rewrite <- bpow_plus.
 right; apply f_equal.
 replace (e - 1 + (1 - prec))%Z with (e - prec)%Z by ring.
 apply Z.max_l; simpl.
-assert (emin+prec-1 < e)%Z; try omega.
+assert (emin+prec-1 < e)%Z; try lia.
 apply lt_bpow with beta.
 apply Rle_lt_trans with (1:=Hx).
 now apply He.
@@ -374,7 +374,7 @@ unfold ulp; rewrite Req_bool_false;
   [|now intro H; apply Nzx, (Rmult_eq_reg_r (bpow e));
     [rewrite Rmult_0_l|apply Rgt_not_eq, Rlt_gt, bpow_gt_0]].
 rewrite (Req_bool_false _ _ Nzx), <- bpow_plus; f_equal; unfold cexp, FLT_exp.
-rewrite (mag_mult_bpow _ _ _ Nzx), !Z.max_l; omega.
+rewrite (mag_mult_bpow _ _ _ Nzx), !Z.max_l; lia.
 Qed.
 
 Lemma succ_FLT_exact_shift_pos :

@@ -685,7 +685,7 @@ rewrite H. 2: discriminate.
 revert H1. clear -H2.
 rewrite Zpos_digits2_pos.
 unfold fexp, FLT_exp.
-intros ; zify ; omega.
+intros ; zify ; lia.
 Qed.
 
 Theorem bounded_ge_emin :
@@ -712,7 +712,7 @@ generalize (Zdigits radix2 (Zpos mx)) (Zdigits_gt_0 radix2 (Zpos mx) H0).
 unfold fexp, FLT_exp.
 clear -prec_gt_0_.
 unfold Prec_gt_0 in prec_gt_0_.
-intros ; zify ; omega.
+intros ; zify ; lia.
 Qed.
 
 Theorem abs_B2R_le_emax_minus_prec :
@@ -772,7 +772,7 @@ rewrite Cx.
 unfold cexp, fexp, FLT_exp.
 destruct (mag radix2 (F2R (Float radix2 (Zpos mx) ex))) as (e',Ex). simpl.
 apply Z.max_lub.
-cut (e' - 1 < emax)%Z. clear ; omega.
+cut (e' - 1 < emax)%Z. clear ; lia.
 apply lt_bpow with radix2.
 apply Rle_lt_trans with (2 := Bx).
 change (Zpos mx) with (Z.abs (Zpos mx)).
@@ -895,7 +895,7 @@ now inversion H.
 (* *)
 intros p Hp.
 assert (He: (e <= fexp (Zdigits radix2 m + e))%Z).
-clear -Hp ; zify ; omega.
+clear -Hp ; zify ; lia.
 destruct (inbetween_float_ex radix2 m e l) as (x, Hx).
 generalize (inbetween_shr x m e l (fexp (Zdigits radix2 m + e) - e) Hm Hx).
 assert (Hx0 : (0 <= x)%R).
@@ -1453,7 +1453,7 @@ case_eq (ex' - ex)%Z ; simpl.
 intros H.
 now rewrite Zminus_eq with (1 := H).
 intros p.
-clear -He ; zify ; omega.
+clear -He ; zify ; lia.
 intros.
 apply refl_equal.
 Qed.
@@ -1572,7 +1572,7 @@ now rewrite is_finite_SF2B.
 rewrite Bsign_SF2B, Rz''.
 rewrite Rcompare_Gt...
 apply F2R_gt_0.
-simpl. zify; omega.
+simpl. zify; lia.
 intros Hz' (Vz, Rz).
 rewrite B2SF_SF2B, Rz.
 apply f_equal.
@@ -1591,7 +1591,7 @@ now rewrite is_finite_SF2B.
 rewrite Bsign_SF2B, Rz''.
 rewrite Rcompare_Lt...
 apply F2R_lt_0.
-simpl. zify; omega.
+simpl. zify; lia.
 intros Hz' (Vz, Rz).
 rewrite B2SF_SF2B, Rz.
 apply f_equal.
@@ -2138,7 +2138,7 @@ set (e' := Z.min _ _).
 assert (2 * e' <= ex)%Z as He.
 { assert (e' <= Z.div2 ex)%Z by apply Z.le_min_r.
   rewrite (Zdiv2_odd_eqn ex).
-  destruct Z.odd ; omega. }
+  destruct Z.odd ; lia. }
 generalize (Fsqrt_core_correct radix2 (Zpos mx) ex e' eq_refl He).
 unfold Fsqrt_core.
 set (mx' := match (ex - 2 * e')%Z with Z0 => _ | _ => _ end).
@@ -2176,7 +2176,7 @@ apply Rlt_le_trans with (1 := Heps).
 fold (bpow radix2 0).
 apply bpow_le.
 generalize (prec_gt_0 prec).
-clear ; omega.
+clear ; lia.
 apply Rsqr_incrst_0.
 3: apply bpow_ge_0.
 rewrite Rsqr_mult.

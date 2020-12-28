@@ -171,10 +171,10 @@ Proof.
 unfold make_bound, vNum; simpl.
 rewrite Z2Pos.id.
 apply Zpower_nat_Zpower.
-omega.
+lia.
 generalize (Zpower_gt_0 beta); simpl.
 intros T; apply T.
-omega.
+lia.
 Qed.
 
 
@@ -195,7 +195,7 @@ Definition bsingle := make_bound radix2 24 (-149)%Z.
 Lemma psGivesBound: Zpos (vNum bsingle) = Zpower_nat 2 24.
 Proof.
 unfold bsingle; apply make_bound_p.
-omega.
+lia.
 Qed.
 
 Definition bdouble := make_bound radix2 53 1074.
@@ -203,7 +203,7 @@ Definition bdouble := make_bound radix2 53 1074.
 Lemma pdGivesBound: Zpos (vNum bdouble) = Zpower_nat 2 53.
 Proof.
 unfold bdouble; apply make_bound_p.
-omega.
+lia.
 Qed.
 
 End b_Bounds.
@@ -248,7 +248,7 @@ rewrite pGivesBound, IZR_Zpower_nat.
 apply Rmult_lt_reg_r with (bpow beta ex).
 apply bpow_gt_0.
 rewrite <- bpow_plus.
-rewrite inj_abs; try omega.
+rewrite inj_abs; try lia.
 change (F2R (Float beta (Z.abs mx) ex) < bpow beta (p + ex))%R.
 rewrite F2R_Zabs.
 rewrite <- Hx.
@@ -261,7 +261,7 @@ simpl in ex.
 specialize (He Hx0).
 apply Rlt_le_trans with (1 := proj2 He).
 apply bpow_le.
-cut (ex' - p <= ex)%Z. omega.
+cut (ex' - p <= ex)%Z. lia.
 unfold ex, FLT_exp.
 apply Z.le_max_l.
 apply Z.le_max_r.
@@ -330,7 +330,7 @@ cut (Pff.Fexp f = e-p)%Z.
 intros V; rewrite V.
 apply sym_eq; apply Zmax_left.
 rewrite <- V; destruct H1; auto with zarith.
-assert (e = Pff.Fexp f + p)%Z;[idtac|omega].
+assert (e = Pff.Fexp f + p)%Z;[idtac|lia].
 apply trans_eq with (mag beta (FtoR beta f)).
 apply sym_eq; apply mag_unique.
 apply He; assumption.
@@ -360,12 +360,12 @@ rewrite <- Zabs.Zabs_Zmult.
 assumption.
 apply Zlt_le_weak; apply radix_gt_0.
 rewrite inj_abs; try ring.
-omega.
+lia.
 (* .. *)
 rewrite Zplus_comm, bpow_plus.
 apply Rmult_lt_compat_r.
 apply bpow_gt_0.
-rewrite <- (inj_abs p);[idtac|omega].
+rewrite <- (inj_abs p);[idtac|lia].
 rewrite <- IZR_Zpower_nat.
 simpl; rewrite <- pGivesBound.
 rewrite Rabs_Zabs.
@@ -375,7 +375,7 @@ destruct H1; assumption.
 destruct H as (H1,(H2,H3)).
 rewrite H2.
 apply sym_eq; apply Zmax_right.
-assert ((e-1) < p-dExp b)%Z;[idtac|omega].
+assert ((e-1) < p-dExp b)%Z;[idtac|lia].
 apply lt_bpow with beta.
 apply Rle_lt_trans with (Rabs (FtoR beta f)).
 apply He; auto.
@@ -397,7 +397,7 @@ replace (IZR (Zpower_nat beta (Peano.pred (Z.abs_nat p)))) with (bpow beta (p-1)
 rewrite <- (bpow_powerRZ _).
 rewrite <- bpow_plus.
 apply bpow_le.
-omega.
+lia.
 replace (p-1)%Z with (Z_of_nat (Peano.pred (Z.abs_nat p))).
 rewrite <- IZR_Zpower_nat.
 reflexivity.
@@ -513,7 +513,7 @@ apply generic_format_round...
 rewrite <- Hfu1.
 apply MaxUniqueP with b r.
 apply RND_Max_correct; try assumption.
-apply Nat2Z.inj_lt; rewrite inj_abs; simpl; omega.
+apply Nat2Z.inj_lt; rewrite inj_abs; simpl; lia.
 split.
 apply FcanonicBound with (1:=Hfu2).
 assert (T:Rnd_UP_pt (generic_format beta (FLT_exp (- dExp b) p)) r
@@ -542,7 +542,7 @@ apply generic_format_round...
 rewrite <- Hfd1.
 apply MinUniqueP with b r.
 apply RND_Min_correct; try assumption.
-apply Nat2Z.inj_lt; rewrite inj_abs; simpl; omega.
+apply Nat2Z.inj_lt; rewrite inj_abs; simpl; lia.
 split.
 apply FcanonicBound with (1:=Hfd2).
 assert (T:Rnd_DN_pt (generic_format beta (FLT_exp (- dExp b) p)) r
@@ -587,7 +587,7 @@ apply Rlt_le_trans with (1:=H2).
 right; ring.
 (* *)
 rewrite round_N_middle.
-rewrite inj_abs;[idtac|omega].
+rewrite inj_abs;[idtac|lia].
 case (choice _).
 apply sym_eq, pff_round_UP_is_round.
 apply sym_eq, pff_round_DN_is_round.
@@ -617,7 +617,7 @@ Proof.
 intros choice r.
 assert (1 < Z.abs_nat p).
 apply Nat2Z.inj_lt; simpl.
-rewrite inj_abs; omega.
+rewrite inj_abs; lia.
 exists (RND_Closest b beta (Z.abs_nat p) choice r); split.
 apply RND_Closest_canonic; easy.
 split.
@@ -633,7 +633,7 @@ intros r f Hf.
 generalize (radix_gt_1 beta); intros M.
 assert (M':1 < Z.abs_nat p).
 apply Nat2Z.inj_lt; simpl.
-rewrite inj_abs; omega.
+rewrite inj_abs; lia.
 pose (d := round beta (FLT_exp (-dExp b) p) Zfloor r).
 pose (u := round beta (FLT_exp (-dExp b) p) Zceil r).
 case (Rle_or_lt ((d+u)/2) r); intros L.
@@ -715,7 +715,7 @@ replace p with (Z.of_nat (Z.abs_nat p)).
 rewrite <- Zpower_nat_Z_powerRZ.
 apply IZR_lt.
 now rewrite <- pGivesBound.
-rewrite inj_abs; omega.
+rewrite inj_abs; lia.
 Qed.
 
 Lemma CanonicGeNormal:  forall f, Fcanonic beta b f ->
@@ -748,7 +748,7 @@ rewrite IZR_Zpower_nat.
 rewrite <- bpow_1.
 rewrite <- bpow_plus.
 apply bpow_le.
-rewrite inj_abs; omega.
+rewrite inj_abs; lia.
 Qed.
 
 
@@ -760,7 +760,7 @@ intros f H.
 case (Req_dec (FtoR beta f) 0); intros Zf.
 (* f = 0 *)
 rewrite Zf, ulp_FLT_small.
-2: unfold Prec_gt_0; omega.
+2: unfold Prec_gt_0; lia.
 2: rewrite Rabs_R0; apply bpow_gt_0.
 rewrite Fulp_zero.
 apply sym_eq, bpow_powerRZ.
@@ -774,7 +774,7 @@ simpl; rewrite CanonicFulp; try assumption.
 unfold FtoR; simpl; rewrite bpow_powerRZ; ring.
 apply radix_gt_1.
 replace 1 with (Z.abs_nat 1) by easy.
-apply Zabs_nat_lt; omega.
+apply Zabs_nat_lt; lia.
 unfold F2R, FtoR; simpl.
 rewrite bpow_powerRZ; easy.
 Qed.
@@ -789,13 +789,13 @@ assert (Y1: (1 < beta)%Z) by apply radix_gt_1.
 assert (Y2:Z.abs_nat p <> 0).
 apply sym_not_eq, Nat.lt_neq.
 replace 0 with (Z.abs_nat 0) by easy.
-apply Zabs_nat_lt; omega.
+apply Zabs_nat_lt; lia.
 rewrite FulpComp with (q:=Fnormalize beta b (Z.abs_nat p) f); try assumption.
 rewrite <- FnormalizeCorrect with beta b (Z.abs_nat p) f; try assumption.
 apply Fulp_ulp_aux.
 apply FnormalizeCanonic; try assumption.
 replace 1 with (Z.abs_nat 1) by easy.
-apply Zabs_nat_lt; omega.
+apply Zabs_nat_lt; lia.
 apply FnormalizeBounded; try assumption.
 apply sym_eq, FnormalizeCorrect; try assumption.
 Qed.

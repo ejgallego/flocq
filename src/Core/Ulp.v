@@ -57,7 +57,7 @@ Proof.
 unfold negligible_exp; destruct LPO_Z as [(n,Hn)|Hn].
 now apply negligible_Some.
 apply negligible_None.
-intros n; specialize (Hn n); omega.
+intros n; specialize (Hn n); lia.
 Qed.
 
 Lemma negligible_exp_spec': (negligible_exp = None /\ forall n, (fexp n < n)%Z)
@@ -66,7 +66,7 @@ Proof.
 unfold negligible_exp; destruct LPO_Z as [(n,Hn)|Hn].
 right; simpl; exists n; now split.
 left; split; trivial.
-intros n; specialize (Hn n); omega.
+intros n; specialize (Hn n); lia.
 Qed.
 
 Context { valid_exp : Valid_exp fexp }.
@@ -75,8 +75,8 @@ Lemma fexp_negligible_exp_eq: forall n m, (n <= fexp n)%Z -> (m <= fexp m)%Z -> 
 Proof.
 intros n m Hn Hm.
 case (Zle_or_lt n m); intros H.
-apply valid_exp; omega.
-apply sym_eq, valid_exp; omega.
+apply valid_exp; lia.
+apply sym_eq, valid_exp; lia.
 Qed.
 
 
@@ -248,17 +248,17 @@ rewrite Req_bool_true; trivial.
 case negligible_exp_spec.
 intros H1 _.
 apply generic_format_bpow.
-specialize (H1 (e+1)%Z); omega.
+specialize (H1 (e+1)%Z); lia.
 intros n H1 H2.
 apply generic_format_bpow.
 case (Zle_or_lt (e+1) (fexp (e+1))); intros H4.
 absurd (e+1 <= e)%Z.
-omega.
+lia.
 apply Z.le_trans with (1:=H4).
 replace (fexp (e+1)) with (fexp n).
 now apply le_bpow with beta.
 now apply fexp_negligible_exp_eq.
-omega.
+lia.
 Qed.
 
 (** The three following properties are equivalent:
@@ -310,10 +310,10 @@ case (Zle_or_lt l (fexp l)); intros Hl.
 rewrite (fexp_negligible_exp_eq n l); trivial; apply Z.le_refl.
 case (Zle_or_lt (fexp n) (fexp l)); trivial; intros K.
 absurd (fexp n <= fexp l)%Z.
-omega.
+lia.
 apply Z.le_trans with (2:= H _).
 apply Zeq_le, sym_eq, valid_exp; trivial.
-omega.
+lia.
 Qed.
 
 Lemma not_FTZ_ulp_ge_ulp_0:
@@ -469,7 +469,7 @@ apply gt_0_F2R with beta (cexp beta fexp x).
 rewrite <- Fx.
 apply Rle_lt_trans with (2:=Hx).
 apply bpow_ge_0.
-omega.
+lia.
 case (Zle_lt_or_eq _ _ H); intros Hm.
 (* *)
 pattern x at 1 ; rewrite Fx.
@@ -552,7 +552,7 @@ rewrite ulp_neq_0.
 intro H.
 assert (ex-1 < cexp beta fexp x  < ex)%Z.
 split ; apply (lt_bpow beta) ; rewrite <- H ; easy.
-clear -H0. omega.
+clear -H0. lia.
 now apply Rgt_not_eq.
 apply Ex'.
 apply Rle_lt_trans with (2 := proj2 Ex').
@@ -574,7 +574,7 @@ apply gt_0_F2R with beta (cexp beta fexp x).
 rewrite <- Fx.
 apply Rle_lt_trans with (2:=proj1 Ex').
 apply bpow_ge_0.
-omega.
+lia.
 now apply Rgt_not_eq.
 Qed.
 
@@ -598,7 +598,7 @@ rewrite minus_IZR, IZR_Zpower.
 rewrite Rmult_minus_distr_r, Rmult_1_l.
 rewrite <- bpow_plus.
 now replace (e - 1 - fexp (e - 1) + fexp (e - 1))%Z with (e-1)%Z by ring.
-omega.
+lia.
 rewrite H.
 apply generic_format_F2R.
 intros _.
@@ -611,7 +611,7 @@ split.
 apply Rplus_le_reg_l with (bpow (fexp (e-1))).
 ring_simplify.
 apply Rle_trans with (bpow (e - 2) + bpow (e - 2))%R.
-apply Rplus_le_compat ; apply bpow_le ; omega.
+apply Rplus_le_compat ; apply bpow_le ; lia.
 apply Rle_trans with (2*bpow (e - 2))%R;[right; ring|idtac].
 apply Rle_trans with (bpow 1*bpow (e - 2))%R.
 apply Rmult_le_compat_r.
@@ -633,7 +633,7 @@ apply Ropp_lt_contravar.
 apply bpow_gt_0.
 apply Rle_ge; apply Rle_0_minus.
 apply bpow_le.
-omega.
+lia.
 replace f with 0%R.
 apply generic_format_0.
 unfold f.
@@ -861,7 +861,7 @@ assert (ex - 1 < fexp ex < ex)%Z.
   split ; apply (lt_bpow beta) ; rewrite <- M by easy.
   lra.
   apply Hex.
-omega.
+lia.
 rewrite 2!ulp_neq_0 by lra.
 apply f_equal.
 unfold cexp ; apply f_equal.
@@ -926,7 +926,7 @@ split.
 apply Rplus_le_reg_l with (bpow (fexp (e-1))).
 ring_simplify.
 apply Rle_trans with (bpow (e - 2) + bpow (e - 2))%R.
-apply Rplus_le_compat; apply bpow_le; omega.
+apply Rplus_le_compat; apply bpow_le; lia.
 apply Rle_trans with (2*bpow (e - 2))%R;[right; ring|idtac].
 apply Rle_trans with (bpow 1*bpow (e - 2))%R.
 apply Rmult_le_compat_r.
@@ -949,7 +949,7 @@ apply bpow_gt_0.
 apply Rle_ge; apply Rle_0_minus.
 rewrite Hxe.
 apply bpow_le.
-omega.
+lia.
 (* *)
 contradict Zp.
 rewrite Hxe, He; ring.
@@ -972,12 +972,12 @@ unfold ulp; rewrite Req_bool_true; trivial.
 case negligible_exp_spec.
 intros K.
 specialize (K (e-1)%Z).
-contradict K; omega.
+contradict K; lia.
 intros n Hn.
 rewrite H3; apply f_equal.
 case (Zle_or_lt n (e-1)); intros H6.
-apply valid_exp; omega.
-apply sym_eq, valid_exp; omega.
+apply valid_exp; lia.
+apply sym_eq, valid_exp; lia.
 Qed.
 
 (** The following one is false for x = 0 in FTZ *)
@@ -1100,7 +1100,7 @@ exfalso ; lra.
 intros n Hn H.
 assert (fexp (mag beta eps) = fexp n).
 apply valid_exp; try assumption.
-assert(mag beta eps-1 < fexp n)%Z;[idtac|omega].
+assert(mag beta eps-1 < fexp n)%Z;[idtac|lia].
 apply lt_bpow with beta.
 apply Rle_lt_trans with (2:=proj2 H).
 destruct (mag beta eps) as (e,He).
@@ -1165,7 +1165,7 @@ lra.
 intros n Hn H.
 assert (fexp (mag beta eps) = fexp n).
 apply valid_exp; try assumption.
-assert(mag beta eps-1 < fexp n)%Z;[idtac|omega].
+assert(mag beta eps-1 < fexp n)%Z;[idtac|lia].
 apply lt_bpow with beta.
 apply Rle_lt_trans with (2:=H).
 destruct (mag beta eps) as (e,He).
@@ -1349,11 +1349,11 @@ now apply Rgt_not_eq.
 case (Zle_lt_or_eq _ _ H2); intros Hexy.
 assert (fexp ex = fexp (ey-1))%Z.
 apply valid_exp.
-omega.
+lia.
 rewrite <- H1.
-omega.
+lia.
 absurd (0 < Ztrunc (scaled_mantissa beta fexp x) < 1)%Z.
-omega.
+lia.
 split.
 apply gt_0_F2R with beta (cexp beta fexp x).
 now rewrite <- Fx.
@@ -1395,9 +1395,9 @@ apply sym_eq; apply mag_unique.
 rewrite H1, Rabs_right.
 split.
 apply bpow_le.
-omega.
+lia.
 apply bpow_lt.
-omega.
+lia.
 apply Rle_ge; apply bpow_ge_0.
 apply mag_unique.
 apply Hey.
@@ -1542,7 +1542,7 @@ rewrite mag_bpow.
 replace (fexp n + 1 - 1)%Z with (fexp n) by ring.
 rewrite Req_bool_true; trivial.
 apply Rminus_diag_eq, f_equal.
-apply sym_eq, valid_exp; omega.
+apply sym_eq, valid_exp; lia.
 Qed.
 
 Theorem succ_0 :
@@ -1919,7 +1919,7 @@ rewrite ulp_neq_0; trivial.
 apply f_equal.
 unfold cexp.
 apply valid_exp; trivial.
-assert (mag beta x -1 < fexp n)%Z;[idtac|omega].
+assert (mag beta x -1 < fexp n)%Z;[idtac|lia].
 apply lt_bpow with beta.
 destruct (mag beta x) as (e,He).
 simpl.

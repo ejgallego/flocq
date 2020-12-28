@@ -266,7 +266,7 @@ apply Z.le_refl.
 split.
 easy.
 apply Zpower_gt_1.
-clear -He ; omega.
+clear -He ; lia.
 apply Zle_minus_le_0.
 now apply Zlt_le_weak.
 revert H1.
@@ -286,7 +286,7 @@ apply Znot_gt_le.
 intros H.
 apply Zlt_not_le with (1 := He).
 apply Zpower_le.
-clear -H ; omega.
+clear -H ; lia.
 Qed.
 
 Theorem Zpower_gt_id :
@@ -306,7 +306,7 @@ clear.
 apply Zlt_0_minus_lt.
 replace (r * (Z_of_nat n0 + 1) - (Z_of_nat n0 + 1))%Z with ((r - 1) * (Z_of_nat n0 + 1))%Z by ring.
 apply Zmult_lt_0_compat.
-cut (2 <= r)%Z. omega.
+cut (2 <= r)%Z. lia.
 apply Zle_bool_imp_le.
 apply r.
 apply (Zle_lt_succ 0).
@@ -424,7 +424,7 @@ apply Z.opp_inj.
 rewrite <- Zquot_opp_l, Z.opp_0.
 apply Z.quot_small.
 generalize (Zabs_non_eq a).
-omega.
+lia.
 Qed.
 
 Theorem ZOmod_small_abs :
@@ -441,7 +441,7 @@ apply Z.opp_inj.
 rewrite <- Zrem_opp_l.
 apply Z.rem_small.
 generalize (Zabs_non_eq a).
-omega.
+lia.
 Qed.
 
 Theorem ZOdiv_plus :
