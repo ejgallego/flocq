@@ -97,10 +97,10 @@ html/index.html: $(OBJS)
 deps.dot: $(addprefix src/,$(FILES)) Remakefile.in
 	(echo "digraph flocq_deps { pack=true; rank=max;"
 	echo "node [shape=ellipse, style=filled, URL=\"html/Flocq.\N.html\", color=black];"
-	echo '{ rank=same; "Core.Zaux"; "Core.Raux"; }'
-	echo '{ rank=same; "Core.FLX"; "Core.FIX"; "Core.Round_NE"; "Calc.Operations"; }'
-	echo '{ rank=same; "Core.FLT"; "Core.FTZ"; }'
+	echo '{ rank=same; "Core.Zaux"; "Core.Raux"; "IEEE754.SpecFloatCompat"; }'
 	echo '{ rank=same; "Core.Generic_fmt"; "Core.Ulp"; }'
+	echo '{ rank=same; "Core.FLX"; "Core.FIX"; "Core.Round_NE"; }'
+	echo '{ rank=same; "Core.FLT"; "Core.FTZ"; "Calc.Operations"; }'
 	echo '{ rank=same; "IEEE754.Binary"; "IEEE754.BinarySingleNaN"; }'
 	(cd src ; @COQDEP@ -R . Flocq $(FILES)) |
 	  sed -n -e 's,/,.,g;s/[.]vo.*: [^ ]*[.]v//p' |
