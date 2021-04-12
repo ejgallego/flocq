@@ -361,13 +361,15 @@ Theorem Zdiv_mod_mult :
   forall n a b, (0 <= a)%Z -> (0 <= b)%Z ->
   (Z.div (Zmod n (a * b)) a) = Zmod (Z.div n a) b.
 Proof.
-  intros n a b Ha Hb.
-  destruct (Zle_lt_or_eq _ _ Ha) as [Ha'|Ha'].
-  - destruct (Zle_lt_or_eq _ _ Hb) as [Hb'|Hb'].
-    + rewrite Z.rem_mul_r, Z.add_comm, Z.mul_comm,
-        Z.div_add_l, Z.mod_div, Z.add_0_r; lia.
-    + subst. now rewrite Z.mul_0_r, !Zmod_0_r, ?Zdiv_0_l.
-  - subst. now rewrite Z.mul_0_l, !Zdiv_0_r, Zmod_0_l.
+intros n a b Ha Hb.
+destruct (Zle_lt_or_eq _ _ Ha) as [Ha'|<-].
+- destruct (Zle_lt_or_eq _ _ Hb) as [Hb'|<-].
+  + rewrite Z.rem_mul_r, Z.add_comm, Z.mul_comm, Z.div_add_l by lia.
+    rewrite (Zdiv_small (Zmod n a)).
+    apply Z.add_0_r.
+    now apply Z.mod_pos_bound.
+  + now rewrite Z.mul_0_r, !Zmod_0_r, ?Zdiv_0_l.
+- now rewrite Z.mul_0_l, !Zdiv_0_r, Zmod_0_l.
 Qed.
 
 Theorem ZOdiv_mod_mult :
