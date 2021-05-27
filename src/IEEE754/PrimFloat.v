@@ -21,7 +21,7 @@ COPYING file for more details.
 
 (** * Interface Flocq with Coq (>= 8.11) primitive floating-point numbers. *)
 
-From Coq Require Import ZArith Reals Floats SpecFloat.
+From Coq Require Import Int63 ZArith Reals Floats SpecFloat.
 Require Import Zaux BinarySingleNaN.
 
 (** Conversions from/to Flocq binary_float *)
@@ -254,7 +254,7 @@ Qed.
 
 Theorem normfr_mantissa_equiv :
   forall x,
-  Int63.to_Z (normfr_mantissa x) = Z.of_N (Bnormfr_mantissa (Prim2B x)).
+  to_Z (normfr_mantissa x) = Z.of_N (Bnormfr_mantissa (Prim2B x)).
 Proof.
 intro x.
 rewrite normfr_mantissa_spec.
@@ -281,7 +281,7 @@ Qed.
 
 Theorem ldshiftexp_equiv :
   forall x e,
-  Prim2B (ldshiftexp x e) = Bldexp mode_NE (Prim2B x) (Int63.to_Z e - shift).
+  Prim2B (ldshiftexp x e) = Bldexp mode_NE (Prim2B x) (to_Z e - shift).
 Proof.
 intros x e.
 apply B2Prim_inj.
@@ -321,7 +321,7 @@ Qed.
 Theorem frshiftexp_equiv :
   forall x : float,
   let (m, e) := frshiftexp x in
-  (Prim2B m, (Int63.to_Z e - shift)%Z) = Bfrexp (Prim2B x).
+  (Prim2B m, (to_Z e - shift)%Z) = Bfrexp (Prim2B x).
 Proof.
 intro x.
 generalize (frexp_equiv x).
@@ -507,7 +507,7 @@ Qed.
 Theorem of_int63_equiv :
   forall i,
   Prim2B (of_int63 i)
-  = binary_normalize prec emax Hprec Hmax mode_NE (Int63.to_Z i) 0 false.
+  = binary_normalize prec emax Hprec Hmax mode_NE (to_Z i) 0 false.
 Proof.
 intro i.
 apply B2SF_inj.
