@@ -76,7 +76,7 @@ Qed.
 Lemma Prim2SF_B2Prim : forall x, Prim2SF (B2Prim x) = B2SF x.
 Proof.
 intro x; unfold B2Prim.
-now rewrite Prim2SF_SF2Prim; [|apply valid_binary_B2SF].
+now rewrite Prim2SF_SF2Prim; [ | apply valid_binary_B2SF].
 Qed.
 
 (** Basic properties of the Binary64 format *)
@@ -126,7 +126,7 @@ Lemma round_nearest_even_equiv s m l :
   round_nearest_even m l = choice_mode mode_NE s m l.
 Proof.
 case l; [reflexivity|intro c].
-case c; [|reflexivity..].
+case c; [ | reflexivity..].
 now simpl; unfold Round.cond_incr; case Z.even.
 Qed.
 
@@ -152,7 +152,7 @@ rewrite Prim2SF_B2Prim.
 rewrite mul_spec.
 rewrite <-!B2SF_Prim2B.
 case (Prim2B x) as [sx|sx| |sx mx ex Bx];
-  case (Prim2B y) as [sy|sy| |sy my ey By]; [now trivial..|].
+  case (Prim2B y) as [sy|sy| |sy my ey By]; [now trivial.. | ].
 simpl.
 rewrite B2SF_SF2B.
 apply binary_round_aux_equiv.
@@ -172,7 +172,7 @@ Lemma binary_normalize_equiv m e szero :
   SpecFloat.binary_normalize prec emax m e szero
   = B2SF (binary_normalize prec emax Hprec Hmax mode_NE m e szero).
 Proof.
-case m as [|p|p].
+case m as [ | p | p].
 - now simpl.
 - simpl; rewrite B2SF_SF2B; apply binary_round_equiv.
 - simpl; rewrite B2SF_SF2B; apply binary_round_equiv.
@@ -191,7 +191,7 @@ rewrite add_spec.
 rewrite <-!B2SF_Prim2B.
 case (Prim2B x) as [sx|sx| |sx mx ex Bx];
   case (Prim2B y) as [sy|sy| |sy my ey By];
-  [now (trivial || simpl; case Bool.eqb)..|].
+  [now (trivial || simpl; case Bool.eqb).. | ].
 apply binary_normalize_equiv.
 Qed.
 
@@ -208,7 +208,7 @@ rewrite sub_spec.
 rewrite <-!B2SF_Prim2B.
 case (Prim2B x) as [sx|sx| |sx mx ex Bx];
   case (Prim2B y) as [sy|sy| |sy my ey By];
-  [now (trivial || simpl; case Bool.eqb)..|].
+  [now (trivial || simpl; case Bool.eqb).. | ].
 apply binary_normalize_equiv.
 Qed.
 
@@ -225,7 +225,7 @@ rewrite div_spec.
 rewrite <-!B2SF_Prim2B.
 case (Prim2B x) as [sx|sx| |sx mx ex Bx];
   case (Prim2B y) as [sy|sy| |sy my ey By];
-  [now (trivial || simpl; case Bool.eqb)..|].
+  [now (trivial || simpl; case Bool.eqb).. | ].
 simpl.
 rewrite B2SF_SF2B.
 set (melz := SFdiv_core_binary _ _ _ _ _ _).
@@ -243,8 +243,8 @@ apply Prim2SF_inj.
 rewrite Prim2SF_B2Prim.
 rewrite sqrt_spec.
 rewrite <-B2SF_Prim2B.
-case Prim2B as [sx|sx| |sx mx ex Bx]; [now (trivial || case sx)..|].
-case sx; [reflexivity|].
+case Prim2B as [sx|sx| |sx mx ex Bx]; [now (trivial || case sx).. | ].
+case sx; [reflexivity | ].
 simpl.
 rewrite B2SF_SF2B.
 set (melz := SFsqrt_core_binary _ _ _ _).
@@ -273,7 +273,7 @@ apply Prim2SF_inj.
 rewrite Prim2SF_B2Prim.
 rewrite ldexp_spec.
 rewrite <-!B2SF_Prim2B.
-case (Prim2B x) as [sx|sx| |sx mx ex Bx]; [now trivial..|].
+case (Prim2B x) as [sx|sx| |sx mx ex Bx]; [now trivial.. | ].
 simpl.
 rewrite B2SF_SF2B.
 apply binary_round_equiv.
@@ -290,7 +290,7 @@ apply Prim2SF_inj.
 rewrite Prim2SF_B2Prim.
 rewrite ldshiftexp_spec.
 rewrite <-!B2SF_Prim2B.
-case (Prim2B x) as [sx|sx| |sx mx ex Bx]; [now trivial..|].
+case (Prim2B x) as [sx|sx| |sx mx ex Bx]; [now trivial.. | ].
 simpl.
 rewrite B2SF_SF2B.
 apply binary_round_equiv.
@@ -406,7 +406,7 @@ assert (Hpred_pos : forall x, (0 < B2R x)%R -> SFpred_pos prec emax (B2SF x) = B
   - rewrite <-(Prim2B_B2Prim (B754_finite _ _ _ _)).
     rewrite <-(Prim2B_B2Prim z).
     now rewrite <-sub_equiv, !B2SF_Prim2B, sub_spec. }
-case Prim2B as [sx|sx| |sx mx ex Bx]; [reflexivity|now case sx|reflexivity|].
+case Prim2B as [sx|sx| |sx mx ex Bx]; [reflexivity|now case sx|reflexivity| ].
 rewrite <- Bsucc'_correct by easy.
 unfold SF64succ, SFsucc, B2SF at 1, Bsucc'.
 case sx.
