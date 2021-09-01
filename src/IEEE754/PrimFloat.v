@@ -518,7 +518,7 @@ Qed.
 
 Theorem eqb_equiv :
   forall x y,
-  (x == y)%float = Beqb (Prim2B x) (Prim2B y).
+  eqb x y = Beqb (Prim2B x) (Prim2B y).
 Proof.
 intros x y.
 rewrite eqb_spec.
@@ -528,7 +528,7 @@ Qed.
 
 Theorem ltb_equiv :
   forall x y,
-  (x < y)%float = Bltb (Prim2B x) (Prim2B y).
+  ltb x y = Bltb (Prim2B x) (Prim2B y).
 Proof.
 intros x y.
 rewrite ltb_spec.
@@ -538,7 +538,7 @@ Qed.
 
 Theorem leb_equiv :
   forall x y,
-  (x <= y)%float = Bleb (Prim2B x) (Prim2B y).
+  leb x y = Bleb (Prim2B x) (Prim2B y).
 Proof.
 intros x y.
 rewrite leb_spec.
