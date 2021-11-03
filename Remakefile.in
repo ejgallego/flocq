@@ -134,6 +134,12 @@ install:
 	for f in $(FILES); do cp src/$f $dir/$f; done
 	( cd src && find . -type d -name ".coq-native" -exec cp -RT "{}" "$dir/{}" \; )
 
+install-glob:
+	dir="${DESTDIR}@COQUSERCONTRIB@/Flocq"
+	mkdir -p $dir
+	for d in Core Calc Prop IEEE754 Pff; do mkdir -p $dir/$d; done
+	for f in $(FILES); do cp src/${f%.v}.glob $dir/${f%.v}.glob; done
+
 EXTRA_DIST = \
 	configure
 
