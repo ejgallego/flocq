@@ -211,7 +211,7 @@ apply ulp_ge_0.
 left; apply Rlt_plus_1.
 rewrite 2!ulp_neq_0; trivial.
 2: lra.
-change 2 at 2 with (bpow 1).
+change 2 with (bpow 1) at 2.
 rewrite <- bpow_plus.
 apply bpow_le.
 case (Rle_or_lt (bpow (emin+prec-1)) (Rabs u)); intros Hu.
