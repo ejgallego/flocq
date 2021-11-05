@@ -18560,10 +18560,10 @@ Hypothesis D5: (Closest b radix (t3-x2y2)%R  t4).
 
 
 Theorem dExpPrim: (dExp b < dExp b')%Z.
-unfold b'; simpl; auto with zarith.
+unfold b'; simpl.
 cut (forall (x:N) (y:positive), (x+(Zpos y)=(x +Npos y)%N)%Z).
 intros T; simpl; rewrite <- T.
-apply Z.le_lt_trans with (N.double (dExp b)); try lia.
+apply Z.le_lt_trans with (N.double (dExp b)); [| lia].
 rewrite N.double_spec.
 lia.
 intros;unfold Nplus.
@@ -18573,7 +18573,7 @@ Qed.
 Theorem dExpPrimEq: (Z_of_N (N.double (dExp b) + Npos (xO (P_of_succ_nat t)))
    =2*(dExp b)+2*t+2)%Z.
 cut (forall (x:N) (y:positive), (x+(Zpos y)=(x +Npos y)%N)%Z).
-intros T; rewrite <- T; auto with zarith.
+intros T; rewrite <- T.
 2:intros;unfold Nplus.
 2:case x0; auto with zarith.
 replace  (Zpos (xO (P_of_succ_nat t))) with (2*t+2)%Z.
@@ -18612,7 +18612,7 @@ apply Rle_not_lt.
 apply Rle_trans with (powerRZ radix (-(dExp b))).
 unfold firstNormalPos, FtoRradix, FtoR; simpl.
 unfold nNormMin; rewrite Zpower_nat_Z_powerRZ; rewrite <- powerRZ_add.
-apply Rle_powerRZ; auto with real zarith.
+apply Rle_powerRZ.
 apply IZR_le; lia.
 rewrite dExpPrimEq.
 rewrite inj_pred; lia.
