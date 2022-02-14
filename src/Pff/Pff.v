@@ -918,9 +918,10 @@ Qed.
 
 Theorem powerRZ_Zopp :
  forall (e : R) (z : Z), e <> 0%R -> powerRZ e (- z) = (/ powerRZ e z)%R.
-intros e z H; case z; simpl in |- *; auto with real.
-intros p; apply sym_eq; apply Rinv_involutive.
-apply pow_nonzero; auto.
+Proof.
+intros e z H.
+rewrite powerRZ_neg by easy.
+now apply powerRZ_inv.
 Qed.
 
 Theorem powerRZ_Zs :
