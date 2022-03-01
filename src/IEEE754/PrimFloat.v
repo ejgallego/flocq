@@ -21,7 +21,8 @@ COPYING file for more details.
 
 (** * Interface Flocq with Coq (>= 8.11) primitive floating-point numbers. *)
 
-From Coq Require Import Int63 ZArith Reals Floats SpecFloat.
+Require Import Int63Compat.
+From Coq Require Import ZArith Reals Floats SpecFloat.
 Require Import Zaux BinarySingleNaN.
 
 (** Conversions from/to Flocq binary_float *)

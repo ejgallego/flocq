@@ -30,8 +30,13 @@ AX_VERSION_GE([$coq_version], 8.7, [],
   [AC_MSG_ERROR([must be at least 8.7 (you have version $coq_version).])])
 AC_MSG_RESULT($coq_version)
 
+AX_VERSION_GE([$coq_version], 8.14,
+  [INT63_MODULE="Require Export Int63Copy"],
+  [INT63_MODULE="From Coq Require Export Int63"])
+AC_SUBST(INT63_MODULE)
+
 AX_VERSION_GE([$coq_version], 8.11,
-  [PRIM_FLOAT="IEEE754/PrimFloat.v"],
+  [PRIM_FLOAT="IEEE754/Int63Compat.v IEEE754/PrimFloat.v"],
   [PRIM_FLOAT="IEEE754/SpecFloatCopy.v"])
 AC_SUBST(PRIM_FLOAT)
 
@@ -89,5 +94,6 @@ case `$CXX -v 2>&1 | grep -e "^Target:"` in
 esac
 fi
 
-AC_CONFIG_FILES([Remakefile src/Version.v src/IEEE754/SpecFloatCompat.v])
+AC_CONFIG_FILES([Remakefile src/Version.v
+  src/IEEE754/SpecFloatCompat.v src/IEEE754/Int63Compat.v])
 AC_OUTPUT
